@@ -1,0 +1,6 @@
+{
+  "navigationBarTitleText": "习惯列表",
+  "usingComponents": {
+    "habit-card": "/components/habit-card/habit-card"
+  }
+} 

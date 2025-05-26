@@ -1,0 +1,77 @@
+{
+  "pages": [
+    "pages/index/index",
+    "pages/habits/habits",
+    "pages/habits/create/create",
+    "pages/analytics/analytics",
+    "pages/community/community",
+    "pages/profile/profile",
+    "pages/checkin/checkin"
+  ],
+  "window": {
+    "backgroundTextStyle": "light",
+    "navigationBarBackgroundColor": "#4F7CFF",
+    "navigationBarTitleText": "习惯打卡",
+    "navigationBarTextStyle": "white"
+  },
+  "tabBar": {
+    "color": "#909399",
+    "selectedColor": "#4F7CFF",
+    "backgroundColor": "#FFFFFF",
+    "borderStyle": "black",
+    "list": [
+      {
+        "pagePath": "pages/index/index",
+        "text": "首页",
+        "iconPath": "assets/images/tab-home.png",
+        "selectedIconPath": "assets/images/tab-home-active.png"
+      },
+      {
+        "pagePath": "pages/habits/habits",
+        "text": "习惯",
+        "iconPath": "assets/images/tab-habits.png",
+        "selectedIconPath": "assets/images/tab-habits-active.png"
+      },
+      {
+        "pagePath": "pages/analytics/analytics",
+        "text": "统计",
+        "iconPath": "assets/images/tab-analytics.png",
+        "selectedIconPath": "assets/images/tab-analytics-active.png"
+      },
+      {
+        "pagePath": "pages/profile/profile",
+        "text": "我的",
+        "iconPath": "assets/images/tab-profile.png",
+        "selectedIconPath": "assets/images/tab-profile-active.png"
+      }
+    ]
+  },
+  "usingComponents": {},
+  "style": "v2",
+  "sitemapLocation": "sitemap.json",
+  "lazyCodeLoading": "requiredComponents",
+  "permission": {
+    "scope.userLocation": {
+      "desc": "您的位置信息将用于记录打卡地点"
+    }
+  },
+  "requiredBackgroundModes": ["audio"],
+  "subpackages": [
+    {
+      "root": "packageAnalytics",
+      "pages": [
+        "pages/detail/detail",
+        "pages/report/report",
+        "pages/insights/insights"
+      ]
+    },
+    {
+      "root": "packageCommunity",
+      "pages": [
+        "pages/challenge/challenge",
+        "pages/post/post",
+        "pages/group/group"
+      ]
+    }
+  ]
+} 

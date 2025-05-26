@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>习惯养成 - 创建习惯</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #5E72E4;
+            --secondary-color: #F7FAFC;
+            --success-color: #2DCE89;
+            --warning-color: #FB6340;
+            --danger-color: #F5365C;
+            --text-color: #32325D;
+            --light-text: #8898AA;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            color: var(--text-color);
+            background-color: #F8F9FE;
+            -webkit-font-smoothing: antialiased;
+        }
+        
+        .ios-header {
+            background-color: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+        }
+        
+        .ios-card {
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            background-color: white;
+        }
+        
+        .ios-button {
+            border-radius: 10px;
+            font-weight: 600;
+        }
+        
+        .tab-bar {
+            background-color: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border-top: 1px solid rgba(0, 0, 0, 0.1);
+        }
+        
+        .ios-input {
+            border: none;
+            background-color: #F1F5F9;
+            border-radius: 10px;
+            padding: 12px 15px;
+            font-size: 16px;
+            color: var(--text-color);
+            width: 100%;
+        }
+        
+        .ios-input:focus {
+            outline: none;
+            box-shadow: 0 0 0 2px rgba(94, 114, 228, 0.3);
+        }
+        
+        .ios-textarea {
+            border: none;
+            background-color: #F1F5F9;
+            border-radius: 10px;
+            padding: 12px 15px;
+            font-size: 16px;
+            color: var(--text-color);
+            width: 100%;
+            resize: none;
+            min-height: 100px;
+        }
+        
+        .ios-textarea:focus {
+            outline: none;
+            box-shadow: 0 0 0 2px rgba(94, 114, 228, 0.3);
+        }
+        
+        .ios-label {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-color);
+            margin-bottom: 8px;
+            display: block;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .color-option {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            cursor: pointer;
+        }
+        
+        .color-option.selected {
+            box-shadow: 0 0 0 2px white, 0 0 0 4px var(--primary-color);
+        }
+        
+        .icon-option {
+            width: 50px;
+            height: 50px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            margin-right: 10px;
+            margin-bottom: 10px;
+        }
+        
+        .icon-option.selected {
+            box-shadow: 0 0 0 2px white, 0 0 0 4px var(--primary-color);
+        }
+        
+        .frequency-option {
+            padding: 10px;
+            border-radius: 10px;
+            background-color: #F1F5F9;
+            text-align: center;
+            cursor: pointer;
+        }
+        
+        .frequency-option.selected {
+            background-color: var(--primary-color);
+            color: white;
+        }
+        
+        .weekday-selector {
+            display: flex;
+            justify-content: space-between;
+        }
+        
+        .weekday {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: #F1F5F9;
+            font-size: 14px;
+            cursor: pointer;
+        }
+        
+        .weekday.selected {
+            background-color: var(--primary-color);
+            color: white;
+        }
+        
+        .time-picker {
+            display: flex;
+            align-items: center;
+            background-color: #F1F5F9;
+            border-radius: 10px;
+            padding: 10px 15px;
+        }
+        
+        .time-picker select {
+            border: none;
+            background: transparent;
+            font-size: 16px;
+            color: var(--text-color);
+            padding: 0 5px;
+            -webkit-appearance: none;
+            appearance: none;
+        }
+        
+        .time-picker select:focus {
+            outline: none;
+        }
+    </style>
+</head>
+<body class="pb-20">
+    <!-- 顶部导航栏 -->
+    <header class="ios-header fixed w-full top-0 z-10 px-4 py-3 flex justify-between items-center">
+        <div class="flex items-center">
+            <a href="habits.html" class="mr-2">
+                <i class="fas fa-times text-gray-600"></i>
+            </a>
+            <h1 class="text-xl font-bold">创建新习惯</h1>
+        </div>
+        <div>
+            <button class="bg-blue-500 text-white px-4 py-1 rounded-full text-sm font-medium">
+                保存
+            </button>
+        </div>
+    </header>
+
+    <!-- 主内容区 -->
+    <main class="mt-16 px-4">
+        <form>
+            <!-- 基本信息 -->
+            <div class="ios-card p-4 mb-6">
+                <div class="form-group">
+                    <label class="ios-label" for="habit-name">习惯名称</label>
+                    <input type="text" id="habit-name" class="ios-input" placeholder="例如：每日阅读">
+                </div>
+                
+                <div class="form-group">
+                    <label class="ios-label" for="habit-description">习惯描述</label>
+                    <textarea id="habit-description" class="ios-textarea" placeholder="描述一下这个习惯的目标和意义..."></textarea>
+                </div>
+                
+                <div class="form-group">
+                    <label class="ios-label">习惯类别</label>
+                    <div class="flex flex-wrap">
+                        <div class="bg-blue-500 text-white text-sm px-3 py-1 rounded-full mr-2 mb-2">
+                            学习 <i class="fas fa-times ml-1"></i>
+                        </div>
+                        <button class="bg-gray-200 text-gray-600 text-sm px-3 py-1 rounded-full mr-2 mb-2">
+                            运动
+                        </button>
+                        <button class="bg-gray-200 text-gray-600 text-sm px-3 py-1 rounded-full mr-2 mb-2">
+                            健康
+                        </button>
+                        <button class="bg-gray-200 text-gray-600 text-sm px-3 py-1 rounded-full mr-2 mb-2">
+                            工作
+                        </button>
+                        <button class="bg-gray-200 text-gray-600 text-sm px-3 py-1 rounded-full mr-2 mb-2">
+                            生活
+                        </button>
+                        <button class="bg-gray-200 text-gray-600 text-sm px-3 py-1 rounded-full mr-2 mb-2">
+                            <i class="fas fa-plus mr-1"></i> 添加
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 图标和颜色 -->
+            <div class="ios-card p-4 mb-6">
+                <div class="form-group">
+                    <label class="ios-label">选择图标</label>
+                    <div class="flex flex-wrap">
+                        <div class="icon-option selected bg-blue-100 text-blue-500">
+                            <i class="fas fa-book fa-lg"></i>
+                        </div>
+                        <div class="icon-option bg-gray-100 text-gray-500">
+                            <i class="fas fa-running fa-lg"></i>
+                        </div>
+                        <div class="icon-option bg-gray-100 text-gray-500">
+                            <i class="fas fa-apple-alt fa-lg"></i>
+                        </div>
+                        <div class="icon-option bg-gray-100 text-gray-500">
+                            <i class="fas fa-bed fa-lg"></i>
+                        </div>
+                        <div class="icon-option bg-gray-100 text-gray-500">
+                            <i class="fas fa-brain fa-lg"></i>
+                        </div>
+                        <div class="icon-option bg-gray-100 text-gray-500">
+                            <i class="fas fa-pen fa-lg"></i>
+                        </div>
+                        <div class="icon-option bg-gray-100 text-gray-500">
+                            <i class="fas fa-dumbbell fa-lg"></i>
+                        </div>
+                        <div class="icon-option bg-gray-100 text-gray-500">
+                            <i class="fas fa-water fa-lg"></i>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label class="ios-label">选择颜色</label>
+                    <div class="flex space-x-4">
+                        <div class="color-option selected" style="background-color: #5E72E4;"></div>
+                        <div class="color-option" style="background-color: #2DCE89;"></div>
+                        <div class="color-option" style="background-color: #FB6340;"></div>
+                        <div class="color-option" style="background-color: #F5365C;"></div>
+                        <div class="color-option" style="background-color: #11CDEF;"></div>
+                        <div class="color-option" style="background-color: #8965E0;"></div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 频率设置 -->
+            <div class="ios-card p-4 mb-6">
+                <div class="form-group">
+                    <label class="ios-label">习惯频率</label>
+                    <div class="grid grid-cols-3 gap-3">
+                        <div class="frequency-option selected">
+                            <div class="text-sm font-medium">每天</div>
+                        </div>
+                        <div class="frequency-option">
+                            <div class="text-sm font-medium">每周</div>
+                        </div>
+                        <div class="frequency-option">
+                            <div class="text-sm font-medium">自定义</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label class="ios-label">选择周几</label>
+                    <div class="weekday-selector">
+                        <div class="weekday selected">一</div>
+                        <div class="weekday selected">二</div>
+                        <div class="weekday selected">三</div>
+                        <div class="weekday selected">四</div>
+                        <div class="weekday selected">五</div>
+                        <div class="weekday selected">六</div>
+                        <div class="weekday selected">日</div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 提醒设置 -->
+            <div class="ios-card p-4 mb-6">
+                <div class="form-group">
+                    <div class="flex justify-between items-center">
+                        <label class="ios-label mb-0">提醒</label>
+                        <label class="switch">
+                            <input type="checkbox" checked>
+                            <span class="slider round"></span>
+                        </label>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label class="ios-label">提醒时间</label>
+                    <div class="time-picker">
+                        <i class="fas fa-clock text-gray-400 mr-2"></i>
+                        <select>
+                            <option>06</option>
+                            <option>07</option>
+                            <option selected>08</option>
+                            <option>09</option>
+                            <option>10</option>
+                            <option>11</option>
+                            <option>12</option>
+                        </select>
+                        <span class="mx-1">:</span>
+                        <select>
+                            <option>00</option>
+                            <option>15</option>
+                            <option selected>30</option>
+                            <option>45</option>
+                        </select>
+                        <span class="mx-2"></span>
+                        <select>
+                            <option selected>上午</option>
+                            <option>下午</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 目标设置 -->
+            <div class="ios-card p-4 mb-6">
+                <div class="form-group">
+                    <label class="ios-label">目标类型</label>
+                    <div class="grid grid-cols-2 gap-3">
+                        <div class="frequency-option selected">
+                            <div class="text-sm font-medium">时长</div>
+                            <div class="text-xs text-gray-500 mt-1">记录习惯持续时间</div>
+                        </div>
+                        <div class="frequency-option">
+                            <div class="text-sm font-medium">次数</div>
+                            <div class="text-xs text-gray-500 mt-1">记录习惯完成次数</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label class="ios-label" for="habit-goal">目标时长（分钟）</label>
+                    <input type="number" id="habit-goal" class="ios-input" placeholder="例如：30" value="30">
+                </div>
+            </div>
+            
+            <!-- 高级设置 -->
+            <div class="ios-card p-4 mb-6">
+                <div class="form-group mb-0">
+                    <div class="flex justify-between items-center">
+                        <div>
+                            <div class="font-medium">高级设置</div>
+                            <div class="text-xs text-gray-500 mt-1">设置习惯的更多选项</div>
+                        </div>
+                        <i class="fas fa-chevron-right text-gray-400"></i>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 保存按钮 -->
+            <button class="w-full bg-blue-500 text-white py-3 rounded-lg font-medium mb-6 ios-button">
+                创建习惯
+            </button>
+        </form>
+    </main>
+</body>
+</html> 

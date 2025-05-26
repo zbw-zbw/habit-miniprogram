@@ -1,0 +1,230 @@
+<!--pages/habits/create/create.wxml-->
+<view class="container">
+  <view class="form">
+    <!-- 基本信息 -->
+    <view class="form-section">
+      <view class="form-title">基本信息</view>
+      
+      <view class="form-item">
+        <view class="form-label">习惯名称 <text class="required">*</text></view>
+        <input class="form-input" 
+          placeholder="请输入习惯名称" 
+          value="{{name}}" 
+          bindinput="onInput" 
+          data-field="name" />
+      </view>
+      
+      <view class="form-item">
+        <view class="form-label">描述</view>
+        <textarea class="form-textarea" 
+          placeholder="请输入习惯描述" 
+          value="{{description}}" 
+          bindinput="onInput" 
+          data-field="description" />
+      </view>
+      
+      <view class="form-item">
+        <view class="form-label">分类</view>
+        <view class="form-picker" bindtap="openCategoryPicker">
+          <text>{{category}}</text>
+          <text class="iconfont icon-right"></text>
+        </view>
+      </view>
+    </view>
+    
+    <!-- 外观设置 -->
+    <view class="form-section">
+      <view class="form-title">外观设置</view>
+      
+      <view class="form-item">
+        <view class="form-label">图标</view>
+        <view class="form-picker" bindtap="openIconPicker">
+          <view class="icon-preview" style="background-color: {{color}}">
+            <text class="iconfont icon-{{icon}}"></text>
+          </view>
+          <text class="iconfont icon-right"></text>
+        </view>
+      </view>
+      
+      <view class="form-item">
+        <view class="form-label">颜色</view>
+        <view class="form-picker" bindtap="openColorPicker">
+          <view class="color-preview" style="background-color: {{color}}"></view>
+          <text class="iconfont icon-right"></text>
+        </view>
+      </view>
+    </view>
+    
+    <!-- 频率设置 -->
+    <view class="form-section">
+      <view class="form-title">频率设置</view>
+      
+      <view class="form-item">
+        <view class="form-label">重复</view>
+        <view class="form-picker" bindtap="openFrequencyPicker">
+          <block wx:for="{{frequencyOptions}}" wx:key="value">
+            <text wx:if="{{item.value === frequency}}">{{item.label}}</text>
+          </block>
+          <text class="iconfont icon-right"></text>
+        </view>
+      </view>
+      
+      <block wx:if="{{frequency === 'custom'}}">
+        <view class="form-item">
+          <view class="form-label">自定义天数</view>
+          <view class="weekday-selector">
+            <view 
+              wx:for="{{weekdays}}" 
+              wx:key="index" 
+              class="weekday-item {{customDays.includes(index) ? 'active' : ''}}" 
+              bindtap="toggleCustomDay" 
+              data-day="{{index}}">
+              {{item}}
+            </view>
+          </view>
+        </view>
+      </block>
+      
+      <view class="form-item">
+        <view class="form-label">目标</view>
+        <view class="goal-input">
+          <input 
+            class="form-input goal-value" 
+            type="number" 
+            value="{{goalValue}}" 
+            bindinput="onInput" 
+            data-field="goalValue" />
+          <input 
+            class="form-input goal-unit" 
+            value="{{goalUnit}}" 
+            bindinput="onInput" 
+            data-field="goalUnit" />
+        </view>
+      </view>
+    </view>
+    
+    <!-- 提醒设置 -->
+    <view class="form-section">
+      <view class="form-title">提醒设置</view>
+      
+      <view class="form-item">
+        <view class="form-label">启用提醒</view>
+        <switch checked="{{isReminderEnabled}}" bindchange="onSwitchReminder" color="var(--primary-color)" />
+      </view>
+      
+      <block wx:if="{{isReminderEnabled}}">
+        <view class="form-item">
+          <view class="form-label">提醒时间</view>
+          <picker mode="time" value="{{reminderTime}}" bindchange="onTimeChange">
+            <view class="form-picker">
+              <text>{{reminderTime}}</text>
+              <text class="iconfont icon-right"></text>
+            </view>
+          </picker>
+        </view>
+      </block>
+    </view>
+  </view>
+  
+  <!-- 底部按钮 -->
+  <view class="footer">
+    <button class="btn btn-outline" bindtap="onCancel">取消</button>
+    <button class="btn btn-primary" bindtap="onSubmit" loading="{{isSubmitting}}">创建</button>
+  </view>
+  
+  <!-- 图标选择器 -->
+  <view class="modal {{showIconPicker ? 'show' : ''}}" catchtouchmove="true">
+    <view class="modal-mask" bindtap="closeIconPicker"></view>
+    <view class="modal-content">
+      <view class="modal-header">
+        <view class="modal-title">选择图标</view>
+        <view class="modal-close" bindtap="closeIconPicker">×</view>
+      </view>
+      <view class="modal-body">
+        <view class="icon-grid">
+          <view 
+            wx:for="{{icons}}" 
+            wx:key="index" 
+            class="icon-item {{icon === item ? 'active' : ''}}" 
+            bindtap="selectIcon" 
+            data-icon="{{item}}">
+            <view class="icon-box" style="background-color: {{color}}">
+              <text class="iconfont icon-{{item}}"></text>
+            </view>
+          </view>
+        </view>
+      </view>
+    </view>
+  </view>
+  
+  <!-- 颜色选择器 -->
+  <view class="modal {{showColorPicker ? 'show' : ''}}" catchtouchmove="true">
+    <view class="modal-mask" bindtap="closeColorPicker"></view>
+    <view class="modal-content">
+      <view class="modal-header">
+        <view class="modal-title">选择颜色</view>
+        <view class="modal-close" bindtap="closeColorPicker">×</view>
+      </view>
+      <view class="modal-body">
+        <view class="color-grid">
+          <view 
+            wx:for="{{colors}}" 
+            wx:key="index" 
+            class="color-item {{color === item ? 'active' : ''}}" 
+            bindtap="selectColor" 
+            data-color="{{item}}">
+            <view class="color-box" style="background-color: {{item}}"></view>
+          </view>
+        </view>
+      </view>
+    </view>
+  </view>
+  
+  <!-- 频率选择器 -->
+  <view class="modal {{showFrequencyPicker ? 'show' : ''}}" catchtouchmove="true">
+    <view class="modal-mask" bindtap="closeFrequencyPicker"></view>
+    <view class="modal-content">
+      <view class="modal-header">
+        <view class="modal-title">选择频率</view>
+        <view class="modal-close" bindtap="closeFrequencyPicker">×</view>
+      </view>
+      <view class="modal-body">
+        <view class="frequency-list">
+          <view 
+            wx:for="{{frequencyOptions}}" 
+            wx:key="value" 
+            class="frequency-item {{frequency === item.value ? 'active' : ''}}" 
+            bindtap="selectFrequency" 
+            data-frequency="{{item.value}}">
+            <text>{{item.label}}</text>
+            <text class="iconfont icon-check" wx:if="{{frequency === item.value}}"></text>
+          </view>
+        </view>
+      </view>
+    </view>
+  </view>
+  
+  <!-- 分类选择器 -->
+  <view class="modal {{showCategoryPicker ? 'show' : ''}}" catchtouchmove="true">
+    <view class="modal-mask" bindtap="closeCategoryPicker"></view>
+    <view class="modal-content">
+      <view class="modal-header">
+        <view class="modal-title">选择分类</view>
+        <view class="modal-close" bindtap="closeCategoryPicker">×</view>
+      </view>
+      <view class="modal-body">
+        <view class="category-list">
+          <view 
+            wx:for="{{categories}}" 
+            wx:key="index" 
+            class="category-item {{category === item ? 'active' : ''}}" 
+            bindtap="selectCategory" 
+            data-category="{{item}}">
+            <text>{{item}}</text>
+            <text class="iconfont icon-check" wx:if="{{category === item}}"></text>
+          </view>
+        </view>
+      </view>
+    </view>
+  </view>
+</view>

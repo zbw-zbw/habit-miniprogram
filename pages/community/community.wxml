@@ -1,0 +1,204 @@
+<!--pages/community/community.wxml-->
+<view class="container">
+  <!-- 顶部导航栏 -->
+  <view class="header">
+    <view class="header-title">社区</view>
+    <view class="header-actions">
+      <view class="header-action" bindtap="navigateToNotifications">
+        <text class="iconfont icon-notification"></text>
+        <view class="badge" wx:if="{{true}}">3</view>
+      </view>
+      <view class="header-action" bindtap="navigateToSearch">
+        <text class="iconfont icon-search"></text>
+      </view>
+    </view>
+  </view>
+  
+  <!-- 分类选择器 -->
+  <view class="tabs">
+    <view class="tab-item {{activeTab === 'follow' ? 'active' : ''}}" bindtap="switchTab" data-tab="follow">关注</view>
+    <view class="tab-item {{activeTab === 'discover' ? 'active' : ''}}" bindtap="switchTab" data-tab="discover">发现</view>
+    <view class="tab-item {{activeTab === 'nearby' ? 'active' : ''}}" bindtap="switchTab" data-tab="nearby">附近</view>
+    <view class="tab-item {{activeTab === 'rank' ? 'active' : ''}}" bindtap="switchTab" data-tab="rank">排行</view>
+  </view>
+  
+  <!-- 加载状态 -->
+  <view class="loading" wx:if="{{loading}}">
+    <view class="loading-spinner"></view>
+    <text class="loading-text">加载中...</text>
+  </view>
+  
+  <!-- 主内容区域 -->
+  <view class="content" wx:if="{{!loading}}">
+    <!-- 好友动态 -->
+    <view class="friends-section" wx:if="{{activeTab === 'follow' && friends.length > 0}}">
+      <view class="section-title">好友动态</view>
+      <scroll-view class="friends-list" scroll-x="true">
+        <!-- 添加故事 -->
+        <view class="friend-item">
+          <view class="friend-avatar-add" bindtap="showCreatePost">
+            <text class="iconfont icon-plus"></text>
+          </view>
+          <view class="friend-name">添加</view>
+        </view>
+        
+        <!-- 好友列表 -->
+        <view class="friend-item" wx:for="{{friends}}" wx:key="id" bindtap="viewUserProfile" data-id="{{item.id}}">
+          <view class="friend-avatar {{item.hasUpdate ? 'has-update' : ''}}">
+            <image src="{{item.avatar}}" mode="aspectFill"></image>
+          </view>
+          <view class="friend-name">{{item.name}}</view>
+        </view>
+      </scroll-view>
+    </view>
+    
+    <!-- 热门挑战 -->
+    <view class="challenges-section" wx:if="{{activeTab === 'discover' || activeTab === 'follow'}}">
+      <view class="section-header">
+        <view class="section-title">热门挑战</view>
+        <view class="section-more" bindtap="viewAllChallenges">查看全部</view>
+      </view>
+      <scroll-view class="challenges-list" scroll-x="true">
+        <view class="challenge-item" wx:for="{{challenges}}" wx:key="id" bindtap="viewChallengeDetail" data-id="{{item.id}}">
+          <image class="challenge-image" src="{{item.image}}" mode="aspectFill"></image>
+          <view class="challenge-info">
+            <view class="challenge-title">{{item.title}}</view>
+            <view class="challenge-meta">
+              <view class="challenge-participants">
+                <text class="iconfont icon-user"></text>
+                <text>{{item.participants}}人参与</text>
+              </view>
+              <view class="challenge-join {{item.isJoined ? 'joined' : ''}}" catchtap="joinChallenge" data-id="{{item.id}}" data-index="{{index}}">
+                {{item.isJoined ? '已参加' : '参加'}}
+              </view>
+            </view>
+          </view>
+        </view>
+      </scroll-view>
+    </view>
+    
+    <!-- 社区动态 -->
+    <view class="posts-section">
+      <view class="section-title">社区动态</view>
+      <view class="post-item" wx:for="{{posts}}" wx:key="id">
+        <view class="post-header">
+          <view class="post-user" bindtap="viewUserProfile" data-id="{{item.userId}}">
+            <image class="post-avatar" src="{{item.userAvatar}}" mode="aspectFill"></image>
+            <view class="post-user-info">
+              <view class="post-username">{{item.userName}}</view>
+              <view class="post-meta">{{item.createdAt}} · {{item.habitName}}</view>
+            </view>
+          </view>
+          <view class="post-more">
+            <text class="iconfont icon-more"></text>
+          </view>
+        </view>
+        
+        <view class="post-content" bindtap="viewPostDetail" data-id="{{item.id}}">
+          <text class="post-text">{{item.content}}</text>
+          
+          <!-- 标签 -->
+          <view class="post-tags" wx:if="{{item.tags.length > 0}}">
+            <view class="post-tag" wx:for="{{item.tags}}" wx:key="*this" wx:for-item="tag">
+              <text class="iconfont icon-tag"></text>
+              <text>{{tag}}</text>
+            </view>
+          </view>
+          
+          <!-- 图片 -->
+          <view class="post-images" wx:if="{{item.images.length > 0}}">
+            <image 
+              class="post-image {{item.images.length === 1 ? 'single' : ''}}" 
+              wx:for="{{item.images}}" 
+              wx:key="*this" 
+              wx:for-item="image" 
+              src="{{image}}" 
+              mode="aspectFill"
+            ></image>
+          </view>
+        </view>
+        
+        <!-- 互动按钮 -->
+        <view class="post-actions">
+          <view class="post-action {{item.isLiked ? 'active' : ''}}" bindtap="likePost" data-id="{{item.id}}" data-index="{{index}}">
+            <text class="iconfont {{item.isLiked ? 'icon-heart-fill' : 'icon-heart'}}"></text>
+            <text>{{item.likes}}</text>
+          </view>
+          <view class="post-action" bindtap="commentPost" data-id="{{item.id}}">
+            <text class="iconfont icon-comment"></text>
+            <text>{{item.comments}}</text>
+          </view>
+          <view class="post-action" bindtap="sharePost" data-id="{{item.id}}">
+            <text class="iconfont icon-share"></text>
+            <text>分享</text>
+          </view>
+        </view>
+      </view>
+      
+      <!-- 加载更多 -->
+      <view class="load-more" wx:if="{{hasMore}}">
+        <text>加载更多...</text>
+      </view>
+      <view class="no-more" wx:else>
+        <text>没有更多内容了</text>
+      </view>
+    </view>
+  </view>
+  
+  <!-- 发布动态弹窗 -->
+  <view class="post-modal {{showPostModal ? 'show' : ''}}" bindtap="hideCreatePost">
+    <view class="post-form" catchtap="stopPropagation">
+      <view class="form-header">
+        <view class="form-title">发布动态</view>
+        <view class="form-close" bindtap="hideCreatePost">
+          <text class="iconfont icon-close"></text>
+        </view>
+      </view>
+      
+      <view class="form-content">
+        <textarea 
+          class="form-textarea" 
+          placeholder="分享你的习惯打卡心得..." 
+          maxlength="500" 
+          bindinput="inputContent" 
+          value="{{newPost.content}}"
+        ></textarea>
+        
+        <!-- 已选标签 -->
+        <view class="form-tags" wx:if="{{newPost.tags.length > 0}}">
+          <view class="form-tag" wx:for="{{newPost.tags}}" wx:key="*this">
+            <text>{{item}}</text>
+            <text class="iconfont icon-close" bindtap="removeTag" data-index="{{index}}"></text>
+          </view>
+        </view>
+        
+        <!-- 已选图片 -->
+        <view class="form-images" wx:if="{{newPost.images.length > 0}}">
+          <view class="form-image-item" wx:for="{{newPost.images}}" wx:key="*this">
+            <image src="{{item}}" mode="aspectFill"></image>
+            <view class="image-remove" bindtap="removeImage" data-index="{{index}}">
+              <text class="iconfont icon-close"></text>
+            </view>
+          </view>
+        </view>
+      </view>
+      
+      <view class="form-footer">
+        <view class="form-actions">
+          <view class="form-action" bindtap="chooseImage">
+            <text class="iconfont icon-image"></text>
+          </view>
+          <view class="form-action" bindtap="showTagSelector">
+            <text class="iconfont icon-tag"></text>
+          </view>
+        </view>
+        <button class="submit-btn" bindtap="submitPost">发布</button>
+      </view>
+    </view>
+  </view>
+  
+  <!-- 浮动发布按钮 -->
+  <view class="float-btn" bindtap="showCreatePost">
+    <text class="iconfont icon-plus"></text>
+  </view>
+</view>

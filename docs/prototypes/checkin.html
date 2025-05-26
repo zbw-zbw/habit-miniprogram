@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>习惯养成 - 打卡</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #5E72E4;
+            --secondary-color: #F7FAFC;
+            --success-color: #2DCE89;
+            --warning-color: #FB6340;
+            --danger-color: #F5365C;
+            --text-color: #32325D;
+            --light-text: #8898AA;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            color: var(--text-color);
+            background-color: #F8F9FE;
+            -webkit-font-smoothing: antialiased;
+        }
+        
+        .ios-header {
+            background-color: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+        }
+        
+        .ios-card {
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            background-color: white;
+        }
+        
+        .ios-button {
+            border-radius: 10px;
+            font-weight: 600;
+        }
+        
+        .tab-bar {
+            background-color: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border-top: 1px solid rgba(0, 0, 0, 0.1);
+        }
+        
+        .habit-icon {
+            width: 48px;
+            height: 48px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 12px;
+        }
+
+        .checkin-button {
+            transition: all 0.2s ease;
+        }
+        
+        .checkin-button:active {
+            transform: scale(0.95);
+        }
+
+        .calendar-day {
+            width: 36px;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            font-size: 14px;
+            position: relative;
+        }
+
+        .calendar-day.completed::after {
+            content: '';
+            position: absolute;
+            bottom: 2px;
+            width: 4px;
+            height: 4px;
+            border-radius: 50%;
+            background-color: var(--primary-color);
+        }
+
+        .calendar-day.today {
+            background-color: var(--primary-color);
+            color: white;
+            font-weight: 600;
+        }
+
+        .calendar-day.disabled {
+            color: #CBD5E0;
+        }
+
+        .mood-selector {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 1rem;
+        }
+
+        .mood-option {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .mood-option:active {
+            transform: scale(0.9);
+        }
+
+        .mood-emoji {
+            font-size: 24px;
+            margin-bottom: 4px;
+        }
+
+        .mood-label {
+            font-size: 12px;
+            color: var(--light-text);
+        }
+
+        .photo-upload {
+            border: 2px dashed #E2E8F0;
+            border-radius: 12px;
+            padding: 1rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .photo-upload:hover {
+            border-color: var(--primary-color);
+        }
+
+        .timer-display {
+            font-size: 48px;
+            font-weight: 300;
+            text-align: center;
+            font-variant-numeric: tabular-nums;
+        }
+
+        .timer-button {
+            width: 64px;
+            height: 64px;
+            border-radius: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .ios-input {
+            border: none;
+            background-color: #F1F5F9;
+            border-radius: 8px;
+            padding: 12px 16px;
+            font-size: 16px;
+            color: var(--text-color);
+            width: 100%;
+        }
+
+        .ios-input:focus {
+            outline: none;
+            box-shadow: 0 0 0 2px rgba(94, 114, 228, 0.3);
+        }
+    </style>
+</head>
+<body class="pb-20">
+    <!-- 顶部导航栏 -->
+    <header class="ios-header fixed w-full top-0 z-10 px-4 py-3 flex justify-between items-center">
+        <div class="flex items-center">
+            <h1 class="text-xl font-bold">打卡</h1>
+        </div>
+        <div class="flex">
+            <button class="w-8 h-8 flex items-center justify-center rounded-full bg-gray-100">
+                <i class="fas fa-history text-gray-600"></i>
+            </button>
+        </div>
+    </header>
+
+    <!-- 主内容区 -->
+    <main class="mt-16 px-4 pb-6">
+        <h2 class="text-lg font-bold mb-4">今日待打卡</h2>
+        
+        <!-- 待打卡习惯 -->
+        <div class="space-y-4 mb-8">
+            <!-- 阅读习惯 -->
+            <div class="ios-card p-4">
+                <div class="flex justify-between items-center">
+                    <div class="flex items-center">
+                        <div class="habit-icon bg-blue-100 text-blue-500 mr-3">
+                            <i class="fas fa-book text-xl"></i>
+                        </div>
+                        <div>
+                            <h3 class="font-medium text-lg">阅读</h3>
+                            <p class="text-sm text-gray-500">每天30分钟</p>
+                        </div>
+                    </div>
+                    <div class="flex items-center">
+                        <div class="text-sm font-semibold text-green-500 mr-3">已连续12天</div>
+                        <button class="checkin-button bg-blue-500 text-white px-6 py-2 rounded-lg font-medium">
+                            打卡
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 打卡表单 (默认隐藏，点击打卡按钮后显示) -->
+                <div class="mt-4 pt-4 border-t border-gray-100">
+                    <h4 class="font-medium mb-3">今日阅读</h4>
+                    
+                    <!-- 阅读时长 -->
+                    <div class="mb-4">
+                        <label class="block text-sm text-gray-600 mb-2">阅读时长</label>
+                        <div class="flex items-center justify-center mb-4">
+                            <div class="timer-display">
+                                00:30:00
+                            </div>
+                        </div>
+                        <div class="flex justify-center space-x-4">
+                            <button class="timer-button bg-gray-200">
+                                <i class="fas fa-undo text-gray-600"></i>
+                            </button>
+                            <button class="timer-button bg-green-500">
+                                <i class="fas fa-play text-white text-xl"></i>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- 阅读内容 -->
+                    <div class="mb-4">
+                        <label class="block text-sm text-gray-600 mb-2">阅读内容</label>
+                        <input type="text" class="ios-input" placeholder="输入书名或内容">
+                    </div>
+                    
+                    <!-- 阅读感受 -->
+                    <div class="mb-4">
+                        <label class="block text-sm text-gray-600 mb-2">阅读感受</label>
+                        <textarea class="ios-input h-24 resize-none" placeholder="分享你的阅读感受..."></textarea>
+                    </div>
+
+                    <!-- 心情选择器 -->
+                    <div class="mb-4">
+                        <label class="block text-sm text-gray-600 mb-2">今日心情</label>
+                        <div class="mood-selector">
+                            <div class="mood-option">
+                                <div class="mood-emoji">😊</div>
+                                <div class="mood-label">开心</div>
+                            </div>
+                            <div class="mood-option">
+                                <div class="mood-emoji">😌</div>
+                                <div class="mood-label">平静</div>
+                            </div>
+                            <div class="mood-option">
+                                <div class="mood-emoji">🤔</div>
+                                <div class="mood-label">思考</div>
+                            </div>
+                            <div class="mood-option">
+                                <div class="mood-emoji">😴</div>
+                                <div class="mood-label">疲惫</div>
+                            </div>
+                            <div class="mood-option">
+                                <div class="mood-emoji">😢</div>
+                                <div class="mood-label">难过</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 照片上传 -->
+                    <div class="mb-6">
+                        <label class="block text-sm text-gray-600 mb-2">添加照片</label>
+                        <div class="photo-upload">
+                            <i class="fas fa-camera text-gray-400 text-2xl mb-2"></i>
+                            <p class="text-sm text-gray-500">点击上传照片</p>
+                        </div>
+                    </div>
+
+                    <!-- 提交按钮 -->
+                    <button class="w-full bg-blue-500 text-white py-3 rounded-lg font-medium">
+                        完成打卡
+                    </button>
+                </div>
+            </div>
+
+            <!-- 早睡习惯 -->
+            <div class="ios-card p-4">
+                <div class="flex justify-between items-center">
+                    <div class="flex items-center">
+                        <div class="habit-icon bg-yellow-100 text-yellow-500 mr-3">
+                            <i class="fas fa-bed text-xl"></i>
+                        </div>
+                        <div>
+                            <h3 class="font-medium text-lg">早睡</h3>
+                            <p class="text-sm text-gray-500">23:00前睡觉</p>
+                        </div>
+                    </div>
+                    <div class="flex items-center">
+                        <div class="text-sm font-semibold text-green-500 mr-3">已连续3天</div>
+                        <button class="checkin-button bg-yellow-500 text-white px-6 py-2 rounded-lg font-medium">
+                            打卡
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <h2 class="text-lg font-bold mb-4">本周进度</h2>
+        
+        <!-- 日历视图 -->
+        <div class="ios-card p-4 mb-6">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="font-medium">6月12日 - 6月18日</h3>
+                <button class="text-blue-500 text-sm">
+                    查看更多
+                </button>
+            </div>
+            
+            <div class="flex justify-between">
+                <div class="flex flex-col items-center">
+                    <div class="text-xs text-gray-500 mb-2">一</div>
+                    <div class="calendar-day completed">12</div>
+                </div>
+                <div class="flex flex-col items-center">
+                    <div class="text-xs text-gray-500 mb-2">二</div>
+                    <div class="calendar-day completed">13</div>
+                </div>
+                <div class="flex flex-col items-center">
+                    <div class="text-xs text-gray-500 mb-2">三</div>
+                    <div class="calendar-day completed">14</div>
+                </div>
+                <div class="flex flex-col items-center">
+                    <div class="text-xs text-gray-500 mb-2">四</div>
+                    <div class="calendar-day today">15</div>
+                </div>
+                <div class="flex flex-col items-center">
+                    <div class="text-xs text-gray-500 mb-2">五</div>
+                    <div class="calendar-day disabled">16</div>
+                </div>
+                <div class="flex flex-col items-center">
+                    <div class="text-xs text-gray-500 mb-2">六</div>
+                    <div class="calendar-day disabled">17</div>
+                </div>
+                <div class="flex flex-col items-center">
+                    <div class="text-xs text-gray-500 mb-2">日</div>
+                    <div class="calendar-day disabled">18</div>
+                </div>
+            </div>
+        </div>
+
+        <h2 class="text-lg font-bold mb-4">已完成</h2>
+        
+        <!-- 已完成习惯 -->
+        <div class="space-y-4">
+            <!-- 运动习惯 -->
+            <div class="ios-card p-4">
+                <div class="flex justify-between items-center">
+                    <div class="flex items-center">
+                        <div class="habit-icon bg-green-100 text-green-500 mr-3">
+                            <i class="fas fa-running text-xl"></i>
+                        </div>
+                        <div>
+                            <h3 class="font-medium text-lg">运动</h3>
+                            <p class="text-sm text-gray-500">每天45分钟</p>
+                        </div>
+                    </div>
+                    <div class="flex items-center">
+                        <div class="text-sm font-semibold text-green-500 mr-3">已连续8天</div>
+                        <button class="checkin-button bg-gray-200 text-gray-500 px-6 py-2 rounded-lg font-medium">
+                            已完成
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 写作习惯 -->
+            <div class="ios-card p-4">
+                <div class="flex justify-between items-center">
+                    <div class="flex items-center">
+                        <div class="habit-icon bg-purple-100 text-purple-500 mr-3">
+                            <i class="fas fa-pen text-xl"></i>
+                        </div>
+                        <div>
+                            <h3 class="font-medium text-lg">写作</h3>
+                            <p class="text-sm text-gray-500">每天500字</p>
+                        </div>
+                    </div>
+                    <div class="flex items-center">
+                        <div class="text-sm font-semibold text-green-500 mr-3">已连续5天</div>
+                        <button class="checkin-button bg-gray-200 text-gray-500 px-6 py-2 rounded-lg font-medium">
+                            已完成
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- 底部标签栏 -->
+    <nav class="tab-bar fixed bottom-0 w-full flex justify-around items-center py-2 px-4">
+        <a href="index.html" class="flex flex-col items-center">
+            <i class="fas fa-home text-gray-400 mb-1"></i>
+            <span class="text-xs text-gray-400">首页</span>
+        </a>
+        <a href="habits.html" class="flex flex-col items-center">
+            <i class="fas fa-list text-gray-400 mb-1"></i>
+            <span class="text-xs text-gray-400">习惯</span>
+        </a>
+        <a href="checkin.html" class="flex flex-col items-center">
+            <div class="w-12 h-12 bg-blue-500 rounded-full flex items-center justify-center -mt-5">
+                <i class="fas fa-plus text-white text-lg"></i>
+            </div>
+        </a>
+        <a href="community.html" class="flex flex-col items-center">
+            <i class="fas fa-users text-gray-400 mb-1"></i>
+            <span class="text-xs text-gray-400">社区</span>
+        </a>
+        <a href="profile.html" class="flex flex-col items-center">
+            <i class="fas fa-user text-gray-400 mb-1"></i>
+            <span class="text-xs text-gray-400">我的</span>
+        </a>
+    </nav>
+
+    <script>
+        // 简单的打卡表单显示逻辑
+        document.addEventListener('DOMContentLoaded', function() {
+            const checkinButtons = document.querySelectorAll('.checkin-button');
+            const checkinForm = document.querySelector('.ios-card .border-t');
+            
+            // 默认隐藏表单
+            checkinForm.style.display = 'none';
+            
+            checkinButtons[0].addEventListener('click', function() {
+                if (checkinForm.style.display === 'none') {
+                    checkinForm.style.display = 'block';
+                    this.textContent = '取消';
+                    this.classList.remove('bg-blue-500');
+                    this.classList.add('bg-gray-400');
+                } else {
+                    checkinForm.style.display = 'none';
+                    this.textContent = '打卡';
+                    this.classList.remove('bg-gray-400');
+                    this.classList.add('bg-blue-500');
+                }
+            });
+        });
+    </script>
+</body>
+</html> 

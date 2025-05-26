@@ -1,0 +1,94 @@
+<!--pages/index/index.wxml-->
+<view class="container">
+  <!-- 顶部用户信息 -->
+  <view class="header">
+    <view class="user-info">
+      <view class="avatar-wrapper">
+        <image class="avatar" src="{{userInfo.avatarUrl || '/assets/images/default-avatar.png'}}" mode="aspectFill"></image>
+      </view>
+      <view class="user-detail">
+        <view class="nickname">{{userInfo.nickName || '未登录'}}</view>
+        <view class="date">{{today}} 星期{{weekday}}</view>
+      </view>
+    </view>
+    <view class="motto">{{motto}}</view>
+  </view>
+  
+  <!-- 今日进度 -->
+  <view class="progress-card">
+    <view class="progress-header">
+      <view class="progress-title">今日进度</view>
+      <view class="progress-streak">当前连续 {{currentStreak}} 天</view>
+    </view>
+    <view class="progress-body">
+      <view class="progress-bar">
+        <view class="progress-inner" style="width: {{completionRate}}%;"></view>
+      </view>
+      <view class="progress-text">{{completedCount}}/{{totalCount}} 已完成</view>
+    </view>
+  </view>
+  
+  <!-- 今日习惯列表 -->
+  <view class="habits-section">
+    <view class="section-header">
+      <view class="section-title">今日习惯</view>
+      <view class="section-action" bindtap="goToHabits">查看全部</view>
+    </view>
+    
+    <view class="habits-list">
+      <block wx:if="{{loading}}">
+        <view class="loading">
+          <view class="loading-spinner"></view>
+          <view class="loading-text">加载中...</view>
+        </view>
+      </block>
+      <block wx:elif="{{todayHabits.length === 0}}">
+        <view class="empty">
+          <view class="empty-icon">📝</view>
+          <view class="empty-text">今日暂无需要完成的习惯</view>
+          <button class="btn btn-primary" bindtap="goToCreateHabit">创建习惯</button>
+        </view>
+      </block>
+      <block wx:else>
+        <habit-card 
+          wx:for="{{todayHabits}}" 
+          wx:key="id" 
+          habit="{{item}}" 
+          stats="{{habitStats[item.id]}}"
+          bindcheckin="onCheckin">
+        </habit-card>
+      </block>
+    </view>
+  </view>
+  
+  <!-- 数据概览 -->
+  <view class="stats-section" bindtap="goToAnalytics">
+    <view class="section-header">
+      <view class="section-title">数据概览</view>
+      <view class="section-action">查看详情</view>
+    </view>
+    
+    <view class="stats-grid">
+      <view class="stats-item">
+        <view class="stats-value">{{currentStreak}}</view>
+        <view class="stats-label">当前连续</view>
+      </view>
+      <view class="stats-item">
+        <view class="stats-value">{{completionRateDisplay}}%</view>
+        <view class="stats-label">总完成率</view>
+      </view>
+      <view class="stats-item">
+        <view class="stats-value">{{totalCount}}</view>
+        <view class="stats-label">习惯总数</view>
+      </view>
+    </view>
+  </view>
+  
+  <!-- 底部按钮 -->
+  <view class="footer">
+    <button class="btn btn-primary btn-block" bindtap="goToCreateHabit">
+      <text class="iconfont icon-add"></text>
+      创建新习惯
+    </button>
+  </view>
+</view>

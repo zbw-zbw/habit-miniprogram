@@ -1,0 +1,62 @@
+<view class="habit-card" bindtap="onViewDetail">
+  <!-- 左侧图标 -->
+  <view class="habit-icon" style="background-color: {{habit.color}}">
+    <text class="iconfont icon-{{habit.icon}}"></text>
+  </view>
+  
+  <!-- 中间内容 -->
+  <view class="habit-content">
+    <view class="habit-name">{{habit.name}}</view>
+    
+    <view class="habit-info">
+      <view class="habit-category">{{habit.category}}</view>
+      
+      <view class="habit-frequency">
+        <block wx:if="{{habit.frequency.type === 'daily'}}">每天</block>
+        <block wx:elif="{{habit.frequency.type === 'weekly'}}">每周</block>
+        <block wx:elif="{{habit.frequency.type === 'workdays'}}">工作日</block>
+        <block wx:elif="{{habit.frequency.type === 'custom'}}">自定义</block>
+      </view>
+    </view>
+    
+    <view class="habit-stats">
+      <view class="stat-item">
+        <text class="stat-value">{{stats.completionRate}}%</text>
+        <text class="stat-label">完成率</text>
+      </view>
+      <view class="stat-item">
+        <text class="stat-value">{{stats.currentStreak}}</text>
+        <text class="stat-label">连续</text>
+      </view>
+      <view class="stat-item">
+        <text class="stat-value">{{stats.totalCompletions}}</text>
+        <text class="stat-label">总计</text>
+      </view>
+    </view>
+  </view>
+  
+  <!-- 右侧操作 -->
+  <view class="habit-actions">
+    <view class="checkin-btn" catchtap="onCheckin">
+      <text>打卡</text>
+    </view>
+    
+    <view class="more-btn" catchtap="showActions">
+      <text class="iconfont icon-more"></text>
+    </view>
+  </view>
+  
+  <!-- 操作菜单 -->
+  <view class="action-menu {{showActions ? 'show' : ''}}" catchtap="hideActions">
+    <view class="action-menu-content" catchtap="stopPropagation">
+      <view class="action-item" catchtap="onEdit">
+        <text class="iconfont icon-edit"></text>
+        <text>编辑</text>
+      </view>
+      <view class="action-item delete" catchtap="onDelete">
+        <text class="iconfont icon-delete"></text>
+        <text>删除</text>
+      </view>
+    </view>
+  </view>
+</view> 

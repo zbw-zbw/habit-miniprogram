@@ -1,0 +1,187 @@
+<!--pages/analytics/analytics.wxml-->
+<view class="container">
+  <!-- 顶部标签栏 -->
+  <view class="tabs">
+    <view class="tab-item {{activeTab === 'overview' ? 'active' : ''}}" bindtap="switchTab" data-tab="overview">总览</view>
+    <view class="tab-item {{activeTab === 'habits' ? 'active' : ''}}" bindtap="switchTab" data-tab="habits">习惯</view>
+    <view class="tab-item {{activeTab === 'calendar' ? 'active' : ''}}" bindtap="switchTab" data-tab="calendar">日历</view>
+  </view>
+  
+  <!-- 加载状态 -->
+  <view class="loading" wx:if="{{loading}}">
+    <view class="loading-spinner"></view>
+    <text class="loading-text">加载中...</text>
+  </view>
+  
+  <!-- 总览标签内容 -->
+  <block wx:if="{{activeTab === 'overview' && !loading}}">
+    <!-- 统计卡片 -->
+    <view class="stats-grid">
+      <view class="stat-card">
+        <view class="stat-value">{{stats.totalHabits}}</view>
+        <view class="stat-label">总习惯数</view>
+      </view>
+      <view class="stat-card">
+        <view class="stat-value">{{stats.activeHabits}}</view>
+        <view class="stat-label">活跃习惯</view>
+      </view>
+      <view class="stat-card">
+        <view class="stat-value">{{stats.completedToday}}</view>
+        <view class="stat-label">今日完成</view>
+      </view>
+      <view class="stat-card">
+        <view class="stat-value">{{stats.completionRate}}%</view>
+        <view class="stat-label">总完成率</view>
+      </view>
+    </view>
+    
+    <!-- 时间范围选择 -->
+    <view class="time-range">
+      <view class="range-title">完成情况</view>
+      <view class="range-options">
+        <view class="range-option {{timeRange === 'week' ? 'active' : ''}}" bindtap="switchTimeRange" data-range="week">周</view>
+        <view class="range-option {{timeRange === 'month' ? 'active' : ''}}" bindtap="switchTimeRange" data-range="month">月</view>
+        <view class="range-option {{timeRange === 'year' ? 'active' : ''}}" bindtap="switchTimeRange" data-range="year">年</view>
+      </view>
+    </view>
+    
+    <!-- 图表区域 -->
+    <view class="chart-card">
+      <!-- 实际项目中应使用图表组件 -->
+      <view class="chart-placeholder">
+        <view class="chart-bars">
+          <view wx:for="{{chartData.values}}" wx:key="index" class="chart-bar" style="height: {{item * 10}}rpx; background-color: {{item > 0 ? '#4F7CFF' : '#F5F7FA'}}"></view>
+        </view>
+        <view class="chart-labels">
+          <view wx:for="{{chartData.dates}}" wx:key="index" class="chart-label">{{item.substring(5)}}</view>
+        </view>
+      </view>
+    </view>
+    
+    <!-- 连续打卡 -->
+    <view class="streak-card">
+      <view class="streak-header">
+        <view class="streak-title">连续打卡</view>
+        <view class="streak-value">{{stats.currentStreak}}天</view>
+      </view>
+      <view class="streak-progress">
+        <view class="streak-bar" style="width: {{stats.currentStreak / stats.longestStreak * 100}}%"></view>
+      </view>
+      <view class="streak-footer">
+        <view class="streak-label">历史最长</view>
+        <view class="streak-record">{{stats.longestStreak}}天</view>
+      </view>
+    </view>
+    
+    <!-- 报告生成按钮 -->
+    <button class="report-btn" bindtap="generateReport">生成详细报告</button>
+  </block>
+  
+  <!-- 习惯标签内容 -->
+  <block wx:if="{{activeTab === 'habits' && !loading}}">
+    <view class="habits-list">
+      <view class="habit-card" wx:for="{{habitStats}}" wx:key="id" bindtap="viewHabitDetail" data-id="{{item.id}}">
+        <view class="habit-icon" style="background-color: {{item.color}}30; color: {{item.color}}">
+          <text class="iconfont icon-{{item.icon}}"></text>
+        </view>
+        <view class="habit-info">
+          <view class="habit-name">{{item.name}}</view>
+          <view class="habit-stats">
+            <view class="habit-stat">
+              <text class="stat-value">{{item.completionRate}}%</text>
+              <text class="stat-label">完成率</text>
+            </view>
+            <view class="habit-stat">
+              <text class="stat-value">{{item.streak}}</text>
+              <text class="stat-label">连续天数</text>
+            </view>
+            <view class="habit-stat">
+              <text class="stat-value">{{item.totalCheckins}}</text>
+              <text class="stat-label">总打卡</text>
+            </view>
+          </view>
+        </view>
+        <view class="habit-arrow">
+          <text class="iconfont icon-right"></text>
+        </view>
+      </view>
+    </view>
+  </block>
+  
+  <!-- 日历标签内容 -->
+  <block wx:if="{{activeTab === 'calendar' && !loading}}">
+    <view class="calendar-card">
+      <view class="calendar-header">
+        <view class="calendar-title">2023年10月</view>
+        <view class="calendar-actions">
+          <view class="calendar-action">
+            <text class="iconfont icon-left"></text>
+          </view>
+          <view class="calendar-action">
+            <text class="iconfont icon-right"></text>
+          </view>
+        </view>
+      </view>
+      
+      <view class="calendar-weekdays">
+        <view class="weekday">一</view>
+        <view class="weekday">二</view>
+        <view class="weekday">三</view>
+        <view class="weekday">四</view>
+        <view class="weekday">五</view>
+        <view class="weekday">六</view>
+        <view class="weekday">日</view>
+      </view>
+      
+      <view class="calendar-days">
+        <!-- 示例数据，实际应根据日期动态生成 -->
+        <view class="calendar-day other-month">30</view>
+        <view class="calendar-day">1</view>
+        <view class="calendar-day">2</view>
+        <view class="calendar-day completed">3</view>
+        <view class="calendar-day completed">4</view>
+        <view class="calendar-day completed">5</view>
+        <view class="calendar-day completed">6</view>
+        <view class="calendar-day completed">7</view>
+        <view class="calendar-day completed">8</view>
+        <view class="calendar-day completed">9</view>
+        <view class="calendar-day completed">10</view>
+        <view class="calendar-day completed">11</view>
+        <view class="calendar-day completed">12</view>
+        <view class="calendar-day completed">13</view>
+        <view class="calendar-day completed">14</view>
+        <view class="calendar-day completed">15</view>
+        <view class="calendar-day today">16</view>
+        <view class="calendar-day">17</view>
+        <view class="calendar-day">18</view>
+        <view class="calendar-day">19</view>
+        <view class="calendar-day">20</view>
+        <view class="calendar-day">21</view>
+        <view class="calendar-day">22</view>
+        <view class="calendar-day">23</view>
+        <view class="calendar-day">24</view>
+        <view class="calendar-day">25</view>
+        <view class="calendar-day">26</view>
+        <view class="calendar-day">27</view>
+        <view class="calendar-day">28</view>
+        <view class="calendar-day">29</view>
+        <view class="calendar-day">30</view>
+        <view class="calendar-day">31</view>
+        <view class="calendar-day other-month">1</view>
+        <view class="calendar-day other-month">2</view>
+        <view class="calendar-day other-month">3</view>
+      </view>
+      
+      <view class="calendar-legend">
+        <view class="legend-item">
+          <view class="legend-color completed"></view>
+          <view class="legend-text">已完成</view>
+        </view>
+        <view class="legend-item">
+          <view class="legend-color today"></view>
+          <view class="legend-text">今天</view>
+        </view>
+      </view>
+    </view>
+  </block>
+</view>

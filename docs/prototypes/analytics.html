@@ -1,0 +1,512 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>习惯养成 - 数据分析</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #5E72E4;
+            --secondary-color: #F7FAFC;
+            --success-color: #2DCE89;
+            --warning-color: #FB6340;
+            --danger-color: #F5365C;
+            --text-color: #32325D;
+            --light-text: #8898AA;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            color: var(--text-color);
+            background-color: #F8F9FE;
+            -webkit-font-smoothing: antialiased;
+        }
+        
+        .ios-header {
+            background-color: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+        }
+        
+        .ios-card {
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            background-color: white;
+        }
+        
+        .ios-button {
+            border-radius: 10px;
+            font-weight: 600;
+        }
+        
+        .tab-bar {
+            background-color: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border-top: 1px solid rgba(0, 0, 0, 0.1);
+        }
+        
+        .ios-segmented-control {
+            display: flex;
+            background-color: #E9ECEF;
+            border-radius: 8px;
+            padding: 2px;
+        }
+        
+        .ios-segment {
+            flex: 1;
+            text-align: center;
+            padding: 8px 0;
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--light-text);
+            border-radius: 6px;
+        }
+        
+        .ios-segment.active {
+            background-color: white;
+            color: var(--text-color);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        }
+
+        .heat-map {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            grid-gap: 4px;
+        }
+
+        .heat-map-day {
+            width: 100%;
+            aspect-ratio: 1/1;
+            border-radius: 2px;
+        }
+
+        .chart-container {
+            position: relative;
+            height: 200px;
+            width: 100%;
+        }
+
+        .chart-bar {
+            position: absolute;
+            bottom: 0;
+            width: 8%;
+            border-radius: 4px 4px 0 0;
+            background-color: var(--primary-color);
+        }
+
+        .chart-line {
+            position: absolute;
+            height: 2px;
+            left: 0;
+            right: 0;
+            background-color: #E2E8F0;
+        }
+
+        .chart-label {
+            position: absolute;
+            bottom: -24px;
+            font-size: 10px;
+            color: var(--light-text);
+            width: 8%;
+            text-align: center;
+        }
+
+        .radial-progress {
+            position: relative;
+            width: 120px;
+            height: 120px;
+        }
+
+        .radial-progress svg {
+            transform: rotate(-90deg);
+        }
+
+        .radial-progress circle {
+            stroke-width: 8;
+            fill: transparent;
+        }
+
+        .radial-progress .bg {
+            stroke: #E2E8F0;
+        }
+
+        .radial-progress .progress {
+            stroke: var(--primary-color);
+            stroke-dasharray: 339.292;
+            stroke-linecap: round;
+        }
+
+        .radial-progress .text {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+        }
+
+        .habit-icon {
+            width: 36px;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 10px;
+        }
+
+        .stat-card {
+            border-radius: 12px;
+            padding: 1rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+    </style>
+</head>
+<body class="pb-20">
+    <!-- 顶部导航栏 -->
+    <header class="ios-header fixed w-full top-0 z-10 px-4 py-3 flex justify-between items-center">
+        <div class="flex items-center">
+            <h1 class="text-xl font-bold">数据分析</h1>
+        </div>
+        <div class="flex">
+            <button class="w-8 h-8 flex items-center justify-center rounded-full bg-gray-100">
+                <i class="fas fa-calendar-alt text-gray-600"></i>
+            </button>
+        </div>
+    </header>
+
+    <!-- 主内容区 -->
+    <main class="mt-16 px-4">
+        <!-- 时间段选择器 -->
+        <div class="ios-segmented-control mb-6">
+            <div class="ios-segment active">周</div>
+            <div class="ios-segment">月</div>
+            <div class="ios-segment">年</div>
+            <div class="ios-segment">全部</div>
+        </div>
+        
+        <!-- 总体统计卡片 -->
+        <div class="ios-card p-4 mb-6">
+            <h2 class="font-semibold mb-4">总体表现</h2>
+            <div class="flex justify-between">
+                <div class="radial-progress">
+                    <svg width="120" height="120" viewBox="0 0 120 120">
+                        <circle class="bg" cx="60" cy="60" r="54"></circle>
+                        <circle class="progress" cx="60" cy="60" r="54" stroke-dashoffset="84.823"></circle>
+                    </svg>
+                    <div class="text">
+                        <div class="text-2xl font-bold">75%</div>
+                        <div class="text-xs text-gray-500">完成率</div>
+                    </div>
+                </div>
+                <div class="flex flex-col justify-center">
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <p class="text-sm text-gray-500">总习惯数</p>
+                            <p class="text-xl font-bold">6</p>
+                        </div>
+                        <div>
+                            <p class="text-sm text-gray-500">活跃习惯</p>
+                            <p class="text-xl font-bold">5</p>
+                        </div>
+                        <div>
+                            <p class="text-sm text-gray-500">总打卡次数</p>
+                            <p class="text-xl font-bold">198</p>
+                        </div>
+                        <div>
+                            <p class="text-sm text-gray-500">最长连续</p>
+                            <p class="text-xl font-bold">12天</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 统计指标卡片 -->
+        <div class="grid grid-cols-2 gap-4 mb-6">
+            <div class="stat-card bg-blue-500 text-white">
+                <p class="text-xs mb-1">本周完成率</p>
+                <p class="text-2xl font-bold">92%</p>
+                <p class="text-xs mt-1">较上周 <span class="font-semibold">+15%</span></p>
+            </div>
+            <div class="stat-card bg-green-500 text-white">
+                <p class="text-xs mb-1">连续打卡天数</p>
+                <p class="text-2xl font-bold">7天</p>
+                <p class="text-xs mt-1">个人最佳 <span class="font-semibold">12天</span></p>
+            </div>
+            <div class="stat-card bg-purple-500 text-white">
+                <p class="text-xs mb-1">本月总时长</p>
+                <p class="text-2xl font-bold">42小时</p>
+                <p class="text-xs mt-1">较上月 <span class="font-semibold">+8小时</span></p>
+            </div>
+            <div class="stat-card bg-yellow-500 text-white">
+                <p class="text-xs mb-1">习惯达成率</p>
+                <p class="text-2xl font-bold">83%</p>
+                <p class="text-xs mt-1">较目标 <span class="font-semibold">+3%</span></p>
+            </div>
+        </div>
+
+        <!-- 周趋势图 -->
+        <div class="ios-card p-4 mb-6">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="font-semibold">周趋势</h2>
+                <button class="text-blue-500 text-sm">
+                    查看详情
+                </button>
+            </div>
+            <div class="chart-container mb-6">
+                <div class="chart-line" style="bottom: 25%; opacity: 0.5;"></div>
+                <div class="chart-line" style="bottom: 50%; opacity: 0.5;"></div>
+                <div class="chart-line" style="bottom: 75%; opacity: 0.5;"></div>
+                
+                <div class="chart-bar" style="height: 60%; left: 3%;"></div>
+                <div class="chart-bar" style="height: 80%; left: 15%;"></div>
+                <div class="chart-bar" style="height: 100%; left: 27%;"></div>
+                <div class="chart-bar" style="height: 90%; left: 39%;"></div>
+                <div class="chart-bar" style="height: 70%; left: 51%;"></div>
+                <div class="chart-bar" style="height: 40%; left: 63%; opacity: 0.5;"></div>
+                <div class="chart-bar" style="height: 20%; left: 75%; opacity: 0.5;"></div>
+                
+                <div class="chart-label" style="left: 3%;">一</div>
+                <div class="chart-label" style="left: 15%;">二</div>
+                <div class="chart-label" style="left: 27%;">三</div>
+                <div class="chart-label" style="left: 39%;">四</div>
+                <div class="chart-label" style="left: 51%;">五</div>
+                <div class="chart-label" style="left: 63%;">六</div>
+                <div class="chart-label" style="left: 75%;">日</div>
+            </div>
+            <div class="flex justify-between text-xs text-gray-500">
+                <div>平均完成率: <span class="font-semibold text-blue-500">78%</span></div>
+                <div>最高: <span class="font-semibold text-blue-500">周三 (100%)</span></div>
+            </div>
+        </div>
+
+        <!-- 习惯热力图 -->
+        <div class="ios-card p-4 mb-6">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="font-semibold">6月习惯热力图</h2>
+                <button class="text-blue-500 text-sm">
+                    查看全部
+                </button>
+            </div>
+            <div class="mb-2 flex justify-between text-xs text-gray-500">
+                <div>周一</div>
+                <div>周二</div>
+                <div>周三</div>
+                <div>周四</div>
+                <div>周五</div>
+                <div>周六</div>
+                <div>周日</div>
+            </div>
+            <div class="heat-map mb-4">
+                <!-- 第一周 -->
+                <div class="heat-map-day bg-blue-100"></div>
+                <div class="heat-map-day bg-blue-200"></div>
+                <div class="heat-map-day bg-blue-300"></div>
+                <div class="heat-map-day bg-blue-100"></div>
+                <div class="heat-map-day bg-blue-200"></div>
+                <div class="heat-map-day bg-gray-100"></div>
+                <div class="heat-map-day bg-gray-100"></div>
+                
+                <!-- 第二周 -->
+                <div class="heat-map-day bg-blue-300"></div>
+                <div class="heat-map-day bg-blue-400"></div>
+                <div class="heat-map-day bg-blue-500"></div>
+                <div class="heat-map-day bg-blue-400"></div>
+                <div class="heat-map-day bg-blue-300"></div>
+                <div class="heat-map-day bg-blue-200"></div>
+                <div class="heat-map-day bg-blue-100"></div>
+                
+                <!-- 第三周 (本周) -->
+                <div class="heat-map-day bg-blue-400"></div>
+                <div class="heat-map-day bg-blue-500"></div>
+                <div class="heat-map-day bg-blue-500"></div>
+                <div class="heat-map-day bg-blue-400"></div>
+                <div class="heat-map-day bg-gray-200"></div>
+                <div class="heat-map-day bg-gray-200"></div>
+                <div class="heat-map-day bg-gray-200"></div>
+            </div>
+            <div class="flex justify-between items-center">
+                <div class="flex items-center">
+                    <div class="w-3 h-3 bg-gray-100 mr-1"></div>
+                    <div class="text-xs text-gray-500">较少</div>
+                </div>
+                <div class="flex items-center">
+                    <div class="w-3 h-3 bg-blue-100 mr-1"></div>
+                    <div class="w-3 h-3 bg-blue-200 mr-1"></div>
+                    <div class="w-3 h-3 bg-blue-300 mr-1"></div>
+                    <div class="w-3 h-3 bg-blue-400 mr-1"></div>
+                    <div class="w-3 h-3 bg-blue-500 mr-1"></div>
+                    <div class="text-xs text-gray-500">较多</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 习惯排行榜 -->
+        <div class="ios-card p-4 mb-6">
+            <h2 class="font-semibold mb-4">习惯排行榜</h2>
+            <div class="space-y-4">
+                <!-- 阅读习惯 -->
+                <div class="flex items-center">
+                    <div class="mr-3 text-xl font-bold text-blue-500">1</div>
+                    <div class="habit-icon bg-blue-100 text-blue-500 mr-3">
+                        <i class="fas fa-book"></i>
+                    </div>
+                    <div class="flex-1">
+                        <div class="flex justify-between">
+                            <h3 class="font-medium">阅读</h3>
+                            <span class="text-sm text-blue-500 font-semibold">92%</span>
+                        </div>
+                        <div class="w-full bg-gray-200 rounded-full h-2 mt-1">
+                            <div class="bg-blue-500 rounded-full h-2" style="width: 92%"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 运动习惯 -->
+                <div class="flex items-center">
+                    <div class="mr-3 text-xl font-bold text-blue-500">2</div>
+                    <div class="habit-icon bg-green-100 text-green-500 mr-3">
+                        <i class="fas fa-running"></i>
+                    </div>
+                    <div class="flex-1">
+                        <div class="flex justify-between">
+                            <h3 class="font-medium">运动</h3>
+                            <span class="text-sm text-blue-500 font-semibold">85%</span>
+                        </div>
+                        <div class="w-full bg-gray-200 rounded-full h-2 mt-1">
+                            <div class="bg-green-500 rounded-full h-2" style="width: 85%"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 写作习惯 -->
+                <div class="flex items-center">
+                    <div class="mr-3 text-xl font-bold text-blue-500">3</div>
+                    <div class="habit-icon bg-purple-100 text-purple-500 mr-3">
+                        <i class="fas fa-pen"></i>
+                    </div>
+                    <div class="flex-1">
+                        <div class="flex justify-between">
+                            <h3 class="font-medium">写作</h3>
+                            <span class="text-sm text-blue-500 font-semibold">78%</span>
+                        </div>
+                        <div class="w-full bg-gray-200 rounded-full h-2 mt-1">
+                            <div class="bg-purple-500 rounded-full h-2" style="width: 78%"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 早睡习惯 -->
+                <div class="flex items-center">
+                    <div class="mr-3 text-xl font-bold text-blue-500">4</div>
+                    <div class="habit-icon bg-yellow-100 text-yellow-500 mr-3">
+                        <i class="fas fa-bed"></i>
+                    </div>
+                    <div class="flex-1">
+                        <div class="flex justify-between">
+                            <h3 class="font-medium">早睡</h3>
+                            <span class="text-sm text-blue-500 font-semibold">65%</span>
+                        </div>
+                        <div class="w-full bg-gray-200 rounded-full h-2 mt-1">
+                            <div class="bg-yellow-500 rounded-full h-2" style="width: 65%"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 健康饮食习惯 -->
+                <div class="flex items-center">
+                    <div class="mr-3 text-xl font-bold text-blue-500">5</div>
+                    <div class="habit-icon bg-red-100 text-red-500 mr-3">
+                        <i class="fas fa-apple-alt"></i>
+                    </div>
+                    <div class="flex-1">
+                        <div class="flex justify-between">
+                            <h3 class="font-medium">健康饮食</h3>
+                            <span class="text-sm text-blue-500 font-semibold">58%</span>
+                        </div>
+                        <div class="w-full bg-gray-200 rounded-full h-2 mt-1">
+                            <div class="bg-red-500 rounded-full h-2" style="width: 58%"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- AI洞察 -->
+        <div class="ios-card p-4 mb-6">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="font-semibold">AI洞察</h2>
+                <span class="text-xs px-2 py-1 bg-blue-100 text-blue-600 rounded-full">每周更新</span>
+            </div>
+            <div class="space-y-4">
+                <div class="flex">
+                    <div class="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center mr-3">
+                        <i class="fas fa-lightbulb text-blue-500"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-sm font-medium">最佳习惯时间</h3>
+                        <p class="text-xs text-gray-500 mt-1">你在早晨6:00-8:00之间完成阅读习惯的成功率最高，达到95%。建议继续保持这个时间段。</p>
+                    </div>
+                </div>
+                
+                <div class="flex">
+                    <div class="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center mr-3">
+                        <i class="fas fa-chart-line text-green-500"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-sm font-medium">习惯关联发现</h3>
+                        <p class="text-xs text-gray-500 mt-1">数据显示，当你完成运动习惯后，写作习惯的完成率提高了23%。建议将这两个习惯组合安排。</p>
+                    </div>
+                </div>
+                
+                <div class="flex">
+                    <div class="w-8 h-8 bg-yellow-100 rounded-full flex items-center justify-center mr-3">
+                        <i class="fas fa-exclamation-triangle text-yellow-500"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-sm font-medium">习惯中断风险</h3>
+                        <p class="text-xs text-gray-500 mt-1">早睡习惯在周末容易中断，建议设置特别提醒或调整周末目标，以提高坚持率。</p>
+                    </div>
+                </div>
+            </div>
+            <button class="w-full mt-4 bg-blue-50 text-blue-500 py-2 rounded-lg text-sm font-medium">
+                查看更多洞察
+            </button>
+        </div>
+    </main>
+
+    <!-- 底部标签栏 -->
+    <nav class="tab-bar fixed bottom-0 w-full flex justify-around items-center py-2 px-4">
+        <a href="index.html" class="flex flex-col items-center">
+            <i class="fas fa-home text-gray-400 mb-1"></i>
+            <span class="text-xs text-gray-400">首页</span>
+        </a>
+        <a href="habits.html" class="flex flex-col items-center">
+            <i class="fas fa-list text-gray-400 mb-1"></i>
+            <span class="text-xs text-gray-400">习惯</span>
+        </a>
+        <a href="checkin.html" class="flex flex-col items-center">
+            <div class="w-12 h-12 bg-blue-500 rounded-full flex items-center justify-center -mt-5">
+                <i class="fas fa-plus text-white text-lg"></i>
+            </div>
+        </a>
+        <a href="community.html" class="flex flex-col items-center">
+            <i class="fas fa-users text-gray-400 mb-1"></i>
+            <span class="text-xs text-gray-400">社区</span>
+        </a>
+        <a href="profile.html" class="flex flex-col items-center">
+            <i class="fas fa-user text-gray-400 mb-1"></i>
+            <span class="text-xs text-gray-400">我的</span>
+        </a>
+    </nav>
+</body>
+</html> 

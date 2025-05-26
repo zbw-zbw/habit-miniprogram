@@ -1,0 +1,7 @@
+{
+  "usingComponents": {},
+  "navigationBarTitleText": "习惯详情",
+  "navigationStyle": "default",
+  "enablePullDownRefresh": true,
+  "backgroundColor": "#F5F7FA"
+}

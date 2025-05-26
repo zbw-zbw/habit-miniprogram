@@ -1,0 +1,601 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>习惯养成 - 习惯详情</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #5E72E4;
+            --secondary-color: #F7FAFC;
+            --success-color: #2DCE89;
+            --warning-color: #FB6340;
+            --danger-color: #F5365C;
+            --text-color: #32325D;
+            --light-text: #8898AA;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            color: var(--text-color);
+            background-color: #F8F9FE;
+            -webkit-font-smoothing: antialiased;
+        }
+        
+        .ios-header {
+            background-color: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+        }
+        
+        .ios-card {
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            background-color: white;
+        }
+        
+        .ios-button {
+            border-radius: 10px;
+            font-weight: 600;
+        }
+        
+        .tab-bar {
+            background-color: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border-top: 1px solid rgba(0, 0, 0, 0.1);
+        }
+        
+        .ios-segmented-control {
+            display: flex;
+            background-color: #E9ECEF;
+            border-radius: 8px;
+            padding: 2px;
+        }
+        
+        .ios-segment {
+            flex: 1;
+            text-align: center;
+            padding: 8px 0;
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--light-text);
+            border-radius: 6px;
+        }
+        
+        .ios-segment.active {
+            background-color: white;
+            color: var(--text-color);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        }
+
+        .habit-header {
+            background: linear-gradient(120deg, #5E72E4, #825EE4);
+            color: white;
+            border-radius: 0 0 15px 15px;
+            padding: 30px 20px 20px;
+            margin-top: -16px;
+        }
+
+        .habit-icon {
+            width: 60px;
+            height: 60px;
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            background-color: rgba(255, 255, 255, 0.2);
+        }
+
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 5px;
+        }
+
+        .calendar-day {
+            aspect-ratio: 1/1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            border-radius: 50%;
+        }
+
+        .calendar-day.completed {
+            background-color: var(--primary-color);
+            color: white;
+        }
+
+        .calendar-day.today {
+            border: 2px solid var(--primary-color);
+            color: var(--primary-color);
+            font-weight: bold;
+        }
+
+        .calendar-day.future {
+            color: #CBD5E0;
+        }
+
+        .stat-card {
+            border-radius: 12px;
+            padding: 1rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .progress-ring {
+            position: relative;
+            width: 120px;
+            height: 120px;
+        }
+
+        .progress-ring svg {
+            transform: rotate(-90deg);
+        }
+
+        .progress-ring circle {
+            stroke-width: 8;
+            fill: transparent;
+        }
+
+        .progress-ring .bg {
+            stroke: #E2E8F0;
+        }
+
+        .progress-ring .progress {
+            stroke: var(--primary-color);
+            stroke-dasharray: 339.292;
+            stroke-linecap: round;
+        }
+
+        .progress-ring .text {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+        }
+
+        .note-item {
+            border-radius: 12px;
+            overflow: hidden;
+            margin-bottom: 10px;
+        }
+
+        .note-header {
+            display: flex;
+            align-items: center;
+            padding: 10px 15px;
+            background-color: #F1F5F9;
+        }
+
+        .note-content {
+            padding: 15px;
+            background-color: white;
+        }
+
+        .mood-icon {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 10px;
+        }
+
+        .chart-container {
+            position: relative;
+            height: 150px;
+            width: 100%;
+        }
+
+        .chart-bar {
+            position: absolute;
+            bottom: 0;
+            width: 8%;
+            border-radius: 4px 4px 0 0;
+            background-color: var(--primary-color);
+        }
+
+        .chart-line {
+            position: absolute;
+            height: 1px;
+            left: 0;
+            right: 0;
+            background-color: #E2E8F0;
+        }
+
+        .chart-label {
+            position: absolute;
+            bottom: -24px;
+            font-size: 10px;
+            color: var(--light-text);
+            width: 8%;
+            text-align: center;
+        }
+    </style>
+</head>
+<body class="pb-20">
+    <!-- 顶部导航栏 -->
+    <header class="ios-header fixed w-full top-0 z-10 px-4 py-3 flex justify-between items-center">
+        <div class="flex items-center">
+            <a href="habits.html" class="mr-2">
+                <i class="fas fa-chevron-left text-blue-500"></i>
+            </a>
+            <h1 class="text-xl font-bold">习惯详情</h1>
+        </div>
+        <div class="flex">
+            <button class="w-8 h-8 flex items-center justify-center rounded-full bg-gray-100 mr-2">
+                <i class="fas fa-share-alt text-gray-600"></i>
+            </button>
+            <button class="w-8 h-8 flex items-center justify-center rounded-full bg-gray-100">
+                <i class="fas fa-ellipsis-h text-gray-600"></i>
+            </button>
+        </div>
+    </header>
+
+    <!-- 习惯详情头部 -->
+    <div class="habit-header mt-16">
+        <div class="flex items-center mb-4">
+            <div class="habit-icon mr-4">
+                <i class="fas fa-book"></i>
+            </div>
+            <div>
+                <h2 class="text-xl font-bold">每日阅读</h2>
+                <p class="text-sm opacity-80">每天阅读30分钟，培养阅读习惯</p>
+                <div class="flex items-center mt-1">
+                    <span class="bg-white bg-opacity-30 text-xs px-2 py-1 rounded-full mr-2">
+                        <i class="fas fa-clock mr-1"></i>
+                        每天 07:00
+                    </span>
+                    <span class="bg-white bg-opacity-30 text-xs px-2 py-1 rounded-full">
+                        <i class="fas fa-tag mr-1"></i>
+                        学习
+                    </span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="flex justify-between text-center">
+            <div>
+                <div class="text-2xl font-bold">45</div>
+                <div class="text-xs opacity-80">总打卡</div>
+            </div>
+            <div>
+                <div class="text-2xl font-bold">12</div>
+                <div class="text-xs opacity-80">连续天数</div>
+            </div>
+            <div>
+                <div class="text-2xl font-bold">92%</div>
+                <div class="text-xs opacity-80">完成率</div>
+            </div>
+            <div>
+                <div class="text-2xl font-bold">22.5h</div>
+                <div class="text-xs opacity-80">总时长</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 主内容区 -->
+    <main class="px-4 mt-6">
+        <!-- 内容分段控制 -->
+        <div class="ios-segmented-control mb-6">
+            <div class="ios-segment active">概览</div>
+            <div class="ios-segment">记录</div>
+            <div class="ios-segment">统计</div>
+            <div class="ios-segment">设置</div>
+        </div>
+        
+        <!-- 打卡按钮 -->
+        <button class="w-full bg-blue-500 text-white py-3 rounded-lg font-medium mb-6 ios-button">
+            <i class="fas fa-check-circle mr-2"></i>
+            今日打卡
+        </button>
+
+        <!-- 本月日历 -->
+        <div class="ios-card p-4 mb-6">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="font-semibold">2023年6月</h2>
+                <div class="flex">
+                    <button class="w-8 h-8 flex items-center justify-center text-gray-400">
+                        <i class="fas fa-chevron-left"></i>
+                    </button>
+                    <button class="w-8 h-8 flex items-center justify-center text-gray-400">
+                        <i class="fas fa-chevron-right"></i>
+                    </button>
+                </div>
+            </div>
+            
+            <div class="grid grid-cols-7 gap-1 mb-2">
+                <div class="text-center text-xs text-gray-500">一</div>
+                <div class="text-center text-xs text-gray-500">二</div>
+                <div class="text-center text-xs text-gray-500">三</div>
+                <div class="text-center text-xs text-gray-500">四</div>
+                <div class="text-center text-xs text-gray-500">五</div>
+                <div class="text-center text-xs text-gray-500">六</div>
+                <div class="text-center text-xs text-gray-500">日</div>
+            </div>
+            
+            <div class="calendar-grid">
+                <!-- 第一周 -->
+                <div class="calendar-day">29</div>
+                <div class="calendar-day">30</div>
+                <div class="calendar-day">31</div>
+                <div class="calendar-day completed">1</div>
+                <div class="calendar-day completed">2</div>
+                <div class="calendar-day completed">3</div>
+                <div class="calendar-day">4</div>
+                
+                <!-- 第二周 -->
+                <div class="calendar-day completed">5</div>
+                <div class="calendar-day completed">6</div>
+                <div class="calendar-day completed">7</div>
+                <div class="calendar-day completed">8</div>
+                <div class="calendar-day completed">9</div>
+                <div class="calendar-day">10</div>
+                <div class="calendar-day completed">11</div>
+                
+                <!-- 第三周 -->
+                <div class="calendar-day completed">12</div>
+                <div class="calendar-day completed">13</div>
+                <div class="calendar-day completed">14</div>
+                <div class="calendar-day completed">15</div>
+                <div class="calendar-day today">16</div>
+                <div class="calendar-day future">17</div>
+                <div class="calendar-day future">18</div>
+                
+                <!-- 第四周 -->
+                <div class="calendar-day future">19</div>
+                <div class="calendar-day future">20</div>
+                <div class="calendar-day future">21</div>
+                <div class="calendar-day future">22</div>
+                <div class="calendar-day future">23</div>
+                <div class="calendar-day future">24</div>
+                <div class="calendar-day future">25</div>
+                
+                <!-- 第五周 -->
+                <div class="calendar-day future">26</div>
+                <div class="calendar-day future">27</div>
+                <div class="calendar-day future">28</div>
+                <div class="calendar-day future">29</div>
+                <div class="calendar-day future">30</div>
+                <div class="calendar-day future">1</div>
+                <div class="calendar-day future">2</div>
+            </div>
+            
+            <div class="flex justify-between mt-4 text-xs text-gray-500">
+                <div>本月完成率: <span class="font-semibold text-blue-500">92%</span></div>
+                <div>最佳连续: <span class="font-semibold text-blue-500">12天</span></div>
+            </div>
+        </div>
+
+        <!-- 统计指标卡片 -->
+        <div class="grid grid-cols-2 gap-4 mb-6">
+            <div class="stat-card bg-blue-50">
+                <div class="text-xs text-gray-500 mb-1">本周完成率</div>
+                <div class="text-2xl font-bold text-blue-500">92%</div>
+                <div class="text-xs text-gray-500 mt-1">较上周 <span class="font-semibold text-green-500">+15%</span></div>
+            </div>
+            <div class="stat-card bg-green-50">
+                <div class="text-xs text-gray-500 mb-1">平均时长</div>
+                <div class="text-2xl font-bold text-green-500">35分钟</div>
+                <div class="text-xs text-gray-500 mt-1">目标: <span class="font-semibold">30分钟</span></div>
+            </div>
+        </div>
+
+        <!-- 进度环 -->
+        <div class="ios-card p-4 mb-6 flex items-center">
+            <div class="progress-ring">
+                <svg width="120" height="120" viewBox="0 0 120 120">
+                    <circle class="bg" cx="60" cy="60" r="54"></circle>
+                    <circle class="progress" cx="60" cy="60" r="54" stroke-dashoffset="84.823"></circle>
+                </svg>
+                <div class="text">
+                    <div class="text-2xl font-bold">75%</div>
+                    <div class="text-xs text-gray-500">目标达成</div>
+                </div>
+            </div>
+            <div class="ml-4">
+                <h3 class="font-medium">本月目标</h3>
+                <p class="text-sm text-gray-500 mb-2">阅读《原子习惯》全书</p>
+                <div class="w-full bg-gray-200 rounded-full h-2">
+                    <div class="bg-blue-500 rounded-full h-2" style="width: 75%"></div>
+                </div>
+                <p class="text-xs text-gray-500 mt-2">已完成15/20章节</p>
+            </div>
+        </div>
+
+        <!-- 趋势图 -->
+        <div class="ios-card p-4 mb-6">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="font-semibold">阅读时长趋势</h2>
+                <button class="text-blue-500 text-sm">
+                    查看详情
+                </button>
+            </div>
+            <div class="chart-container mb-6">
+                <div class="chart-line" style="bottom: 25%; opacity: 0.5;"></div>
+                <div class="chart-line" style="bottom: 50%; opacity: 0.5;"></div>
+                <div class="chart-line" style="bottom: 75%; opacity: 0.5;"></div>
+                
+                <div class="chart-bar" style="height: 60%; left: 3%;"></div>
+                <div class="chart-bar" style="height: 80%; left: 15%;"></div>
+                <div class="chart-bar" style="height: 100%; left: 27%;"></div>
+                <div class="chart-bar" style="height: 90%; left: 39%;"></div>
+                <div class="chart-bar" style="height: 70%; left: 51%;"></div>
+                <div class="chart-bar" style="height: 40%; left: 63%; opacity: 0.5;"></div>
+                <div class="chart-bar" style="height: 20%; left: 75%; opacity: 0.5;"></div>
+                
+                <div class="chart-label" style="left: 3%;">6/10</div>
+                <div class="chart-label" style="left: 15%;">6/11</div>
+                <div class="chart-label" style="left: 27%;">6/12</div>
+                <div class="chart-label" style="left: 39%;">6/13</div>
+                <div class="chart-label" style="left: 51%;">6/14</div>
+                <div class="chart-label" style="left: 63%;">6/15</div>
+                <div class="chart-label" style="left: 75%;">今天</div>
+            </div>
+            <div class="flex justify-between text-xs text-gray-500">
+                <div>平均: <span class="font-semibold text-blue-500">35分钟</span></div>
+                <div>最长: <span class="font-semibold text-blue-500">45分钟 (6/12)</span></div>
+            </div>
+        </div>
+
+        <!-- 最近打卡记录 -->
+        <div class="mb-6">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="font-semibold">最近打卡记录</h2>
+                <button class="text-blue-500 text-sm">
+                    查看全部
+                </button>
+            </div>
+            
+            <!-- 记录1 -->
+            <div class="note-item">
+                <div class="note-header">
+                    <div class="mood-icon bg-green-100 text-green-500">
+                        <i class="fas fa-smile"></i>
+                    </div>
+                    <div class="flex-1">
+                        <div class="flex justify-between">
+                            <div class="text-sm font-medium">今天</div>
+                            <div class="text-xs text-gray-500">07:35 · 30分钟</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="note-content">
+                    <p class="text-sm">今天读完了《原子习惯》第15章，关于如何建立良好习惯的反馈系统。作者提出了"习惯追踪"的概念，非常实用！</p>
+                    <div class="flex mt-2">
+                        <span class="bg-blue-100 text-blue-600 text-xs px-2 py-1 rounded-full mr-2">
+                            第15章
+                        </span>
+                        <span class="bg-blue-100 text-blue-600 text-xs px-2 py-1 rounded-full">
+                            反馈系统
+                        </span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 记录2 -->
+            <div class="note-item">
+                <div class="note-header">
+                    <div class="mood-icon bg-blue-100 text-blue-500">
+                        <i class="fas fa-grin"></i>
+                    </div>
+                    <div class="flex-1">
+                        <div class="flex justify-between">
+                            <div class="text-sm font-medium">昨天</div>
+                            <div class="text-xs text-gray-500">08:15 · 35分钟</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="note-content">
+                    <p class="text-sm">读完第14章，关于如何让好习惯变得容易。作者提出的"环境设计"理念很有启发，我决定在床头放本书，让阅读变得更容易开始。</p>
+                    <div class="flex mt-2">
+                        <span class="bg-blue-100 text-blue-600 text-xs px-2 py-1 rounded-full mr-2">
+                            第14章
+                        </span>
+                        <span class="bg-blue-100 text-blue-600 text-xs px-2 py-1 rounded-full">
+                            环境设计
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 相关习惯 -->
+        <div class="mb-6">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="font-semibold">相关习惯</h2>
+                <button class="text-blue-500 text-sm">
+                    查看全部
+                </button>
+            </div>
+            <div class="flex space-x-4 overflow-x-auto pb-2">
+                <div class="ios-card p-3 w-40 flex-shrink-0">
+                    <div class="flex items-center mb-2">
+                        <div class="w-8 h-8 rounded-lg bg-purple-100 text-purple-500 flex items-center justify-center mr-2">
+                            <i class="fas fa-pen"></i>
+                        </div>
+                        <div class="text-sm font-medium">写作</div>
+                    </div>
+                    <div class="text-xs text-gray-500">每天写作15分钟</div>
+                    <div class="mt-2">
+                        <div class="text-xs text-gray-500">完成率</div>
+                        <div class="w-full bg-gray-200 rounded-full h-2 mt-1">
+                            <div class="bg-purple-500 rounded-full h-2" style="width: 78%"></div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="ios-card p-3 w-40 flex-shrink-0">
+                    <div class="flex items-center mb-2">
+                        <div class="w-8 h-8 rounded-lg bg-yellow-100 text-yellow-500 flex items-center justify-center mr-2">
+                            <i class="fas fa-highlighter"></i>
+                        </div>
+                        <div class="text-sm font-medium">笔记整理</div>
+                    </div>
+                    <div class="text-xs text-gray-500">每周整理读书笔记</div>
+                    <div class="mt-2">
+                        <div class="text-xs text-gray-500">完成率</div>
+                        <div class="w-full bg-gray-200 rounded-full h-2 mt-1">
+                            <div class="bg-yellow-500 rounded-full h-2" style="width: 65%"></div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="ios-card p-3 w-40 flex-shrink-0">
+                    <div class="flex items-center mb-2">
+                        <div class="w-8 h-8 rounded-lg bg-green-100 text-green-500 flex items-center justify-center mr-2">
+                            <i class="fas fa-brain"></i>
+                        </div>
+                        <div class="text-sm font-medium">冥想</div>
+                    </div>
+                    <div class="text-xs text-gray-500">每天冥想10分钟</div>
+                    <div class="mt-2">
+                        <div class="text-xs text-gray-500">完成率</div>
+                        <div class="w-full bg-gray-200 rounded-full h-2 mt-1">
+                            <div class="bg-green-500 rounded-full h-2" style="width: 85%"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- 底部标签栏 -->
+    <nav class="tab-bar fixed bottom-0 w-full flex justify-around items-center py-2 px-4">
+        <a href="index.html" class="flex flex-col items-center">
+            <i class="fas fa-home text-gray-400 mb-1"></i>
+            <span class="text-xs text-gray-400">首页</span>
+        </a>
+        <a href="habits.html" class="flex flex-col items-center">
+            <i class="fas fa-list text-blue-500 mb-1"></i>
+            <span class="text-xs text-blue-500">习惯</span>
+        </a>
+        <a href="checkin.html" class="flex flex-col items-center">
+            <div class="w-12 h-12 bg-blue-500 rounded-full flex items-center justify-center -mt-5">
+                <i class="fas fa-plus text-white text-lg"></i>
+            </div>
+        </a>
+        <a href="community.html" class="flex flex-col items-center">
+            <i class="fas fa-users text-gray-400 mb-1"></i>
+            <span class="text-xs text-gray-400">社区</span>
+        </a>
+        <a href="profile.html" class="flex flex-col items-center">
+            <i class="fas fa-user text-gray-400 mb-1"></i>
+            <span class="text-xs text-gray-400">我的</span>
+        </a>
+    </nav>
+</body>
+</html> 

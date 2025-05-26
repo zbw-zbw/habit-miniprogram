@@ -1,0 +1,173 @@
+/**
+ * 习惯卡片组件样式
+ */
+.habit-card {
+  display: flex;
+  background-color: #FFFFFF;
+  border-radius: var(--radius-medium);
+  padding: 24rpx;
+  margin-bottom: 24rpx;
+  box-shadow: var(--shadow-light);
+  position: relative;
+}
+
+/* 左侧图标 */
+.habit-icon {
+  width: 80rpx;
+  height: 80rpx;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 24rpx;
+  flex-shrink: 0;
+}
+
+.habit-icon .iconfont {
+  color: #FFFFFF;
+  font-size: 40rpx;
+}
+
+/* 中间内容 */
+.habit-content {
+  flex: 1;
+  overflow: hidden;
+}
+
+.habit-name {
+  font-size: 32rpx;
+  font-weight: 600;
+  color: var(--title-color);
+  margin-bottom: 8rpx;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  overflow: hidden;
+}
+
+.habit-info {
+  display: flex;
+  align-items: center;
+  margin-bottom: 16rpx;
+}
+
+.habit-category {
+  font-size: 24rpx;
+  color: var(--text-color-secondary);
+  background-color: var(--background-color);
+  padding: 4rpx 12rpx;
+  border-radius: var(--radius-small);
+  margin-right: 16rpx;
+}
+
+.habit-frequency {
+  font-size: 24rpx;
+  color: var(--text-color-secondary);
+}
+
+.habit-stats {
+  display: flex;
+  align-items: center;
+}
+
+.stat-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-right: 32rpx;
+}
+
+.stat-value {
+  font-size: 28rpx;
+  font-weight: 600;
+  color: var(--primary-color);
+}
+
+.stat-label {
+  font-size: 22rpx;
+  color: var(--text-color-secondary);
+  margin-top: 4rpx;
+}
+
+/* 右侧操作 */
+.habit-actions {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  justify-content: space-between;
+  margin-left: 16rpx;
+  flex-shrink: 0;
+}
+
+.checkin-btn {
+  background-color: var(--primary-color);
+  color: #FFFFFF;
+  font-size: 28rpx;
+  padding: 8rpx 24rpx;
+  border-radius: var(--radius-small);
+  margin-bottom: 16rpx;
+}
+
+.more-btn {
+  font-size: 40rpx;
+  color: var(--text-color-secondary);
+  padding: 8rpx;
+}
+
+/* 操作菜单 */
+.action-menu {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  visibility: hidden;
+  opacity: 0;
+  transition: all 0.3s ease;
+}
+
+.action-menu.show {
+  visibility: visible;
+  opacity: 1;
+}
+
+.action-menu-content {
+  width: 80%;
+  background-color: #FFFFFF;
+  border-radius: var(--radius-medium);
+  overflow: hidden;
+}
+
+.action-item {
+  display: flex;
+  align-items: center;
+  padding: 32rpx;
+  border-bottom: 1px solid var(--divider-color);
+}
+
+.action-item:last-child {
+  border-bottom: none;
+}
+
+.action-item .iconfont {
+  font-size: 40rpx;
+  margin-right: 16rpx;
+  color: var(--primary-color);
+}
+
+.action-item text {
+  font-size: 32rpx;
+  color: var(--text-color);
+}
+
+.action-item.delete .iconfont {
+  color: var(--error-color);
+}
+
+.action-item.delete text {
+  color: var(--error-color);
+} 

@@ -1,0 +1,126 @@
+/**
+ * 习惯卡片组件
+ */
+Component({
+  /**
+   * 组件的属性列表
+   */
+  properties: {
+    habit: {
+      type: Object,
+      value: {}
+    },
+    stats: {
+      type: Object,
+      value: {}
+    },
+    showActions: {
+      type: Boolean,
+      value: true
+    }
+  },
+
+  /**
+   * 组件的初始数据
+   */
+  data: {
+    isToday: false,
+    shouldDoToday: false,
+    isCompleted: false
+  },
+
+  /**
+   * 组件的生命周期
+   */
+  lifetimes: {
+    attached() {
+      this.checkTodayStatus();
+    }
+  },
+
+  /**
+   * 组件的方法列表
+   */
+  methods: {
+    /**
+     * 检查今日状态
+     */
+    checkTodayStatus() {
+      const habit = this.properties.habit;
+      if (!habit || !habit.id) return;
+
+      // 导入日期和习惯工具函数
+      const { getCurrentDate } = require('../../utils/date');
+      const { shouldDoHabitOnDate } = require('../../utils/habit');
+      const { getCheckinsByHabitId } = require('../../utils/storage');
+      
+      const today = getCurrentDate();
+      const shouldDoToday = shouldDoHabitOnDate(habit, today);
+      
+      // 获取今日打卡记录
+      const checkins = getCheckinsByHabitId(habit.id);
+      const todayCheckin = checkins.find(c => c.date === today);
+      const isCompleted = todayCheckin?.isCompleted || false;
+      
+      this.setData({
+        isToday: true,
+        shouldDoToday,
+        isCompleted
+      });
+    },
+    
+    /**
+     * 点击打卡
+     */
+    onCheckin() {
+      const habit = this.properties.habit;
+      if (!habit || !habit.id) return;
+      
+      this.triggerEvent('checkin', { habitId: habit.id });
+    },
+    
+    /**
+     * 点击查看详情
+     */
+    onViewDetail() {
+      const habit = this.properties.habit;
+      if (!habit || !habit.id) return;
+      
+      wx.navigateTo({
+        url: `/pages/habits/detail/detail?id=${habit.id}`
+      });
+    },
+    
+    /**
+     * 点击编辑
+     */
+    onEdit() {
+      const habit = this.properties.habit;
+      if (!habit || !habit.id) return;
+      
+      wx.navigateTo({
+        url: `/pages/habits/create/create?id=${habit.id}`
+      });
+    },
+    
+    /**
+     * 点击删除
+     */
+    onDelete() {
+      const habit = this.properties.habit;
+      if (!habit || !habit.id) return;
+      
+      wx.showModal({
+        title: '确认删除',
+        content: `确定要删除习惯"${habit.name}"吗？`,
+        confirmText: '删除',
+        confirmColor: '#F56C6C',
+        success: (res) => {
+          if (res.confirm) {
+            this.triggerEvent('delete', { habitId: habit.id });
+          }
+        }
+      });
+    }
+  }
+}); 

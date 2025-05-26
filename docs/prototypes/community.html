@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>习惯养成 - 社区</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #5E72E4;
+            --secondary-color: #F7FAFC;
+            --success-color: #2DCE89;
+            --warning-color: #FB6340;
+            --danger-color: #F5365C;
+            --text-color: #32325D;
+            --light-text: #8898AA;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            color: var(--text-color);
+            background-color: #F8F9FE;
+            -webkit-font-smoothing: antialiased;
+        }
+        
+        .ios-header {
+            background-color: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+        }
+        
+        .ios-card {
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            background-color: white;
+        }
+        
+        .ios-button {
+            border-radius: 10px;
+            font-weight: 600;
+        }
+        
+        .tab-bar {
+            background-color: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border-top: 1px solid rgba(0, 0, 0, 0.1);
+        }
+        
+        .ios-segmented-control {
+            display: flex;
+            background-color: #E9ECEF;
+            border-radius: 8px;
+            padding: 2px;
+        }
+        
+        .ios-segment {
+            flex: 1;
+            text-align: center;
+            padding: 8px 0;
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--light-text);
+            border-radius: 6px;
+        }
+        
+        .ios-segment.active {
+            background-color: white;
+            color: var(--text-color);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        }
+
+        .avatar {
+            border-radius: 50%;
+            object-fit: cover;
+        }
+
+        .challenge-card {
+            border-radius: 12px;
+            overflow: hidden;
+        }
+
+        .challenge-image {
+            height: 120px;
+            object-fit: cover;
+        }
+
+        .badge {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+            color: white;
+            position: absolute;
+            top: -5px;
+            right: -5px;
+        }
+
+        .story-avatar {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            padding: 2px;
+            background: linear-gradient(45deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888);
+        }
+
+        .story-avatar img {
+            border: 2px solid white;
+        }
+
+        .post-actions {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-top: 1px solid #F1F5F9;
+        }
+
+        .post-action {
+            display: flex;
+            align-items: center;
+            color: var(--light-text);
+            font-size: 14px;
+        }
+
+        .post-action i {
+            margin-right: 5px;
+        }
+
+        .habit-tag {
+            font-size: 11px;
+            padding: 4px 8px;
+            border-radius: 12px;
+            background-color: #EBF4FF;
+            color: #3B82F6;
+            margin-right: 6px;
+            white-space: nowrap;
+        }
+    </style>
+</head>
+<body class="pb-20">
+    <!-- 顶部导航栏 -->
+    <header class="ios-header fixed w-full top-0 z-10 px-4 py-3 flex justify-between items-center">
+        <div class="flex items-center">
+            <h1 class="text-xl font-bold">社区</h1>
+        </div>
+        <div class="flex">
+            <button class="w-8 h-8 flex items-center justify-center rounded-full bg-gray-100 mr-2 relative">
+                <i class="fas fa-bell text-gray-600"></i>
+                <span class="badge bg-red-500">3</span>
+            </button>
+            <button class="w-8 h-8 flex items-center justify-center rounded-full bg-gray-100">
+                <i class="fas fa-search text-gray-600"></i>
+            </button>
+        </div>
+    </header>
+
+    <!-- 主内容区 -->
+    <main class="mt-16 px-4">
+        <!-- 社区分类选择器 -->
+        <div class="ios-segmented-control mb-6">
+            <div class="ios-segment active">关注</div>
+            <div class="ios-segment">发现</div>
+            <div class="ios-segment">附近</div>
+            <div class="ios-segment">排行</div>
+        </div>
+        
+        <!-- 好友故事 -->
+        <div class="mb-6">
+            <h2 class="font-semibold mb-4">好友动态</h2>
+            <div class="flex space-x-4 overflow-x-auto pb-2">
+                <!-- 添加故事 -->
+                <div class="flex flex-col items-center">
+                    <div class="w-16 h-16 rounded-full bg-gray-100 flex items-center justify-center mb-1 border-2 border-dashed border-gray-300">
+                        <i class="fas fa-plus text-gray-400"></i>
+                    </div>
+                    <span class="text-xs text-gray-500">添加</span>
+                </div>
+                
+                <!-- 好友故事 -->
+                <div class="flex flex-col items-center">
+                    <div class="story-avatar mb-1">
+                        <img src="https://randomuser.me/api/portraits/women/44.jpg" class="w-full h-full rounded-full" alt="用户头像">
+                    </div>
+                    <span class="text-xs">李小华</span>
+                </div>
+                
+                <div class="flex flex-col items-center">
+                    <div class="story-avatar mb-1">
+                        <img src="https://randomuser.me/api/portraits/men/32.jpg" class="w-full h-full rounded-full" alt="用户头像">
+                    </div>
+                    <span class="text-xs">张明</span>
+                </div>
+                
+                <div class="flex flex-col items-center">
+                    <div class="story-avatar mb-1">
+                        <img src="https://randomuser.me/api/portraits/women/68.jpg" class="w-full h-full rounded-full" alt="用户头像">
+                    </div>
+                    <span class="text-xs">王丽</span>
+                </div>
+                
+                <div class="flex flex-col items-center">
+                    <div class="story-avatar mb-1">
+                        <img src="https://randomuser.me/api/portraits/men/75.jpg" class="w-full h-full rounded-full" alt="用户头像">
+                    </div>
+                    <span class="text-xs">赵强</span>
+                </div>
+                
+                <div class="flex flex-col items-center">
+                    <div class="story-avatar mb-1">
+                        <img src="https://randomuser.me/api/portraits/women/90.jpg" class="w-full h-full rounded-full" alt="用户头像">
+                    </div>
+                    <span class="text-xs">陈静</span>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 热门挑战 -->
+        <div class="mb-6">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="font-semibold">热门挑战</h2>
+                <button class="text-blue-500 text-sm">
+                    查看全部
+                </button>
+            </div>
+            <div class="flex space-x-4 overflow-x-auto pb-2">
+                <!-- 挑战卡片1 -->
+                <div class="challenge-card bg-white w-64 flex-shrink-0">
+                    <img src="https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60" class="challenge-image w-full" alt="21天早起挑战">
+                    <div class="p-3">
+                        <h3 class="font-medium text-sm">21天早起挑战</h3>
+                        <div class="flex justify-between items-center mt-2">
+                            <div class="text-xs text-gray-500">
+                                <i class="fas fa-users mr-1"></i>
+                                2,145人参与
+                            </div>
+                            <button class="bg-blue-500 text-white text-xs px-3 py-1 rounded-full">
+                                参加
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 挑战卡片2 -->
+                <div class="challenge-card bg-white w-64 flex-shrink-0">
+                    <img src="https://images.unsplash.com/photo-1517836357463-d25dfeac3438?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60" class="challenge-image w-full" alt="每日1万步">
+                    <div class="p-3">
+                        <h3 class="font-medium text-sm">每日1万步</h3>
+                        <div class="flex justify-between items-center mt-2">
+                            <div class="text-xs text-gray-500">
+                                <i class="fas fa-users mr-1"></i>
+                                3,872人参与
+                            </div>
+                            <button class="bg-blue-500 text-white text-xs px-3 py-1 rounded-full">
+                                参加
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 挑战卡片3 -->
+                <div class="challenge-card bg-white w-64 flex-shrink-0">
+                    <img src="https://images.unsplash.com/photo-1512621776951-a57141f2eefd?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60" class="challenge-image w-full" alt="30天健康饮食">
+                    <div class="p-3">
+                        <h3 class="font-medium text-sm">30天健康饮食</h3>
+                        <div class="flex justify-between items-center mt-2">
+                            <div class="text-xs text-gray-500">
+                                <i class="fas fa-users mr-1"></i>
+                                1,658人参与
+                            </div>
+                            <button class="bg-blue-500 text-white text-xs px-3 py-1 rounded-full">
+                                参加
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 社区动态 -->
+        <div class="mb-6">
+            <h2 class="font-semibold mb-4">社区动态</h2>
+            
+            <!-- 动态帖子1 -->
+            <div class="ios-card p-4 mb-4">
+                <div class="flex items-center mb-3">
+                    <img src="https://randomuser.me/api/portraits/women/44.jpg" class="w-10 h-10 rounded-full mr-3" alt="用户头像">
+                    <div>
+                        <div class="font-medium">李小华</div>
+                        <div class="text-xs text-gray-500">今天 08:23 · 阅读习惯</div>
+                    </div>
+                    <button class="ml-auto text-gray-400">
+                        <i class="fas fa-ellipsis-h"></i>
+                    </button>
+                </div>
+                
+                <p class="text-sm mb-3">今天完成了《原子习惯》的阅读，真的很有启发！分享一个金句："习惯是复利的魔力：1%的微小改变，带来巨大的人生转变。"</p>
+                
+                <div class="flex mb-3 overflow-x-auto">
+                    <span class="habit-tag">
+                        <i class="fas fa-book mr-1"></i>阅读
+                    </span>
+                    <span class="habit-tag">
+                        <i class="fas fa-brain mr-1"></i>自我提升
+                    </span>
+                </div>
+                
+                <img src="https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?ixlib=rb-1.2.1&auto=format&fit=crop&w=1000&q=80" class="w-full rounded-lg mb-3" alt="阅读照片">
+                
+                <div class="post-actions">
+                    <div class="post-action">
+                        <i class="far fa-heart"></i>
+                        <span>128</span>
+                    </div>
+                    <div class="post-action">
+                        <i class="far fa-comment"></i>
+                        <span>32</span>
+                    </div>
+                    <div class="post-action">
+                        <i class="far fa-share-square"></i>
+                        <span>分享</span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 动态帖子2 -->
+            <div class="ios-card p-4 mb-4">
+                <div class="flex items-center mb-3">
+                    <img src="https://randomuser.me/api/portraits/men/32.jpg" class="w-10 h-10 rounded-full mr-3" alt="用户头像">
+                    <div>
+                        <div class="font-medium">张明</div>
+                        <div class="text-xs text-gray-500">昨天 19:45 · 运动习惯</div>
+                    </div>
+                    <button class="ml-auto text-gray-400">
+                        <i class="fas fa-ellipsis-h"></i>
+                    </button>
+                </div>
+                
+                <p class="text-sm mb-3">连续跑步打卡第30天！今天完成了10公里，感觉自己的耐力有了明显提升。坚持真的很重要，一起加油！💪</p>
+                
+                <div class="flex mb-3 overflow-x-auto">
+                    <span class="habit-tag">
+                        <i class="fas fa-running mr-1"></i>跑步
+                    </span>
+                    <span class="habit-tag">
+                        <i class="fas fa-medal mr-1"></i>30天挑战
+                    </span>
+                </div>
+                
+                <img src="https://images.unsplash.com/photo-1461896836934-ffe607ba8211?ixlib=rb-1.2.1&auto=format&fit=crop&w=1000&q=80" class="w-full rounded-lg mb-3" alt="跑步照片">
+                
+                <div class="post-actions">
+                    <div class="post-action">
+                        <i class="far fa-heart"></i>
+                        <span>256</span>
+                    </div>
+                    <div class="post-action">
+                        <i class="far fa-comment"></i>
+                        <span>48</span>
+                    </div>
+                    <div class="post-action">
+                        <i class="far fa-share-square"></i>
+                        <span>分享</span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 动态帖子3 -->
+            <div class="ios-card p-4">
+                <div class="flex items-center mb-3">
+                    <img src="https://randomuser.me/api/portraits/women/68.jpg" class="w-10 h-10 rounded-full mr-3" alt="用户头像">
+                    <div>
+                        <div class="font-medium">王丽</div>
+                        <div class="text-xs text-gray-500">2天前 · 冥想习惯</div>
+                    </div>
+                    <button class="ml-auto text-gray-400">
+                        <i class="fas fa-ellipsis-h"></i>
+                    </button>
+                </div>
+                
+                <p class="text-sm mb-3">早晨冥想20分钟，整个人都平静下来了。推荐大家尝试"正念呼吸法"，对缓解焦虑真的很有效！现在已经坚持了45天，感觉自己的情绪管理能力有了很大提升。</p>
+                
+                <div class="flex mb-3 overflow-x-auto">
+                    <span class="habit-tag">
+                        <i class="fas fa-spa mr-1"></i>冥想
+                    </span>
+                    <span class="habit-tag">
+                        <i class="fas fa-brain mr-1"></i>心理健康
+                    </span>
+                </div>
+                
+                <div class="post-actions">
+                    <div class="post-action">
+                        <i class="far fa-heart"></i>
+                        <span>89</span>
+                    </div>
+                    <div class="post-action">
+                        <i class="far fa-comment"></i>
+                        <span>15</span>
+                    </div>
+                    <div class="post-action">
+                        <i class="far fa-share-square"></i>
+                        <span>分享</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- 底部标签栏 -->
+    <nav class="tab-bar fixed bottom-0 w-full flex justify-around items-center py-2 px-4">
+        <a href="index.html" class="flex flex-col items-center">
+            <i class="fas fa-home text-gray-400 mb-1"></i>
+            <span class="text-xs text-gray-400">首页</span>
+        </a>
+        <a href="habits.html" class="flex flex-col items-center">
+            <i class="fas fa-list text-gray-400 mb-1"></i>
+            <span class="text-xs text-gray-400">习惯</span>
+        </a>
+        <a href="checkin.html" class="flex flex-col items-center">
+            <div class="w-12 h-12 bg-blue-500 rounded-full flex items-center justify-center -mt-5">
+                <i class="fas fa-plus text-white text-lg"></i>
+            </div>
+        </a>
+        <a href="community.html" class="flex flex-col items-center">
+            <i class="fas fa-users text-blue-500 mb-1"></i>
+            <span class="text-xs text-blue-500">社区</span>
+        </a>
+        <a href="profile.html" class="flex flex-col items-center">
+            <i class="fas fa-user text-gray-400 mb-1"></i>
+            <span class="text-xs text-gray-400">我的</span>
+        </a>
+    </nav>
+</body>
+</html> 

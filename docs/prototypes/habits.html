@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>习惯养成 - 习惯管理</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #5E72E4;
+            --secondary-color: #F7FAFC;
+            --success-color: #2DCE89;
+            --warning-color: #FB6340;
+            --danger-color: #F5365C;
+            --text-color: #32325D;
+            --light-text: #8898AA;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            color: var(--text-color);
+            background-color: #F8F9FE;
+            -webkit-font-smoothing: antialiased;
+        }
+        
+        .ios-header {
+            background-color: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+        }
+        
+        .ios-card {
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            background-color: white;
+        }
+        
+        .ios-button {
+            border-radius: 10px;
+            font-weight: 600;
+        }
+        
+        .tab-bar {
+            background-color: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border-top: 1px solid rgba(0, 0, 0, 0.1);
+        }
+        
+        .habit-icon {
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 10px;
+        }
+        
+        .ios-segmented-control {
+            display: flex;
+            background-color: #E9ECEF;
+            border-radius: 8px;
+            padding: 2px;
+        }
+        
+        .ios-segment {
+            flex: 1;
+            text-align: center;
+            padding: 8px 0;
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--light-text);
+            border-radius: 6px;
+        }
+        
+        .ios-segment.active {
+            background-color: white;
+            color: var(--text-color);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        }
+
+        .habit-card {
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        
+        .habit-card:active {
+            transform: scale(0.98);
+            box-shadow: 0 1px 5px rgba(0, 0, 0, 0.03);
+        }
+
+        .category-tag {
+            font-size: 10px;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body class="pb-20">
+    <!-- 顶部导航栏 -->
+    <header class="ios-header fixed w-full top-0 z-10 px-4 py-3 flex justify-between items-center">
+        <div class="flex items-center">
+            <h1 class="text-xl font-bold">我的习惯</h1>
+        </div>
+        <div class="flex">
+            <button class="w-8 h-8 flex items-center justify-center rounded-full bg-gray-100 mr-2">
+                <i class="fas fa-search text-gray-600"></i>
+            </button>
+            <a href="create-habit.html" class="w-8 h-8 flex items-center justify-center rounded-full bg-gray-100">
+                <i class="fas fa-plus text-gray-600"></i>
+            </a>
+        </div>
+    </header>
+
+    <!-- 主内容区 -->
+    <main class="mt-16 px-4">
+        <!-- 段选择器 -->
+        <div class="ios-segmented-control mb-6">
+            <div class="ios-segment active">全部</div>
+            <div class="ios-segment">活跃</div>
+            <div class="ios-segment">已归档</div>
+        </div>
+        
+        <!-- 分类筛选 -->
+        <div class="overflow-x-auto flex space-x-2 mb-6 pb-2">
+            <button class="px-4 py-2 bg-blue-500 text-white rounded-full text-sm whitespace-nowrap">
+                全部
+            </button>
+            <button class="px-4 py-2 bg-white text-gray-600 rounded-full text-sm whitespace-nowrap shadow-sm">
+                健康
+            </button>
+            <button class="px-4 py-2 bg-white text-gray-600 rounded-full text-sm whitespace-nowrap shadow-sm">
+                学习
+            </button>
+            <button class="px-4 py-2 bg-white text-gray-600 rounded-full text-sm whitespace-nowrap shadow-sm">
+                工作
+            </button>
+            <button class="px-4 py-2 bg-white text-gray-600 rounded-full text-sm whitespace-nowrap shadow-sm">
+                生活
+            </button>
+            <button class="px-4 py-2 bg-white text-gray-600 rounded-full text-sm whitespace-nowrap shadow-sm">
+                其他
+            </button>
+        </div>
+
+        <!-- 习惯列表 -->
+        <div class="space-y-4">
+            <!-- 习惯卡片 -->
+            <div class="ios-card habit-card p-4" onclick="location.href='habit-detail.html?id=1'">
+                <div class="flex justify-between items-center">
+                    <div class="flex items-center">
+                        <div class="habit-icon bg-blue-100 text-blue-500 mr-3">
+                            <i class="fas fa-book"></i>
+                        </div>
+                        <div>
+                            <h3 class="font-medium">阅读</h3>
+                            <div class="flex items-center mt-1">
+                                <span class="category-tag bg-blue-100 text-blue-600 mr-2">学习</span>
+                                <span class="text-xs text-gray-500">每天30分钟</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="flex flex-col items-end">
+                        <div class="text-sm font-semibold text-green-500">已连续12天</div>
+                        <div class="text-xs text-gray-500 mt-1">总计打卡: 45次</div>
+                    </div>
+                </div>
+                <div class="mt-3">
+                    <div class="flex justify-between items-center mb-1">
+                        <span class="text-xs text-gray-500">本周进度</span>
+                        <span class="text-xs font-medium">5/7天</span>
+                    </div>
+                    <div class="w-full bg-gray-200 rounded-full h-2">
+                        <div class="bg-blue-500 rounded-full h-2" style="width: 71%"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="ios-card habit-card p-4" onclick="location.href='habit-detail.html?id=2'">
+                <div class="flex justify-between items-center">
+                    <div class="flex items-center">
+                        <div class="habit-icon bg-green-100 text-green-500 mr-3">
+                            <i class="fas fa-running"></i>
+                        </div>
+                        <div>
+                            <h3 class="font-medium">运动</h3>
+                            <div class="flex items-center mt-1">
+                                <span class="category-tag bg-green-100 text-green-600 mr-2">健康</span>
+                                <span class="text-xs text-gray-500">每天45分钟</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="flex flex-col items-end">
+                        <div class="text-sm font-semibold text-green-500">已连续8天</div>
+                        <div class="text-xs text-gray-500 mt-1">总计打卡: 32次</div>
+                    </div>
+                </div>
+                <div class="mt-3">
+                    <div class="flex justify-between items-center mb-1">
+                        <span class="text-xs text-gray-500">本周进度</span>
+                        <span class="text-xs font-medium">4/7天</span>
+                    </div>
+                    <div class="w-full bg-gray-200 rounded-full h-2">
+                        <div class="bg-green-500 rounded-full h-2" style="width: 57%"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="ios-card habit-card p-4" onclick="location.href='habit-detail.html?id=3'">
+                <div class="flex justify-between items-center">
+                    <div class="flex items-center">
+                        <div class="habit-icon bg-purple-100 text-purple-500 mr-3">
+                            <i class="fas fa-pen"></i>
+                        </div>
+                        <div>
+                            <h3 class="font-medium">写作</h3>
+                            <div class="flex items-center mt-1">
+                                <span class="category-tag bg-purple-100 text-purple-600 mr-2">工作</span>
+                                <span class="text-xs text-gray-500">每天500字</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="flex flex-col items-end">
+                        <div class="text-sm font-semibold text-green-500">已连续5天</div>
+                        <div class="text-xs text-gray-500 mt-1">总计打卡: 18次</div>
+                    </div>
+                </div>
+                <div class="mt-3">
+                    <div class="flex justify-between items-center mb-1">
+                        <span class="text-xs text-gray-500">本周进度</span>
+                        <span class="text-xs font-medium">5/7天</span>
+                    </div>
+                    <div class="w-full bg-gray-200 rounded-full h-2">
+                        <div class="bg-purple-500 rounded-full h-2" style="width: 71%"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="ios-card habit-card p-4" onclick="location.href='habit-detail.html?id=4'">
+                <div class="flex justify-between items-center">
+                    <div class="flex items-center">
+                        <div class="habit-icon bg-yellow-100 text-yellow-500 mr-3">
+                            <i class="fas fa-bed"></i>
+                        </div>
+                        <div>
+                            <h3 class="font-medium">早睡</h3>
+                            <div class="flex items-center mt-1">
+                                <span class="category-tag bg-yellow-100 text-yellow-600 mr-2">生活</span>
+                                <span class="text-xs text-gray-500">23:00前睡觉</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="flex flex-col items-end">
+                        <div class="text-sm font-semibold text-green-500">已连续3天</div>
+                        <div class="text-xs text-gray-500 mt-1">总计打卡: 15次</div>
+                    </div>
+                </div>
+                <div class="mt-3">
+                    <div class="flex justify-between items-center mb-1">
+                        <span class="text-xs text-gray-500">本周进度</span>
+                        <span class="text-xs font-medium">3/7天</span>
+                    </div>
+                    <div class="w-full bg-gray-200 rounded-full h-2">
+                        <div class="bg-yellow-500 rounded-full h-2" style="width: 43%"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="ios-card habit-card p-4" onclick="location.href='habit-detail.html?id=5'">
+                <div class="flex justify-between items-center">
+                    <div class="flex items-center">
+                        <div class="habit-icon bg-red-100 text-red-500 mr-3">
+                            <i class="fas fa-apple-alt"></i>
+                        </div>
+                        <div>
+                            <h3 class="font-medium">健康饮食</h3>
+                            <div class="flex items-center mt-1">
+                                <span class="category-tag bg-red-100 text-red-600 mr-2">健康</span>
+                                <span class="text-xs text-gray-500">每日记录饮食</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="flex flex-col items-end">
+                        <div class="text-sm font-semibold text-red-500">已中断2天</div>
+                        <div class="text-xs text-gray-500 mt-1">总计打卡: 28次</div>
+                    </div>
+                </div>
+                <div class="mt-3">
+                    <div class="flex justify-between items-center mb-1">
+                        <span class="text-xs text-gray-500">本周进度</span>
+                        <span class="text-xs font-medium">2/7天</span>
+                    </div>
+                    <div class="w-full bg-gray-200 rounded-full h-2">
+                        <div class="bg-red-500 rounded-full h-2" style="width: 28%"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="ios-card habit-card p-4" onclick="location.href='habit-detail.html?id=6'">
+                <div class="flex justify-between items-center">
+                    <div class="flex items-center">
+                        <div class="habit-icon bg-indigo-100 text-indigo-500 mr-3">
+                            <i class="fas fa-tint"></i>
+                        </div>
+                        <div>
+                            <h3 class="font-medium">喝水</h3>
+                            <div class="flex items-center mt-1">
+                                <span class="category-tag bg-indigo-100 text-indigo-600 mr-2">健康</span>
+                                <span class="text-xs text-gray-500">每天8杯水</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="flex flex-col items-end">
+                        <div class="text-sm font-semibold text-gray-500">已归档</div>
+                        <div class="text-xs text-gray-500 mt-1">总计打卡: 60次</div>
+                    </div>
+                </div>
+                <div class="mt-3">
+                    <div class="flex justify-between items-center mb-1">
+                        <span class="text-xs text-gray-500">最终进度</span>
+                        <span class="text-xs font-medium">完成率: 85%</span>
+                    </div>
+                    <div class="w-full bg-gray-200 rounded-full h-2">
+                        <div class="bg-gray-500 rounded-full h-2" style="width: 85%"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 添加习惯按钮 -->
+        <div class="fixed bottom-20 right-4">
+            <a href="create-habit.html" class="w-14 h-14 bg-blue-500 rounded-full flex items-center justify-center shadow-lg">
+                <i class="fas fa-plus text-white text-xl"></i>
+            </a>
+        </div>
+    </main>
+
+    <!-- 底部标签栏 -->
+    <nav class="tab-bar fixed bottom-0 w-full flex justify-around items-center py-2 px-4">
+        <a href="index.html" class="flex flex-col items-center">
+            <i class="fas fa-home text-gray-400 mb-1"></i>
+            <span class="text-xs text-gray-400">首页</span>
+        </a>
+        <a href="habits.html" class="flex flex-col items-center">
+            <i class="fas fa-list text-blue-500 mb-1"></i>
+            <span class="text-xs text-blue-500 font-medium">习惯</span>
+        </a>
+        <a href="checkin.html" class="flex flex-col items-center">
+            <div class="w-12 h-12 bg-blue-500 rounded-full flex items-center justify-center -mt-5">
+                <i class="fas fa-plus text-white text-lg"></i>
+            </div>
+        </a>
+        <a href="community.html" class="flex flex-col items-center">
+            <i class="fas fa-users text-gray-400 mb-1"></i>
+            <span class="text-xs text-gray-400">社区</span>
+        </a>
+        <a href="profile.html" class="flex flex-col items-center">
+            <i class="fas fa-user text-gray-400 mb-1"></i>
+            <span class="text-xs text-gray-400">我的</span>
+        </a>
+    </nav>
+</body>
+</html> 

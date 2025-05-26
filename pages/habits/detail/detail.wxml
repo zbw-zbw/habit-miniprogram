@@ -1,0 +1,229 @@
+<!--pages/habits/detail/detail.wxml-->
+<view class="container">
+  <!-- 习惯详情头部 -->
+  <view class="habit-header" style="background: linear-gradient(120deg, {{habit.color || '#4F7CFF'}}, {{habit.color || '#4F7CFF'}}CC);">
+    <view class="header-content">
+      <view class="habit-icon" style="background-color: rgba(255, 255, 255, 0.2);">
+        <text class="iconfont icon-{{habit.icon || 'default'}}"></text>
+      </view>
+      <view class="habit-info">
+        <view class="habit-name">{{habit.name || '加载中...'}}</view>
+        <view class="habit-desc">{{habit.description || ''}}</view>
+        <view class="habit-tags">
+          <view class="tag" wx:if="{{habit.reminder.enabled}}">
+            <text class="iconfont icon-clock"></text>
+            每天 {{habit.reminder.time}}
+          </view>
+          <view class="tag">
+            <text class="iconfont icon-tag"></text>
+            {{habit.category}}
+          </view>
+        </view>
+      </view>
+    </view>
+    
+    <view class="habit-stats">
+      <view class="stat-item">
+        <view class="stat-value">{{stats.totalCompletions || 0}}</view>
+        <view class="stat-label">总打卡</view>
+      </view>
+      <view class="stat-item">
+        <view class="stat-value">{{stats.currentStreak || 0}}</view>
+        <view class="stat-label">连续天数</view>
+      </view>
+      <view class="stat-item">
+        <view class="stat-value">{{(stats.completionRate * 100).toFixed(0) || 0}}%</view>
+        <view class="stat-label">完成率</view>
+      </view>
+      <view class="stat-item">
+        <view class="stat-value">{{stats.longestStreak || 0}}</view>
+        <view class="stat-label">最长连续</view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 内容区域 -->
+  <view class="content">
+    <!-- 标签栏 -->
+    <view class="tab-bar">
+      <view class="tab-item {{activeTab === 'overview' ? 'active' : ''}}" bindtap="switchTab" data-tab="overview">概览</view>
+      <view class="tab-item {{activeTab === 'records' ? 'active' : ''}}" bindtap="switchTab" data-tab="records">记录</view>
+      <view class="tab-item {{activeTab === 'stats' ? 'active' : ''}}" bindtap="switchTab" data-tab="stats">统计</view>
+      <view class="tab-item {{activeTab === 'settings' ? 'active' : ''}}" bindtap="switchTab" data-tab="settings">设置</view>
+    </view>
+    
+    <!-- 打卡按钮 -->
+    <button class="checkin-btn" bindtap="goToCheckin">
+      <text class="iconfont icon-check"></text>
+      今日打卡
+    </button>
+    
+    <!-- 概览标签内容 -->
+    <block wx:if="{{activeTab === 'overview'}}">
+      <!-- 日历 -->
+      <view class="card calendar-card">
+        <view class="card-header">
+          <view class="card-title">{{currentMonth}}</view>
+          <view class="card-actions">
+            <view class="action-btn" bindtap="changeMonth" data-direction="prev">
+              <text class="iconfont icon-left"></text>
+            </view>
+            <view class="action-btn" bindtap="changeMonth" data-direction="next">
+              <text class="iconfont icon-right"></text>
+            </view>
+          </view>
+        </view>
+        
+        <view class="calendar-weekdays">
+          <view class="weekday">一</view>
+          <view class="weekday">二</view>
+          <view class="weekday">三</view>
+          <view class="weekday">四</view>
+          <view class="weekday">五</view>
+          <view class="weekday">六</view>
+          <view class="weekday">日</view>
+        </view>
+        
+        <view class="calendar-grid">
+          <view 
+            wx:for="{{calendarDays}}" 
+            wx:key="date" 
+            class="calendar-day {{item.isCurrentMonth ? '' : 'other-month'}} {{item.isCompleted ? 'completed' : ''}} {{item.isToday ? 'today' : ''}}"
+          >
+            {{item.day}}
+          </view>
+        </view>
+        
+        <view class="calendar-footer">
+          <view class="footer-stat">本月完成率: <text class="highlight">{{(stats.completionRate * 100).toFixed(0) || 0}}%</text></view>
+          <view class="footer-stat">最佳连续: <text class="highlight">{{stats.longestStreak || 0}}天</text></view>
+        </view>
+      </view>
+      
+      <!-- 统计卡片 -->
+      <view class="stats-grid">
+        <view class="stat-card">
+          <view class="stat-label">本周完成率</view>
+          <view class="stat-main-value">92%</view>
+          <view class="stat-sub-value">较上周 <text class="positive">+15%</text></view>
+        </view>
+        <view class="stat-card">
+          <view class="stat-label">平均时长</view>
+          <view class="stat-main-value">35分钟</view>
+          <view class="stat-sub-value">目标: <text>30分钟</text></view>
+        </view>
+      </view>
+      
+      <!-- 最近打卡记录 -->
+      <view class="section">
+        <view class="section-header">
+          <view class="section-title">最近打卡记录</view>
+          <view class="section-action">查看全部</view>
+        </view>
+        
+        <view class="checkin-records">
+          <view class="record-item" wx:for="{{checkins}}" wx:key="id">
+            <view class="record-header">
+              <view class="record-mood">
+                <text class="iconfont icon-smile"></text>
+              </view>
+              <view class="record-meta">
+                <view class="record-date">{{item.date === formatDate(new Date()) ? '今天' : item.date}}</view>
+                <view class="record-time">{{item.createdAt.substring(11, 16)}} · 30分钟</view>
+              </view>
+            </view>
+            <view class="record-content" wx:if="{{item.note}}">
+              <text>{{item.note}}</text>
+            </view>
+          </view>
+        </view>
+      </view>
+    </block>
+    
+    <!-- 记录标签内容 -->
+    <block wx:elif="{{activeTab === 'records'}}">
+      <view class="card">
+        <view class="empty-state" wx:if="{{checkins.length === 0}}">
+          <text class="iconfont icon-empty"></text>
+          <view class="empty-text">暂无打卡记录</view>
+        </view>
+        
+        <view class="checkin-records" wx:else>
+          <view class="record-item" wx:for="{{checkins}}" wx:key="id">
+            <view class="record-header">
+              <view class="record-mood">
+                <text class="iconfont icon-smile"></text>
+              </view>
+              <view class="record-meta">
+                <view class="record-date">{{item.date === formatDate(new Date()) ? '今天' : item.date}}</view>
+                <view class="record-time">{{item.createdAt.substring(11, 16)}} · 30分钟</view>
+              </view>
+            </view>
+            <view class="record-content" wx:if="{{item.note}}">
+              <text>{{item.note}}</text>
+            </view>
+          </view>
+        </view>
+      </view>
+    </block>
+    
+    <!-- 统计标签内容 -->
+    <block wx:elif="{{activeTab === 'stats'}}">
+      <view class="card">
+        <view class="card-header">
+          <view class="card-title">完成情况</view>
+          <view class="card-subtitle">过去7天的完成情况</view>
+        </view>
+        
+        <view class="chart-container">
+          <!-- 这里实际项目中应使用图表组件 -->
+          <view class="chart-placeholder">
+            <text class="iconfont icon-chart"></text>
+            <view>图表区域</view>
+          </view>
+        </view>
+        
+        <view class="stats-summary">
+          <view class="summary-item">
+            <view class="summary-label">平均</view>
+            <view class="summary-value">35分钟</view>
+          </view>
+          <view class="summary-item">
+            <view class="summary-label">最长</view>
+            <view class="summary-value">45分钟</view>
+          </view>
+        </view>
+      </view>
+    </block>
+    
+    <!-- 设置标签内容 -->
+    <block wx:elif="{{activeTab === 'settings'}}">
+      <view class="card">
+        <view class="setting-list">
+          <view class="setting-item" bindtap="editHabit">
+            <text class="iconfont icon-edit"></text>
+            <text>编辑习惯</text>
+            <text class="iconfont icon-right setting-arrow"></text>
+          </view>
+          
+          <view class="setting-item">
+            <text class="iconfont icon-reminder"></text>
+            <text>提醒设置</text>
+            <switch checked="{{habit.reminder.enabled}}" color="#4F7CFF" />
+          </view>
+          
+          <view class="setting-item" bindtap="archiveHabit">
+            <text class="iconfont icon-archive"></text>
+            <text>归档习惯</text>
+            <text class="iconfont icon-right setting-arrow"></text>
+          </view>
+          
+          <view class="setting-item danger" bindtap="deleteHabit">
+            <text class="iconfont icon-delete"></text>
+            <text>删除习惯</text>
+          </view>
+        </view>
+      </view>
+    </block>
+  </view>
+</view>

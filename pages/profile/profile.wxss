@@ -1,0 +1,283 @@
+/* pages/profile/profile.wxss */
+
+/* 引入图标字体 */
+@import "/styles/iconfont.wxss";
+
+.container {
+  padding: 30rpx;
+  background-color: var(--background-color);
+  min-height: 100vh;
+}
+
+/* 用户卡片 */
+.user-card {
+  background-color: #FFFFFF;
+  border-radius: 16rpx;
+  padding: 40rpx 30rpx;
+  margin-bottom: 30rpx;
+  box-shadow: var(--shadow-light);
+}
+
+.user-info {
+  display: flex;
+  align-items: center;
+}
+
+.avatar {
+  width: 120rpx;
+  height: 120rpx;
+  border-radius: 50%;
+  margin-right: 30rpx;
+}
+
+.avatar-placeholder {
+  width: 120rpx;
+  height: 120rpx;
+  border-radius: 50%;
+  background-color: #F5F7FA;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 30rpx;
+}
+
+.avatar-placeholder .iconfont {
+  font-size: 60rpx;
+  color: #DCDFE6;
+}
+
+.user-meta {
+  flex: 1;
+}
+
+.nickname {
+  font-size: 36rpx;
+  font-weight: 500;
+  color: var(--title-color);
+  margin-bottom: 10rpx;
+}
+
+.user-id {
+  font-size: 24rpx;
+  color: var(--text-color-secondary);
+}
+
+.login-tip {
+  font-size: 32rpx;
+  color: var(--text-color-secondary);
+  margin-bottom: 16rpx;
+}
+
+.login-btn {
+  margin: 0;
+  padding: 0;
+  width: 180rpx;
+  height: 60rpx;
+  line-height: 60rpx;
+  font-size: 28rpx;
+  color: #FFFFFF;
+  background-color: var(--primary-color);
+  border-radius: 30rpx;
+}
+
+/* 统计卡片 */
+.stats-card {
+  display: flex;
+  background-color: #FFFFFF;
+  border-radius: 16rpx;
+  padding: 30rpx;
+  margin-bottom: 30rpx;
+  box-shadow: var(--shadow-light);
+}
+
+.stats-item {
+  flex: 1;
+  text-align: center;
+}
+
+.stats-value {
+  font-size: 36rpx;
+  font-weight: 600;
+  color: var(--primary-color);
+  margin-bottom: 8rpx;
+}
+
+.stats-label {
+  font-size: 24rpx;
+  color: var(--text-color-secondary);
+}
+
+/* 章节标题 */
+.section-title {
+  font-size: 32rpx;
+  font-weight: 500;
+  color: var(--title-color);
+  margin: 40rpx 0 20rpx;
+}
+
+/* 成就列表 */
+.achievements-list {
+  background-color: #FFFFFF;
+  border-radius: 16rpx;
+  overflow: hidden;
+  box-shadow: var(--shadow-light);
+}
+
+.achievement-item {
+  display: flex;
+  align-items: center;
+  padding: 30rpx;
+  border-bottom: 1rpx solid var(--divider-color);
+}
+
+.achievement-item:last-child {
+  border-bottom: none;
+}
+
+.achievement-icon {
+  width: 80rpx;
+  height: 80rpx;
+  border-radius: 16rpx;
+  background-color: #F5F7FA;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 20rpx;
+}
+
+.achievement-icon.completed {
+  background-color: var(--primary-color);
+  color: #FFFFFF;
+}
+
+.achievement-icon .iconfont {
+  font-size: 40rpx;
+  color: var(--text-color-secondary);
+}
+
+.achievement-icon.completed .iconfont {
+  color: #FFFFFF;
+}
+
+.achievement-info {
+  flex: 1;
+}
+
+.achievement-name {
+  font-size: 30rpx;
+  font-weight: 500;
+  color: var(--title-color);
+  margin-bottom: 8rpx;
+}
+
+.achievement-desc {
+  font-size: 24rpx;
+  color: var(--text-color-secondary);
+  margin-bottom: 16rpx;
+}
+
+.achievement-progress {
+  display: flex;
+  align-items: center;
+}
+
+.progress-bar {
+  flex: 1;
+  height: 10rpx;
+  background-color: #F5F7FA;
+  border-radius: 5rpx;
+  overflow: hidden;
+  margin-right: 16rpx;
+}
+
+.progress-inner {
+  height: 100%;
+  background-color: var(--primary-color);
+  border-radius: 5rpx;
+}
+
+.progress-text {
+  font-size: 24rpx;
+  color: var(--text-color-secondary);
+  width: 60rpx;
+  text-align: right;
+}
+
+.achievement-status {
+  margin-left: 20rpx;
+  color: var(--success-color);
+}
+
+.achievement-status .iconfont {
+  font-size: 40rpx;
+}
+
+/* 设置列表 */
+.settings-list {
+  background-color: #FFFFFF;
+  border-radius: 16rpx;
+  overflow: hidden;
+  box-shadow: var(--shadow-light);
+}
+
+.setting-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 30rpx;
+  border-bottom: 1rpx solid var(--divider-color);
+}
+
+.setting-item:last-child {
+  border-bottom: none;
+}
+
+.setting-label {
+  display: flex;
+  align-items: center;
+}
+
+.setting-label .iconfont {
+  font-size: 40rpx;
+  margin-right: 20rpx;
+  color: var(--text-color);
+}
+
+.setting-label text {
+  font-size: 30rpx;
+  color: var(--text-color);
+}
+
+.setting-value {
+  display: flex;
+  align-items: center;
+  color: var(--text-color-secondary);
+}
+
+.setting-value text {
+  font-size: 28rpx;
+}
+
+.setting-value .iconfont {
+  font-size: 32rpx;
+  margin-left: 10rpx;
+}
+
+/* 退出登录按钮 */
+.logout-btn {
+  width: 100%;
+  margin-top: 60rpx;
+  background-color: #FFFFFF;
+  color: #F56C6C;
+  border-radius: 16rpx;
+  font-size: 32rpx;
+  padding: 20rpx 0;
+}
+
+/* 版本信息 */
+.version-info {
+  margin-top: 40rpx;
+  text-align: center;
+  font-size: 24rpx;
+  color: var(--text-color-secondary);
+} 

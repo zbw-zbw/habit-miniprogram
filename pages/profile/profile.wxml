@@ -1,0 +1,131 @@
+<!--pages/profile/profile.wxml-->
+<view class="container">
+  <!-- 用户信息区域 -->
+  <view class="user-card">
+    <block wx:if="{{hasLogin}}">
+      <view class="user-info">
+        <image class="avatar" src="{{userInfo.avatarUrl}}" mode="aspectFill"></image>
+        <view class="user-meta">
+          <view class="nickname">{{userInfo.nickName}}</view>
+          <view class="user-id">ID: {{userInfo.id}}</view>
+        </view>
+      </view>
+    </block>
+    <block wx:else>
+      <view class="user-info">
+        <view class="avatar-placeholder">
+          <text class="iconfont icon-user"></text>
+        </view>
+        <view class="user-meta">
+          <view class="login-tip">未登录</view>
+          <button class="login-btn" bindtap="login">点击登录</button>
+        </view>
+      </view>
+    </block>
+  </view>
+  
+  <!-- 统计数据 -->
+  <view class="stats-card">
+    <view class="stats-item">
+      <view class="stats-value">{{stats.totalHabits}}</view>
+      <view class="stats-label">习惯</view>
+    </view>
+    <view class="stats-item">
+      <view class="stats-value">{{stats.completedToday}}</view>
+      <view class="stats-label">今日完成</view>
+    </view>
+    <view class="stats-item">
+      <view class="stats-value">{{stats.totalCheckins}}</view>
+      <view class="stats-label">总打卡</view>
+    </view>
+    <view class="stats-item">
+      <view class="stats-value">{{stats.currentStreak}}</view>
+      <view class="stats-label">连续天数</view>
+    </view>
+  </view>
+  
+  <!-- 成就展示 -->
+  <view class="section-title">我的成就</view>
+  <view class="achievements-list">
+    <view class="achievement-item" wx:for="{{achievements}}" wx:key="id">
+      <view class="achievement-icon {{item.isCompleted ? 'completed' : ''}}">
+        <text class="iconfont icon-{{item.icon}}"></text>
+      </view>
+      <view class="achievement-info">
+        <view class="achievement-name">{{item.title}}</view>
+        <view class="achievement-desc">{{item.description}}</view>
+        <view class="achievement-progress">
+          <view class="progress-bar">
+            <view class="progress-inner" style="width: {{item.progress}}%"></view>
+          </view>
+          <view class="progress-text">{{item.progress}}%</view>
+        </view>
+      </view>
+      <view class="achievement-status">
+        <text class="iconfont icon-check" wx:if="{{item.isCompleted}}"></text>
+      </view>
+    </view>
+  </view>
+  
+  <!-- 设置列表 -->
+  <view class="section-title">设置</view>
+  <view class="settings-list">
+    <view class="setting-item">
+      <view class="setting-label">
+        <text class="iconfont icon-notification"></text>
+        <text>通知提醒</text>
+      </view>
+      <switch checked="{{settings.notification}}" bindchange="switchSetting" data-field="notification" color="var(--primary-color)"></switch>
+    </view>
+    
+    <view class="setting-item" bindtap="switchTheme">
+      <view class="setting-label">
+        <text class="iconfont icon-theme"></text>
+        <text>主题模式</text>
+      </view>
+      <view class="setting-value">
+        <text>{{settings.theme === 'light' ? '浅色' : '深色'}}</text>
+        <text class="iconfont icon-right"></text>
+      </view>
+    </view>
+    
+    <view class="setting-item" bindtap="showActionSheet" data-type="language">
+      <view class="setting-label">
+        <text class="iconfont icon-language"></text>
+        <text>语言</text>
+      </view>
+      <view class="setting-value">
+        <text>{{settings.language === 'zh_CN' ? '简体中文' : 'English'}}</text>
+        <text class="iconfont icon-right"></text>
+      </view>
+    </view>
+    
+    <view class="setting-item" bindtap="navigateTo" data-url="/pages/about/about">
+      <view class="setting-label">
+        <text class="iconfont icon-about"></text>
+        <text>关于我们</text>
+      </view>
+      <view class="setting-value">
+        <text class="iconfont icon-right"></text>
+      </view>
+    </view>
+    
+    <view class="setting-item" bindtap="navigateTo" data-url="/pages/feedback/feedback">
+      <view class="setting-label">
+        <text class="iconfont icon-feedback"></text>
+        <text>意见反馈</text>
+      </view>
+      <view class="setting-value">
+        <text class="iconfont icon-right"></text>
+      </view>
+    </view>
+  </view>
+  
+  <!-- 退出登录 -->
+  <button class="logout-btn" bindtap="logout" wx:if="{{hasLogin}}">退出登录</button>
+  
+  <!-- 版本信息 -->
+  <view class="version-info">
+    <text>版本 1.0.0</text>
+  </view>
+</view>

@@ -1,0 +1,28 @@
+# Dependency directories
+node_modules/
+miniprogram_npm/
+
+# Build products
+dist/
+.miniprogram/
+
+# Environment variables
+.env
+
+# IDE specific files
+.DS_Store
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Generated files
+coverage/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+package-lock.json
+
+# Miniprogram specific
+project.private.config.json
+miniprogram.private.config.json 

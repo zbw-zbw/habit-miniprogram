@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>习惯养成 - 个人中心</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #5E72E4;
+            --secondary-color: #F7FAFC;
+            --success-color: #2DCE89;
+            --warning-color: #FB6340;
+            --danger-color: #F5365C;
+            --text-color: #32325D;
+            --light-text: #8898AA;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            color: var(--text-color);
+            background-color: #F8F9FE;
+            -webkit-font-smoothing: antialiased;
+        }
+        
+        .ios-header {
+            background-color: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+        }
+        
+        .ios-card {
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            background-color: white;
+        }
+        
+        .ios-button {
+            border-radius: 10px;
+            font-weight: 600;
+        }
+        
+        .tab-bar {
+            background-color: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border-top: 1px solid rgba(0, 0, 0, 0.1);
+        }
+        
+        .ios-segmented-control {
+            display: flex;
+            background-color: #E9ECEF;
+            border-radius: 8px;
+            padding: 2px;
+        }
+        
+        .ios-segment {
+            flex: 1;
+            text-align: center;
+            padding: 8px 0;
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--light-text);
+            border-radius: 6px;
+        }
+        
+        .ios-segment.active {
+            background-color: white;
+            color: var(--text-color);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        }
+
+        .profile-header {
+            background: linear-gradient(120deg, #5E72E4, #825EE4);
+            color: white;
+            border-radius: 0 0 15px 15px;
+            padding: 30px 20px 20px;
+            margin-top: -16px;
+        }
+
+        .profile-avatar {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            border: 3px solid white;
+            object-fit: cover;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .badge-container {
+            display: flex;
+            overflow-x: auto;
+            padding: 5px 0;
+        }
+
+        .badge {
+            min-width: 60px;
+            flex-shrink: 0;
+            text-align: center;
+            margin-right: 15px;
+        }
+
+        .badge-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 5px;
+            font-size: 20px;
+        }
+
+        .menu-item {
+            display: flex;
+            align-items: center;
+            padding: 15px 0;
+            border-bottom: 1px solid #F1F5F9;
+        }
+
+        .menu-item:last-child {
+            border-bottom: none;
+        }
+
+        .menu-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 15px;
+        }
+
+        .achievement-card {
+            width: 110px;
+            flex-shrink: 0;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+            margin-right: 12px;
+        }
+
+        .achievement-icon {
+            width: 100%;
+            height: 80px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 28px;
+        }
+    </style>
+</head>
+<body class="pb-20">
+    <!-- 顶部导航栏 -->
+    <header class="ios-header fixed w-full top-0 z-10 px-4 py-3 flex justify-between items-center">
+        <div class="flex items-center">
+            <h1 class="text-xl font-bold">个人中心</h1>
+        </div>
+        <div class="flex">
+            <button class="w-8 h-8 flex items-center justify-center rounded-full bg-gray-100">
+                <i class="fas fa-cog text-gray-600"></i>
+            </button>
+        </div>
+    </header>
+
+    <!-- 个人资料头部 -->
+    <div class="profile-header mt-16">
+        <div class="flex items-center mb-4">
+            <img src="https://randomuser.me/api/portraits/men/32.jpg" class="profile-avatar mr-4" alt="用户头像">
+            <div>
+                <h2 class="text-xl font-bold">张明</h2>
+                <p class="text-sm opacity-80">坚持，就是胜利</p>
+                <div class="flex items-center mt-1">
+                    <span class="bg-white bg-opacity-30 text-xs px-2 py-1 rounded-full mr-2">
+                        <i class="fas fa-medal mr-1"></i>
+                        习惯达人
+                    </span>
+                    <span class="bg-white bg-opacity-30 text-xs px-2 py-1 rounded-full">
+                        <i class="fas fa-fire mr-1"></i>
+                        连续45天
+                    </span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="flex justify-between text-center">
+            <div>
+                <div class="text-2xl font-bold">6</div>
+                <div class="text-xs opacity-80">习惯</div>
+            </div>
+            <div>
+                <div class="text-2xl font-bold">198</div>
+                <div class="text-xs opacity-80">打卡</div>
+            </div>
+            <div>
+                <div class="text-2xl font-bold">45</div>
+                <div class="text-xs opacity-80">连续天数</div>
+            </div>
+            <div>
+                <div class="text-2xl font-bold">12</div>
+                <div class="text-xs opacity-80">徽章</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 主内容区 -->
+    <main class="px-4 mt-6">
+        <!-- 成就徽章 -->
+        <div class="mb-6">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="font-semibold">我的徽章</h2>
+                <button class="text-blue-500 text-sm">
+                    查看全部
+                </button>
+            </div>
+            <div class="badge-container">
+                <div class="badge">
+                    <div class="badge-icon bg-blue-100 text-blue-500">
+                        <i class="fas fa-award"></i>
+                    </div>
+                    <div class="text-xs mt-1">坚持不懈</div>
+                </div>
+                <div class="badge">
+                    <div class="badge-icon bg-green-100 text-green-500">
+                        <i class="fas fa-running"></i>
+                    </div>
+                    <div class="text-xs mt-1">运动达人</div>
+                </div>
+                <div class="badge">
+                    <div class="badge-icon bg-purple-100 text-purple-500">
+                        <i class="fas fa-book"></i>
+                    </div>
+                    <div class="text-xs mt-1">阅读达人</div>
+                </div>
+                <div class="badge">
+                    <div class="badge-icon bg-yellow-100 text-yellow-500">
+                        <i class="fas fa-star"></i>
+                    </div>
+                    <div class="text-xs mt-1">早起之星</div>
+                </div>
+                <div class="badge">
+                    <div class="badge-icon bg-red-100 text-red-500">
+                        <i class="fas fa-heart"></i>
+                    </div>
+                    <div class="text-xs mt-1">健康达人</div>
+                </div>
+                <div class="badge">
+                    <div class="badge-icon bg-gray-100 text-gray-500">
+                        <i class="fas fa-plus"></i>
+                    </div>
+                    <div class="text-xs mt-1">更多</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 最近成就 -->
+        <div class="mb-6">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="font-semibold">最近成就</h2>
+                <button class="text-blue-500 text-sm">
+                    更多
+                </button>
+            </div>
+            <div class="flex overflow-x-auto pb-2">
+                <!-- 成就卡片1 -->
+                <div class="achievement-card bg-white">
+                    <div class="achievement-icon bg-blue-100 text-blue-500">
+                        <i class="fas fa-calendar-check"></i>
+                    </div>
+                    <div class="p-3">
+                        <h3 class="text-xs font-medium">连续打卡30天</h3>
+                        <p class="text-xs text-gray-500 mt-1">6月12日获得</p>
+                    </div>
+                </div>
+
+                <!-- 成就卡片2 -->
+                <div class="achievement-card bg-white">
+                    <div class="achievement-icon bg-green-100 text-green-500">
+                        <i class="fas fa-running"></i>
+                    </div>
+                    <div class="p-3">
+                        <h3 class="text-xs font-medium">跑步100公里</h3>
+                        <p class="text-xs text-gray-500 mt-1">6月5日获得</p>
+                    </div>
+                </div>
+
+                <!-- 成就卡片3 -->
+                <div class="achievement-card bg-white">
+                    <div class="achievement-icon bg-purple-100 text-purple-500">
+                        <i class="fas fa-book"></i>
+                    </div>
+                    <div class="p-3">
+                        <h3 class="text-xs font-medium">阅读达人</h3>
+                        <p class="text-xs text-gray-500 mt-1">5月28日获得</p>
+                    </div>
+                </div>
+
+                <!-- 成就卡片4 -->
+                <div class="achievement-card bg-white">
+                    <div class="achievement-icon bg-yellow-100 text-yellow-500">
+                        <i class="fas fa-medal"></i>
+                    </div>
+                    <div class="p-3">
+                        <h3 class="text-xs font-medium">习惯大师</h3>
+                        <p class="text-xs text-gray-500 mt-1">5月15日获得</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 功能菜单 -->
+        <div class="ios-card p-4 mb-6">
+            <div class="menu-item">
+                <div class="menu-icon bg-blue-100 text-blue-500">
+                    <i class="fas fa-chart-line"></i>
+                </div>
+                <div class="flex-1">
+                    <div class="flex justify-between items-center">
+                        <div class="font-medium">数据报告</div>
+                        <i class="fas fa-chevron-right text-gray-400"></i>
+                    </div>
+                    <div class="text-xs text-gray-500 mt-1">查看您的习惯养成详细数据</div>
+                </div>
+            </div>
+
+            <div class="menu-item">
+                <div class="menu-icon bg-green-100 text-green-500">
+                    <i class="fas fa-bell"></i>
+                </div>
+                <div class="flex-1">
+                    <div class="flex justify-between items-center">
+                        <div class="font-medium">提醒设置</div>
+                        <i class="fas fa-chevron-right text-gray-400"></i>
+                    </div>
+                    <div class="text-xs text-gray-500 mt-1">自定义您的习惯提醒时间</div>
+                </div>
+            </div>
+
+            <div class="menu-item">
+                <div class="menu-icon bg-purple-100 text-purple-500">
+                    <i class="fas fa-share-alt"></i>
+                </div>
+                <div class="flex-1">
+                    <div class="flex justify-between items-center">
+                        <div class="font-medium">分享设置</div>
+                        <i class="fas fa-chevron-right text-gray-400"></i>
+                    </div>
+                    <div class="text-xs text-gray-500 mt-1">管理您的分享偏好</div>
+                </div>
+            </div>
+
+            <div class="menu-item">
+                <div class="menu-icon bg-yellow-100 text-yellow-500">
+                    <i class="fas fa-user-friends"></i>
+                </div>
+                <div class="flex-1">
+                    <div class="flex justify-between items-center">
+                        <div class="font-medium">好友管理</div>
+                        <i class="fas fa-chevron-right text-gray-400"></i>
+                    </div>
+                    <div class="text-xs text-gray-500 mt-1">查找好友和管理关注</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 其他设置 -->
+        <div class="ios-card p-4 mb-6">
+            <div class="menu-item">
+                <div class="menu-icon bg-gray-100 text-gray-500">
+                    <i class="fas fa-cog"></i>
+                </div>
+                <div class="flex-1">
+                    <div class="flex justify-between items-center">
+                        <div class="font-medium">通用设置</div>
+                        <i class="fas fa-chevron-right text-gray-400"></i>
+                    </div>
+                </div>
+            </div>
+
+            <div class="menu-item">
+                <div class="menu-icon bg-gray-100 text-gray-500">
+                    <i class="fas fa-shield-alt"></i>
+                </div>
+                <div class="flex-1">
+                    <div class="flex justify-between items-center">
+                        <div class="font-medium">隐私设置</div>
+                        <i class="fas fa-chevron-right text-gray-400"></i>
+                    </div>
+                </div>
+            </div>
+
+            <div class="menu-item">
+                <div class="menu-icon bg-gray-100 text-gray-500">
+                    <i class="fas fa-question-circle"></i>
+                </div>
+                <div class="flex-1">
+                    <div class="flex justify-between items-center">
+                        <div class="font-medium">帮助与反馈</div>
+                        <i class="fas fa-chevron-right text-gray-400"></i>
+                    </div>
+                </div>
+            </div>
+
+            <div class="menu-item">
+                <div class="menu-icon bg-gray-100 text-gray-500">
+                    <i class="fas fa-info-circle"></i>
+                </div>
+                <div class="flex-1">
+                    <div class="flex justify-between items-center">
+                        <div class="font-medium">关于我们</div>
+                        <i class="fas fa-chevron-right text-gray-400"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 退出登录按钮 -->
+        <button class="w-full bg-white text-red-500 py-3 rounded-lg font-medium mb-6">
+            退出登录
+        </button>
+    </main>
+
+    <!-- 底部标签栏 -->
+    <nav class="tab-bar fixed bottom-0 w-full flex justify-around items-center py-2 px-4">
+        <a href="index.html" class="flex flex-col items-center">
+            <i class="fas fa-home text-gray-400 mb-1"></i>
+            <span class="text-xs text-gray-400">首页</span>
+        </a>
+        <a href="habits.html" class="flex flex-col items-center">
+            <i class="fas fa-list text-gray-400 mb-1"></i>
+            <span class="text-xs text-gray-400">习惯</span>
+        </a>
+        <a href="checkin.html" class="flex flex-col items-center">
+            <div class="w-12 h-12 bg-blue-500 rounded-full flex items-center justify-center -mt-5">
+                <i class="fas fa-plus text-white text-lg"></i>
+            </div>
+        </a>
+        <a href="community.html" class="flex flex-col items-center">
+            <i class="fas fa-users text-gray-400 mb-1"></i>
+            <span class="text-xs text-gray-400">社区</span>
+        </a>
+        <a href="profile.html" class="flex flex-col items-center">
+            <i class="fas fa-user text-blue-500 mb-1"></i>
+            <span class="text-xs text-blue-500">我的</span>
+        </a>
+    </nav>
+</body>
+</html> 
