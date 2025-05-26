@@ -11,19 +11,20 @@
   top: 0;
   z-index: 10;
   background-color: #FFFFFF;
-  padding-top: 20rpx;
-  padding-bottom: 16rpx;
+  padding-top: 5rpx;
+  padding-bottom: 5rpx;
   border-bottom: 1px solid var(--divider-color);
 }
 
 .tabs-scroll {
   white-space: nowrap;
   display: flex;
+  height: 60rpx;
 }
 
 .tab-item {
   display: inline-block;
-  padding: 16rpx 32rpx;
+  padding: 8rpx 24rpx;
   font-size: 28rpx;
   color: var(--text-color);
   position: relative;
@@ -52,7 +53,7 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 20rpx 0;
+  padding: 10rpx 0;
 }
 
 .toolbar-left, .toolbar-right {
@@ -75,7 +76,7 @@
 
 /* 习惯列表 */
 .habits-list {
-  margin-top: 16rpx;
+  margin-top: 8rpx;
 }
 
 /* 空状态 */

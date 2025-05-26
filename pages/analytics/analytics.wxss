@@ -251,6 +251,19 @@
   margin-top: 20rpx;
 }
 
+/* 洞察按钮 */
+.insight-btn {
+  width: 100%;
+  background-color: #FFFFFF;
+  color: var(--primary-color);
+  border: 1px solid var(--primary-color);
+  border-radius: 16rpx;
+  font-size: 30rpx;
+  font-weight: 500;
+  padding: 20rpx 0;
+  margin-top: 20rpx;
+}
+
 /* 习惯列表 */
 .habits-list {
   display: flex;

@@ -1,2 +1,204 @@
 <!--packageCommunity/pages/challenge/challenge.wxml-->
-<text>packageCommunity/pages/challenge/challenge.wxml</text>
+<view class="challenge-container">
+  <!-- 加载状态 -->
+  <view class="loading" wx:if="{{loading}}">
+    <view class="loading-icon"></view>
+    <text>加载中...</text>
+  </view>
+
+  <!-- 内容区域 -->
+  <view class="content" wx:if="{{!loading}}">
+    <!-- 挑战头部 -->
+    <view class="challenge-header">
+      <image class="challenge-image" src="{{challenge.image}}" mode="aspectFill"></image>
+      <view class="challenge-info">
+        <text class="challenge-title">{{challenge.title}}</text>
+        <view class="challenge-meta">
+          <text class="challenge-date">{{challenge.startDate}} 至 {{challenge.endDate}}</text>
+          <text class="challenge-participants">{{challenge.participants}}人参与</text>
+        </view>
+        <view class="challenge-buttons">
+          <button class="btn-join" wx:if="{{!challenge.isJoined}}" bindtap="showJoinModal">参加挑战</button>
+          <button class="btn-joined" wx:else>已参加</button>
+          <button class="btn-share" open-type="share">邀请好友</button>
+        </view>
+      </view>
+    </view>
+
+    <!-- 标签栏 -->
+    <view class="tab-bar">
+      <view class="tab-item {{tabActive === 'intro' ? 'active' : ''}}" bindtap="switchTab" data-tab="intro">
+        <text>挑战介绍</text>
+      </view>
+      <view class="tab-item {{tabActive === 'rank' ? 'active' : ''}}" bindtap="switchTab" data-tab="rank">
+        <text>排行榜</text>
+      </view>
+      <view class="tab-item {{tabActive === 'posts' ? 'active' : ''}}" bindtap="switchTab" data-tab="posts">
+        <text>动态</text>
+      </view>
+    </view>
+
+    <!-- 挑战介绍 -->
+    <view class="tab-content" wx:if="{{tabActive === 'intro'}}">
+      <view class="intro-section">
+        <view class="section-title">挑战说明</view>
+        <view class="section-content">
+          <text class="challenge-description">{{challenge.description}}</text>
+        </view>
+      </view>
+
+      <view class="intro-section">
+        <view class="section-title">挑战规则</view>
+        <view class="section-content">
+          <view class="rule-item" wx:for="{{challenge.rules}}" wx:key="*this">
+            <text class="rule-num">{{index + 1}}.</text>
+            <text class="rule-text">{{item}}</text>
+          </view>
+        </view>
+      </view>
+
+      <view class="intro-section">
+        <view class="section-title">挑战奖励</view>
+        <view class="section-content">
+          <view class="reward-item" wx:for="{{challenge.rewards}}" wx:key="*this">
+            <text class="reward-icon">🏆</text>
+            <text class="reward-text">{{item}}</text>
+          </view>
+        </view>
+      </view>
+
+      <view class="intro-section">
+        <view class="section-title">发起人</view>
+        <view class="section-content">
+          <view class="creator-info" bindtap="viewUserProfile" data-user-id="{{challenge.creator.id}}">
+            <image class="creator-avatar" src="{{challenge.creator.avatar}}"></image>
+            <text class="creator-name">{{challenge.creator.name}}</text>
+            <view class="creator-arrow"></view>
+          </view>
+        </view>
+      </view>
+    </view>
+
+    <!-- 排行榜 -->
+    <view class="tab-content" wx:if="{{tabActive === 'rank'}}">
+      <view class="rank-list">
+        <view class="rank-header">
+          <text class="rank-header-rank">排名</text>
+          <text class="rank-header-user">用户</text>
+          <text class="rank-header-progress">进度</text>
+        </view>
+        <view class="rank-item" wx:for="{{participants}}" wx:key="id" bindtap="viewUserProfile" data-user-id="{{item.id}}">
+          <view class="rank-position {{item.rank <= 3 ? 'top' + item.rank : ''}}">{{item.rank}}</view>
+          <view class="rank-user">
+            <image class="rank-avatar" src="{{item.avatar}}"></image>
+            <text class="rank-name">{{item.name}}</text>
+          </view>
+          <view class="rank-progress">
+            <progress class="progress-bar" percent="{{item.progress}}" stroke-width="4" color="#4F7CFF" />
+            <text class="progress-text">{{item.progress}}%</text>
+          </view>
+        </view>
+      </view>
+    </view>
+
+    <!-- 动态 -->
+    <view class="tab-content" wx:if="{{tabActive === 'posts'}}">
+      <view class="post-list">
+        <view class="post-item" wx:for="{{posts}}" wx:key="id">
+          <view class="post-header" bindtap="viewUserProfile" data-user-id="{{item.userId}}">
+            <image class="post-avatar" src="{{item.userAvatar}}"></image>
+            <view class="post-user-info">
+              <text class="post-username">{{item.userName}}</text>
+              <text class="post-time">{{item.createdAt}}</text>
+            </view>
+          </view>
+          <view class="post-content">
+            <text class="post-text">{{item.content}}</text>
+            <view class="post-images" wx:if="{{item.images.length > 0}}">
+              <image 
+                class="post-image {{item.images.length === 1 ? 'single' : ''}}" 
+                wx:for="{{item.images}}" 
+                wx:for-item="image" 
+                wx:key="*this" 
+                src="{{image}}" 
+                mode="aspectFill"
+              ></image>
+            </view>
+          </view>
+          <view class="post-actions">
+            <view class="post-action" bindtap="likePost" data-index="{{index}}">
+              <view class="action-icon {{item.isLiked ? 'liked' : ''}}">❤</view>
+              <text class="action-count">{{item.likes}}</text>
+            </view>
+            <view class="post-action" bindtap="commentPost" data-post-id="{{item.id}}">
+              <view class="action-icon">💬</view>
+              <text class="action-count">{{item.comments}}</text>
+            </view>
+            <view class="post-action" bindtap="sharePost" data-post-id="{{item.id}}">
+              <view class="action-icon">↗</view>
+              <text class="action-count">分享</text>
+            </view>
+          </view>
+        </view>
+        
+        <view class="empty-posts" wx:if="{{posts.length === 0}}">
+          <text>暂无动态，快来发布第一条吧！</text>
+        </view>
+      </view>
+      
+      <view class="post-create-btn" wx:if="{{challenge.isJoined}}" bindtap="createPost">
+        <text>发布动态</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 加入挑战模态框 -->
+  <view class="modal join-modal {{showJoinModal ? 'show' : ''}}" catchtouchmove="true">
+    <view class="modal-mask" bindtap="hideJoinModal"></view>
+    <view class="modal-content">
+      <view class="modal-header">
+        <text class="modal-title">加入挑战</text>
+        <view class="modal-close" bindtap="hideJoinModal">×</view>
+      </view>
+      <view class="modal-body">
+        <text class="join-tips">确定要参加"{{challenge.title}}"挑战吗？</text>
+        <text class="join-desc">参加后需遵守挑战规则，按时完成打卡任务。</text>
+      </view>
+      <view class="modal-footer">
+        <button class="btn-cancel" bindtap="hideJoinModal">取消</button>
+        <button class="btn-confirm" bindtap="joinChallenge">确定参加</button>
+      </view>
+    </view>
+  </view>
+
+  <!-- 分享模态框 -->
+  <view class="modal share-modal {{showShareModal ? 'show' : ''}}" catchtouchmove="true">
+    <view class="modal-mask" bindtap="hideShareModal"></view>
+    <view class="modal-content">
+      <view class="modal-header">
+        <text class="modal-title">分享到</text>
+        <view class="modal-close" bindtap="hideShareModal">×</view>
+      </view>
+      <view class="modal-body">
+        <view class="share-options">
+          <button class="share-option" open-type="share">
+            <view class="share-icon wechat">微信</view>
+            <text class="share-text">微信</text>
+          </button>
+          <view class="share-option">
+            <view class="share-icon moments">朋友圈</view>
+            <text class="share-text">朋友圈</text>
+          </view>
+          <view class="share-option">
+            <view class="share-icon qq">QQ</view>
+            <text class="share-text">QQ</text>
+          </view>
+          <view class="share-option">
+            <view class="share-icon weibo">微博</view>
+            <text class="share-text">微博</text>
+          </view>
+        </view>
+      </view>
+    </view>
+  </view>
+</view>

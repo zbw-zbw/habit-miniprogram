@@ -1,8 +1,10 @@
 /**
  * 习惯列表页面
  */
-import { getHabits, saveHabits, getCheckinsByHabitId } from '../../utils/storage';
+import { getHabits, saveHabits, getCheckinsByHabitId, getCheckins } from '../../utils/storage';
 import { generateHabitStats } from '../../utils/habit';
+import { generateUUID } from '../../utils/util';
+import { getCurrentDate } from '../../utils/date';
 
 Page({
   /**
@@ -185,8 +187,13 @@ Page({
     const { habitId } = e.detail;
     if (!habitId) return;
     
+    // 获取习惯信息，用于传递到打卡页面
+    const habit = this.data.habits.find(h => h.id === habitId);
+    if (!habit) return;
+    
+    // 跳转到打卡页面
     wx.navigateTo({
-      url: `/pages/checkin/checkin?habitId=${habitId}`
+      url: `/pages/checkin/checkin?habitId=${habitId}&habitName=${encodeURIComponent(habit.name)}`
     });
   },
 

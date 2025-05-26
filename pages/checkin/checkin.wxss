@@ -5,48 +5,11 @@
   display: flex;
   flex-direction: column;
   min-height: 100vh;
-  background-color: #F5F7FA;
-}
-
-/* 顶部导航栏 */
-.header {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 40rpx 30rpx 20rpx;
-  background-color: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(10px);
-  z-index: 100;
-}
-
-.header-title {
-  font-size: 36rpx;
-  font-weight: bold;
-  color: #303133;
-}
-
-.header-action {
-  width: 70rpx;
-  height: 70rpx;
-  border-radius: 50%;
-  background-color: #F2F3F5;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.header-action .iconfont {
-  font-size: 36rpx;
-  color: #606266;
+  background-color: #F8F9FE;
 }
 
 /* 内容区域 */
 .content {
-  margin-top: 120rpx;
   padding: 30rpx;
 }
 
@@ -54,7 +17,7 @@
 .section-title {
   font-size: 32rpx;
   font-weight: bold;
-  color: #303133;
+  color: #32325D;
   margin-bottom: 20rpx;
 }
 
@@ -101,13 +64,13 @@
 .habit-name {
   font-size: 32rpx;
   font-weight: 500;
-  color: #303133;
+  color: #32325D;
   margin-bottom: 6rpx;
 }
 
 .habit-desc {
   font-size: 24rpx;
-  color: #909399;
+  color: #8898AA;
 }
 
 .habit-actions {
@@ -119,35 +82,44 @@
 .streak-text {
   font-size: 28rpx;
   font-weight: 500;
-  color: #67C23A;
+  color: #2DCE89;
 }
 
 .checkin-btn {
   padding: 16rpx 40rpx;
   border-radius: 16rpx;
-  background-color: #4F7CFF;
+  background-color: #5E72E4;
   color: #FFFFFF;
   font-size: 28rpx;
   font-weight: 500;
   line-height: 1;
+  transition: all 0.2s;
+}
+
+.checkin-btn:active {
+  transform: scale(0.95);
+}
+
+.checkin-btn.cancel {
+  background-color: #8898AA;
 }
 
 .checkin-btn.completed {
   background-color: #F2F3F5;
-  color: #909399;
+  color: #8898AA;
 }
 
 /* 打卡表单 */
 .checkin-form {
   margin-top: 30rpx;
   padding-top: 30rpx;
-  border-top: 1rpx solid #EBEEF5;
+  border-top: 1rpx solid #E2E8F0;
 }
 
 .form-title {
   font-size: 30rpx;
   font-weight: 500;
-  color: #303133;
+  color: #32325D;
   margin-bottom: 20rpx;
 }
 
@@ -157,26 +129,26 @@
 
 .form-label {
   font-size: 28rpx;
-  color: #606266;
+  color: #8898AA;
   margin-bottom: 16rpx;
 }
 
 .form-input {
-  background-color: #F5F7FA;
+  background-color: #F1F5F9;
   border-radius: 16rpx;
   padding: 24rpx;
   font-size: 28rpx;
-  color: #303133;
+  color: #32325D;
   width: 100%;
   box-sizing: border-box;
 }
 
 .form-textarea {
-  background-color: #F5F7FA;
+  background-color: #F1F5F9;
   border-radius: 16rpx;
   padding: 24rpx;
   font-size: 28rpx;
-  color: #303133;
+  color: #32325D;
   width: 100%;
   height: 180rpx;
   box-sizing: border-box;
@@ -184,12 +156,13 @@
 
 /* 计时器 */
 .timer-display {
-  font-size: 80rpx;
+  font-size: 96rpx;
   font-weight: 300;
   text-align: center;
-  color: #303133;
+  color: #32325D;
   margin: 30rpx 0;
   font-family: monospace;
+  font-variant-numeric: tabular-nums;
 }
 
 .timer-controls {
@@ -199,8 +172,8 @@
 }
 
 .timer-btn {
-  width: 100rpx;
-  height: 100rpx;
+  width: 128rpx;
+  height: 128rpx;
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -212,16 +185,16 @@
 }
 
 .timer-btn.reset .iconfont {
-  color: #909399;
+  color: #8898AA;
   font-size: 40rpx;
 }
 
 .timer-btn.start {
-  background-color: #67C23A;
+  background-color: #2DCE89;
 }
 
 .timer-btn.stop {
-  background-color: #F56C6C;
+  background-color: #F5365C;
 }
 
 .timer-btn.start .iconfont,
@@ -243,6 +216,11 @@
   align-items: center;
   padding: 20rpx;
   border-radius: 16rpx;
+  transition: transform 0.2s;
+}
+
+.mood-option:active {
+  transform: scale(0.9);
 }
 
 .mood-option.selected {
@@ -256,29 +234,34 @@
 
 .mood-label {
   font-size: 24rpx;
-  color: #909399;
+  color: #8898AA;
 }
 
 /* 照片上传 */
 .photo-upload {
-  border: 2rpx dashed #DCDFE6;
+  border: 2rpx dashed #E2E8F0;
   border-radius: 16rpx;
   padding: 40rpx;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
+  transition: all 0.2s;
+}
+
+.photo-upload:active {
+  border-color: #5E72E4;
 }
 
 .photo-upload .iconfont {
   font-size: 60rpx;
-  color: #C0C4CC;
+  color: #CBD5E0;
   margin-bottom: 16rpx;
 }
 
 .upload-text {
   font-size: 28rpx;
-  color: #909399;
+  color: #8898AA;
 }
 
 .photo-list {
@@ -323,7 +306,7 @@
 /* 提交按钮 */
 .submit-btn {
   width: 100%;
-  background-color: #4F7CFF;
+  background-color: #5E72E4;
   color: #FFFFFF;
   border-radius: 16rpx;
   font-size: 32rpx;
@@ -351,12 +334,12 @@
 .calendar-title {
   font-size: 30rpx;
   font-weight: 500;
-  color: #303133;
+  color: #32325D;
 }
 
 .calendar-action {
   font-size: 28rpx;
-  color: #4F7CFF;
+  color: #5E72E4;
 }
 
 .calendar-days {
@@ -372,24 +355,24 @@
 
 .day-label {
   font-size: 24rpx;
-  color: #909399;
+  color: #8898AA;
   margin-bottom: 16rpx;
 }
 
 .day-circle {
-  width: 70rpx;
-  height: 70rpx;
+  width: 72rpx;
+  height: 72rpx;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 28rpx;
-  color: #606266;
+  color: #32325D;
   position: relative;
 }
 
 .day-circle.today {
-  background-color: #4F7CFF;
+  background-color: #5E72E4;
   color: #FFFFFF;
   font-weight: bold;
 }
@@ -401,9 +384,9 @@
   width: 8rpx;
   height: 8rpx;
   border-radius: 50%;
-  background-color: #4F7CFF;
+  background-color: #5E72E4;
 }
 
 .day-circle.disabled {
-  color: #C0C4CC;
+  color: #CBD5E0;
 } 

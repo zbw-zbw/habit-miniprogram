@@ -37,8 +37,8 @@
   
   <!-- 右侧操作 -->
   <view class="habit-actions">
-    <view class="checkin-btn" catchtap="onCheckin">
-      <text>打卡</text>
+    <view class="checkin-btn {{isCompleted ? 'completed' : ''}}" catchtap="onCheckin">
+      <text>{{isCompleted ? '已完成' : '打卡'}}</text>
     </view>
     
     <view class="more-btn" catchtap="showActions">

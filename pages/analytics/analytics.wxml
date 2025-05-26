@@ -75,6 +75,9 @@
     
     <!-- 报告生成按钮 -->
     <button class="report-btn" bindtap="generateReport">生成详细报告</button>
+    
+    <!-- 数据洞察按钮 -->
+    <button class="insight-btn" bindtap="navigateToInsights">查看习惯洞察</button>
   </block>
   
   <!-- 习惯标签内容 -->

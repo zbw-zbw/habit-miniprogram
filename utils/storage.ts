@@ -254,8 +254,18 @@ export const getToken = (): string => {
 };
 
 /**
+ * 根据ID获取习惯
+ * @param habitId 习惯ID
+ * @returns 习惯数据或null
+ */
+export const getHabitById = (habitId: string): IHabit | null => {
+  const habits = getHabits();
+  return habits.find(habit => habit.id === habitId) || null;
+};
+
+/**
  * 保存主题设置
- * @param theme 主题名称
+ * @param theme 主题
  */
 export const saveTheme = (theme: 'light' | 'dark'): void => {
   setStorage('theme', theme);

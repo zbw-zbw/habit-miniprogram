@@ -340,9 +340,9 @@ Page<IPageData, IPageMethods>({
    * 查看挑战详情
    */
   viewChallengeDetail(e: WechatMiniprogram.TouchEvent) {
-    const { id } = e.currentTarget.dataset;
+    const id = e.currentTarget.dataset.id;
     wx.navigateTo({
-      url: `/packageCommunity/pages/challenge-detail/challenge-detail?id=${id}`
+      url: `/packageCommunity/pages/challenge/challenge?id=${id}`
     });
   },
 

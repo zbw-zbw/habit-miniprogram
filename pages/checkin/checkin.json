@@ -1,7 +1,6 @@
 {
   "usingComponents": {},
-  "navigationBarTitleText": "打卡",
-  "navigationStyle": "custom",
+  "navigationBarTitleText": "习惯打卡",
   "enablePullDownRefresh": false,
   "backgroundColor": "#F5F7FA"
 } 

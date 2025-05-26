@@ -1,13 +1,5 @@
 <!--pages/checkin/checkin.wxml-->
 <view class="container">
-  <!-- 顶部导航栏 -->
-  <view class="header">
-    <view class="header-title">打卡</view>
-    <view class="header-action" bindtap="goToHistory">
-      <text class="iconfont icon-history"></text>
-    </view>
-  </view>
-
   <!-- 主内容区 -->
   <view class="content">
     <view class="section-title">今日待打卡</view>
@@ -17,48 +9,56 @@
       <!-- 主要习惯 -->
       <view class="habit-card">
         <view class="habit-info">
-          <view class="habit-icon" style="background-color: {{habit.color}}30; color: {{habit.color}}">
-            <text class="iconfont icon-{{habit.icon}}"></text>
+          <view class="habit-icon" style="background-color: {{habit.color || '#4F7CFF'}}30; color: {{habit.color || '#4F7CFF'}}">
+            <text class="iconfont icon-{{habit.icon || 'book'}}"></text>
           </view>
           <view class="habit-meta">
-            <view class="habit-name">{{habit.name}}</view>
-            <view class="habit-desc">{{habit.description}}</view>
+            <view class="habit-name">{{habitName || '阅读'}}</view>
+            <view class="habit-desc">{{habit.description || '每天30分钟'}}</view>
           </view>
         </view>
         
         <view class="habit-actions">
           <view class="streak-text">已连续12天</view>
           <button class="checkin-btn" bindtap="toggleForm" wx:if="{{!showForm}}">打卡</button>
+          <button class="checkin-btn cancel" bindtap="toggleForm" wx:else>取消</button>
         </view>
 
         <!-- 打卡表单 -->
         <view class="checkin-form" wx:if="{{showForm}}">
-          <view class="form-title">今日{{habit.name}}</view>
+          <view class="form-title">今日{{habitName || '阅读'}}</view>
           
           <!-- 时长计时器 -->
           <view class="form-item">
-            <view class="form-label">{{habit.name}}时长</view>
+            <view class="form-label">{{habitName || '阅读'}}时长</view>
             <view class="timer-display">{{timer.displayTime}}</view>
             <view class="timer-controls">
               <view class="timer-btn reset" bindtap="resetTimer">
                 <text class="iconfont icon-reset"></text>
               </view>
-              <view class="timer-btn {{timer.isRunning ? 'stop' : 'start'}}" bindtap="startTimer">
-                <text class="iconfont {{timer.isRunning ? 'icon-pause' : 'icon-play'}}"></text>
-              </view>
+              <block wx:if="{{timer.isRunning}}">
+                <view class="timer-btn stop" bindtap="stopTimer">
+                  <text class="iconfont icon-pause"></text>
+                </view>
+              </block>
+              <block wx:else>
+                <view class="timer-btn start" bindtap="startTimer">
+                  <text class="iconfont icon-play"></text>
+                </view>
+              </block>
             </view>
           </view>
           
           <!-- 内容输入 -->
           <view class="form-item">
-            <view class="form-label">{{habit.name}}内容</view>
-            <input class="form-input" placeholder="输入{{habit.name}}内容" value="{{formData.content}}" bindinput="inputContent" />
+            <view class="form-label">{{habitName || '阅读'}}内容</view>
+            <input class="form-input" placeholder="输入内容" value="{{formData.content}}" bindinput="inputContent" />
           </view>
           
           <!-- 感受输入 -->
           <view class="form-item">
-            <view class="form-label">{{habit.name}}感受</view>
-            <textarea class="form-textarea" placeholder="分享你的{{habit.name}}感受..." value="{{formData.note}}" bindinput="inputNote"></textarea>
+            <view class="form-label">{{habitName || '阅读'}}感受</view>
+            <textarea class="form-textarea" placeholder="分享你的感受..." value="{{formData.note}}" bindinput="inputNote"></textarea>
           </view>
           
           <!-- 心情选择 -->
@@ -107,6 +107,24 @@
           
           <!-- 提交按钮 -->
           <button class="submit-btn" bindtap="submitCheckin">完成打卡</button>
+        </view>
+      </view>
+
+      <!-- 早睡习惯示例 -->
+      <view class="habit-card" wx:if="{{!showForm}}">
+        <view class="habit-info">
+          <view class="habit-icon" style="background-color: #FB6340; opacity: 0.2; color: #FB6340;">
+            <text class="iconfont icon-sleep"></text>
+          </view>
+          <view class="habit-meta">
+            <view class="habit-name">早睡</view>
+            <view class="habit-desc">23:00前睡觉</view>
+          </view>
+        </view>
+        
+        <view class="habit-actions">
+          <view class="streak-text">已连续3天</view>
+          <button class="checkin-btn" style="background-color: #FB6340;">打卡</button>
         </view>
       </view>
     </view>

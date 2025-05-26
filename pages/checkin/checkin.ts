@@ -46,7 +46,6 @@ interface IPageMethods {
   chooseImage(): void;
   deleteImage(e: WechatMiniprogram.TouchEvent): void;
   submitCheckin(): void;
-  goToHistory(): void;
 }
 
 Page<IPageData, IPageMethods>({
@@ -110,16 +109,31 @@ Page<IPageData, IPageMethods>({
   // 加载习惯详情
   async loadHabit() {
     try {
-      // 模拟API请求
-      // 实际项目中应替换为真实API调用
-      setTimeout(() => {
-        const habit: IHabit = {
+      // 导入获取习惯的函数
+      const { getHabitById } = require('../../utils/storage');
+      
+      // 获取习惯信息
+      const habit = getHabitById(this.data.habitId);
+      
+      if (habit) {
+        this.setData({
+          habit,
+          habitName: habit.name || this.data.habitName
+        });
+        
+        // 更新导航栏标题
+        wx.setNavigationBarTitle({
+          title: habit.name || '打卡'
+        });
+      } else {
+        // 如果没有找到习惯，创建一个默认的阅读习惯
+        const defaultHabit: IHabit = {
           id: this.data.habitId,
-          name: this.data.habitName,
-          description: '每天阅读30分钟，培养阅读习惯',
+          name: this.data.habitName || '阅读',
+          description: '每天30分钟，培养阅读习惯',
           category: '学习',
           icon: 'book',
-          color: '#4F7CFF',
+          color: '#5E72E4',
           frequency: {
             type: 'daily'
           },
@@ -128,15 +142,45 @@ Page<IPageData, IPageMethods>({
             time: '07:00'
           },
           isArchived: false,
-          createdAt: '2023-06-01',
-          updatedAt: '2023-06-15'
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+          startDate: new Date().toISOString().split('T')[0]
         };
-
+        
         this.setData({
-          habit
+          habit: defaultHabit,
+          habitName: defaultHabit.name
         });
-      }, 500);
+      }
     } catch (error) {
+      console.error('加载习惯失败:', error);
+      
+      // 创建一个默认的阅读习惯
+      const defaultHabit: IHabit = {
+          id: this.data.habitId,
+          name: this.data.habitName || '阅读',
+          description: '每天30分钟，培养阅读习惯',
+          category: '学习',
+          icon: 'book',
+          color: '#5E72E4',
+          frequency: {
+            type: 'daily'
+          },
+          reminder: {
+            enabled: true,
+            time: '07:00'
+          },
+          isArchived: false,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+          startDate: new Date().toISOString().split('T')[0]
+      };
+      
+      this.setData({
+        habit: defaultHabit,
+        habitName: defaultHabit.name
+      });
+      
       wx.showToast({
         title: '加载失败',
         icon: 'error'
@@ -186,7 +230,8 @@ Page<IPageData, IPageMethods>({
             },
             isArchived: false,
             createdAt: '2023-05-15',
-            updatedAt: '2023-06-15'
+            updatedAt: '2023-06-15',
+            startDate: '2023-05-15'
           },
           {
             id: 'habit-3',
@@ -204,7 +249,8 @@ Page<IPageData, IPageMethods>({
             },
             isArchived: false,
             createdAt: '2023-05-20',
-            updatedAt: '2023-06-15'
+            updatedAt: '2023-06-15',
+            startDate: '2023-05-20'
           }
         ];
 
@@ -410,10 +456,6 @@ Page<IPageData, IPageMethods>({
     }, 1000);
   },
 
-  // 查看历史记录
-  goToHistory() {
-    wx.navigateTo({
-      url: `/pages/habits/detail/detail?id=${this.data.habitId}`
-    });
-  }
-}); 
+
+
+});

@@ -1,1 +1,344 @@
 /* packageAnalytics/pages/insights/insights.wxss */
+
+/* 数据分析-洞察页面样式 */
+.insights-container {
+  min-height: 100vh;
+  background-color: #F5F7FA;
+  padding: 16px;
+}
+
+/* 加载状态 */
+.loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 200px;
+}
+
+.loading-icon {
+  width: 40px;
+  height: 40px;
+  border: 3px solid #E4E7ED;
+  border-top: 3px solid #4F7CFF;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: 16px;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* 内容区域 */
+.content {
+  padding-bottom: 24px;
+}
+
+/* 通用部分样式 */
+.section {
+  margin-bottom: 16px;
+  border-radius: 12px;
+  background-color: #FFFFFF;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.section-header {
+  padding: 16px;
+  border-bottom: 1px solid #E4E7ED;
+}
+
+.section-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: #303133;
+}
+
+/* 洞察卡片样式 */
+.insights-list {
+  padding: 8px;
+}
+
+.insight-card {
+  display: flex;
+  align-items: center;
+  padding: 12px;
+  margin-bottom: 8px;
+  border-radius: 8px;
+  background-color: #F5F7FA;
+}
+
+.insight-card:last-child {
+  margin-bottom: 0;
+}
+
+.insight-card.success {
+  background-color: rgba(103, 194, 58, 0.1);
+}
+
+.insight-card.warning {
+  background-color: rgba(230, 162, 60, 0.1);
+}
+
+.insight-card.info {
+  background-color: rgba(144, 147, 153, 0.1);
+}
+
+.insight-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 12px;
+  flex-shrink: 0;
+}
+
+.icon-success {
+  width: 24px;
+  height: 24px;
+  background-color: #67C23A;
+  border-radius: 50%;
+  position: relative;
+}
+
+.icon-success::before {
+  content: "";
+  position: absolute;
+  top: 12px;
+  left: 8px;
+  width: 12px;
+  height: 6px;
+  border-left: 2px solid #FFFFFF;
+  border-bottom: 2px solid #FFFFFF;
+  transform: rotate(-45deg);
+}
+
+.icon-warning {
+  width: 24px;
+  height: 24px;
+  background-color: #E6A23C;
+  border-radius: 50%;
+  position: relative;
+}
+
+.icon-warning::before {
+  content: "";
+  position: absolute;
+  top: 7px;
+  left: 11px;
+  width: 2px;
+  height: 8px;
+  background-color: #FFFFFF;
+}
+
+.icon-warning::after {
+  content: "";
+  position: absolute;
+  top: 17px;
+  left: 11px;
+  width: 2px;
+  height: 2px;
+  background-color: #FFFFFF;
+  border-radius: 50%;
+}
+
+.icon-info {
+  width: 24px;
+  height: 24px;
+  background-color: #909399;
+  border-radius: 50%;
+  position: relative;
+}
+
+.icon-info::before {
+  content: "";
+  position: absolute;
+  top: 7px;
+  left: 11px;
+  width: 2px;
+  height: 2px;
+  background-color: #FFFFFF;
+  border-radius: 50%;
+}
+
+.icon-info::after {
+  content: "";
+  position: absolute;
+  top: 11px;
+  left: 11px;
+  width: 2px;
+  height: 8px;
+  background-color: #FFFFFF;
+}
+
+.insight-content {
+  flex: 1;
+}
+
+.insight-title {
+  font-size: 15px;
+  font-weight: 500;
+  color: #303133;
+  display: block;
+  margin-bottom: 4px;
+}
+
+.insight-description {
+  font-size: 13px;
+  color: #606266;
+  display: block;
+}
+
+.insight-arrow {
+  width: 16px;
+  height: 16px;
+  margin-left: 8px;
+}
+
+.icon-arrow {
+  width: 8px;
+  height: 8px;
+  border-top: 2px solid #C0C4CC;
+  border-right: 2px solid #C0C4CC;
+  transform: rotate(45deg);
+}
+
+.empty-insights {
+  padding: 24px 0;
+  text-align: center;
+  color: #909399;
+  font-size: 14px;
+}
+
+/* 最佳习惯样式 */
+.best-habit-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px;
+}
+
+.best-habit-info {
+  flex: 1;
+}
+
+.best-habit-name {
+  font-size: 16px;
+  font-weight: 500;
+  color: #303133;
+  display: block;
+  margin-bottom: 4px;
+}
+
+.best-habit-stats {
+  font-size: 14px;
+  color: #606266;
+}
+
+.best-habit-badge {
+  background-color: #4F7CFF;
+  color: #FFFFFF;
+  font-size: 12px;
+  padding: 4px 8px;
+  border-radius: 4px;
+}
+
+/* 需要改进的习惯样式 */
+.improve-habit-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px;
+}
+
+.improve-habit-info {
+  flex: 1;
+}
+
+.improve-habit-name {
+  font-size: 16px;
+  font-weight: 500;
+  color: #303133;
+  display: block;
+  margin-bottom: 4px;
+}
+
+.improve-habit-stats {
+  font-size: 14px;
+  color: #606266;
+}
+
+.improve-habit-badge {
+  background-color: #E6A23C;
+  color: #FFFFFF;
+  font-size: 12px;
+  padding: 4px 8px;
+  border-radius: 4px;
+}
+
+/* 习惯模式分析样式 */
+.patterns-card {
+  display: flex;
+  padding: 16px;
+}
+
+.pattern-item {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.pattern-label {
+  font-size: 14px;
+  color: #909399;
+  margin-bottom: 8px;
+}
+
+.pattern-value {
+  font-size: 16px;
+  font-weight: 500;
+  color: #303133;
+}
+
+/* 个性化建议样式 */
+.recommendations-list {
+  padding: 8px;
+}
+
+.recommendation-card {
+  padding: 16px;
+  margin-bottom: 8px;
+  background-color: #F5F7FA;
+  border-radius: 8px;
+}
+
+.recommendation-card:last-child {
+  margin-bottom: 0;
+}
+
+.recommendation-title {
+  font-size: 15px;
+  font-weight: 500;
+  color: #303133;
+  display: block;
+  margin-bottom: 8px;
+}
+
+.recommendation-description {
+  font-size: 14px;
+  color: #606266;
+  line-height: 1.5;
+}
+
+.empty-recommendations {
+  padding: 24px 0;
+  text-align: center;
+  color: #909399;
+  font-size: 14px;
+}

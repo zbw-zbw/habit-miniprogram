@@ -16,7 +16,7 @@ Component({
     },
     showActions: {
       type: Boolean,
-      value: true
+      value: false
     }
   },
 
@@ -59,7 +59,7 @@ Component({
       
       // 获取今日打卡记录
       const checkins = getCheckinsByHabitId(habit.id);
-      const todayCheckin = checkins.find(c => c.date === today);
+      const todayCheckin = checkins.find((c: ICheckin) => c.date === today);
       const isCompleted = todayCheckin?.isCompleted || false;
       
       this.setData({
@@ -76,6 +76,12 @@ Component({
       const habit = this.properties.habit;
       if (!habit || !habit.id) return;
       
+      // 跳转到打卡页面
+      wx.navigateTo({
+        url: `/pages/checkin/checkin?habitId=${habit.id}&habitName=${encodeURIComponent(habit.name)}`
+      });
+      
+      // 触发父组件处理打卡事件
       this.triggerEvent('checkin', { habitId: habit.id });
     },
     
@@ -92,6 +98,31 @@ Component({
     },
     
     /**
+     * 显示操作菜单
+     */
+    showActions() {
+      this.setData({
+        showActions: true
+      });
+    },
+    
+    /**
+     * 隐藏操作菜单
+     */
+    hideActions() {
+      this.setData({
+        showActions: false
+      });
+    },
+    
+    /**
+     * 阻止事件冒泡
+     */
+    stopPropagation() {
+      // 阻止事件冒泡，保持菜单打开
+    },
+    
+    /**
      * 点击编辑
      */
     onEdit() {
@@ -101,6 +132,9 @@ Component({
       wx.navigateTo({
         url: `/pages/habits/create/create?id=${habit.id}`
       });
+      
+      // 隐藏操作菜单
+      this.hideActions();
     },
     
     /**
@@ -121,6 +155,9 @@ Component({
           }
         }
       });
+      
+      // 隐藏操作菜单
+      this.hideActions();
     }
   }
 }); 

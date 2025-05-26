@@ -2,7 +2,7 @@
  * 数据分析页面
  */
 import { formatDate, getPastDates } from '../../utils/date';
-import { getHabits, getCheckins } from '../../utils/storage';
+import { getHabits, getCheckins, createTestData } from '../../utils/storage';
 
 interface IPageData {
   activeTab: 'overview' | 'habits' | 'calendar';
@@ -42,6 +42,7 @@ interface IPageMethods {
   switchTimeRange(e: WechatMiniprogram.TouchEvent): void;
   viewHabitDetail(e: WechatMiniprogram.TouchEvent): void;
   generateReport(): void;
+  navigateToInsights(): void;
 }
 
 Page<IPageData, IPageMethods>({
@@ -73,7 +74,8 @@ Page<IPageData, IPageMethods>({
    * 生命周期函数--监听页面加载
    */
   onLoad() {
-    
+    // 确保有测试数据
+    createTestData();
   },
 
   /**
@@ -289,5 +291,14 @@ Page<IPageData, IPageMethods>({
       title: '我的习惯数据分析',
       path: '/pages/analytics/analytics'
     };
+  },
+
+  /**
+   * 导航到习惯洞察页面
+   */
+  navigateToInsights() {
+    wx.navigateTo({
+      url: '/packageAnalytics/pages/insights/insights'
+    });
   }
 }); 

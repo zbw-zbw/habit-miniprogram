@@ -105,6 +105,12 @@
   padding: 8rpx 24rpx;
   border-radius: var(--radius-small);
   margin-bottom: 16rpx;
+  transition: all 0.3s ease;
+}
+
+.checkin-btn.completed {
+  background-color: #E4E7ED;
+  color: #8898AA;
 }
 
 .more-btn {
