@@ -15,11 +15,6 @@ interface IPageData {
     longestStreak: number;
   };
   achievements: IAchievement[];
-  settings: {
-    notification: boolean;
-    theme: 'light' | 'dark';
-    language: 'zh_CN' | 'en_US';
-  };
 }
 
 interface IPageMethods {
@@ -28,10 +23,7 @@ interface IPageMethods {
   loadAchievements(): void;
   login(): void;
   logout(): void;
-  switchSetting(e: WechatMiniprogram.SwitchChange): void;
-  switchTheme(): void;
   navigateTo(e: WechatMiniprogram.TouchEvent): void;
-  showActionSheet(e: WechatMiniprogram.TouchEvent): void;
 }
 
 Page<IPageData, IPageMethods>({
@@ -50,11 +42,6 @@ Page<IPageData, IPageMethods>({
       longestStreak: 0
     },
     achievements: [],
-    settings: {
-      notification: true,
-      theme: 'light',
-      language: 'zh_CN'
-    }
   },
 
   /**
@@ -70,7 +57,8 @@ Page<IPageData, IPageMethods>({
    * 生命周期函数--监听页面显示
    */
   onShow() {
-    // 每次页面显示时重新加载统计数据
+    // 每次显示页面时加载最新数据
+    this.loadUserInfo();
     this.loadStats();
   },
 
@@ -247,77 +235,11 @@ Page<IPageData, IPageMethods>({
   },
 
   /**
-   * 切换设置项
-   */
-  switchSetting(e: WechatMiniprogram.SwitchChange) {
-    const { field } = e.currentTarget.dataset;
-    const { value } = e.detail;
-    
-    this.setData({
-      [`settings.${field}`]: value
-    });
-    
-    // 保存设置
-    wx.setStorageSync(`setting_${field}`, value);
-    
-    // 如果是通知设置，则需要处理订阅消息权限
-    if (field === 'notification') {
-      if (value) {
-        // 请求订阅消息权限
-        wx.requestSubscribeMessage({
-          tmplIds: ['your-template-id'], // 替换为实际的模板ID
-          success: (res) => {
-            console.log('订阅消息权限', res);
-          }
-        });
-      }
-    }
-  },
-
-  /**
-   * 切换主题
-   */
-  switchTheme() {
-    const app = getApp<IAppOption>();
-    const newTheme = this.data.settings.theme === 'light' ? 'dark' : 'light';
-    
-    app.switchTheme(newTheme);
-    
-    this.setData({
-      'settings.theme': newTheme
-    });
-  },
-
-  /**
    * 页面导航
    */
   navigateTo(e: WechatMiniprogram.TouchEvent) {
     const { url } = e.currentTarget.dataset;
     wx.navigateTo({ url });
-  },
-
-  /**
-   * 显示操作菜单
-   */
-  showActionSheet(e: WechatMiniprogram.TouchEvent) {
-    const { type } = e.currentTarget.dataset;
-    
-    if (type === 'language') {
-      wx.showActionSheet({
-        itemList: ['简体中文', 'English'],
-        success: (res) => {
-          const languages = ['zh_CN', 'en_US'];
-          const language = languages[res.tapIndex];
-          
-          this.setData({
-            'settings.language': language as 'zh_CN' | 'en_US'
-          });
-          
-          // 保存设置
-          wx.setStorageSync('setting_language', language);
-        }
-      });
-    }
   },
 
   /**

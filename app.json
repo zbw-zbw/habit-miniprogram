@@ -6,6 +6,7 @@
     "pages/analytics/analytics",
     "pages/community/community",
     "pages/profile/profile",
+    "pages/profile/settings/settings",
     "pages/checkin/checkin"
   ],
   "window": {
@@ -37,6 +38,12 @@
         "text": "统计",
         "iconPath": "assets/images/tab-analytics.png",
         "selectedIconPath": "assets/images/tab-analytics-active.png"
+      },
+      {
+        "pagePath": "pages/community/community",
+        "text": "社区",
+        "iconPath": "assets/images/tab-community.png",
+        "selectedIconPath": "assets/images/tab-community-active.png"
       },
       {
         "pagePath": "pages/profile/profile",

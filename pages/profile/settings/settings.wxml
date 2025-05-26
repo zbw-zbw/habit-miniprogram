@@ -1,0 +1,199 @@
+<!-- 个人中心-设置页面 -->
+<view class="settings-container">
+  <!-- 页面标题 -->
+  <view class="page-header">
+    <text class="header-title">设置</text>
+  </view>
+
+  <!-- 基本设置 -->
+  <view class="settings-group">
+    <view class="settings-title">基本设置</view>
+    
+    <!-- 通知设置 -->
+    <view class="settings-item">
+      <view class="item-label">
+        <text class="iconfont icon-notification"></text>
+        <text>接收通知</text>
+      </view>
+      <switch class="item-switch" checked="{{settings.notification}}" data-key="notification" bindchange="switchSetting" color="#4F7CFF" />
+    </view>
+    
+    <!-- 主题设置 -->
+    <view class="settings-item" bindtap="showThemeModal">
+      <view class="item-label">
+        <text class="iconfont icon-theme"></text>
+        <text>主题设置</text>
+      </view>
+      <view class="item-value">
+        <text>{{currentThemeLabel}}</text>
+        <view class="item-arrow"></view>
+      </view>
+    </view>
+    
+    <!-- 语言设置 -->
+    <view class="settings-item" bindtap="showLanguageModal">
+      <view class="item-label">
+        <text class="iconfont icon-language"></text>
+        <text>语言</text>
+      </view>
+      <view class="item-value">
+        <text>{{currentLanguageLabel}}</text>
+        <view class="item-arrow"></view>
+      </view>
+    </view>
+  </view>
+  
+  <!-- 提醒设置 -->
+  <view class="settings-group">
+    <view class="settings-title">提醒设置</view>
+    
+    <!-- 声音提醒 -->
+    <view class="settings-item">
+      <view class="item-label">
+        <text class="iconfont icon-sound"></text>
+        <text>声音提醒</text>
+      </view>
+      <switch class="item-switch" checked="{{settings.sound}}" data-key="sound" bindchange="switchSetting" color="#4F7CFF" />
+    </view>
+    
+    <!-- 震动提醒 -->
+    <view class="settings-item">
+      <view class="item-label">
+        <text class="iconfont icon-vibration"></text>
+        <text>震动提醒</text>
+      </view>
+      <switch class="item-switch" checked="{{settings.vibration}}" data-key="vibration" bindchange="switchSetting" color="#4F7CFF" />
+    </view>
+  </view>
+  
+  <!-- 数据设置 -->
+  <view class="settings-group">
+    <view class="settings-title">数据设置</view>
+    
+    <!-- 自动备份 -->
+    <view class="settings-item">
+      <view class="item-label">
+        <text class="iconfont icon-backup"></text>
+        <text>自动备份</text>
+      </view>
+      <switch class="item-switch" checked="{{settings.autoBackup}}" data-key="autoBackup" bindchange="switchSetting" color="#4F7CFF" />
+    </view>
+    
+    <!-- 清除缓存 -->
+    <view class="settings-item" bindtap="showClearModal">
+      <view class="item-label">
+        <text class="iconfont icon-clear"></text>
+        <text>清除缓存</text>
+      </view>
+      <view class="item-arrow"></view>
+    </view>
+  </view>
+  
+  <!-- 关于 -->
+  <view class="settings-group">
+    <view class="settings-title">关于</view>
+    
+    <!-- 关于我们 -->
+    <view class="settings-item" bindtap="navigateToAbout">
+      <view class="item-label">
+        <text class="iconfont icon-about"></text>
+        <text>关于我们</text>
+      </view>
+      <view class="item-arrow"></view>
+    </view>
+    
+    <!-- 意见反馈 -->
+    <view class="settings-item" bindtap="navigateToFeedback">
+      <view class="item-label">
+        <text class="iconfont icon-feedback"></text>
+        <text>意见反馈</text>
+      </view>
+      <view class="item-arrow"></view>
+    </view>
+  </view>
+  
+  <!-- 退出登录 -->
+  <view class="logout-button" bindtap="showLogoutModal">退出登录</view>
+  
+  <!-- 主题选择模态框 -->
+  <view class="modal theme-modal {{showThemeModal ? 'show' : ''}}" catchtouchmove="true">
+    <view class="modal-mask" bindtap="hideThemeModal"></view>
+    <view class="modal-content">
+      <view class="modal-header">
+        <text class="modal-title">选择主题</text>
+        <view class="modal-close" bindtap="hideThemeModal">×</view>
+      </view>
+      <view class="modal-body">
+        <view 
+          class="theme-option {{settings.theme === item.value ? 'active' : ''}}" 
+          wx:for="{{themeOptions}}" 
+          wx:key="value" 
+          bindtap="selectTheme" 
+          data-value="{{item.value}}"
+        >
+          <view class="theme-icon {{item.value}}"></view>
+          <text class="theme-label">{{item.label}}</text>
+          <view class="theme-check" wx:if="{{settings.theme === item.value}}"></view>
+        </view>
+      </view>
+    </view>
+  </view>
+  
+  <!-- 语言选择模态框 -->
+  <view class="modal language-modal {{showLanguageModal ? 'show' : ''}}" catchtouchmove="true">
+    <view class="modal-mask" bindtap="hideLanguageModal"></view>
+    <view class="modal-content">
+      <view class="modal-header">
+        <text class="modal-title">选择语言</text>
+        <view class="modal-close" bindtap="hideLanguageModal">×</view>
+      </view>
+      <view class="modal-body">
+        <view 
+          class="language-option {{settings.language === item.value ? 'active' : ''}}" 
+          wx:for="{{languageOptions}}" 
+          wx:key="value" 
+          bindtap="selectLanguage" 
+          data-value="{{item.value}}"
+        >
+          <text class="language-label">{{item.label}}</text>
+          <view class="language-check" wx:if="{{settings.language === item.value}}"></view>
+        </view>
+      </view>
+    </view>
+  </view>
+  
+  <!-- 清除缓存确认模态框 -->
+  <view class="modal confirm-modal {{showClearModal ? 'show' : ''}}" catchtouchmove="true">
+    <view class="modal-mask" bindtap="hideClearModal"></view>
+    <view class="modal-content">
+      <view class="modal-header">
+        <text class="modal-title">清除缓存</text>
+      </view>
+      <view class="modal-body">
+        <text class="confirm-text">确定要清除缓存吗？</text>
+        <text class="confirm-desc">这将清除本地缓存数据，但不会影响您的账号数据。</text>
+      </view>
+      <view class="modal-footer">
+        <button class="btn-cancel" bindtap="hideClearModal">取消</button>
+        <button class="btn-confirm" bindtap="clearCache">确定</button>
+      </view>
+    </view>
+  </view>
+  
+  <!-- 退出登录确认模态框 -->
+  <view class="modal confirm-modal {{showLogoutModal ? 'show' : ''}}" catchtouchmove="true">
+    <view class="modal-mask" bindtap="hideLogoutModal"></view>
+    <view class="modal-content">
+      <view class="modal-header">
+        <text class="modal-title">退出登录</text>
+      </view>
+      <view class="modal-body">
+        <text class="confirm-text">确定要退出登录吗？</text>
+      </view>
+      <view class="modal-footer">
+        <button class="btn-cancel" bindtap="hideLogoutModal">取消</button>
+        <button class="btn-confirm" bindtap="logout">确定</button>
+      </view>
+    </view>
+  </view>
+</view> 

@@ -1,0 +1,287 @@
+/* 个人中心-设置页面样式 */
+.settings-container {
+  min-height: 100vh;
+  background-color: #F5F7FA;
+  padding-bottom: 40px;
+}
+
+/* 页面标题 */
+.page-header {
+  padding: 30rpx 30rpx 20rpx;
+}
+
+.header-title {
+  font-size: 44rpx;
+  font-weight: 600;
+  color: #303133;
+}
+
+/* 设置组 */
+.settings-group {
+  margin-bottom: 16px;
+  background-color: #FFFFFF;
+}
+
+.settings-title {
+  padding: 16px 16px 8px;
+  font-size: 14px;
+  color: #909399;
+}
+
+/* 设置项 */
+.settings-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px;
+  border-bottom: 1px solid #E4E7ED;
+}
+
+.settings-item:last-child {
+  border-bottom: none;
+}
+
+.item-label {
+  font-size: 15px;
+  color: #303133;
+}
+
+.item-value {
+  display: flex;
+  align-items: center;
+  font-size: 14px;
+  color: #606266;
+}
+
+.item-arrow {
+  width: 8px;
+  height: 8px;
+  border-top: 2px solid #C0C4CC;
+  border-right: 2px solid #C0C4CC;
+  transform: rotate(45deg);
+  margin-left: 8px;
+}
+
+/* 退出登录按钮 */
+.logout-button {
+  margin: 24px 16px;
+  height: 44px;
+  line-height: 44px;
+  text-align: center;
+  background-color: #FFFFFF;
+  color: #F56C6C;
+  border-radius: 8px;
+  font-size: 16px;
+}
+
+/* 模态框 */
+.modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 100;
+  visibility: hidden;
+  opacity: 0;
+  transition: all 0.3s ease;
+}
+
+.modal.show {
+  visibility: visible;
+  opacity: 1;
+}
+
+.modal-mask {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+}
+
+.modal-content {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background-color: #FFFFFF;
+  border-radius: 16px 16px 0 0;
+  transform: translateY(100%);
+  transition: transform 0.3s ease;
+}
+
+.modal.show .modal-content {
+  transform: translateY(0);
+}
+
+.modal-header {
+  padding: 16px;
+  border-bottom: 1px solid #E4E7ED;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.modal-title {
+  font-size: 16px;
+  font-weight: 500;
+  color: #303133;
+}
+
+.modal-close {
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  color: #909399;
+}
+
+.modal-body {
+  padding: 16px;
+}
+
+.modal-footer {
+  padding: 16px;
+  display: flex;
+  justify-content: space-between;
+}
+
+.btn-cancel, .btn-confirm {
+  flex: 1;
+  height: 40px;
+  line-height: 40px;
+  text-align: center;
+  border-radius: 20px;
+  font-size: 16px;
+}
+
+.btn-cancel {
+  background-color: #F5F7FA;
+  color: #606266;
+  margin-right: 12px;
+}
+
+.btn-confirm {
+  background-color: #4F7CFF;
+  color: #FFFFFF;
+}
+
+/* 主题选择 */
+.theme-option {
+  display: flex;
+  align-items: center;
+  padding: 16px 0;
+  border-bottom: 1px solid #E4E7ED;
+}
+
+.theme-option:last-child {
+  border-bottom: none;
+}
+
+.theme-option.active {
+  color: #4F7CFF;
+}
+
+.theme-icon {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  margin-right: 12px;
+}
+
+.theme-icon.light {
+  background-color: #FFFFFF;
+  border: 1px solid #DCDFE6;
+}
+
+.theme-icon.dark {
+  background-color: #303133;
+}
+
+.theme-icon.system {
+  background: linear-gradient(to right, #FFFFFF 50%, #303133 50%);
+  border: 1px solid #DCDFE6;
+}
+
+.theme-label {
+  flex: 1;
+  font-size: 15px;
+}
+
+.theme-check {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  border: 2px solid #4F7CFF;
+  position: relative;
+}
+
+.theme-check::after {
+  content: '';
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background-color: #4F7CFF;
+}
+
+/* 语言选择 */
+.language-option {
+  display: flex;
+  align-items: center;
+  padding: 16px 0;
+  border-bottom: 1px solid #E4E7ED;
+}
+
+.language-option:last-child {
+  border-bottom: none;
+}
+
+.language-option.active {
+  color: #4F7CFF;
+}
+
+.language-label {
+  flex: 1;
+  font-size: 15px;
+}
+
+.language-check {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  border: 2px solid #4F7CFF;
+  position: relative;
+}
+
+.language-check::after {
+  content: '';
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background-color: #4F7CFF;
+}
+
+/* 确认模态框 */
+.confirm-text {
+  font-size: 16px;
+  font-weight: 500;
+  color: #303133;
+  display: block;
+  margin-bottom: 8px;
+}
+
+.confirm-desc {
+  font-size: 14px;
+  color: #606266;
+  display: block;
+} 

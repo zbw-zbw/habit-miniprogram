@@ -9,7 +9,14 @@ interface IAppOption {
   globalData: {
     userInfo: IUserInfo | null;
     isLoggedIn: boolean;
-  }
+    systemInfo?: WechatMiniprogram.SystemInfo;
+    theme?: 'light' | 'dark' | 'system';
+  };
+  userInfoReadyCallback?: WechatMiniprogram.GetUserInfoSuccessCallback;
+  login(userInfo: IUserInfo, callback: (success: boolean) => void): void;
+  logout(callback: () => void): void;
+  setTheme(theme: 'light' | 'dark' | 'system'): void;
+  setLanguage?(language: 'zh_CN' | 'en_US'): void;
 }
 
 // 用户信息
@@ -126,19 +133,4 @@ interface IAchievement {
   completedAt?: string;
 }
 
-// 全局数据接口
-interface IGlobalData {
-  userInfo: IUserInfo | null;
-  isLoggedIn: boolean;
-  systemInfo: WechatMiniprogram.SystemInfo;
-  theme: 'light' | 'dark';
-}
-
-// 应用实例接口
-interface IAppOption {
-  globalData: IGlobalData;
-  userInfoReadyCallback?: WechatMiniprogram.GetUserInfoSuccessCallback;
-  login(): Promise<void>;
-  logout(): void;
-  setTheme(theme: 'light' | 'dark'): void;
-} 
+// 全局数据接口已合并到IAppOption中

@@ -67,58 +67,9 @@
     </view>
   </view>
   
-  <!-- 设置列表 -->
-  <view class="section-title">设置</view>
-  <view class="settings-list">
-    <view class="setting-item">
-      <view class="setting-label">
-        <text class="iconfont icon-notification"></text>
-        <text>通知提醒</text>
-      </view>
-      <switch checked="{{settings.notification}}" bindchange="switchSetting" data-field="notification" color="var(--primary-color)"></switch>
-    </view>
-    
-    <view class="setting-item" bindtap="switchTheme">
-      <view class="setting-label">
-        <text class="iconfont icon-theme"></text>
-        <text>主题模式</text>
-      </view>
-      <view class="setting-value">
-        <text>{{settings.theme === 'light' ? '浅色' : '深色'}}</text>
-        <text class="iconfont icon-right"></text>
-      </view>
-    </view>
-    
-    <view class="setting-item" bindtap="showActionSheet" data-type="language">
-      <view class="setting-label">
-        <text class="iconfont icon-language"></text>
-        <text>语言</text>
-      </view>
-      <view class="setting-value">
-        <text>{{settings.language === 'zh_CN' ? '简体中文' : 'English'}}</text>
-        <text class="iconfont icon-right"></text>
-      </view>
-    </view>
-    
-    <view class="setting-item" bindtap="navigateTo" data-url="/pages/about/about">
-      <view class="setting-label">
-        <text class="iconfont icon-about"></text>
-        <text>关于我们</text>
-      </view>
-      <view class="setting-value">
-        <text class="iconfont icon-right"></text>
-      </view>
-    </view>
-    
-    <view class="setting-item" bindtap="navigateTo" data-url="/pages/feedback/feedback">
-      <view class="setting-label">
-        <text class="iconfont icon-feedback"></text>
-        <text>意见反馈</text>
-      </view>
-      <view class="setting-value">
-        <text class="iconfont icon-right"></text>
-      </view>
-    </view>
+  <!-- 设置入口 -->
+  <view class="settings-entry" bindtap="navigateTo" data-url="/pages/profile/settings/settings">
+    <text class="iconfont icon-settings"></text>
   </view>
   
   <!-- 退出登录 -->
