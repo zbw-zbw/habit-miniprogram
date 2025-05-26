@@ -36,13 +36,17 @@ interface IHabit {
     days?: number[]; // 对于自定义频率，指定星期几 (0-6, 周日-周六)
     interval?: number; // 对于周期性习惯，指定间隔
   };
+  startDate: string; // 习惯开始日期
+  endDate?: string; // 习惯结束日期
+  target?: number; // 目标值
+  unit?: string; // 单位
   reminder: {
     enabled: boolean;
     time: string; // HH:MM 格式
   };
   isArchived: boolean;
   createdAt: string;
-  updatedAt: string;
+  updatedAt?: string;
 }
 
 // 打卡记录

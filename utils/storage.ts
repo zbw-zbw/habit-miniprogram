@@ -55,6 +55,129 @@ export const clearStorage = (): void => {
 };
 
 /**
+ * 创建测试数据
+ */
+export const createTestData = (): void => {
+  // 检查是否已经有数据
+  const existingHabits = getStorage<IHabit[]>('habits', []);
+  if (existingHabits.length > 0) {
+    return; // 已有数据，不需要创建测试数据
+  }
+
+  // 创建测试习惯
+  const today = new Date();
+  const startDate = new Date();
+  startDate.setDate(today.getDate() - 30); // 30天前开始
+  
+  const formatDateStr = (date: Date): string => {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  };
+
+  const testHabits: IHabit[] = [
+    {
+      id: 'habit-1',
+      name: '每日阅读',
+      description: '每天阅读30分钟，提高知识储备',
+      icon: 'book',
+      color: '#4F7CFF',
+      frequency: {
+        type: 'daily'
+      },
+      startDate: formatDateStr(startDate),
+      target: 30,
+      unit: '分钟',
+      reminder: {
+        enabled: true,
+        time: '20:00'
+      },
+      category: '学习',
+      isArchived: false,
+      createdAt: startDate.toISOString()
+    },
+    {
+      id: 'habit-2',
+      name: '晨跑',
+      description: '坚持晨跑，保持健康体魄',
+      icon: 'run',
+      color: '#67C23A',
+      frequency: {
+        type: 'weekly',
+        days: [1, 3, 5] // 周一、三、五
+      },
+      startDate: formatDateStr(startDate),
+      target: 30,
+      unit: '分钟',
+      reminder: {
+        enabled: true,
+        time: '07:00'
+      },
+      category: '健康',
+      isArchived: false,
+      createdAt: startDate.toISOString()
+    },
+    {
+      id: 'habit-3',
+      name: '冥想',
+      description: '每天冥想，平静心灵',
+      icon: 'meditation',
+      color: '#E6A23C',
+      frequency: {
+        type: 'daily'
+      },
+      startDate: formatDateStr(startDate),
+      target: 15,
+      unit: '分钟',
+      reminder: {
+        enabled: true,
+        time: '22:00'
+      },
+      category: '健康',
+      isArchived: false,
+      createdAt: startDate.toISOString()
+    }
+  ];
+
+  // 创建测试打卡记录
+  const testCheckins: ICheckin[] = [];
+  
+  // 为每个习惯创建过去30天的随机打卡记录
+  testHabits.forEach(habit => {
+    for (let i = 0; i < 30; i++) {
+      const date = new Date(startDate);
+      date.setDate(startDate.getDate() + i);
+      const dateStr = formatDateStr(date);
+      
+      // 随机决定是否完成
+      const isCompleted = Math.random() > 0.3; // 70% 的概率完成
+      
+      // 检查这一天是否应该执行该习惯
+      let shouldDo = true;
+      if (habit.frequency.type === 'weekly' && habit.frequency.days) {
+        const dayOfWeek = date.getDay() || 7; // 转换为1-7，表示周一到周日
+        shouldDo = habit.frequency.days.includes(dayOfWeek);
+      }
+      
+      if (shouldDo) {
+        testCheckins.push({
+          id: `checkin-${habit.id}-${dateStr}`,
+          habitId: habit.id,
+          date: dateStr,
+          isCompleted,
+          createdAt: date.toISOString()
+        });
+      }
+    }
+  });
+
+  // 保存测试数据
+  saveHabits(testHabits);
+  saveCheckins(testCheckins);
+};
+
+/**
  * 存储习惯数据
  * @param habits 习惯数组
  */
@@ -67,6 +190,8 @@ export const saveHabits = (habits: IHabit[]): void => {
  * @returns 习惯数组
  */
 export const getHabits = (): IHabit[] => {
+  // 检查是否需要创建测试数据
+  createTestData();
   return getStorage<IHabit[]>('habits', []);
 };
 
