@@ -1,5 +1,14 @@
 <!--pages/index/index.wxml-->
 <view class="container">
+  <!-- 成就解锁通知 -->
+  <achievement-unlock 
+    wx:if="{{showAchievementUnlock}}" 
+    achievement="{{unlockedAchievement}}" 
+    visible="{{showAchievementUnlock}}"
+    bind:close="hideAchievementUnlock"
+    bind:view="viewAchievementDetail">
+  </achievement-unlock>
+  
   <!-- 顶部用户信息 -->
   <view class="header">
     <view class="user-info">
@@ -29,7 +38,7 @@
   </view>
   
   <!-- 今日习惯列表 -->
-  <view class="habits-section">
+  <view class="habits-card">
     <view class="section-header">
       <view class="section-title">今日习惯</view>
       <view class="section-action" bindtap="goToHabits">查看全部</view>
@@ -84,11 +93,8 @@
     </view>
   </view>
   
-  <!-- 底部按钮 -->
-  <view class="footer">
-    <button class="btn btn-primary btn-block" bindtap="goToCreateHabit">
-      <text class="iconfont icon-add"></text>
-      创建新习惯
-    </button>
-  </view>
+
+  
+  <!-- 浮动操作按钮 -->
+  <fab-button icon="add" bindclick="goToCreateHabit"></fab-button>
 </view>

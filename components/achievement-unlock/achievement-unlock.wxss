@@ -1,0 +1,242 @@
+.achievement-unlock-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.achievement-unlock-container.visible {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.achievement-unlock-mask {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.6);
+}
+
+.achievement-unlock-content {
+  position: relative;
+  width: 80%;
+  max-width: 320px;
+  background-color: #FFFFFF;
+  border-radius: 12px;
+  padding: 24px 16px 16px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  z-index: 1001;
+}
+
+/* 成就图标 */
+.achievement-icon {
+  width: 80px;
+  height: 80px;
+  border-radius: 40px;
+  background-color: #4F7CFF;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 16px;
+  box-shadow: 0 4px 12px rgba(79, 124, 255, 0.3);
+}
+
+.achievement-icon .iconfont {
+  font-size: 40px;
+  color: #FFFFFF;
+}
+
+/* 成就信息 */
+.achievement-info {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.achievement-title {
+  font-size: 16px;
+  color: #909399;
+  margin-bottom: 8px;
+}
+
+.achievement-name {
+  font-size: 20px;
+  font-weight: 500;
+  color: #303133;
+  margin-bottom: 8px;
+}
+
+.achievement-description {
+  font-size: 14px;
+  color: #606266;
+  line-height: 1.5;
+}
+
+/* 按钮区域 */
+.achievement-actions {
+  display: flex;
+  width: 100%;
+  margin-top: 16px;
+  justify-content: center;
+  padding: 0 8px;
+  gap: 16px;
+}
+
+.action-button {
+  flex: 1;
+  height: 40px;
+  border-radius: 20px;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  max-width: 140px;
+}
+
+.action-button.primary {
+  background-color: #4F7CFF;
+  color: #FFFFFF;
+}
+
+.action-button.secondary {
+  background-color: #FFFFFF;
+  color: #4F7CFF;
+  border: 1px solid #4F7CFF;
+}
+
+/* 关闭按钮 */
+.close-button {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #606266;
+  background-color: rgba(0, 0, 0, 0.1);
+  border-radius: 50%;
+  font-size: 18px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  transition: all 0.2s ease;
+}
+
+.close-button:active {
+  transform: scale(0.95);
+  background-color: rgba(0, 0, 0, 0.15);
+}
+
+/* 彩带效果 */
+.confetti-container {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.confetti {
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  opacity: 0;
+  animation-name: confetti-fall, confetti-shake;
+  animation-duration: 3s, 2s;
+  animation-timing-function: ease-in-out, ease-in-out;
+  animation-iteration-count: infinite, infinite;
+}
+
+.confetti-1 {
+  left: 10%;
+  background-color: #4F7CFF;
+  animation-delay: 0s, 0s;
+}
+
+.confetti-2 {
+  left: 20%;
+  background-color: #67C23A;
+  animation-delay: 0.2s, 0.2s;
+}
+
+.confetti-3 {
+  left: 30%;
+  background-color: #E6A23C;
+  animation-delay: 0.4s, 0.4s;
+}
+
+.confetti-4 {
+  left: 40%;
+  background-color: #F56C6C;
+  animation-delay: 0.6s, 0.6s;
+}
+
+.confetti-5 {
+  left: 50%;
+  background-color: #909399;
+  animation-delay: 0.8s, 0.8s;
+}
+
+.confetti-6 {
+  left: 60%;
+  background-color: #4F7CFF;
+  animation-delay: 1s, 1s;
+}
+
+.confetti-7 {
+  left: 70%;
+  background-color: #67C23A;
+  animation-delay: 1.2s, 1.2s;
+}
+
+.confetti-8 {
+  left: 80%;
+  background-color: #E6A23C;
+  animation-delay: 1.4s, 1.4s;
+}
+
+@keyframes confetti-fall {
+  0% {
+    top: -10%;
+    transform: rotate(0deg);
+    opacity: 1;
+  }
+  100% {
+    top: 100%;
+    transform: rotate(360deg);
+    opacity: 0;
+  }
+}
+
+@keyframes confetti-shake {
+  0% {
+    transform: translateX(0);
+  }
+  25% {
+    transform: translateX(5px);
+  }
+  50% {
+    transform: translateX(-5px);
+  }
+  75% {
+    transform: translateX(5px);
+  }
+  100% {
+    transform: translateX(0);
+  }
+} 

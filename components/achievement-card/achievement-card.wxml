@@ -1,0 +1,22 @@
+<view class="achievement-card" bindtap="viewDetail">
+  <view class="achievement-icon {{achievement.isCompleted ? 'completed' : ''}}">
+    <text class="iconfont icon-{{achievement.icon}}"></text>
+  </view>
+  
+  <view class="achievement-content">
+    <view class="achievement-title">{{achievement.title}}</view>
+    <view class="achievement-description">{{achievement.description}}</view>
+    
+    <!-- 进度条 -->
+    <view class="achievement-progress">
+      <view class="progress-bar">
+        <view class="progress-inner" style="width: {{achievement.progress}}%;"></view>
+      </view>
+      <view class="progress-text">{{achievement.progress}}%</view>
+    </view>
+  </view>
+  
+  <view class="achievement-status {{achievement.isCompleted ? 'completed' : ''}}">
+    <text>{{achievement.isCompleted ? '已完成' : '进行中'}}</text>
+  </view>
+</view> 

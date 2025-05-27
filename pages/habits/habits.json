@@ -1,6 +1,7 @@
 {
   "navigationBarTitleText": "习惯列表",
   "usingComponents": {
-    "habit-card": "/components/habit-card/habit-card"
+    "habit-card": "/components/habit-card/habit-card",
+    "fab-button": "/components/fab-button/fab-button"
   }
 } 

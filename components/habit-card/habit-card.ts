@@ -81,8 +81,7 @@ Component({
         url: `/pages/checkin/checkin?habitId=${habit.id}&habitName=${encodeURIComponent(habit.name)}`
       });
       
-      // 触发父组件处理打卡事件
-      this.triggerEvent('checkin', { habitId: habit.id });
+      // 不再直接触发打卡事件，改为在打卡页面中完成
     },
     
     /**
@@ -90,7 +89,12 @@ Component({
      */
     onViewDetail() {
       const habit = this.properties.habit;
-      if (!habit || !habit.id) return;
+      console.log('点击查看详情', habit);
+      
+      if (!habit || !habit.id) {
+        console.error('习惯对象不存在或缺少ID', habit);
+        return;
+      }
       
       wx.navigateTo({
         url: `/pages/habits/detail/detail?id=${habit.id}`

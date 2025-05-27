@@ -16,6 +16,7 @@
   color: #FFFFFF;
   border-radius: 0 0 30rpx 30rpx;
   box-shadow: 0 4rpx 20rpx rgba(0, 0, 0, 0.1);
+  margin-bottom: 20rpx;
 }
 
 .header-content {
@@ -77,10 +78,24 @@
   display: flex;
   justify-content: space-between;
   text-align: center;
+  background-color: rgba(255, 255, 255, 0.15);
+  border-radius: 16rpx;
+  padding: 20rpx 10rpx;
 }
 
 .stat-item {
   flex: 1;
+  position: relative;
+}
+
+.stat-item:not(:last-child):after {
+  content: '';
+  position: absolute;
+  right: 0;
+  top: 20%;
+  height: 60%;
+  width: 1px;
+  background-color: rgba(255, 255, 255, 0.3);
 }
 
 .stat-value {
@@ -421,9 +436,11 @@
 }
 
 .setting-item .iconfont {
+  width: 60rpx;
   font-size: 40rpx;
   margin-right: 20rpx;
   color: #606266;
+  text-align: center;
 }
 
 .setting-item text {

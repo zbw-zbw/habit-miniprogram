@@ -11,7 +11,15 @@ App({
     systemInfo: null,
     theme: 'light',
     version: '0.1.0',
+    unlockedAchievement: null,
+    showAchievementUnlock: false
   },
+  
+  // 成就解锁回调函数
+  achievementUnlockCallbacks: [],
+  
+  // 主题变化回调函数
+  themeChangeCallbacks: [],
 
   /**
    * 当小程序初始化完成时触发
@@ -37,6 +45,77 @@ App({
     
     // 加载主题设置
     this.loadThemeSetting();
+    
+    // 初始化成就服务
+    this.initAchievementService();
+  },
+  
+  /**
+   * 初始化成就服务
+   */
+  initAchievementService() {
+    // 导入成就服务
+    const { achievementService } = require('./utils/achievement');
+    
+    // 初始化成就服务
+    achievementService.init();
+    
+    // 注册成就解锁回调
+    achievementService.onAchievementUnlock(this.onAchievementUnlocked.bind(this));
+  },
+  
+  /**
+   * 成就解锁处理函数
+   * 当成就被解锁时，此方法会被成就服务调用
+   */
+  onAchievementUnlocked(achievement) {
+    console.log('成就解锁:', achievement);
+    
+    // 保存解锁的成就
+    this.globalData.unlockedAchievement = achievement;
+    
+    // 显示成就解锁通知
+    this.showAchievementUnlockNotification(achievement);
+    
+    // 调用注册的回调函数
+    this.achievementUnlockCallbacks.forEach(callback => {
+      try {
+        callback(achievement);
+      } catch (error) {
+        console.error('成就解锁回调执行失败:', error);
+      }
+    });
+  },
+  
+  /**
+   * 注册成就解锁回调
+   * 页面可以通过此方法注册回调函数，在成就解锁时接收通知
+   */
+  onAchievementUnlock(callback) {
+    if (typeof callback === 'function') {
+      this.achievementUnlockCallbacks.push(callback);
+    }
+  },
+  
+  /**
+   * 注册主题变化回调
+   */
+  onThemeChange(callback) {
+    if (typeof callback === 'function') {
+      this.themeChangeCallbacks.push(callback);
+    }
+  },
+  
+  /**
+   * 显示成就解锁通知
+   */
+  showAchievementUnlockNotification(achievement) {
+    this.globalData.showAchievementUnlock = true;
+    
+    // 3秒后自动隐藏
+    setTimeout(() => {
+      this.globalData.showAchievementUnlock = false;
+    }, 3000);
   },
   
   /**
@@ -45,13 +124,14 @@ App({
   checkUpdate() {
     if (wx.canIUse('getUpdateManager')) {
       const updateManager = wx.getUpdateManager();
-      updateManager.onCheckForUpdate(res => {
+      
+      updateManager.onCheckForUpdate(function(res) {
         if (res.hasUpdate) {
-          updateManager.onUpdateReady(() => {
+          updateManager.onUpdateReady(function() {
             wx.showModal({
               title: '更新提示',
-              content: '新版本已准备好，是否重启应用？',
-              success: res => {
+              content: '新版本已经准备好，是否重启应用？',
+              success: function(res) {
                 if (res.confirm) {
                   updateManager.applyUpdate();
                 }
@@ -59,10 +139,11 @@ App({
             });
           });
           
-          updateManager.onUpdateFailed(() => {
-            wx.showToast({
-              title: '更新失败，请稍后再试',
-              icon: 'none'
+          updateManager.onUpdateFailed(function() {
+            wx.showModal({
+              title: '更新提示',
+              content: '新版本下载失败，请检查网络后重试',
+              showCancel: false
             });
           });
         }
@@ -74,120 +155,94 @@ App({
    * 检查登录状态
    */
   checkLoginStatus() {
-    // 从本地存储获取登录状态
-    const token = wx.getStorageSync('token');
-    const userInfo = wx.getStorageSync('userInfo');
-    
-    if (token && userInfo) {
-      this.globalData.hasLogin = true;
-      this.globalData.userInfo = userInfo;
-      
-      // 验证token有效性
-      this.validateToken(token);
+    try {
+      const userInfo = wx.getStorageSync('userInfo');
+      if (userInfo) {
+        this.globalData.userInfo = userInfo;
+        this.globalData.hasLogin = true;
+      }
+    } catch (e) {
+      console.error('读取登录状态失败', e);
     }
   },
   
   /**
-   * 验证token有效性
-   * @param {string} token 用户令牌
+   * 用户登录
    */
-  validateToken(token) {
-    // TODO: 实现token验证逻辑
-    // 向服务器发送请求验证token
-    // 如果token无效，清除登录状态
+  login(userInfo, callback) {
+    // 模拟登录过程
+    setTimeout(() => {
+      // 添加用户ID
+      userInfo.id = 'user_' + Date.now();
+      
+      // 保存用户信息
+      this.globalData.userInfo = userInfo;
+      this.globalData.hasLogin = true;
+      
+      try {
+        wx.setStorageSync('userInfo', userInfo);
+      } catch (e) {
+        console.error('保存用户信息失败', e);
+      }
+      
+      if (callback) {
+        callback(true);
+      }
+    }, 500);
+  },
+  
+  /**
+   * 用户登出
+   */
+  logout(callback) {
+    // 清除用户信息
+    this.globalData.userInfo = null;
+    this.globalData.hasLogin = false;
+    
+    try {
+      wx.removeStorageSync('userInfo');
+    } catch (e) {
+      console.error('清除用户信息失败', e);
+    }
+    
+    if (callback) {
+      callback();
+    }
   },
   
   /**
    * 加载主题设置
    */
   loadThemeSetting() {
-    const theme = wx.getStorageSync('theme') || 'light';
-    this.globalData.theme = theme;
-    
-    // 设置导航栏颜色
-    if (theme === 'dark') {
-      wx.setNavigationBarColor({
-        frontColor: '#ffffff',
-        backgroundColor: '#303133',
-      });
-    }
-  },
-  
-  /**
-   * 切换主题
-   * @param {string} theme 主题名称 ('light'|'dark')
-   */
-  switchTheme(theme) {
-    this.globalData.theme = theme;
-    wx.setStorageSync('theme', theme);
-    
-    // 设置导航栏颜色
-    if (theme === 'dark') {
-      wx.setNavigationBarColor({
-        frontColor: '#ffffff',
-        backgroundColor: '#303133',
-      });
-    } else {
-      wx.setNavigationBarColor({
-        frontColor: '#ffffff',
-        backgroundColor: '#4F7CFF',
-      });
-    }
-    
-    // 通知页面更新主题
-    if (this._themeChangeCallback) {
-      this._themeChangeCallback(theme);
-    }
-  },
-  
-  /**
-   * 监听主题变化
-   * @param {Function} callback 回调函数
-   */
-  onThemeChange(callback) {
-    this._themeChangeCallback = callback;
-  },
-  
-  /**
-   * 用户登录
-   * @param {Object} userInfo 用户信息
-   * @param {Function} callback 回调函数
-   */
-  login(userInfo, callback) {
-    // TODO: 实现登录逻辑
-    // 向服务器发送登录请求
-    // 保存登录状态和用户信息
-    
-    // 模拟登录成功
-    setTimeout(() => {
-      this.globalData.hasLogin = true;
-      this.globalData.userInfo = userInfo;
-      
-      // 保存到本地存储
-      wx.setStorageSync('userInfo', userInfo);
-      wx.setStorageSync('token', 'mock_token');
-      
-      if (callback) {
-        callback(true);
+    try {
+      const theme = wx.getStorageSync('theme');
+      if (theme) {
+        this.globalData.theme = theme;
       }
-    }, 1000);
+    } catch (e) {
+      console.error('读取主题设置失败', e);
+    }
   },
   
   /**
-   * 用户登出
-   * @param {Function} callback 回调函数
+   * 设置主题
    */
-  logout(callback) {
-    // 清除登录状态
-    this.globalData.hasLogin = false;
-    this.globalData.userInfo = null;
+  setTheme(theme) {
+    this.globalData.theme = theme;
     
-    // 清除本地存储
-    wx.removeStorageSync('token');
-    wx.removeStorageSync('userInfo');
-    
-    if (callback) {
-      callback();
+    try {
+      wx.setStorageSync('theme', theme);
+    } catch (e) {
+      console.error('保存主题设置失败', e);
     }
+    
+    // 通知主题变化
+    this.themeChangeCallbacks.forEach(callback => {
+      try {
+        callback(theme);
+      } catch (error) {
+        console.error('主题变化回调执行失败:', error);
+      }
+    });
   }
 }); 

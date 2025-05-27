@@ -8,15 +8,21 @@
 interface IAppOption {
   globalData: {
     userInfo: IUserInfo | null;
-    isLoggedIn: boolean;
+    hasLogin: boolean;
     systemInfo?: WechatMiniprogram.SystemInfo;
     theme?: 'light' | 'dark' | 'system';
+    unlockedAchievement?: IAchievement | null;
+    showAchievementUnlock?: boolean;
   };
   userInfoReadyCallback?: WechatMiniprogram.GetUserInfoSuccessCallback;
   login(userInfo: IUserInfo, callback: (success: boolean) => void): void;
   logout(callback: () => void): void;
   setTheme(theme: 'light' | 'dark' | 'system'): void;
   setLanguage?(language: 'zh_CN' | 'en_US'): void;
+  onAchievementUnlock(callback: (achievement: IAchievement) => void): void;
+  onAchievementUnlocked(achievement: IAchievement): void;
+  showAchievementUnlockNotification(achievement: IAchievement): void;
+  onThemeChange?(callback: (theme: 'light' | 'dark' | 'system') => void): void;
 }
 
 // 用户信息
@@ -86,10 +92,10 @@ interface IPost {
     nickName: string;
   };
   content: string;
-  images?: string[];
-  habitId?: string;
-  habitName?: string;
-  checkinId?: string;
+  images: string[];
+  habitId: string;
+  habitName: string;
+  checkinId: string;
   likes: number;
   comments: number;
   isLiked: boolean;
@@ -131,6 +137,7 @@ interface IAchievement {
   progress: number; // 0-100表示进度百分比
   isCompleted: boolean;
   completedAt?: string;
+  reward?: string; // 成就奖励
 }
 
 // 全局数据接口已合并到IAppOption中

@@ -1,0 +1,460 @@
+/* 成就详情页面样式 */
+.container {
+  padding: 16px;
+  background-color: #F5F7FA;
+  min-height: 100vh;
+}
+
+/* 加载状态 */
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 300px;
+}
+
+.loading-spinner {
+  width: 40px;
+  height: 40px;
+  border: 4px solid #E4E7ED;
+  border-top: 4px solid #4F7CFF;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+.loading-text {
+  margin-top: 16px;
+  font-size: 14px;
+  color: #909399;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* 空状态 */
+.empty-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 300px;
+}
+
+.empty-icon {
+  font-size: 48px;
+  margin-bottom: 16px;
+}
+
+.empty-text {
+  font-size: 16px;
+  color: #909399;
+  margin-bottom: 24px;
+}
+
+.empty-list {
+  text-align: center;
+  padding: 24px 0;
+  color: #909399;
+  font-size: 14px;
+}
+
+/* 成就头部 */
+.achievement-header {
+  background-color: #FFFFFF;
+  border-radius: 12px;
+  padding: 24px;
+  margin-bottom: 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.achievement-icon-container {
+  width: 80px;
+  height: 80px;
+  border-radius: 40px;
+  background-color: #4F7CFF;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 16px;
+  box-shadow: 0 4px 12px rgba(79, 124, 255, 0.3);
+}
+
+.achievement-icon-container.completed {
+  background-color: #67C23A;
+  box-shadow: 0 4px 12px rgba(103, 194, 58, 0.3);
+}
+
+.achievement-icon-container .iconfont {
+  font-size: 40px;
+  color: #FFFFFF;
+}
+
+.achievement-title {
+  font-size: 20px;
+  font-weight: 500;
+  color: #303133;
+  margin-bottom: 8px;
+  text-align: center;
+}
+
+.achievement-description {
+  font-size: 14px;
+  color: #606266;
+  margin-bottom: 16px;
+  text-align: center;
+  line-height: 1.5;
+}
+
+.achievement-status {
+  width: 100%;
+  margin-bottom: 16px;
+}
+
+.status-tag {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 16px;
+  font-size: 12px;
+  margin-bottom: 8px;
+}
+
+.status-tag.completed {
+  background-color: #67C23A;
+  color: #FFFFFF;
+}
+
+.completion-date {
+  font-size: 14px;
+  color: #909399;
+  text-align: center;
+}
+
+.progress-container {
+  width: 100%;
+}
+
+.progress-bar {
+  height: 8px;
+  background-color: #E4E7ED;
+  border-radius: 4px;
+  overflow: hidden;
+  margin-bottom: 8px;
+}
+
+.progress-inner {
+  height: 100%;
+  background-color: #4F7CFF;
+  border-radius: 4px;
+}
+
+.progress-text {
+  font-size: 14px;
+  color: #606266;
+  text-align: right;
+}
+
+.achievement-reward {
+  width: 100%;
+  padding-top: 16px;
+  border-top: 1px solid #E4E7ED;
+}
+
+.reward-title {
+  font-size: 14px;
+  color: #909399;
+  margin-bottom: 8px;
+}
+
+.reward-content {
+  font-size: 16px;
+  color: #303133;
+}
+
+/* 通用部分 */
+.section {
+  background-color: #FFFFFF;
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 16px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.section-title {
+  font-size: 16px;
+  font-weight: 500;
+  color: #303133;
+  margin-bottom: 16px;
+  padding-left: 8px;
+  border-left: 4px solid #4F7CFF;
+}
+
+/* 里程碑 */
+.milestones-container {
+  padding: 0 8px;
+}
+
+.milestone-item {
+  display: flex;
+  align-items: flex-start;
+  margin-bottom: 16px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid #E4E7ED;
+}
+
+.milestone-item:last-child {
+  margin-bottom: 0;
+  padding-bottom: 0;
+  border-bottom: none;
+}
+
+.milestone-icon {
+  width: 24px;
+  height: 24px;
+  border-radius: 12px;
+  background-color: #E4E7ED;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 12px;
+  flex-shrink: 0;
+}
+
+.milestone-item.completed .milestone-icon {
+  background-color: #67C23A;
+}
+
+.milestone-icon .iconfont {
+  font-size: 14px;
+  color: #FFFFFF;
+}
+
+.milestone-content {
+  flex: 1;
+}
+
+.milestone-title {
+  font-size: 16px;
+  color: #303133;
+  margin-bottom: 4px;
+}
+
+.milestone-description {
+  font-size: 14px;
+  color: #606266;
+}
+
+.milestone-value {
+  font-size: 14px;
+  color: #909399;
+  margin-left: 12px;
+  flex-shrink: 0;
+}
+
+/* 相关习惯 */
+.habits-container {
+  padding: 0 8px;
+}
+
+.habit-item {
+  display: flex;
+  align-items: center;
+  padding: 12px 0;
+  border-bottom: 1px solid #E4E7ED;
+}
+
+.habit-item:last-child {
+  border-bottom: none;
+}
+
+.habit-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 12px;
+  flex-shrink: 0;
+}
+
+.habit-icon .iconfont {
+  font-size: 20px;
+  color: #FFFFFF;
+}
+
+.habit-content {
+  flex: 1;
+}
+
+.habit-name {
+  font-size: 16px;
+  color: #303133;
+  margin-bottom: 4px;
+}
+
+.habit-category {
+  font-size: 12px;
+  color: #909399;
+}
+
+.habit-arrow {
+  color: #C0C4CC;
+}
+
+/* 底部 */
+.footer {
+  padding: 16px 0;
+  display: flex;
+  justify-content: center;
+}
+
+.btn {
+  padding: 0 24px;
+  height: 40px;
+  border-radius: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+}
+
+.btn-primary {
+  background-color: #4F7CFF;
+  color: #FFFFFF;
+}
+
+.btn-share {
+  width: 60%;
+}
+
+.btn-share .iconfont {
+  margin-right: 8px;
+}
+
+/* 错误状态 */
+.error-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 48px 0;
+}
+
+/* 错误状态占位图 */
+.error-image-placeholder {
+  width: 120px;
+  height: 120px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background-color: #FEF0F0;
+  border-radius: 60px;
+  margin-bottom: 16px;
+}
+
+.error-icon {
+  width: 60px;
+  height: 60px;
+  border-radius: 30px;
+  background-color: #FCDCDC;
+  position: relative;
+}
+
+.error-icon::before,
+.error-icon::after {
+  content: '';
+  position: absolute;
+  top: 28px;
+  left: 15px;
+  width: 30px;
+  height: 4px;
+  background-color: #F56C6C;
+  border-radius: 2px;
+}
+
+.error-icon::before {
+  transform: rotate(45deg);
+}
+
+.error-icon::after {
+  transform: rotate(-45deg);
+}
+
+.error-icon-text {
+  margin-top: 8px;
+  font-size: 12px;
+  color: #F56C6C;
+}
+
+.error-text {
+  font-size: 16px;
+  color: #303133;
+  margin-bottom: 8px;
+}
+
+.error-desc {
+  font-size: 14px;
+  color: #909399;
+}
+
+/* 卡片样式 */
+.detail-card,
+.milestone-card,
+.related-habits-card {
+  background-color: #FFFFFF;
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 16px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.card-title {
+  font-size: 16px;
+  font-weight: 500;
+  color: #303133;
+  margin-bottom: 16px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid #E4E7ED;
+}
+
+/* 详情项 */
+.detail-item {
+  display: flex;
+  margin-bottom: 12px;
+}
+
+.detail-label {
+  width: 80px;
+  font-size: 14px;
+  color: #909399;
+}
+
+.detail-value {
+  flex: 1;
+  font-size: 14px;
+  color: #606266;
+}
+
+/* 分享按钮 */
+.share-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #4F7CFF;
+  color: #FFFFFF;
+  border-radius: 8px;
+  padding: 12px;
+  margin-top: 24px;
+  font-size: 16px;
+}
+
+.share-button .iconfont {
+  margin-right: 8px;
+} 

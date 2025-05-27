@@ -32,7 +32,7 @@
         <view class="stat-label">连续天数</view>
       </view>
       <view class="stat-item">
-        <view class="stat-value">{{(stats.completionRate * 100).toFixed(0) || 0}}%</view>
+        <view class="stat-value">{{completionRateFormatted}}%</view>
         <view class="stat-label">完成率</view>
       </view>
       <view class="stat-item">
@@ -95,7 +95,7 @@
         </view>
         
         <view class="calendar-footer">
-          <view class="footer-stat">本月完成率: <text class="highlight">{{(stats.completionRate * 100).toFixed(0) || 0}}%</text></view>
+          <view class="footer-stat">本月完成率: <text class="highlight">{{completionRateFormatted}}%</text></view>
           <view class="footer-stat">最佳连续: <text class="highlight">{{stats.longestStreak || 0}}天</text></view>
         </view>
       </view>
@@ -128,8 +128,8 @@
                 <text class="iconfont icon-smile"></text>
               </view>
               <view class="record-meta">
-                <view class="record-date">{{item.date === formatDate(new Date()) ? '今天' : item.date}}</view>
-                <view class="record-time">{{item.createdAt.substring(11, 16)}} · 30分钟</view>
+                <view class="record-date">{{item.date === todayFormatted ? '今天' : item.date}}</view>
+                <view class="record-time">{{item.formattedTime}} · 30分钟</view>
               </view>
             </view>
             <view class="record-content" wx:if="{{item.note}}">
@@ -155,8 +155,8 @@
                 <text class="iconfont icon-smile"></text>
               </view>
               <view class="record-meta">
-                <view class="record-date">{{item.date === formatDate(new Date()) ? '今天' : item.date}}</view>
-                <view class="record-time">{{item.createdAt.substring(11, 16)}} · 30分钟</view>
+                <view class="record-date">{{item.date === todayFormatted ? '今天' : item.date}}</view>
+                <view class="record-time">{{item.formattedTime}} · 30分钟</view>
               </view>
             </view>
             <view class="record-content" wx:if="{{item.note}}">

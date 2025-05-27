@@ -2,6 +2,7 @@
  * 个人中心页面
  */
 import { getHabits, getCheckins } from '../../utils/storage';
+import { achievementService, IAchievement } from '../../utils/achievement';
 
 interface IPageData {
   userInfo: IUserInfo | null;
@@ -24,6 +25,7 @@ interface IPageMethods {
   login(): void;
   logout(): void;
   navigateTo(e: WechatMiniprogram.TouchEvent): void;
+  navigateToAchievement(e: WechatMiniprogram.TouchEvent): void;
 }
 
 Page<IPageData, IPageMethods>({
@@ -75,11 +77,13 @@ Page<IPageData, IPageMethods>({
     });
     
     // 监听主题变化
-    app.onThemeChange((theme: 'light' | 'dark') => {
-      this.setData({
-        'settings.theme': theme
+    if (typeof app.onThemeChange === 'function') {
+      app.onThemeChange((theme) => {
+        this.setData({
+          'settings.theme': theme
+        });
       });
-    });
+    }
   },
 
   /**
@@ -122,46 +126,20 @@ Page<IPageData, IPageMethods>({
   /**
    * 加载成就数据
    */
-  loadAchievements() {
-    // 模拟成就数据
-    const achievements: IAchievement[] = [
-      {
-        id: '1',
-        title: '习惯养成者',
-        description: '创建第一个习惯',
-        icon: 'achievement-1',
-        progress: 100,
-        isCompleted: true,
-        completedAt: '2023-09-15'
-      },
-      {
-        id: '2',
-        title: '坚持不懈',
-        description: '连续打卡7天',
-        icon: 'achievement-2',
-        progress: 100,
-        isCompleted: true,
-        completedAt: '2023-09-20'
-      },
-      {
-        id: '3',
-        title: '习惯大师',
-        description: '连续打卡30天',
-        icon: 'achievement-3',
-        progress: 40,
-        isCompleted: false
-      },
-      {
-        id: '4',
-        title: '多面手',
-        description: '创建5个不同类别的习惯',
-        icon: 'achievement-4',
-        progress: 60,
-        isCompleted: false
-      }
-    ];
-    
-    this.setData({ achievements });
+  async loadAchievements() {
+    try {
+      // 获取所有成就
+      const achievements = await achievementService.getAllAchievements();
+      
+      // 只显示前4个成就
+      const topAchievements = achievements.slice(0, 4);
+      
+      this.setData({ achievements: topAchievements });
+    } catch (error) {
+      console.error('加载成就数据失败:', error);
+      
+      this.setData({ achievements: [] });
+    }
   },
 
   /**
@@ -177,10 +155,16 @@ Page<IPageData, IPageMethods>({
       desc: '用于完善用户资料',
       success: (res) => {
         const app = getApp<IAppOption>();
-        app.login(res.userInfo, (success) => {
+        // 添加ID属性以满足IUserInfo接口要求
+        const userInfo = {
+          ...res.userInfo,
+          id: 'temp_' + Date.now()
+        } as IUserInfo;
+        
+        app.login(userInfo, (success) => {
           if (success) {
             this.setData({
-              userInfo: res.userInfo,
+              userInfo: app.globalData.userInfo,
               hasLogin: true
             });
             
@@ -240,6 +224,16 @@ Page<IPageData, IPageMethods>({
   navigateTo(e: WechatMiniprogram.TouchEvent) {
     const { url } = e.currentTarget.dataset;
     wx.navigateTo({ url });
+  },
+
+  /**
+   * 成就详情导航
+   */
+  navigateToAchievement(e: WechatMiniprogram.TouchEvent) {
+    const { id } = e.currentTarget.dataset;
+    wx.navigateTo({
+      url: `/pages/profile/achievements/detail/detail?id=${id}`
+    });
   },
 
   /**

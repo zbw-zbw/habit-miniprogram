@@ -109,8 +109,12 @@
 }
 
 /* 习惯列表 */
-.habits-section {
+.habits-card {
+  background-color: #FFFFFF;
+  border-radius: var(--radius-medium);
+  padding: 24rpx;
   margin-bottom: 32rpx;
+  box-shadow: var(--shadow-light);
 }
 
 .section-header {

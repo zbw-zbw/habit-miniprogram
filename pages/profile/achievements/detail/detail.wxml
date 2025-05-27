@@ -1,0 +1,102 @@
+<!--成就详情页面-->
+<view class="container">
+  <!-- 加载状态 -->
+  <view class="loading-container" wx:if="{{loading}}">
+    <view class="loading-spinner"></view>
+    <view class="loading-text">加载中...</view>
+  </view>
+  
+  <!-- 成就不存在 -->
+  <view class="empty-container" wx:elif="{{!achievement}}">
+    <view class="empty-icon">🔍</view>
+    <view class="empty-text">成就不存在或已被删除</view>
+    <button class="btn btn-primary" bindtap="navigateBack">返回</button>
+  </view>
+  
+  <!-- 成就详情 -->
+  <block wx:else>
+    <!-- 成就头部 -->
+    <view class="achievement-header">
+      <view class="achievement-icon-container {{achievement.isCompleted ? 'completed' : ''}}">
+        <text class="iconfont icon-{{achievement.icon}}"></text>
+      </view>
+      
+      <view class="achievement-title">{{achievement.title}}</view>
+      <view class="achievement-description">{{achievement.description}}</view>
+      
+      <view class="achievement-status">
+        <block wx:if="{{achievement.isCompleted}}">
+          <view class="status-tag completed">已完成</view>
+          <view class="completion-date">{{achievement.completedAt}} 解锁</view>
+        </block>
+        <block wx:else>
+          <view class="progress-container">
+            <view class="progress-bar">
+              <view class="progress-inner" style="width: {{achievement.progress}}%;"></view>
+            </view>
+            <view class="progress-text">{{achievement.progress}}%</view>
+          </view>
+        </block>
+      </view>
+      
+      <view class="achievement-reward" wx:if="{{achievement.reward}}">
+        <view class="reward-title">奖励</view>
+        <view class="reward-content">{{achievement.reward}}</view>
+      </view>
+    </view>
+    
+    <!-- 里程碑 -->
+    <view class="section">
+      <view class="section-title">里程碑</view>
+      <view class="milestones-container">
+        <block wx:if="{{milestones.length > 0}}">
+          <view class="milestone-item {{item.isCompleted ? 'completed' : ''}}" wx:for="{{milestones}}" wx:key="title">
+            <view class="milestone-icon">
+              <text class="iconfont {{item.isCompleted ? 'icon-check' : 'icon-flag'}}"></text>
+            </view>
+            <view class="milestone-content">
+              <view class="milestone-title">{{item.title}}</view>
+              <view class="milestone-description">{{item.description}}</view>
+            </view>
+            <view class="milestone-value">{{item.value}}</view>
+          </view>
+        </block>
+        <block wx:else>
+          <view class="empty-list">暂无里程碑</view>
+        </block>
+      </view>
+    </view>
+    
+    <!-- 相关习惯 -->
+    <view class="section">
+      <view class="section-title">相关习惯</view>
+      <view class="habits-container">
+        <block wx:if="{{relatedHabits.length > 0}}">
+          <view class="habit-item" wx:for="{{relatedHabits}}" wx:key="id" bindtap="navigateToHabit" data-id="{{item.id}}">
+            <view class="habit-icon" style="background-color: {{item.color}}">
+              <text class="iconfont icon-{{item.icon}}"></text>
+            </view>
+            <view class="habit-content">
+              <view class="habit-name">{{item.name}}</view>
+              <view class="habit-category">{{item.category}}</view>
+            </view>
+            <view class="habit-arrow">
+              <text class="iconfont icon-arrow-right"></text>
+            </view>
+          </view>
+        </block>
+        <block wx:else>
+          <view class="empty-list">暂无相关习惯</view>
+        </block>
+      </view>
+    </view>
+    
+    <!-- 分享按钮 -->
+    <view class="footer">
+      <button class="btn btn-primary btn-share" open-type="share">
+        <text class="iconfont icon-share"></text>
+        分享成就
+      </button>
+    </view>
+  </block>
+</view> 

@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="120" height="120" viewBox="0 0 120 120">
+  <!-- 背景圆形 -->
+  <circle cx="60" cy="60" r="50" fill="#f0f2f5" />
+  
+  <!-- 奖杯图标 -->
+  <path d="M60,30 L80,30 L80,45 C80,52.5 75,60 60,60 C45,60 40,52.5 40,45 L40,30 L60,30 Z" fill="#dcdfe6" />
+  <rect x="55" y="60" width="10" height="15" fill="#dcdfe6" />
+  <rect x="45" y="75" width="30" height="5" rx="2" fill="#dcdfe6" />
+  
+  <!-- 奖杯把手 -->
+  <path d="M80,35 C85,35 90,40 90,45 C90,50 85,55 80,55" fill="none" stroke="#dcdfe6" stroke-width="4" />
+  <path d="M40,35 C35,35 30,40 30,45 C30,50 35,55 40,55" fill="none" stroke="#dcdfe6" stroke-width="4" />
+  
+  <!-- TODO标记 -->
+  <text x="60" y="100" font-family="Arial" font-size="10" text-anchor="middle" fill="#909399">TODO: 替换图片</text>
+</svg> 

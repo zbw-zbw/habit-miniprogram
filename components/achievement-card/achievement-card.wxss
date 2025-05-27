@@ -1,0 +1,150 @@
+.achievement-card {
+  background-color: #FFFFFF;
+  border-radius: 8px;
+  padding: 16px;
+  margin-bottom: 12px;
+  display: flex;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.achievement-card.completed {
+  background-color: #F5F7FA;
+  border: 1px solid #DCDFE6;
+}
+
+.achievement-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 24px;
+  background-color: #4F7CFF;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 12px;
+  flex-shrink: 0;
+}
+
+.achievement-icon.completed {
+  background-color: #67C23A;
+}
+
+.achievement-icon .iconfont {
+  font-size: 24px;
+  color: #FFFFFF;
+}
+
+.new-badge {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  background-color: #F56C6C;
+  color: #FFFFFF;
+  font-size: 10px;
+  width: 16px;
+  height: 16px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.achievement-content {
+  flex: 1;
+  margin-right: 12px;
+}
+
+.achievement-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.achievement-title {
+  font-size: 16px;
+  font-weight: 500;
+  color: #303133;
+  margin-bottom: 4px;
+}
+
+.achievement-completion {
+  font-size: 12px;
+  color: #67C23A;
+  background-color: rgba(103, 194, 58, 0.1);
+  padding: 2px 8px;
+  border-radius: 4px;
+}
+
+.achievement-description {
+  font-size: 14px;
+  color: #606266;
+  margin-bottom: 12px;
+  line-height: 1.4;
+}
+
+.achievement-progress {
+  display: flex;
+  align-items: center;
+}
+
+.progress-bar {
+  flex: 1;
+  height: 6px;
+  background-color: #E4E7ED;
+  border-radius: 3px;
+  overflow: hidden;
+  margin-right: 8px;
+}
+
+.progress-inner {
+  height: 100%;
+  background-color: #4F7CFF;
+  border-radius: 3px;
+}
+
+.progress-text {
+  font-size: 12px;
+  color: #909399;
+  min-width: 36px;
+  text-align: right;
+}
+
+.achievement-status {
+  display: flex;
+  align-items: flex-start;
+  font-size: 12px;
+  color: #909399;
+  padding: 4px 8px;
+  border-radius: 12px;
+  background-color: #F5F7FA;
+  height: 24px;
+  flex-shrink: 0;
+}
+
+.achievement-status.completed {
+  color: #67C23A;
+  background-color: rgba(103, 194, 58, 0.1);
+}
+
+.achievement-details {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid #E4E7ED;
+}
+
+.detail-item {
+  display: flex;
+  margin-bottom: 8px;
+}
+
+.detail-label {
+  font-size: 12px;
+  color: #909399;
+  width: 70px;
+}
+
+.detail-value {
+  font-size: 12px;
+  color: #606266;
+  flex: 1;
+} 

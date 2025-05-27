@@ -30,6 +30,14 @@
 }
 
 /* 习惯卡片 */
+.current-habit-card {
+  background-color: #FFFFFF;
+  border-radius: 24rpx;
+  padding: 30rpx;
+  box-shadow: 0 2rpx 10rpx rgba(0, 0, 0, 0.05);
+  margin-bottom: 40rpx;
+}
+
 .habit-card {
   background-color: #FFFFFF;
   border-radius: 24rpx;

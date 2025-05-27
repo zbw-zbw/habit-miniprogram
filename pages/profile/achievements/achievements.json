@@ -1,0 +1,8 @@
+{
+  "navigationBarTitleText": "我的成就",
+  "enablePullDownRefresh": true,
+  "backgroundColor": "#F5F7FA",
+  "usingComponents": {
+    "achievement-card": "/components/achievement-card/achievement-card"
+  }
+} 

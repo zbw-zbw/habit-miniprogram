@@ -23,7 +23,9 @@ Page({
     completionRate: 0,
     completionRateDisplay: '0',
     currentStreak: 0,
-    motto: ''
+    motto: '',
+    showAchievementUnlock: false,
+    unlockedAchievement: null
   },
 
   /**
@@ -46,8 +48,15 @@ Page({
     const app = getApp<IAppOption>();
     this.setData({
       userInfo: app.globalData.userInfo,
-      hasLogin: app.globalData.isLoggedIn
+      hasLogin: app.globalData.hasLogin
     });
+    
+    // 监听成就解锁事件
+    if (typeof app.onAchievementUnlock === 'function') {
+      app.onAchievementUnlock(this.onAchievementUnlock.bind(this));
+    } else {
+      console.error('App.onAchievementUnlock 方法不存在');
+    }
   },
 
   /**
@@ -213,5 +222,83 @@ Page({
       title: '习惯打卡小程序，养成好习惯，成就好人生',
       path: '/pages/index/index'
     };
+  },
+  
+  /**
+   * 处理成就解锁事件
+   */
+  onAchievementUnlock(achievement: any) {
+    this.setData({
+      unlockedAchievement: achievement,
+      showAchievementUnlock: true
+    });
+  },
+  
+  /**
+   * 隐藏成就解锁通知
+   */
+  hideAchievementUnlock() {
+    this.setData({
+      showAchievementUnlock: false
+    });
+  },
+  
+  /**
+   * 查看成就详情
+   */
+  viewAchievementDetail(e: any) {
+    const { achievementId } = e.detail;
+    
+    wx.navigateTo({
+      url: `/pages/profile/achievements/detail/detail?id=${achievementId}`
+    });
+  },
+  
+  /**
+   * 测试成就解锁功能
+   */
+  testAchievementUnlock() {
+    // 导入成就服务
+    const { achievementService, IAchievement } = require('../../utils/achievement');
+    
+    // 选择一个成就进行解锁测试
+    achievementService.getAllAchievements().then((achievements: IAchievement[]) => {
+      if (achievements && achievements.length > 0) {
+        // 获取第一个未完成的成就
+        const achievement = achievements.find((a: IAchievement) => !a.isCompleted) || achievements[0];
+        
+        // 将成就进度设为100%并标记为已完成
+        achievement.progress = 100;
+        achievement.isCompleted = true;
+        achievement.completedAt = new Date().toISOString().split('T')[0]; // 当前日期
+        
+        console.log('测试成就解锁:', achievement);
+        
+        // 直接在页面上显示成就解锁通知
+        this.setData({
+          unlockedAchievement: achievement as any,
+          showAchievementUnlock: true
+        });
+        
+        // 保存更新的成就
+        achievementService.updateAchievement(achievement).then(() => {
+          wx.showToast({
+            title: '测试成就解锁成功',
+            icon: 'success'
+          });
+        }).catch((error: Error) => {
+          console.error('测试成就解锁失败:', error);
+          wx.showToast({
+            title: '测试失败',
+            icon: 'error'
+          });
+        });
+      } else {
+        wx.showToast({
+          title: '没有可用的成就',
+          icon: 'none'
+        });
+      }
+    });
   }
 }); 

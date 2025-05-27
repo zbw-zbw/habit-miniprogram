@@ -46,6 +46,7 @@ interface IPageMethods {
   chooseImage(): void;
   deleteImage(e: WechatMiniprogram.TouchEvent): void;
   submitCheckin(): void;
+  viewWeeklyProgress(): void;
 }
 
 Page<IPageData, IPageMethods>({
@@ -405,10 +406,17 @@ Page<IPageData, IPageMethods>({
   // 删除图片
   deleteImage(e: WechatMiniprogram.TouchEvent) {
     const index = e.currentTarget.dataset.index;
-    const photos = [...this.data.formData.photos];
+    const photos = this.data.formData.photos;
     photos.splice(index, 1);
     this.setData({
       'formData.photos': photos
+    });
+  },
+
+  // 查看每周进度
+  viewWeeklyProgress() {
+    wx.navigateTo({
+      url: '/pages/analytics/analytics'
     });
   },
 
@@ -455,7 +463,5 @@ Page<IPageData, IPageMethods>({
       this.loadCompletedHabits();
     }, 1000);
   },
-
-
 
 });

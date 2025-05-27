@@ -14,23 +14,46 @@
     </scroll-view>
   </view>
   
-  <!-- 工具栏 -->
-  <view class="toolbar">
-    <view class="toolbar-left">
-      <view class="toolbar-item" bindtap="openCategoryModal">
-        <text class="iconfont icon-category"></text>
-        <text>分类</text>
-      </view>
-      <view class="toolbar-item" bindtap="openSortModal">
-        <text class="iconfont icon-sort"></text>
-        <text>排序</text>
+
+  
+  <!-- 日历选择 -->
+  <view class="calendar-card">
+    <view class="card-header">
+      <view class="card-title">{{currentMonth || '本月'}}</view>
+      <view class="card-actions">
+        <view class="action-btn" bindtap="changeMonth" data-direction="prev">
+          <text class="iconfont icon-left"></text>
+        </view>
+        <view class="action-btn" bindtap="changeMonth" data-direction="next">
+          <text class="iconfont icon-right"></text>
+        </view>
       </view>
     </view>
-    <view class="toolbar-right">
-      <view class="toolbar-item" bindtap="createHabit">
-        <text class="iconfont icon-add"></text>
-        <text>新建</text>
+    
+    <view class="calendar-weekdays">
+      <view class="weekday">一</view>
+      <view class="weekday">二</view>
+      <view class="weekday">三</view>
+      <view class="weekday">四</view>
+      <view class="weekday">五</view>
+      <view class="weekday">六</view>
+      <view class="weekday">日</view>
+    </view>
+    
+    <view class="calendar-grid">
+      <view 
+        wx:for="{{calendarDays}}" 
+        wx:key="date" 
+        class="calendar-day {{item.isCurrentMonth ? '' : 'other-month'}} {{item.isSelected ? 'selected' : ''}} {{item.isToday ? 'today' : ''}}"
+        bindtap="selectDate"
+        data-date="{{item.date}}"
+      >
+        {{item.day}}
       </view>
+    </view>
+    
+    <view class="calendar-footer">
+      <view class="date-display">{{selectedDate || '今日'}}的习惯</view>
     </view>
   </view>
   
@@ -45,7 +68,7 @@
     <block wx:elif="{{habits.length === 0}}">
       <view class="empty">
         <view class="empty-icon">📝</view>
-        <view class="empty-text">暂无习惯，点击右上角"+"创建</view>
+        <view class="empty-text">暂无习惯，点击右下角"+"创建</view>
         <button class="btn btn-primary" bindtap="createHabit">创建习惯</button>
       </view>
     </block>
@@ -62,9 +85,7 @@
   </view>
   
   <!-- 浮动按钮 -->
-  <view class="fab" bindtap="createHabit">
-    <text class="iconfont icon-add"></text>
-  </view>
+  <fab-button icon="add" bindclick="createHabit"></fab-button>
   
   <!-- 分类选择模态框 -->
   <view class="modal {{showCategoryModal ? 'show' : ''}}" catchtouchmove="true">

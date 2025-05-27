@@ -3,8 +3,10 @@ import { formatDate } from '../../../utils/date';
 interface IPageData {
   habitId: string;
   habit: IHabit | null;
-  checkins: ICheckin[];
+  checkins: Array<ICheckin & { formattedTime: string }>;
   stats: IHabitStats | null;
+  completionRateFormatted: string;
+  todayFormatted: string;
   activeTab: 'overview' | 'records' | 'stats' | 'settings';
   currentMonth: string;
   calendarDays: Array<{
@@ -35,6 +37,8 @@ Page<IPageData, IPageMethods>({
     habit: null,
     checkins: [],
     stats: null,
+    completionRateFormatted: '0',
+    todayFormatted: formatDate(new Date()),
     activeTab: 'overview',
     currentMonth: '',
     calendarDays: []
@@ -110,7 +114,8 @@ Page<IPageData, IPageMethods>({
       // 模拟API请求
       // 实际项目中应替换为真实API调用
       setTimeout(() => {
-        const checkins: ICheckin[] = [
+        // 获取基础数据
+        const baseCheckins: ICheckin[] = [
           {
             id: '1',
             habitId: this.data.habitId,
@@ -128,6 +133,12 @@ Page<IPageData, IPageMethods>({
             createdAt: new Date(Date.now() - 86400000).toISOString()
           }
         ];
+        
+        // 处理打卡记录，添加格式化的时间
+        const checkins = baseCheckins.map(checkin => ({
+          ...checkin,
+          formattedTime: checkin.createdAt.substring(11, 16)
+        }));
 
         this.setData({
           checkins
@@ -155,9 +166,13 @@ Page<IPageData, IPageMethods>({
           longestStreak: 12,
           lastCompletedDate: formatDate(new Date())
         };
+        
+        // 预先计算格式化的完成率
+        const completionRateFormatted = (stats.completionRate * 100).toFixed(0);
 
         this.setData({
-          stats
+          stats,
+          completionRateFormatted
         });
       }, 500);
     } catch (error) {
@@ -268,8 +283,22 @@ Page<IPageData, IPageMethods>({
 
   // 编辑习惯
   editHabit() {
+    if (!this.data.habit) return;
+    
+    // 将习惯数据转为查询参数，以便传递到编辑页面
+    const habit = this.data.habit;
+    const queryParams = [
+      `id=${this.data.habitId}`,
+      `name=${encodeURIComponent(habit.name)}`,
+      `description=${encodeURIComponent(habit.description || '')}`,
+      `category=${encodeURIComponent(habit.category)}`,
+      `icon=${encodeURIComponent(habit.icon)}`,
+      `color=${encodeURIComponent(habit.color)}`,
+      `isEdit=true`
+    ].join('&');
+    
     wx.navigateTo({
-      url: `/pages/habits/create/create?id=${this.data.habitId}`
+      url: `/pages/habits/create/create?${queryParams}`
     });
   },
 

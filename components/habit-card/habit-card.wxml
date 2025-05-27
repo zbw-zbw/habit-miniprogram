@@ -1,3 +1,4 @@
+<view class="habit-card-wrapper">
 <view class="habit-card" bindtap="onViewDetail">
   <!-- 左侧图标 -->
   <view class="habit-icon" style="background-color: {{habit.color}}">
@@ -41,6 +42,8 @@
       <text>{{isCompleted ? '已完成' : '打卡'}}</text>
     </view>
     
+
+    
     <view class="more-btn" catchtap="showActions">
       <text class="iconfont icon-more"></text>
     </view>
@@ -49,6 +52,10 @@
   <!-- 操作菜单 -->
   <view class="action-menu {{showActions ? 'show' : ''}}" catchtap="hideActions">
     <view class="action-menu-content" catchtap="stopPropagation">
+      <view class="action-item" catchtap="onViewDetail">
+        <text class="iconfont icon-detail"></text>
+        <text>查看详情</text>
+      </view>
       <view class="action-item" catchtap="onEdit">
         <text class="iconfont icon-edit"></text>
         <text>编辑</text>
@@ -59,4 +66,5 @@
       </view>
     </view>
   </view>
+</view>
 </view> 

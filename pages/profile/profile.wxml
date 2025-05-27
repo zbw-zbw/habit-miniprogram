@@ -45,9 +45,21 @@
   </view>
   
   <!-- 成就展示 -->
-  <view class="section-title">我的成就</view>
+  <view class="section-header">
+    <view class="section-title">我的成就</view>
+    <view class="section-more" bindtap="navigateTo" data-url="/pages/profile/achievements/achievements">
+      查看全部
+      <text class="iconfont icon-arrow-right"></text>
+    </view>
+  </view>
+  
   <view class="achievements-list">
-    <view class="achievement-item" wx:for="{{achievements}}" wx:key="id">
+    <view class="achievement-item" 
+          wx:for="{{achievements}}" 
+          wx:key="id" 
+          wx:if="{{index < 3}}"
+          bindtap="navigateToAchievement"
+          data-id="{{item.id}}">
       <view class="achievement-icon {{item.isCompleted ? 'completed' : ''}}">
         <text class="iconfont icon-{{item.icon}}"></text>
       </view>
@@ -67,13 +79,8 @@
     </view>
   </view>
   
-  <!-- 设置入口 -->
-  <view class="settings-entry" bindtap="navigateTo" data-url="/pages/profile/settings/settings">
-    <text class="iconfont icon-settings"></text>
-  </view>
-  
-  <!-- 退出登录 -->
-  <button class="logout-btn" bindtap="logout" wx:if="{{hasLogin}}">退出登录</button>
+  <!-- 设置按钮 -->
+  <button class="settings-btn" bindtap="navigateTo" data-url="/pages/profile/settings/settings">设置</button>
   
   <!-- 版本信息 -->
   <view class="version-info">

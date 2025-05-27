@@ -115,6 +115,26 @@
   margin: 40rpx 0 20rpx;
 }
 
+/* 章节标题带更多入口 */
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin: 40rpx 0 20rpx;
+}
+
+.section-more {
+  font-size: 24rpx;
+  color: var(--text-color-secondary);
+  display: flex;
+  align-items: center;
+}
+
+.section-more .iconfont {
+  font-size: 24rpx;
+  margin-left: 4rpx;
+}
+
 /* 成就列表 */
 .achievements-list {
   background-color: #FFFFFF;
@@ -263,15 +283,16 @@
   margin-left: 10rpx;
 }
 
-/* 退出登录按钮 */
-.logout-btn {
+/* 设置按钮 */
+.settings-btn {
   width: 100%;
   margin-top: 60rpx;
   background-color: #FFFFFF;
-  color: #F56C6C;
+  color: var(--primary-color);
   border-radius: 16rpx;
   font-size: 32rpx;
   padding: 20rpx 0;
+  box-shadow: var(--shadow-light);
 }
 
 /* 版本信息 */
@@ -280,25 +301,4 @@
   text-align: center;
   font-size: 24rpx;
   color: var(--text-color-secondary);
-}
-
-/* 设置入口图标 */
-.settings-entry {
-  position: fixed;
-  bottom: 150rpx;
-  right: 50rpx;
-  width: 100rpx;
-  height: 100rpx;
-  border-radius: 50%;
-  background-color: var(--primary-color);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: 0 4rpx 16rpx rgba(79, 124, 255, 0.5);
-  z-index: 10;
-}
-
-.settings-entry .iconfont {
-  font-size: 48rpx;
-  color: #FFFFFF;
 } 

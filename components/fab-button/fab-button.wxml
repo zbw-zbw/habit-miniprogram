@@ -1,0 +1,3 @@
+<view class="fab-button {{type}} {{position}}" bindtap="onClick">
+  <text class="iconfont icon-{{icon}}"></text>
+</view> 

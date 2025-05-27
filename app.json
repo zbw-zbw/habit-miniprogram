@@ -3,11 +3,14 @@
     "pages/index/index",
     "pages/habits/habits",
     "pages/habits/create/create",
+    "pages/habits/detail/detail",
     "pages/analytics/analytics",
     "pages/community/community",
     "pages/profile/profile",
     "pages/profile/settings/settings",
-    "pages/checkin/checkin"
+    "pages/checkin/checkin",
+    "pages/profile/achievements/achievements",
+    "pages/profile/achievements/detail/detail"
   ],
   "window": {
     "backgroundTextStyle": "light",
@@ -53,7 +56,9 @@
       }
     ]
   },
-  "usingComponents": {},
+  "usingComponents": {
+    "achievement-unlock": "/components/achievement-unlock/achievement-unlock"
+  },
   "style": "v2",
   "sitemapLocation": "sitemap.json",
   "lazyCodeLoading": "requiredComponents",

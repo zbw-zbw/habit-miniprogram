@@ -1,0 +1,54 @@
+<!--成就列表页面-->
+<view class="container">
+  <!-- 标签栏 -->
+  <view class="tabs">
+    <view class="tab {{activeTab === 'all' ? 'active' : ''}}" bindtap="switchTab" data-tab="all">全部</view>
+    <view class="tab {{activeTab === 'completed' ? 'active' : ''}}" bindtap="switchTab" data-tab="completed">已完成</view>
+    <view class="tab {{activeTab === 'in-progress' ? 'active' : ''}}" bindtap="switchTab" data-tab="in-progress">进行中</view>
+  </view>
+  
+  <!-- 加载状态 -->
+  <view class="loading-container" wx:if="{{loading}}">
+    <view class="loading-spinner"></view>
+    <view class="loading-text">加载中...</view>
+  </view>
+  
+  <!-- 空状态 -->
+  <view class="empty-container" wx:elif="{{filteredAchievements.length === 0}}">
+    <view class="empty-icon">🏆</view>
+    <view class="empty-text">暂无{{activeTab === 'completed' ? '已完成' : activeTab === 'in-progress' ? '进行中' : ''}}成就</view>
+    <view class="empty-desc">继续坚持习惯，解锁更多成就！</view>
+  </view>
+  
+  <!-- 成就列表 -->
+  <view class="achievements-list" wx:else>
+    <view 
+      class="achievement-item" 
+      wx:for="{{filteredAchievements}}" 
+      wx:key="id" 
+      bindtap="viewAchievementDetail"
+      data-id="{{item.id}}">
+      
+      <view class="achievement-icon {{item.isCompleted ? 'completed' : ''}}">
+        <text class="iconfont icon-{{item.icon}}"></text>
+      </view>
+      
+      <view class="achievement-content">
+        <view class="achievement-title">{{item.title}}</view>
+        <view class="achievement-description">{{item.description}}</view>
+        
+        <!-- 进度条 -->
+        <view class="achievement-progress">
+          <view class="progress-bar">
+            <view class="progress-inner" style="width: {{item.progress}}%;"></view>
+          </view>
+          <view class="progress-text">{{item.progress}}%</view>
+        </view>
+      </view>
+      
+      <view class="achievement-status {{item.isCompleted ? 'completed' : ''}}">
+        <text>{{item.isCompleted ? '已完成' : '进行中'}}</text>
+      </view>
+    </view>
+  </view>
+</view> 

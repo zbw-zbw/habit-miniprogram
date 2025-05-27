@@ -1,0 +1,40 @@
+.fab-button {
+  position: fixed;
+  width: 56px;
+  height: 56px;
+  border-radius: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  z-index: 100;
+}
+
+.fab-button.primary {
+  background-color: #4F7CFF;
+}
+
+.fab-button.secondary {
+  background-color: #67C23A;
+}
+
+.fab-button .iconfont {
+  font-size: 24px;
+  color: #FFFFFF;
+}
+
+.fab-button.bottom-right {
+  bottom: 32px;
+  right: 24px;
+}
+
+.fab-button.bottom-center {
+  bottom: 32px;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.fab-button.bottom-left {
+  bottom: 32px;
+  left: 24px;
+} 

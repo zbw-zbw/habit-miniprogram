@@ -1,6 +1,8 @@
 {
   "navigationBarTitleText": "习惯打卡",
   "usingComponents": {
-    "habit-card": "/components/habit-card/habit-card"
+    "habit-card": "/components/habit-card/habit-card",
+    "achievement-unlock": "/components/achievement-unlock/achievement-unlock",
+    "fab-button": "/components/fab-button/fab-button"
   }
 } 

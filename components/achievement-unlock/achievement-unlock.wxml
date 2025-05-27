@@ -1,0 +1,40 @@
+<view class="achievement-unlock-container {{visible ? 'visible' : ''}}" catchtap="onClose">
+  <view class="achievement-unlock-mask"></view>
+  
+  <view class="achievement-unlock-content" animation="{{animationData}}" catchtap="stopPropagation">
+    <!-- 成就图标 -->
+    <view class="achievement-icon">
+      <text class="iconfont icon-{{achievement.icon}}"></text>
+    </view>
+    
+    <!-- 成就信息 -->
+    <view class="achievement-info">
+      <view class="achievement-title">恭喜解锁新成就</view>
+      <view class="achievement-name">{{achievement.title}}</view>
+      <view class="achievement-description">{{achievement.description}}</view>
+    </view>
+    
+    <!-- 按钮区域 -->
+    <view class="achievement-actions">
+      <button class="action-button primary" catchtap="onViewDetail">查看详情</button>
+      <button class="action-button secondary" open-type="share" catchtap="onShare">分享</button>
+    </view>
+    
+    <!-- 关闭按钮 -->
+    <view class="close-button" catchtap="onClose">
+      <text class="iconfont icon-close"></text>
+    </view>
+    
+    <!-- 彩带效果 -->
+    <view class="confetti-container" wx:if="{{showConfetti}}">
+      <view class="confetti confetti-1"></view>
+      <view class="confetti confetti-2"></view>
+      <view class="confetti confetti-3"></view>
+      <view class="confetti confetti-4"></view>
+      <view class="confetti confetti-5"></view>
+      <view class="confetti confetti-6"></view>
+      <view class="confetti confetti-7"></view>
+      <view class="confetti confetti-8"></view>
+    </view>
+  </view>
+</view> 
