@@ -6,6 +6,8 @@
     "pages/habits/detail/detail",
     "pages/analytics/analytics",
     "pages/community/community",
+    "pages/community/post-detail/post-detail",
+    "pages/community/challenges/challenges",
     "pages/profile/profile",
     "pages/profile/settings/settings",
     "pages/checkin/checkin",
@@ -81,8 +83,10 @@
       "root": "packageCommunity",
       "pages": [
         "pages/challenge/challenge",
-        "pages/post/post",
-        "pages/group/group"
+        "pages/post-detail/post-detail",
+        "pages/notifications/notifications",
+        "pages/search/search",
+        "pages/user-profile/user-profile"
       ]
     }
   ]

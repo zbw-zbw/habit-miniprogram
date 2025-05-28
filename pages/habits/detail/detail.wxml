@@ -52,11 +52,18 @@
       <view class="tab-item {{activeTab === 'settings' ? 'active' : ''}}" bindtap="switchTab" data-tab="settings">设置</view>
     </view>
     
-    <!-- 打卡按钮 -->
-    <button class="checkin-btn" bindtap="goToCheckin">
-      <text class="iconfont icon-check"></text>
-      今日打卡
-    </button>
+    <!-- 操作按钮区 -->
+    <view class="action-buttons">
+      <button class="checkin-btn" bindtap="goToCheckin">
+        <text class="iconfont icon-check"></text>
+        今日打卡
+      </button>
+      
+      <button class="analysis-btn" bindtap="showAnalysisAssistant">
+        <text class="iconfont icon-analysis"></text>
+        习惯分析
+      </button>
+    </view>
     
     <!-- 概览标签内容 -->
     <block wx:if="{{activeTab === 'overview'}}">
@@ -97,6 +104,26 @@
         <view class="calendar-footer">
           <view class="footer-stat">本月完成率: <text class="highlight">{{completionRateFormatted}}%</text></view>
           <view class="footer-stat">最佳连续: <text class="highlight">{{stats.longestStreak || 0}}天</text></view>
+        </view>
+      </view>
+      
+      <!-- 科学洞察卡片 -->
+      <view class="card insight-card" bindtap="showAnalysisAssistant">
+        <view class="card-header">
+          <view class="card-title">
+            <text class="science-icon iconfont icon-science"></text>
+            习惯科学洞察
+          </view>
+          <view class="card-action">
+            <text class="iconfont icon-right"></text>
+          </view>
+        </view>
+        
+        <view class="insight-preview">
+          <view class="insight-text">
+            {{randomInsight}}
+          </view>
+          <view class="insight-note">点击查看更多科学分析 →</view>
         </view>
       </view>
       
@@ -172,15 +199,18 @@
       <view class="card">
         <view class="card-header">
           <view class="card-title">完成情况</view>
-          <view class="card-subtitle">过去7天的完成情况</view>
+          <view class="card-subtitle">过去6个月的习惯打卡热图</view>
         </view>
         
         <view class="chart-container">
-          <!-- 这里实际项目中应使用图表组件 -->
-          <view class="chart-placeholder">
-            <text class="iconfont icon-chart"></text>
-            <view>图表区域</view>
-          </view>
+          <!-- 使用日历热图组件 -->
+          <calendar-heatmap 
+            checkInData="{{heatmapData}}" 
+            startDate="{{heatmapStartDate}}" 
+            endDate="{{heatmapEndDate}}"
+            colorTheme="{{habit.color === '#67C23A' ? 'green' : (habit.color === '#6F5EF9' ? 'purple' : 'blue')}}"
+            bindcellTap="onHeatmapCellTap">
+          </calendar-heatmap>
         </view>
         
         <view class="stats-summary">
@@ -191,6 +221,38 @@
           <view class="summary-item">
             <view class="summary-label">最长</view>
             <view class="summary-value">45分钟</view>
+          </view>
+        </view>
+      </view>
+      
+      <!-- 打卡时间分布 -->
+      <view class="card">
+        <view class="card-header">
+          <view class="card-title">打卡时间分布</view>
+          <view class="card-subtitle">你最常在哪个时间段打卡</view>
+        </view>
+        
+        <view class="chart-container">
+          <!-- 这里实际项目中应使用图表组件 -->
+          <view class="chart-placeholder">
+            <text class="iconfont icon-chart"></text>
+            <view>时间分布图表</view>
+          </view>
+        </view>
+      </view>
+      
+      <!-- 习惯完成趋势 -->
+      <view class="card">
+        <view class="card-header">
+          <view class="card-title">习惯完成趋势</view>
+          <view class="card-subtitle">过去3个月的完成率变化</view>
+        </view>
+        
+        <view class="chart-container">
+          <!-- 这里实际项目中应使用图表组件 -->
+          <view class="chart-placeholder">
+            <text class="iconfont icon-chart"></text>
+            <view>趋势图表</view>
           </view>
         </view>
       </view>
@@ -226,4 +288,14 @@
       </view>
     </block>
   </view>
+  
+  <!-- 习惯分析助手 -->
+  <habit-analysis-assistant 
+    wx:if="{{showAnalysisAssistant}}" 
+    habit="{{habit}}" 
+    checkInRecords="{{checkins}}"
+    visible="{{showAnalysisAssistant}}"
+    bindclose="hideAnalysisAssistant"
+    bindapplySuggestion="handleApplySuggestion">
+  </habit-analysis-assistant>
 </view>

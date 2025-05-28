@@ -71,4 +71,60 @@
 
 .icon-checkin:before {
   content: "\e60d";
+}
+
+.icon-search:before {
+  content: "\e60e";
+}
+
+.icon-notification:before {
+  content: "\e60f";
+}
+
+.icon-plus:before {
+  content: "\e610";
+}
+
+.icon-heart:before {
+  content: "\e611";
+}
+
+.icon-heart-fill:before {
+  content: "\e612";
+}
+
+.icon-comment:before {
+  content: "\e613";
+}
+
+.icon-share:before {
+  content: "\e614";
+}
+
+.icon-more:before {
+  content: "\e615";
+}
+
+.icon-close:before {
+  content: "\e616";
+}
+
+.icon-image:before {
+  content: "\e617";
+}
+
+.icon-tag:before {
+  content: "\e618";
+}
+
+.icon-right:before {
+  content: "\e619";
+}
+
+.icon-empty:before {
+  content: "\e61a";
+}
+
+.icon-ranking:before {
+  content: "\e61b";
 } 

@@ -1,0 +1,118 @@
+<!--pages/community/challenges/challenges.wxml-->
+<view class="container">
+  <!-- 顶部搜索栏 -->
+  <view class="search-bar {{showSearch ? 'active' : ''}}">
+    <view class="search-input-container" wx:if="{{showSearch}}">
+      <input class="search-input" 
+             placeholder="搜索挑战" 
+             value="{{searchKeyword}}" 
+             bindinput="inputSearch"
+             bindconfirm="doSearch"
+             focus="{{showSearch}}"/>
+      <text class="iconfont icon-close" bindtap="hideSearchInput"></text>
+    </view>
+    <view class="search-icon" bindtap="showSearchInput" wx:else>
+      <text class="iconfont icon-search"></text>
+    </view>
+    <view class="create-btn" bindtap="createChallenge">
+      <text class="iconfont icon-add"></text>
+      <text>创建挑战</text>
+    </view>
+  </view>
+  
+  <!-- 标签栏 -->
+  <view class="tabs">
+    <view class="tab-item {{activeTab === 'all' ? 'active' : ''}}" bindtap="switchTab" data-tab="all">全部</view>
+    <view class="tab-item {{activeTab === 'joined' ? 'active' : ''}}" bindtap="switchTab" data-tab="joined">已参加</view>
+    <view class="tab-item {{activeTab === 'popular' ? 'active' : ''}}" bindtap="switchTab" data-tab="popular">热门</view>
+    <view class="tab-item {{activeTab === 'new' ? 'active' : ''}}" bindtap="switchTab" data-tab="new">最新</view>
+  </view>
+  
+  <!-- 挑战列表 -->
+  <view class="challenges-list">
+    <!-- 加载中 -->
+    <view class="loading" wx:if="{{loading && challenges.length === 0}}">
+      <view class="loading-spinner"></view>
+      <text class="loading-text">加载中...</text>
+    </view>
+    
+    <!-- 空状态 -->
+    <view class="empty-state" wx:elif="{{!loading && challenges.length === 0}}">
+      <text class="iconfont icon-empty"></text>
+      <view class="empty-text">暂无挑战</view>
+      <button class="empty-btn" bindtap="createChallenge">创建挑战</button>
+    </view>
+    
+    <!-- 挑战列表 -->
+    <view class="challenge-item" 
+          wx:for="{{challenges}}" 
+          wx:key="id"
+          bindtap="viewChallengeDetail"
+          data-id="{{item.id}}">
+      <image class="challenge-image" src="{{item.image}}" mode="aspectFill"></image>
+      
+      <!-- 参与状态标签 -->
+      <view class="status-tag {{item.isJoined ? 'active' : ''}}" wx:if="{{item.isJoined}}">
+        <text class="iconfont icon-check"></text>
+        <text>已参加</text>
+      </view>
+      
+      <view class="challenge-content">
+        <view class="challenge-title">{{item.title}}</view>
+        <view class="challenge-description">{{item.description}}</view>
+        
+        <!-- 标签 -->
+        <view class="tags-list">
+          <view class="tag" 
+                wx:for="{{item.tags}}" 
+                wx:key="*this"
+                wx:for-item="tag"
+                catchtap="viewTag"
+                data-tag="{{tag}}">
+            <text class="iconfont icon-tag"></text>
+            <text>{{tag}}</text>
+          </view>
+        </view>
+        
+        <!-- 挑战信息 -->
+        <view class="challenge-info">
+          <view class="info-item">
+            <text class="iconfont icon-user"></text>
+            <text>{{item.participantsCount}}人参与</text>
+          </view>
+          <view class="info-item">
+            <text class="iconfont icon-calendar"></text>
+            <text>{{item.totalDays}}天</text>
+          </view>
+        </view>
+        
+        <!-- 进度条 (仅显示已参加的挑战) -->
+        <view class="progress-bar-container" wx:if="{{item.isJoined}}">
+          <view class="progress-bar">
+            <view class="progress-fill" style="width: {{item.progress}}%"></view>
+          </view>
+          <view class="progress-text">{{item.progress}}%</view>
+        </view>
+        
+        <!-- 参加按钮 -->
+        <button class="join-btn {{item.isJoined ? 'quit' : ''}}" 
+                catchtap="toggleJoinChallenge" 
+                data-id="{{item.id}}"
+                data-index="{{index}}">
+          {{item.isJoined ? '退出挑战' : '参加挑战'}}
+        </button>
+      </view>
+    </view>
+    
+    <!-- 底部加载更多 -->
+    <view class="loading-more" wx:if="{{loading && challenges.length > 0}}">
+      <view class="loading-spinner small"></view>
+      <text class="loading-text">加载更多...</text>
+    </view>
+    
+    <!-- 没有更多数据 -->
+    <view class="no-more" wx:if="{{!loading && !hasMore && challenges.length > 0}}">
+      <text>没有更多数据了</text>
+    </view>
+  </view>
+</view> 

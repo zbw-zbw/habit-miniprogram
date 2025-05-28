@@ -1,0 +1,432 @@
+/* pages/community/post-detail/post-detail.wxss */
+
+/* 引入图标字体 */
+@import "/styles/iconfont.wxss";
+
+.container {
+  background-color: #F5F7FA;
+  min-height: 100vh;
+  padding-bottom: 120rpx;
+}
+
+/* 加载状态 */
+.loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 100rpx 0;
+}
+
+.loading-spinner {
+  width: 60rpx;
+  height: 60rpx;
+  border: 4rpx solid #DCDFE6;
+  border-top-color: #4F7CFF;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.loading-text {
+  margin-top: 20rpx;
+  font-size: 28rpx;
+  color: #909399;
+}
+
+/* 主内容区域 */
+.content {
+  padding: 30rpx;
+}
+
+/* 动态卡片 */
+.post-card {
+  background-color: #FFFFFF;
+  border-radius: 16rpx;
+  padding: 24rpx;
+  margin-bottom: 20rpx;
+  box-shadow: 0 2rpx 10rpx rgba(0, 0, 0, 0.05);
+}
+
+.post-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20rpx;
+}
+
+.post-user {
+  display: flex;
+  align-items: center;
+}
+
+.post-avatar {
+  width: 80rpx;
+  height: 80rpx;
+  border-radius: 50%;
+  margin-right: 16rpx;
+}
+
+.post-username {
+  font-size: 32rpx;
+  font-weight: 500;
+  color: #303133;
+  margin-bottom: 4rpx;
+}
+
+.post-meta {
+  font-size: 24rpx;
+  color: #909399;
+}
+
+.post-more .iconfont {
+  font-size: 40rpx;
+  color: #909399;
+}
+
+.post-content {
+  margin-bottom: 20rpx;
+}
+
+.post-text {
+  font-size: 30rpx;
+  color: #303133;
+  line-height: 1.6;
+  margin-bottom: 16rpx;
+  display: block;
+  white-space: pre-wrap;
+}
+
+.post-tags {
+  display: flex;
+  flex-wrap: wrap;
+  margin-bottom: 16rpx;
+}
+
+.post-tag {
+  display: flex;
+  align-items: center;
+  font-size: 24rpx;
+  color: #4F7CFF;
+  background-color: rgba(79, 124, 255, 0.1);
+  padding: 6rpx 16rpx;
+  border-radius: 30rpx;
+  margin-right: 16rpx;
+  margin-bottom: 10rpx;
+}
+
+.post-tag .iconfont {
+  font-size: 24rpx;
+  margin-right: 6rpx;
+}
+
+.post-images {
+  display: flex;
+  flex-wrap: wrap;
+  margin: 0 -5rpx;
+}
+
+.post-image {
+  width: calc(33.33% - 10rpx);
+  height: 200rpx;
+  margin: 5rpx;
+  border-radius: 8rpx;
+  object-fit: cover;
+}
+
+.post-image.single {
+  width: calc(100% - 10rpx);
+  height: 400rpx;
+}
+
+.post-actions {
+  display: flex;
+  border-top: 1rpx solid #E4E7ED;
+  padding-top: 16rpx;
+}
+
+.post-action {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24rpx;
+  color: #909399;
+  background-color: transparent;
+  padding: 0;
+  margin: 0;
+  line-height: normal;
+}
+
+.post-action.active {
+  color: #4F7CFF;
+}
+
+.post-action .iconfont {
+  font-size: 32rpx;
+  margin-right: 8rpx;
+}
+
+.share-btn {
+  font-size: 24rpx;
+  color: #909399;
+}
+
+.share-btn::after {
+  display: none;
+}
+
+/* 评论区 */
+.comments-section {
+  background-color: #FFFFFF;
+  border-radius: 16rpx;
+  padding: 24rpx;
+  box-shadow: 0 2rpx 10rpx rgba(0, 0, 0, 0.05);
+}
+
+.section-title {
+  font-size: 32rpx;
+  font-weight: 500;
+  color: #303133;
+  margin-bottom: 24rpx;
+}
+
+.empty-comments {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 40rpx 0;
+}
+
+.empty-comments .iconfont {
+  font-size: 80rpx;
+  color: #DCDFE6;
+  margin-bottom: 16rpx;
+}
+
+.empty-text {
+  font-size: 28rpx;
+  color: #909399;
+}
+
+.comment-list {
+  
+}
+
+.comment-item {
+  margin-bottom: 24rpx;
+}
+
+.comment-main {
+  display: flex;
+  margin-bottom: 16rpx;
+}
+
+.comment-avatar {
+  width: 70rpx;
+  height: 70rpx;
+  border-radius: 50%;
+  margin-right: 16rpx;
+  flex-shrink: 0;
+}
+
+.comment-content {
+  flex: 1;
+}
+
+.comment-header {
+  display: flex;
+  align-items: center;
+  margin-bottom: 8rpx;
+}
+
+.comment-username {
+  font-size: 28rpx;
+  font-weight: 500;
+  color: #303133;
+  margin-right: 12rpx;
+}
+
+.comment-time {
+  font-size: 24rpx;
+  color: #909399;
+}
+
+.comment-text {
+  font-size: 28rpx;
+  color: #606266;
+  line-height: 1.5;
+  margin-bottom: 12rpx;
+}
+
+.comment-actions {
+  display: flex;
+}
+
+.comment-action {
+  display: flex;
+  align-items: center;
+  font-size: 24rpx;
+  color: #909399;
+  margin-right: 24rpx;
+}
+
+.comment-action.active {
+  color: #4F7CFF;
+}
+
+.comment-action .iconfont {
+  font-size: 28rpx;
+  margin-right: 6rpx;
+}
+
+.reply-list {
+  margin-left: 86rpx;
+  padding-left: 16rpx;
+  border-left: 2rpx solid #EBEEF5;
+}
+
+.reply-item {
+  display: flex;
+  margin-bottom: 16rpx;
+}
+
+.reply-avatar {
+  width: 60rpx;
+  height: 60rpx;
+  border-radius: 50%;
+  margin-right: 16rpx;
+  flex-shrink: 0;
+}
+
+.reply-content {
+  flex: 1;
+}
+
+.reply-header {
+  display: flex;
+  align-items: center;
+  margin-bottom: 8rpx;
+  flex-wrap: wrap;
+}
+
+.reply-username {
+  font-size: 26rpx;
+  font-weight: 500;
+  color: #303133;
+  margin-right: 8rpx;
+}
+
+.reply-to {
+  font-size: 24rpx;
+  color: #909399;
+  margin-right: 8rpx;
+}
+
+.reply-to-username {
+  font-size: 26rpx;
+  color: #4F7CFF;
+  margin-right: 12rpx;
+}
+
+.reply-time {
+  font-size: 24rpx;
+  color: #909399;
+}
+
+.reply-text {
+  font-size: 26rpx;
+  color: #606266;
+  line-height: 1.5;
+}
+
+/* 评论输入区域 */
+.comment-input-area {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background-color: #FFFFFF;
+  padding: 16rpx 24rpx;
+  box-shadow: 0 -2rpx 10rpx rgba(0, 0, 0, 0.05);
+  z-index: 100;
+}
+
+.reply-tip {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 24rpx;
+  color: #606266;
+  padding: 8rpx 0;
+}
+
+.cancel-reply {
+  color: #4F7CFF;
+}
+
+.comment-input-container {
+  display: flex;
+  align-items: center;
+}
+
+.comment-input {
+  flex: 1;
+  height: 72rpx;
+  background-color: #F5F7FA;
+  border-radius: 36rpx;
+  padding: 0 24rpx;
+  font-size: 28rpx;
+  color: #303133;
+}
+
+.input-actions {
+  display: flex;
+  margin-left: 16rpx;
+}
+
+.input-action {
+  width: 72rpx;
+  height: 72rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-left: 8rpx;
+}
+
+.input-action .iconfont {
+  font-size: 40rpx;
+  color: #909399;
+}
+
+.input-action.send .iconfont {
+  color: #C0C4CC;
+}
+
+.input-action.send.active .iconfont {
+  color: #4F7CFF;
+}
+
+/* 表情面板 */
+.emoji-panel {
+  background-color: #FFFFFF;
+  padding: 16rpx;
+  border-top: 1rpx solid #EBEEF5;
+}
+
+.emoji-list {
+  display: flex;
+  flex-wrap: wrap;
+}
+
+.emoji-item {
+  width: 66rpx;
+  height: 66rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 40rpx;
+} 

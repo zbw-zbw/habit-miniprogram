@@ -1,0 +1,7 @@
+{
+  "navigationBarTitleText": "习惯挑战",
+  "navigationStyle": "default",
+  "enablePullDownRefresh": true,
+  "backgroundColor": "#F5F7FA",
+  "usingComponents": {}
+} 

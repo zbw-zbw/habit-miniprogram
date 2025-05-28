@@ -1,0 +1,64 @@
+<!-- 日历热图组件 -->
+<view class="calendar-heatmap">
+  <!-- 星期标签 -->
+  <view class="day-labels" wx:if="{{showDayLabels}}">
+    <view class="day-label-cell" wx:for="{{dayLabels}}" wx:key="index">
+      {{item}}
+    </view>
+  </view>
+  
+  <view class="heatmap-container">
+    <!-- 月份标签 -->
+    <view class="month-labels" wx:if="{{showMonthLabels}}">
+      <view class="month-label" 
+            wx:for="{{monthLabels}}" 
+            wx:key="index" 
+            style="left: {{item.position * 16}}px">
+        {{item.month}}
+      </view>
+    </view>
+    
+    <!-- 热图主体 -->
+    <view class="heatmap-grid">
+      <view class="heatmap-week" wx:for="{{weeks}}" wx:key="index" wx:for-item="week">
+        <view class="heatmap-day {{day.value > 0 ? 'has-value' : ''}}" 
+              wx:for="{{week}}" 
+              wx:key="date" 
+              wx:for-item="day"
+              style="background-color: {{colorLevels[day.colorLevel]}}"
+              data-date="{{day.date}}"
+              bindtap="onCellTap">
+          <view class="day-tooltip">
+            <text class="tooltip-date">{{day.year}}-{{day.month}}-{{day.day}}</text>
+            <text class="tooltip-value">{{day.value > 0 ? day.value + ' 次打卡' : '未打卡'}}</text>
+          </view>
+        </view>
+      </view>
+    </view>
+  </view>
+  
+  <!-- 图例 -->
+  <view class="heatmap-legend">
+    <text class="legend-text">打卡次数: </text>
+    <view class="legend-item">
+      <view class="legend-cell" style="background-color: {{colorLevels[0]}}"></view>
+      <text>0</text>
+    </view>
+    <view class="legend-item">
+      <view class="legend-cell" style="background-color: {{colorLevels[1]}}"></view>
+      <text>较少</text>
+    </view>
+    <view class="legend-item">
+      <view class="legend-cell" style="background-color: {{colorLevels[2]}}"></view>
+      <text>适中</text>
+    </view>
+    <view class="legend-item">
+      <view class="legend-cell" style="background-color: {{colorLevels[3]}}"></view>
+      <text>较多</text>
+    </view>
+    <view class="legend-item">
+      <view class="legend-cell" style="background-color: {{colorLevels[4]}}"></view>
+      <text>频繁</text>
+    </view>
+  </view>
+</view> 

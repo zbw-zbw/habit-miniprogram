@@ -35,6 +35,7 @@ interface IPageMethods {
   commentPost(e: WechatMiniprogram.TouchEvent): void;
   sharePost(e: WechatMiniprogram.TouchEvent): void;
   joinChallenge(e: WechatMiniprogram.TouchEvent): void;
+  viewAllChallenges(e: WechatMiniprogram.TouchEvent): void;
   showCreatePost(): void;
   hideCreatePost(): void;
   chooseImage(): void;
@@ -592,5 +593,15 @@ Page<IPageData, IPageMethods>({
       title: '习惯打卡社区',
       path: '/pages/community/community'
     };
-  }
+  },
+
+  /**
+   * 查看所有挑战
+   */
+  viewAllChallenges(e: WechatMiniprogram.TouchEvent) {
+    console.log('查看全部挑战');
+    wx.navigateTo({
+      url: '/pages/community/challenges/challenges'
+    });
+  },
 }); 

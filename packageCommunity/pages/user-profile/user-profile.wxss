@@ -1,0 +1,500 @@
+/* packageCommunity/pages/user-profile/user-profile.wxss */
+.container {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  background-color: #F5F7FA;
+}
+
+/* 加载状态 */
+.loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 32px 0;
+  flex: 1;
+}
+
+.loading-spinner {
+  width: 32px;
+  height: 32px;
+  border: 3px solid #E4E7ED;
+  border-top-color: #4F7CFF;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+.loading-spinner.small {
+  width: 20px;
+  height: 20px;
+  border-width: 2px;
+}
+
+.loading-text {
+  margin-top: 8px;
+  font-size: 14px;
+  color: #909399;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* 用户资料 */
+.user-profile {
+  display: flex;
+  flex-direction: column;
+}
+
+/* 用户头部信息 */
+.user-header {
+  display: flex;
+  padding: 20px 16px;
+  background-color: #FFFFFF;
+  border-bottom: 1px solid #EBEEF5;
+}
+
+.user-avatar {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  margin-right: 16px;
+}
+
+.user-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.user-name {
+  font-size: 18px;
+  font-weight: 500;
+  color: #303133;
+  margin-bottom: 8px;
+}
+
+.user-bio {
+  font-size: 14px;
+  color: #606266;
+  line-height: 1.4;
+}
+
+/* 用户统计 */
+.user-stats {
+  display: flex;
+  background-color: #FFFFFF;
+  padding: 16px 0;
+  border-bottom: 1px solid #EBEEF5;
+}
+
+.stat-item {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+}
+
+.stat-item:not(:last-child)::after {
+  content: '';
+  position: absolute;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  height: 24px;
+  width: 1px;
+  background-color: #EBEEF5;
+}
+
+.stat-count {
+  font-size: 18px;
+  font-weight: 500;
+  color: #303133;
+  margin-bottom: 4px;
+}
+
+.stat-label {
+  font-size: 14px;
+  color: #909399;
+}
+
+/* 用户操作 */
+.user-actions {
+  display: flex;
+  padding: 16px;
+  background-color: #FFFFFF;
+  border-bottom: 1px solid #EBEEF5;
+}
+
+.action-btn {
+  flex: 1;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #4F7CFF;
+  color: #FFFFFF;
+  border-radius: 18px;
+  font-size: 14px;
+  margin: 0 8px;
+}
+
+.action-btn.following {
+  background-color: #F5F7FA;
+  color: #606266;
+  border: 1px solid #DCDFE6;
+}
+
+.action-btn.message {
+  background-color: #FFFFFF;
+  color: #606266;
+  border: 1px solid #DCDFE6;
+}
+
+/* 标签页 */
+.tabs {
+  display: flex;
+  background-color: #FFFFFF;
+  border-bottom: 1px solid #EBEEF5;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.tab-item {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 44px;
+  font-size: 14px;
+  color: #606266;
+  position: relative;
+}
+
+.tab-item.active {
+  color: #4F7CFF;
+  font-weight: 500;
+}
+
+.tab-item.active::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 20px;
+  height: 3px;
+  background-color: #4F7CFF;
+  border-radius: 1.5px;
+}
+
+.tab-item .count {
+  font-size: 12px;
+  color: #909399;
+  margin-left: 4px;
+}
+
+/* 内容区域 */
+.content-section {
+  padding: 16px;
+}
+
+/* 动态列表 */
+.post-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.post-item {
+  background-color: #FFFFFF;
+  border-radius: 8px;
+  padding: 16px;
+}
+
+.post-content {
+  font-size: 14px;
+  color: #303133;
+  line-height: 1.5;
+  margin-bottom: 12px;
+}
+
+.post-images {
+  margin-bottom: 12px;
+}
+
+.post-image.single {
+  width: 100%;
+  height: 200px;
+  border-radius: 8px;
+}
+
+.image-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 4px;
+}
+
+.post-image.multiple {
+  width: 100%;
+  height: 100px;
+  border-radius: 4px;
+}
+
+.post-stats {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.post-time {
+  font-size: 12px;
+  color: #909399;
+}
+
+.post-actions {
+  display: flex;
+  gap: 16px;
+}
+
+.action-item {
+  font-size: 12px;
+  color: #909399;
+}
+
+.action-item .iconfont {
+  margin-right: 4px;
+}
+
+/* 习惯列表 */
+.habit-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.habit-item {
+  display: flex;
+  align-items: center;
+  background-color: #FFFFFF;
+  border-radius: 8px;
+  padding: 16px;
+}
+
+.habit-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 12px;
+}
+
+.habit-icon image {
+  width: 24px;
+  height: 24px;
+}
+
+.habit-info {
+  flex: 1;
+  margin-right: 12px;
+}
+
+.habit-name {
+  font-size: 14px;
+  font-weight: 500;
+  color: #303133;
+  margin-bottom: 4px;
+}
+
+.habit-frequency {
+  font-size: 12px;
+  color: #909399;
+  margin-bottom: 8px;
+}
+
+.habit-progress {
+  display: flex;
+  align-items: center;
+}
+
+.progress-bar {
+  flex: 1;
+  height: 4px;
+  background-color: #EBEEF5;
+  border-radius: 2px;
+  overflow: hidden;
+  margin-right: 8px;
+}
+
+.progress-inner {
+  height: 100%;
+  background-color: #67C23A;
+  border-radius: 2px;
+}
+
+.progress-text {
+  font-size: 12px;
+  color: #67C23A;
+  width: 36px;
+  text-align: right;
+}
+
+.habit-streak {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.streak-count {
+  font-size: 16px;
+  font-weight: 500;
+  color: #4F7CFF;
+}
+
+.streak-label {
+  font-size: 12px;
+  color: #909399;
+}
+
+/* 挑战列表 */
+.challenge-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.challenge-item {
+  position: relative;
+  border-radius: 8px;
+  overflow: hidden;
+  height: 120px;
+}
+
+.challenge-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.challenge-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(to bottom, rgba(0,0,0,0.1), rgba(0,0,0,0.6));
+}
+
+.challenge-info {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  padding: 16px;
+}
+
+.challenge-title {
+  font-size: 16px;
+  font-weight: 500;
+  color: #FFFFFF;
+  margin-bottom: 4px;
+}
+
+.challenge-participants {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.8);
+  margin-bottom: 8px;
+}
+
+.challenge-progress {
+  display: flex;
+  align-items: center;
+}
+
+.challenge-progress .progress-bar {
+  background-color: rgba(255, 255, 255, 0.3);
+}
+
+.challenge-progress .progress-inner {
+  background-color: #FFFFFF;
+}
+
+.challenge-progress .progress-text {
+  color: #FFFFFF;
+}
+
+/* 加载更多和没有更多 */
+.load-more, .no-more {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  margin-top: 8px;
+}
+
+.load-more {
+  gap: 8px;
+}
+
+.no-more {
+  color: #909399;
+  font-size: 14px;
+}
+
+/* 空状态 */
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 32px 0;
+}
+
+.empty-icon {
+  width: 80px;
+  height: 80px;
+  margin-bottom: 16px;
+}
+
+.empty-text {
+  font-size: 14px;
+  color: #909399;
+}
+
+/* 错误状态 */
+.error-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 64px 0;
+  flex: 1;
+}
+
+.error-icon {
+  width: 80px;
+  height: 80px;
+  margin-bottom: 16px;
+}
+
+.error-text {
+  font-size: 16px;
+  color: #606266;
+  margin-bottom: 24px;
+}
+
+.back-btn {
+  padding: 8px 24px;
+  background-color: #4F7CFF;
+  color: #FFFFFF;
+  border-radius: 20px;
+  font-size: 14px;
+} 

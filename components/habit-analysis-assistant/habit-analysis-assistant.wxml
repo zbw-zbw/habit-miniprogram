@@ -1,0 +1,177 @@
+<!-- 习惯分析助手组件 -->
+<view class="habit-analysis-container {{visible ? 'visible' : ''}}">
+  <view class="habit-analysis-mask" bindtap="closeAssistant"></view>
+  
+  <view class="habit-analysis-content">
+    <!-- 顶部栏 -->
+    <view class="analysis-header">
+      <view class="header-title">习惯分析助手</view>
+      <view class="header-close" bindtap="closeAssistant">×</view>
+    </view>
+    
+    <!-- 加载状态 -->
+    <view class="analysis-loading" wx:if="{{loading}}">
+      <view class="loading-spinner"></view>
+      <view class="loading-text">AI正在分析习惯数据...</view>
+    </view>
+    
+    <!-- 分析内容 -->
+    <scroll-view class="analysis-body" scroll-y wx:if="{{!loading && analysis}}">
+      <!-- 总体得分 -->
+      <view class="analysis-overview">
+        <view class="overall-score">
+          <view class="score-value">{{analysis.overallScore}}</view>
+          <view class="score-label">习惯健康度</view>
+        </view>
+        
+        <view class="score-chart">
+          <view class="chart-bar">
+            <view class="chart-fill" style="width: {{analysis.overallScore}}%;"></view>
+          </view>
+          <view class="chart-label">
+            <text wx:if="{{analysis.overallScore >= 90}}">习惯已稳定形成</text>
+            <text wx:elif="{{analysis.overallScore >= 70}}">习惯养成良好</text>
+            <text wx:elif="{{analysis.overallScore >= 50}}">习惯养成中</text>
+            <text wx:else>习惯刚起步</text>
+          </view>
+        </view>
+      </view>
+      
+      <!-- 分析类别选择 -->
+      <view class="analysis-categories">
+        <view 
+          wx:for="{{analysisCategories}}" 
+          wx:key="id"
+          class="category-item {{selectedCategory === item.id ? 'active' : ''}}"
+          bindtap="switchCategory"
+          data-category="{{item.id}}"
+        >
+          <view class="category-icon">
+            <text class="iconfont icon-{{item.icon}}"></text>
+          </view>
+          <view class="category-name">{{item.name}}</view>
+        </view>
+      </view>
+      
+      <!-- 分析详情 -->
+      <view class="analysis-details">
+        <view class="details-title">
+          <text wx:if="{{selectedCategory === 'consistency'}}">习惯一致性分析</text>
+          <text wx:elif="{{selectedCategory === 'timing'}}">时间模式分析</text>
+          <text wx:elif="{{selectedCategory === 'progress'}}">习惯进度分析</text>
+          <text wx:elif="{{selectedCategory === 'obstacles'}}">习惯障碍分析</text>
+          <text wx:elif="{{selectedCategory === 'science'}}">科学依据分析</text>
+        </view>
+        
+        <view class="details-content">
+          <view wx:if="{{selectedCategory === 'consistency'}}">
+            <view class="analysis-point" wx:for="{{analysis.consistencyAnalysis}}" wx:key="index">
+              <text class="point-marker">•</text>
+              <text class="point-text">{{item}}</text>
+            </view>
+          </view>
+          
+          <view wx:elif="{{selectedCategory === 'timing'}}">
+            <view class="analysis-point" wx:for="{{analysis.timingAnalysis}}" wx:key="index">
+              <text class="point-marker">•</text>
+              <text class="point-text">{{item}}</text>
+            </view>
+          </view>
+          
+          <view wx:elif="{{selectedCategory === 'progress'}}">
+            <view class="analysis-point" wx:for="{{analysis.progressAnalysis}}" wx:key="index">
+              <text class="point-marker">•</text>
+              <text class="point-text">{{item}}</text>
+            </view>
+          </view>
+          
+          <view wx:elif="{{selectedCategory === 'obstacles'}}">
+            <view class="analysis-point" wx:for="{{analysis.obstaclesAnalysis}}" wx:key="index">
+              <text class="point-marker">•</text>
+              <text class="point-text">{{item}}</text>
+            </view>
+          </view>
+          
+          <view wx:elif="{{selectedCategory === 'science'}}">
+            <view class="analysis-point" wx:for="{{analysis.scientificAnalysis}}" wx:key="index">
+              <text class="point-marker">•</text>
+              <text class="point-text">{{item}}</text>
+            </view>
+            
+            <!-- 科学参考文献 -->
+            <view class="references-section">
+              <view class="reference-title">参考文献</view>
+              <view class="reference-item" wx:for="{{scientificReferences}}" wx:key="id" bindtap="openReference" data-id="{{item.id}}">
+                <view class="reference-content">
+                  <view class="reference-name">{{item.title}}</view>
+                  <view class="reference-authors">{{item.authors}}</view>
+                  <view class="reference-publication">{{item.publication}}</view>
+                </view>
+                <view class="reference-link">
+                  <text class="iconfont icon-link"></text>
+                </view>
+              </view>
+            </view>
+          </view>
+        </view>
+      </view>
+      
+      <!-- 关键洞察 -->
+      <view class="analysis-insights">
+        <view class="section-header">
+          <view class="section-title">关键洞察</view>
+          <view class="section-action" bindtap="toggleFullAnalysis">
+            {{showFullAnalysis ? '精简视图' : '查看全部'}}
+          </view>
+        </view>
+        
+        <view class="insights-list">
+          <view 
+            class="insight-card" 
+            wx:for="{{insights}}" 
+            wx:key="id"
+            wx:if="{{showFullAnalysis || index < 2}}"
+          >
+            <view class="insight-header">
+              <view class="insight-icon">
+                <text class="iconfont icon-{{item.category === 'consistency' ? 'calendar' : item.category === 'timing' ? 'clock' : item.category === 'progress' ? 'chart' : item.category === 'science' ? 'science' : 'warning'}}"></text>
+              </view>
+              <view class="insight-title">{{item.title}}</view>
+            </view>
+            <view class="insight-description">{{item.description}}</view>
+          </view>
+        </view>
+      </view>
+      
+      <!-- 改进建议 -->
+      <view class="analysis-suggestions">
+        <view class="section-header">
+          <view class="section-title">改进建议</view>
+        </view>
+        
+        <view class="suggestions-list">
+          <view class="suggestion-card" wx:for="{{suggestions}}" wx:key="id">
+            <view class="suggestion-content">
+              <view class="suggestion-title">{{item.title}}</view>
+              <view class="suggestion-description">{{item.description}}</view>
+            </view>
+            <view class="suggestion-action" wx:if="{{item.actionable}}" bindtap="applySuggestion" data-id="{{item.id}}">
+              {{item.action}}
+            </view>
+          </view>
+        </view>
+      </view>
+      
+      <!-- 分享按钮 -->
+      <view class="analysis-share">
+        <button class="share-button" bindtap="shareAnalysis">分享我的习惯分析</button>
+      </view>
+      
+      <!-- 科学标签 -->
+      <view class="science-badge">
+        <text class="badge-icon iconfont icon-science"></text>
+        <text class="badge-text">基于科学习惯养成理论</text>
+      </view>
+    </scroll-view>
+  </view>
+</view> 

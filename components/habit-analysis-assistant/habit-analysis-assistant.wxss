@@ -1,0 +1,547 @@
+/* 习惯分析助手组件样式 */
+
+.habit-analysis-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 1000;
+  display: flex;
+  align-items: flex-end;
+  visibility: hidden;
+  opacity: 0;
+  transition: opacity 0.3s ease, visibility 0.3s;
+}
+
+.habit-analysis-container.visible {
+  visibility: visible;
+  opacity: 1;
+}
+
+.habit-analysis-mask {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: -1;
+}
+
+.habit-analysis-content {
+  background-color: #FFFFFF;
+  width: 100%;
+  height: 90%;
+  border-radius: 24rpx 24rpx 0 0;
+  box-shadow: 0 -4rpx 20rpx rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+  transform: translateY(100%);
+  animation: slideUp 0.3s ease forwards;
+}
+
+@keyframes slideUp {
+  to {
+    transform: translateY(0);
+  }
+}
+
+/* 顶部栏 */
+.analysis-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 24rpx 32rpx;
+  border-bottom: 1rpx solid #EEEEEE;
+  background-color: #4F7CFF;
+  color: #FFFFFF;
+}
+
+.header-title {
+  font-size: 36rpx;
+  font-weight: 600;
+}
+
+.header-close {
+  font-size: 44rpx;
+  width: 60rpx;
+  height: 60rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+}
+
+/* 加载状态 */
+.analysis-loading {
+  padding: 60rpx;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 400rpx;
+}
+
+.loading-spinner {
+  width: 80rpx;
+  height: 80rpx;
+  border: 6rpx solid rgba(79, 124, 255, 0.2);
+  border-top-color: #4F7CFF;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: 24rpx;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.loading-text {
+  font-size: 28rpx;
+  color: #909399;
+}
+
+/* 分析内容 */
+.analysis-body {
+  height: calc(100% - 88rpx);
+  overflow-y: auto;
+}
+
+/* 总体得分 */
+.analysis-overview {
+  padding: 32rpx;
+  background-color: #F5F7FA;
+  border-bottom: 1rpx solid #EEEEEE;
+  display: flex;
+  align-items: center;
+}
+
+.overall-score {
+  text-align: center;
+  margin-right: 32rpx;
+  min-width: 160rpx;
+}
+
+.score-value {
+  font-size: 60rpx;
+  font-weight: 600;
+  color: #4F7CFF;
+  line-height: 1;
+  margin-bottom: 8rpx;
+}
+
+.score-label {
+  font-size: 24rpx;
+  color: #909399;
+}
+
+.score-chart {
+  flex: 1;
+}
+
+.chart-bar {
+  height: 16rpx;
+  background-color: #DCDFE6;
+  border-radius: 8rpx;
+  overflow: hidden;
+  margin-bottom: 12rpx;
+}
+
+.chart-fill {
+  height: 100%;
+  background-color: #4F7CFF;
+  border-radius: 8rpx;
+  transition: width 1s ease;
+}
+
+.chart-label {
+  font-size: 24rpx;
+  color: #606266;
+}
+
+/* 分析类别选择 */
+.analysis-categories {
+  display: flex;
+  padding: 24rpx 16rpx;
+  border-bottom: 1rpx solid #EEEEEE;
+  background-color: #FFFFFF;
+  flex-wrap: wrap;
+}
+
+.category-item {
+  flex: 1;
+  min-width: 20%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 16rpx 0;
+  border-radius: 8rpx;
+  transition: all 0.3s;
+}
+
+.category-item.active {
+  background-color: rgba(79, 124, 255, 0.1);
+  color: #4F7CFF;
+}
+
+.category-icon {
+  font-size: 48rpx;
+  margin-bottom: 8rpx;
+}
+
+.category-name {
+  font-size: 24rpx;
+}
+
+/* 分析详情 */
+.analysis-details {
+  padding: 32rpx;
+  border-bottom: 1rpx solid #EEEEEE;
+}
+
+.details-title {
+  font-size: 32rpx;
+  font-weight: 600;
+  margin-bottom: 24rpx;
+  color: #303133;
+}
+
+.details-content {
+  color: #606266;
+}
+
+.analysis-point {
+  display: flex;
+  margin-bottom: 16rpx;
+  line-height: 1.5;
+}
+
+.point-marker {
+  margin-right: 12rpx;
+  font-size: 32rpx;
+  line-height: 1.3;
+  color: #4F7CFF;
+}
+
+.point-text {
+  flex: 1;
+  font-size: 28rpx;
+}
+
+/* 科学参考文献 */
+.references-section {
+  margin-top: 32rpx;
+  padding-top: 24rpx;
+  border-top: 1rpx dashed #DCDFE6;
+}
+
+.reference-title {
+  font-size: 30rpx;
+  font-weight: 600;
+  color: #303133;
+  margin-bottom: 16rpx;
+  display: flex;
+  align-items: center;
+}
+
+.reference-item {
+  background-color: #F5F7FA;
+  padding: 16rpx;
+  border-radius: 8rpx;
+  margin-bottom: 16rpx;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  transition: all 0.3s;
+}
+
+.reference-item:active {
+  background-color: #E9ECEF;
+}
+
+.reference-content {
+  flex: 1;
+}
+
+.reference-name {
+  font-size: 28rpx;
+  font-weight: 500;
+  color: #303133;
+  margin-bottom: 4rpx;
+}
+
+.reference-authors {
+  font-size: 24rpx;
+  color: #606266;
+  margin-bottom: 4rpx;
+}
+
+.reference-publication {
+  font-size: 24rpx;
+  color: #909399;
+}
+
+.reference-link {
+  margin-left: 16rpx;
+  color: #4F7CFF;
+  font-size: 32rpx;
+}
+
+/* 节标题共同样式 */
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24rpx;
+}
+
+.section-title {
+  font-size: 32rpx;
+  font-weight: 600;
+  color: #303133;
+}
+
+.section-action {
+  font-size: 24rpx;
+  color: #4F7CFF;
+}
+
+/* 关键洞察 */
+.analysis-insights {
+  padding: 32rpx;
+  border-bottom: 1rpx solid #EEEEEE;
+}
+
+.insights-list {
+  display: grid;
+  grid-template-columns: repeat(1, 1fr);
+  gap: 24rpx;
+}
+
+.insight-card {
+  background-color: #F5F7FA;
+  padding: 24rpx;
+  border-radius: 12rpx;
+  border-left: 6rpx solid #4F7CFF;
+}
+
+.insight-header {
+  display: flex;
+  align-items: center;
+  margin-bottom: 12rpx;
+}
+
+.insight-icon {
+  margin-right: 12rpx;
+  color: #4F7CFF;
+  font-size: 32rpx;
+}
+
+.insight-title {
+  font-size: 28rpx;
+  font-weight: 500;
+  color: #303133;
+}
+
+.insight-description {
+  font-size: 26rpx;
+  color: #606266;
+  line-height: 1.5;
+}
+
+/* 改进建议 */
+.analysis-suggestions {
+  padding: 32rpx;
+  border-bottom: 1rpx solid #EEEEEE;
+}
+
+.suggestions-list {
+  display: flex;
+  flex-direction: column;
+  gap: 24rpx;
+}
+
+.suggestion-card {
+  background-color: #FFFFFF;
+  padding: 24rpx;
+  border-radius: 12rpx;
+  box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.05);
+  border: 1rpx solid #EEEEEE;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.suggestion-content {
+  flex: 1;
+}
+
+.suggestion-title {
+  font-size: 28rpx;
+  font-weight: 500;
+  color: #303133;
+  margin-bottom: 8rpx;
+}
+
+.suggestion-description {
+  font-size: 26rpx;
+  color: #606266;
+  line-height: 1.5;
+}
+
+.suggestion-action {
+  padding: 12rpx 24rpx;
+  background-color: #4F7CFF;
+  color: #FFFFFF;
+  border-radius: 8rpx;
+  font-size: 24rpx;
+  white-space: nowrap;
+  margin-left: 16rpx;
+}
+
+/* 分享按钮 */
+.analysis-share {
+  padding: 32rpx;
+}
+
+.share-button {
+  width: 100%;
+  height: 88rpx;
+  line-height: 88rpx;
+  background-color: #4F7CFF;
+  color: #FFFFFF;
+  font-size: 30rpx;
+  border-radius: 8rpx;
+}
+
+/* 科学标签 */
+.science-badge {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24rpx 0 48rpx;
+  color: #909399;
+  font-size: 24rpx;
+}
+
+.badge-icon {
+  margin-right: 8rpx;
+}
+
+/* 响应式调整 */
+@media screen and (min-width: 768px) {
+  .insights-list {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* 暗色主题适配 */
+@media (prefers-color-scheme: dark) {
+  .habit-analysis-content {
+    background-color: #1c1c1e;
+    color: #f5f5f7;
+  }
+  
+  .analysis-header {
+    background-color: #4F7CFF;
+    border-bottom-color: #38383a;
+  }
+  
+  .analysis-overview {
+    background-color: #2c2c2e;
+    border-bottom-color: #38383a;
+  }
+  
+  .score-label {
+    color: #98989f;
+  }
+  
+  .chart-bar {
+    background-color: #38383a;
+  }
+  
+  .chart-label {
+    color: #98989f;
+  }
+  
+  .analysis-categories {
+    border-bottom-color: #38383a;
+    background-color: #1c1c1e;
+  }
+  
+  .category-item.active {
+    background-color: rgba(79, 124, 255, 0.2);
+  }
+  
+  .analysis-details {
+    border-bottom-color: #38383a;
+  }
+  
+  .details-title {
+    color: #f5f5f7;
+  }
+  
+  .details-content {
+    color: #98989f;
+  }
+  
+  .section-title {
+    color: #f5f5f7;
+  }
+  
+  .insight-card {
+    background-color: #2c2c2e;
+  }
+  
+  .insight-title {
+    color: #f5f5f7;
+  }
+  
+  .insight-description {
+    color: #98989f;
+  }
+  
+  .suggestion-card {
+    background-color: #2c2c2e;
+    border-color: #38383a;
+    box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.2);
+  }
+  
+  .suggestion-title {
+    color: #f5f5f7;
+  }
+  
+  .suggestion-description {
+    color: #98989f;
+  }
+  
+  .science-badge {
+    color: #98989f;
+  }
+  
+  .references-section {
+    border-top-color: #38383a;
+  }
+  
+  .reference-title {
+    color: #f5f5f7;
+  }
+  
+  .reference-item {
+    background-color: #2c2c2e;
+  }
+  
+  .reference-name {
+    color: #f5f5f7;
+  }
+  
+  .reference-authors {
+    color: #98989f;
+  }
+  
+  .reference-publication {
+    color: #98989f;
+  }
+} 

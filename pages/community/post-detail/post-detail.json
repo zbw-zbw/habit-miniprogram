@@ -1,0 +1,7 @@
+{
+  "navigationBarTitleText": "动态详情",
+  "navigationStyle": "default",
+  "enablePullDownRefresh": true,
+  "backgroundColor": "#F5F7FA",
+  "usingComponents": {}
+} 

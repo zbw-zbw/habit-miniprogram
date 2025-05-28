@@ -1,0 +1,207 @@
+<!--packageCommunity/pages/post-detail/post-detail.wxml-->
+<view class="container">
+  <!-- 加载状态 -->
+  <view class="loading" wx:if="{{loading}}">
+    <view class="loading-spinner"></view>
+    <text class="loading-text">加载中...</text>
+  </view>
+  
+  <!-- 动态详情 -->
+  <view class="post-detail" wx:if="{{!loading && post}}">
+    <!-- 用户信息 -->
+    <view class="post-header" bindtap="viewUserProfile">
+      <image class="user-avatar" src="{{post.userAvatar}}" mode="aspectFill"></image>
+      <view class="user-info">
+        <text class="user-name">{{post.userName}}</text>
+        <view class="post-meta">
+          <text class="post-time">{{post.createdAt}}</text>
+          <text class="post-location" wx:if="{{post.location}}">
+            <text class="iconfont icon-location"></text> {{post.location}}
+          </text>
+        </view>
+      </view>
+    </view>
+    
+    <!-- 动态内容 -->
+    <view class="post-content">
+      <text>{{post.content}}</text>
+    </view>
+    
+    <!-- 标签 -->
+    <view class="post-tags" wx:if="{{post.tags && post.tags.length > 0}}">
+      <view class="tag-item" 
+            wx:for="{{post.tags}}" 
+            wx:key="*this"
+            bindtap="viewTag"
+            data-tag="{{item}}">
+        #{{item}}
+      </view>
+    </view>
+    
+    <!-- 图片 -->
+    <view class="post-images" wx:if="{{post.images && post.images.length > 0}}">
+      <block wx:if="{{post.images.length === 1}}">
+        <image class="post-image single" 
+               src="{{post.images[0]}}" 
+               mode="widthFix"
+               bindtap="previewImage"
+               data-index="0"></image>
+      </block>
+      <block wx:elif="{{post.images.length > 1}}">
+        <view class="image-grid">
+          <image class="post-image multiple" 
+                 wx:for="{{post.images}}" 
+                 wx:key="*this"
+                 src="{{item}}" 
+                 mode="aspectFill"
+                 bindtap="previewImage"
+                 data-index="{{index}}"></image>
+        </view>
+      </block>
+    </view>
+    
+    <!-- 互动数据 -->
+    <view class="post-stats">
+      <view class="stat-item">
+        <text class="iconfont icon-like"></text>
+        <text class="stat-count">{{post.likes}}</text>
+      </view>
+      <view class="stat-item">
+        <text class="iconfont icon-comment"></text>
+        <text class="stat-count">{{post.comments}}</text>
+      </view>
+      <view class="stat-item">
+        <text class="iconfont icon-favorite"></text>
+        <text class="stat-count">{{post.favorites}}</text>
+      </view>
+    </view>
+    
+    <!-- 互动按钮 -->
+    <view class="post-actions">
+      <view class="action-btn {{isLiked ? 'active' : ''}}" bindtap="toggleLike">
+        <text class="iconfont {{isLiked ? 'icon-like-filled' : 'icon-like'}}"></text>
+        <text>{{isLiked ? '已赞' : '点赞'}}</text>
+      </view>
+      <view class="action-btn" bindtap="focusComment">
+        <text class="iconfont icon-comment"></text>
+        <text>评论</text>
+      </view>
+      <view class="action-btn {{isFavorited ? 'active' : ''}}" bindtap="toggleFavorite">
+        <text class="iconfont {{isFavorited ? 'icon-favorite-filled' : 'icon-favorite'}}"></text>
+        <text>{{isFavorited ? '已收藏' : '收藏'}}</text>
+      </view>
+      <view class="action-btn" bindtap="sharePost">
+        <text class="iconfont icon-share"></text>
+        <text>分享</text>
+      </view>
+    </view>
+    
+    <!-- 分隔线 -->
+    <view class="divider"></view>
+    
+    <!-- 评论区 -->
+    <view class="comments-section">
+      <view class="section-header">
+        <text class="section-title">评论 {{post.comments}}</text>
+        <text class="section-subtitle">参与讨论，分享你的想法</text>
+      </view>
+      
+      <!-- 评论列表 -->
+      <view class="comment-list" wx:if="{{comments.length > 0}}">
+        <view class="comment-item" wx:for="{{comments}}" wx:key="id">
+          <!-- 评论用户信息 -->
+          <view class="comment-header">
+            <image class="comment-avatar" 
+                   src="{{item.userAvatar}}" 
+                   mode="aspectFill"
+                   catchtap="viewCommentUserProfile"
+                   data-user-id="{{item.userId}}"></image>
+            <view class="comment-info">
+              <text class="comment-username">{{item.userName}}</text>
+              <text class="comment-time">{{item.createdAt}}</text>
+            </view>
+          </view>
+          
+          <!-- 评论内容 -->
+          <view class="comment-content">
+            <text>{{item.content}}</text>
+          </view>
+          
+          <!-- 评论操作 -->
+          <view class="comment-actions">
+            <view class="comment-action {{item.isLiked ? 'active' : ''}}" 
+                  catchtap="toggleCommentLike" 
+                  data-id="{{item.id}}"
+                  data-index="{{index}}">
+              <text class="iconfont {{item.isLiked ? 'icon-like-filled' : 'icon-like'}}"></text>
+              <text>{{item.likes > 0 ? item.likes : '点赞'}}</text>
+            </view>
+            <view class="comment-action" 
+                  catchtap="replyComment"
+                  data-id="{{item.id}}"
+                  data-user-name="{{item.userName}}">
+              <text class="iconfont icon-reply"></text>
+              <text>回复</text>
+            </view>
+          </view>
+          
+          <!-- 回复列表 -->
+          <view class="reply-list" wx:if="{{item.replies && item.replies.length > 0}}">
+            <view class="reply-item" wx:for="{{item.replies}}" wx:for-item="reply" wx:key="id">
+              <view class="reply-header">
+                <image class="reply-avatar" 
+                       src="{{reply.userAvatar}}" 
+                       mode="aspectFill"
+                       catchtap="viewCommentUserProfile"
+                       data-user-id="{{reply.userId}}"></image>
+                <view class="reply-info">
+                  <text class="reply-username">{{reply.userName}}</text>
+                  <text class="reply-time">{{reply.createdAt}}</text>
+                </view>
+              </view>
+              <view class="reply-content">
+                <text>{{reply.content}}</text>
+              </view>
+            </view>
+          </view>
+        </view>
+      </view>
+      
+      <!-- 评论加载中 -->
+      <view class="comments-loading" wx:if="{{commentsLoading}}">
+        <view class="loading-spinner small"></view>
+        <text class="loading-text">加载更多评论...</text>
+      </view>
+      
+      <!-- 没有更多评论 -->
+      <view class="no-more-comments" wx:if="{{!commentsLoading && !hasMore && comments.length > 0}}">
+        <text>没有更多评论了</text>
+      </view>
+      
+      <!-- 暂无评论 -->
+      <view class="no-comments" wx:if="{{!commentsLoading && comments.length === 0}}">
+        <image class="no-comments-icon" src="/images/icons/no-comments.png" mode="aspectFit"></image>
+        <text class="no-comments-text">暂无评论，快来发表第一条评论吧</text>
+      </view>
+    </view>
+  </view>
+  
+  <!-- 评论输入框 -->
+  <view class="comment-input-container">
+    <input class="comment-input" 
+           id="commentInput"
+           placeholder="发表评论..." 
+           value="{{newComment}}"
+           bindinput="inputComment"
+           confirm-type="send"
+           bindconfirm="submitComment" />
+    <view class="send-btn {{newComment ? 'active' : ''}}" bindtap="submitComment">发送</view>
+  </view>
+  
+  <!-- 动态不存在 -->
+  <view class="error-state" wx:if="{{!loading && !post}}">
+    <image class="error-icon" src="/images/icons/error.png" mode="aspectFit"></image>
+    <text class="error-text">动态不存在或已被删除</text>
+    <button class="back-btn" bindtap="navigateBack">返回</button>
+  </view>
+</view> 

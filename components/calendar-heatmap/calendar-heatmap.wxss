@@ -1,0 +1,152 @@
+/* 日历热图组件样式 */
+.calendar-heatmap {
+  width: 100%;
+  overflow-x: auto;
+  padding: 16rpx 0;
+}
+
+/* 星期标签 */
+.day-labels {
+  display: flex;
+  flex-direction: column;
+  position: absolute;
+  left: 0;
+  top: 30px;
+  width: 30px;
+  z-index: 1;
+}
+
+.day-label-cell {
+  height: 16px;
+  font-size: 10px;
+  color: #909399;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 2px;
+}
+
+/* 热图容器 */
+.heatmap-container {
+  position: relative;
+  margin-left: 30px;
+  padding-top: 20px;
+}
+
+/* 月份标签 */
+.month-labels {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 20px;
+}
+
+.month-label {
+  position: absolute;
+  font-size: 10px;
+  color: #909399;
+  top: 0;
+}
+
+/* 热图网格 */
+.heatmap-grid {
+  display: flex;
+  flex-direction: row;
+}
+
+.heatmap-week {
+  display: flex;
+  flex-direction: column;
+  margin-right: 2px;
+}
+
+.heatmap-day {
+  width: 14px;
+  height: 14px;
+  border-radius: 2px;
+  margin-bottom: 2px;
+  position: relative;
+}
+
+.heatmap-day.has-value {
+  cursor: pointer;
+}
+
+/* 日期提示框 */
+.day-tooltip {
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: rgba(0, 0, 0, 0.8);
+  color: white;
+  padding: 6px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  white-space: nowrap;
+  z-index: 10;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.2s ease, visibility 0.2s;
+  pointer-events: none;
+}
+
+.day-tooltip::after {
+  content: '';
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border-width: 4px;
+  border-style: solid;
+  border-color: rgba(0, 0, 0, 0.8) transparent transparent transparent;
+}
+
+.tooltip-date {
+  display: block;
+  font-weight: bold;
+  margin-bottom: 2px;
+}
+
+.tooltip-value {
+  display: block;
+}
+
+.heatmap-day:hover .day-tooltip {
+  opacity: 1;
+  visibility: visible;
+}
+
+/* 图例 */
+.heatmap-legend {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  margin-top: 16px;
+  padding-right: 16px;
+}
+
+.legend-text {
+  font-size: 12px;
+  color: #606266;
+  margin-right: 8px;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  margin-left: 8px;
+}
+
+.legend-cell {
+  width: 12px;
+  height: 12px;
+  border-radius: 2px;
+  margin-right: 4px;
+}
+
+.legend-item text {
+  font-size: 10px;
+  color: #909399;
+} 
