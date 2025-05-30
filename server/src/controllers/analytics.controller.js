@@ -1,0 +1,380 @@
+/**
+ * 数据分析控制器
+ */
+const Habit = require('../models/habit.model');
+const Checkin = require('../models/checkin.model');
+const User = require('../models/user.model');
+
+/**
+ * 获取仪表盘数据
+ * @route GET /api/analytics/dashboard
+ */
+exports.getDashboard = async (req, res) => {
+  try {
+    const userId = req.user._id;
+    
+    // 获取今天的日期
+    const today = new Date();
+    const todayFormatted = today.toISOString().split('T')[0];
+    
+    // 获取本周开始日期（周一）
+    const startOfWeek = new Date(today);
+    startOfWeek.setDate(today.getDate() - today.getDay() + (today.getDay() === 0 ? -6 : 1));
+    const startOfWeekFormatted = startOfWeek.toISOString().split('T')[0];
+    
+    // 获取本月开始日期
+    const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+    const startOfMonthFormatted = startOfMonth.toISOString().split('T')[0];
+    
+    // 查询习惯总数和已归档习惯数
+    const totalHabits = await Habit.countDocuments({ user: userId });
+    const archivedHabits = await Habit.countDocuments({ user: userId, isArchived: true });
+    
+    // 查询今日、本周和本月的打卡完成率
+    const todayCheckins = await Checkin.find({
+      user: userId,
+      date: todayFormatted
+    });
+    
+    const weekCheckins = await Checkin.find({
+      user: userId,
+      date: { $gte: startOfWeekFormatted, $lte: todayFormatted }
+    });
+    
+    const monthCheckins = await Checkin.find({
+      user: userId,
+      date: { $gte: startOfMonthFormatted, $lte: todayFormatted }
+    });
+    
+    const todayCompletionRate = todayCheckins.length > 0
+      ? (todayCheckins.filter(c => c.isCompleted).length / todayCheckins.length) * 100
+      : 0;
+    
+    const weekCompletionRate = weekCheckins.length > 0
+      ? (weekCheckins.filter(c => c.isCompleted).length / weekCheckins.length) * 100
+      : 0;
+    
+    const monthCompletionRate = monthCheckins.length > 0
+      ? (monthCheckins.filter(c => c.isCompleted).length / monthCheckins.length) * 100
+      : 0;
+    
+    // 查询最佳连续记录
+    const bestStreak = await Habit.aggregate([
+      { $match: { user: userId } },
+      { $sort: { 'stats.longestStreak': -1 } },
+      { $limit: 1 },
+      { $project: { name: 1, category: 1, longestStreak: '$stats.longestStreak' } }
+    ]);
+    
+    // 构建仪表盘数据
+    const dashboard = {
+      habitsOverview: {
+        total: totalHabits,
+        active: totalHabits - archivedHabits,
+        archived: archivedHabits
+      },
+      completionRates: {
+        today: todayCompletionRate.toFixed(2),
+        week: weekCompletionRate.toFixed(2),
+        month: monthCompletionRate.toFixed(2)
+      },
+      bestStreak: bestStreak.length > 0 ? bestStreak[0] : null,
+      user: {
+        totalCheckins: req.user.completedCheckins,
+        currentStreak: req.user.currentStreak,
+        longestStreak: req.user.longestStreak
+      }
+    };
+    
+    res.status(200).json({
+      success: true,
+      data: dashboard
+    });
+  } catch (error) {
+    console.error('获取仪表盘数据错误:', error);
+    res.status(500).json({
+      success: false,
+      message: '服务器错误，获取仪表盘数据失败'
+    });
+  }
+};
+
+/**
+ * 获取习惯完成率数据
+ * @route GET /api/analytics/habits/completion
+ */
+exports.getHabitsCompletion = async (req, res) => {
+  try {
+    const { startDate, endDate, habitId } = req.query;
+    const userId = req.user._id;
+    
+    // 构建查询条件
+    const matchStage = { user: userId };
+    
+    if (habitId) {
+      matchStage._id = habitId;
+    }
+    
+    // 获取习惯列表
+    const habits = await Habit.find(matchStage);
+    
+    // 查询条件 - 打卡记录
+    const checkinMatchStage = { user: userId };
+    
+    if (startDate && endDate) {
+      checkinMatchStage.date = { $gte: startDate, $lte: endDate };
+    } else if (startDate) {
+      checkinMatchStage.date = { $gte: startDate };
+    } else if (endDate) {
+      checkinMatchStage.date = { $lte: endDate };
+    }
+    
+    // 计算每个习惯的完成率
+    const result = await Promise.all(habits.map(async (habit) => {
+      const habitCheckinMatch = { ...checkinMatchStage, habit: habit._id };
+      
+      const totalCheckins = await Checkin.countDocuments(habitCheckinMatch);
+      const completedCheckins = await Checkin.countDocuments({
+        ...habitCheckinMatch,
+        isCompleted: true
+      });
+      
+      const completionRate = totalCheckins > 0
+        ? (completedCheckins / totalCheckins) * 100
+        : 0;
+      
+      return {
+        habitId: habit._id,
+        name: habit.name,
+        category: habit.category,
+        color: habit.color,
+        icon: habit.icon,
+        totalCheckins,
+        completedCheckins,
+        completionRate: completionRate.toFixed(2)
+      };
+    }));
+    
+    res.status(200).json({
+      success: true,
+      data: result
+    });
+  } catch (error) {
+    console.error('获取习惯完成率数据错误:', error);
+    res.status(500).json({
+      success: false,
+      message: '服务器错误，获取习惯完成率数据失败'
+    });
+  }
+};
+
+/**
+ * 获取习惯连续记录数据
+ * @route GET /api/analytics/habits/streak
+ */
+exports.getHabitsStreak = async (req, res) => {
+  try {
+    const { habitId } = req.query;
+    const userId = req.user._id;
+    
+    // 构建查询条件
+    const matchStage = { user: userId };
+    
+    if (habitId) {
+      matchStage._id = habitId;
+    }
+    
+    // 查询习惯的连续记录数据
+    const habits = await Habit.find(matchStage)
+      .select('name category color icon stats.currentStreak stats.longestStreak');
+    
+    const result = habits.map(habit => ({
+      habitId: habit._id,
+      name: habit.name,
+      category: habit.category,
+      color: habit.color,
+      icon: habit.icon,
+      currentStreak: habit.stats.currentStreak,
+      longestStreak: habit.stats.longestStreak
+    }));
+    
+    res.status(200).json({
+      success: true,
+      data: result
+    });
+  } catch (error) {
+    console.error('获取习惯连续记录数据错误:', error);
+    res.status(500).json({
+      success: false,
+      message: '服务器错误，获取习惯连续记录数据失败'
+    });
+  }
+};
+
+/**
+ * 获取习惯趋势数据
+ * @route GET /api/analytics/habits/trends
+ */
+exports.getHabitsTrends = async (req, res) => {
+  try {
+    const { period = 'week', habitId } = req.query;
+    const userId = req.user._id;
+    
+    // 获取日期范围
+    const today = new Date();
+    let startDate, endDate, format, groupBy;
+    
+    if (period === 'week') {
+      startDate = new Date(today);
+      startDate.setDate(today.getDate() - 7);
+      endDate = today;
+      format = '%Y-%m-%d';
+      groupBy = '$date';
+    } else if (period === 'month') {
+      startDate = new Date(today);
+      startDate.setMonth(today.getMonth() - 1);
+      endDate = today;
+      format = '%Y-%m-%d';
+      groupBy = '$date';
+    } else if (period === 'year') {
+      startDate = new Date(today);
+      startDate.setFullYear(today.getFullYear() - 1);
+      endDate = today;
+      format = '%Y-%m';
+      groupBy = { $substr: ['$date', 0, 7] };
+    }
+    
+    const formattedStartDate = startDate.toISOString().split('T')[0];
+    const formattedEndDate = endDate.toISOString().split('T')[0];
+    
+    // 构建查询条件
+    const matchStage = { 
+      user: userId,
+      date: { $gte: formattedStartDate, $lte: formattedEndDate }
+    };
+    
+    if (habitId) {
+      matchStage.habit = habitId;
+    }
+    
+    // 查询打卡记录
+    const checkins = await Checkin.find(matchStage)
+      .populate('habit', 'name category color icon');
+    
+    // 按习惯和日期分组
+    const trendsMap = {};
+    
+    checkins.forEach(checkin => {
+      const habitId = checkin.habit._id.toString();
+      const habitName = checkin.habit.name;
+      const date = period === 'year' ? checkin.date.substring(0, 7) : checkin.date;
+      
+      if (!trendsMap[habitId]) {
+        trendsMap[habitId] = {
+          habitId,
+          name: habitName,
+          category: checkin.habit.category,
+          color: checkin.habit.color,
+          icon: checkin.habit.icon,
+          data: {}
+        };
+      }
+      
+      if (!trendsMap[habitId].data[date]) {
+        trendsMap[habitId].data[date] = {
+          total: 0,
+          completed: 0
+        };
+      }
+      
+      trendsMap[habitId].data[date].total += 1;
+      if (checkin.isCompleted) {
+        trendsMap[habitId].data[date].completed += 1;
+      }
+    });
+    
+    // 转换数据格式
+    const result = Object.values(trendsMap).map(habit => {
+      const dataPoints = Object.entries(habit.data).map(([date, stats]) => ({
+        date,
+        completionRate: stats.total > 0 ? (stats.completed / stats.total) * 100 : 0
+      }));
+      
+      return {
+        ...habit,
+        data: dataPoints.sort((a, b) => a.date.localeCompare(b.date))
+      };
+    });
+    
+    res.status(200).json({
+      success: true,
+      period,
+      startDate: formattedStartDate,
+      endDate: formattedEndDate,
+      data: result
+    });
+  } catch (error) {
+    console.error('获取习惯趋势数据错误:', error);
+    res.status(500).json({
+      success: false,
+      message: '服务器错误，获取习惯趋势数据失败'
+    });
+  }
+};
+
+// 其他分析功能方法预留，可根据需要实现
+exports.getHabitsComparison = async (req, res) => {
+  // 实现习惯对比分析功能
+  res.status(200).json({
+    success: true,
+    message: '习惯对比分析功能待实现'
+  });
+};
+
+exports.getTimeDistribution = async (req, res) => {
+  // 实现时间分布分析功能
+  res.status(200).json({
+    success: true,
+    message: '时间分布分析功能待实现'
+  });
+};
+
+exports.getPatterns = async (req, res) => {
+  // 实现习惯模式分析功能
+  res.status(200).json({
+    success: true,
+    message: '习惯模式分析功能待实现'
+  });
+};
+
+exports.getInsights = async (req, res) => {
+  // 实现习惯洞察功能
+  res.status(200).json({
+    success: true,
+    message: '习惯洞察功能待实现'
+  });
+};
+
+exports.getWeeklyReport = async (req, res) => {
+  // 实现周报告功能
+  res.status(200).json({
+    success: true,
+    message: '周报告功能待实现'
+  });
+};
+
+exports.getMonthlyReport = async (req, res) => {
+  // 实现月报告功能
+  res.status(200).json({
+    success: true,
+    message: '月报告功能待实现'
+  });
+};
+
+exports.exportData = async (req, res) => {
+  // 实现数据导出功能
+  res.status(200).json({
+    success: true,
+    message: '数据导出功能待实现'
+  });
+}; 

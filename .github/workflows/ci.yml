@@ -1,0 +1,117 @@
+name: 习惯打卡小程序 CI/CD
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+jobs:
+  lint:
+    name: 代码检查
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: 设置 Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '16'
+          cache: 'npm'
+      - name: 安装依赖
+        run: npm ci
+      - name: 运行代码检查
+        run: npm run lint
+
+  test-frontend:
+    name: 前端测试
+    runs-on: ubuntu-latest
+    needs: lint
+    steps:
+      - uses: actions/checkout@v3
+      - name: 设置 Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '16'
+          cache: 'npm'
+      - name: 安装依赖
+        run: npm ci
+      - name: 运行前端测试
+        run: npm run test:frontend
+
+  test-backend:
+    name: 后端测试
+    runs-on: ubuntu-latest
+    needs: lint
+    steps:
+      - uses: actions/checkout@v3
+      - name: 设置 Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '16'
+          cache: 'npm'
+      - name: 安装依赖
+        working-directory: ./server
+        run: npm ci
+      - name: 运行后端测试
+        working-directory: ./server
+        run: npm test
+        env:
+          MONGODB_URI: mongodb://localhost:27017/habit-tracker-test
+          JWT_SECRET: test_secret_key
+          JWT_EXPIRES_IN: 1h
+          REFRESH_TOKEN_SECRET: refresh_test_secret_key
+          REFRESH_TOKEN_EXPIRES_IN: 7d
+
+  build:
+    name: 构建小程序
+    runs-on: ubuntu-latest
+    needs: [test-frontend, test-backend]
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop')
+    steps:
+      - uses: actions/checkout@v3
+      - name: 设置 Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '16'
+          cache: 'npm'
+      - name: 安装依赖
+        run: npm ci
+      - name: 构建小程序
+        run: npm run build
+      - name: 上传构建产物
+        uses: actions/upload-artifact@v3
+        with:
+          name: miniprogram-dist
+          path: dist/
+
+  deploy-dev:
+    name: 部署到开发环境
+    runs-on: ubuntu-latest
+    needs: build
+    if: github.event_name == 'push' && github.ref == 'refs/heads/develop'
+    steps:
+      - uses: actions/checkout@v3
+      - name: 下载构建产物
+        uses: actions/download-artifact@v3
+        with:
+          name: miniprogram-dist
+          path: dist/
+      - name: 部署到开发环境
+        run: echo "部署到开发环境的命令将在这里执行"
+        # 实际部署命令取决于你的部署策略
+
+  deploy-prod:
+    name: 部署到生产环境
+    runs-on: ubuntu-latest
+    needs: build
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    steps:
+      - uses: actions/checkout@v3
+      - name: 下载构建产物
+        uses: actions/download-artifact@v3
+        with:
+          name: miniprogram-dist
+          path: dist/
+      - name: 部署到生产环境
+        run: echo "部署到生产环境的命令将在这里执行"
+        # 实际部署命令取决于你的部署策略 

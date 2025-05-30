@@ -9,53 +9,11 @@
         class="tab-item {{activeTab === index ? 'active' : ''}}"
         bindtap="onTabChange"
         data-index="{{index}}">
-        {{item}}
+        {{categoryMap[item] || item}}
       </view>
     </scroll-view>
   </view>
-  
 
-  
-  <!-- 日历选择 -->
-  <view class="calendar-card">
-    <view class="card-header">
-      <view class="card-title">{{currentMonth || '本月'}}</view>
-      <view class="card-actions">
-        <view class="action-btn" bindtap="changeMonth" data-direction="prev">
-          <text class="iconfont icon-left"></text>
-        </view>
-        <view class="action-btn" bindtap="changeMonth" data-direction="next">
-          <text class="iconfont icon-right"></text>
-        </view>
-      </view>
-    </view>
-    
-    <view class="calendar-weekdays">
-      <view class="weekday">一</view>
-      <view class="weekday">二</view>
-      <view class="weekday">三</view>
-      <view class="weekday">四</view>
-      <view class="weekday">五</view>
-      <view class="weekday">六</view>
-      <view class="weekday">日</view>
-    </view>
-    
-    <view class="calendar-grid">
-      <view 
-        wx:for="{{calendarDays}}" 
-        wx:key="date" 
-        class="calendar-day {{item.isCurrentMonth ? '' : 'other-month'}} {{item.isSelected ? 'selected' : ''}} {{item.isToday ? 'today' : ''}}"
-        bindtap="selectDate"
-        data-date="{{item.date}}"
-      >
-        {{item.day}}
-      </view>
-    </view>
-    
-    <view class="calendar-footer">
-      <view class="date-display">{{selectedDate || '今日'}}的习惯</view>
-    </view>
-  </view>
   
   <!-- 习惯列表 -->
   <view class="habits-list">
@@ -77,7 +35,7 @@
         wx:for="{{habits}}" 
         wx:key="id" 
         habit="{{item}}" 
-        stats="{{habitStats[item.id]}}"
+        stats="{{habitStats[item._id || item.id]}}"
         bindcheckin="onCheckin"
         binddelete="onDeleteHabit">
       </habit-card>
@@ -103,7 +61,7 @@
             class="category-item {{activeTab === index ? 'active' : ''}}"
             bindtap="onTabChange"
             data-index="{{index}}">
-            {{item}}
+            {{categoryMap[item] || item}}
           </view>
         </view>
       </view>

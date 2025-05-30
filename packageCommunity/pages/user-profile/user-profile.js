@@ -4,24 +4,25 @@ Page({
    */
   data: {
     userId: '',
-    userInfo: null,
-    activeTab: 'posts', // posts, habits, challenges
+    user: null,
+    isSelf: false,
     isFollowing: false,
     loading: true,
+    loadingMore: false,
+    activeTab: 'posts',
     posts: [],
     habits: [],
-    challenges: [],
+    achievements: [],
     hasMore: {
       posts: true,
       habits: true,
-      challenges: true
+      achievements: true
     },
     page: {
       posts: 1,
       habits: 1,
-      challenges: 1
-    },
-    pageSize: 10
+      achievements: 1
+    }
   },
 
   /**
@@ -30,25 +31,33 @@ Page({
   onLoad(options) {
     if (options.id) {
       this.setData({ userId: options.id });
-      this.loadUserInfo();
-      this.loadUserData();
+      this.loadUserProfile();
     } else {
-      wx.showToast({
-        title: '用户ID不存在',
-        icon: 'error'
-      });
-      
-      setTimeout(() => {
-        wx.navigateBack();
-      }, 1500);
+      // 如果没有传入用户ID，默认显示当前用户的资料
+      const app = getApp();
+      if (app.globalData.hasLogin && app.globalData.userInfo) {
+        this.setData({
+          userId: app.globalData.userInfo.id,
+          isSelf: true
+        });
+        this.loadUserProfile();
+      } else {
+        wx.showToast({
+          title: '用户ID不存在',
+          icon: 'error'
+        });
+        
+        setTimeout(() => {
+          wx.navigateBack();
+        }, 1500);
+      }
     }
   },
 
   /**
-   * 加载用户信息
+   * 加载用户资料
    */
-  loadUserInfo() {
-    // 显示加载中
+  loadUserProfile() {
     this.setData({ loading: true });
     
     // 模拟加载延迟
@@ -56,48 +65,69 @@ Page({
       // 模拟用户数据
       const mockUser = {
         id: this.data.userId,
-        name: this.data.userId === '101' ? '李小华' : '张明',
-        avatar: this.data.userId === '101' ? '/images/avatars/avatar1.png' : '/images/avatars/avatar2.png',
-        bio: this.data.userId === '101' ? '热爱阅读和写作的文艺青年' : '运动健身爱好者，每日5公里跑步',
-        followingCount: this.data.userId === '101' ? 128 : 256,
-        followersCount: this.data.userId === '101' ? 356 : 512,
-        postsCount: this.data.userId === '101' ? 86 : 125,
-        habitsCount: this.data.userId === '101' ? 5 : 8,
-        challengesCount: this.data.userId === '101' ? 3 : 6,
-        isFollowing: this.data.userId === '101' ? true : false
+        name: '李小华',
+        avatar: '/images/avatars/avatar1.png',
+        coverImage: '/images/covers/cover1.jpg',
+        bio: '热爱阅读和写作，每天进步一点点',
+        habitsCount: 5,
+        followingCount: 128,
+        followersCount: 256
       };
       
+      // 判断是否是当前用户
+      const isSelf = this.data.isSelf;
+      
+      // 判断是否已关注
+      const isFollowing = !isSelf && Math.random() > 0.5; // 模拟50%概率已关注
+      
       this.setData({
-        userInfo: mockUser,
-        isFollowing: mockUser.isFollowing,
+        user: mockUser,
+        isSelf: isSelf,
+        isFollowing: isFollowing,
         loading: false
       });
+      
+      // 加载当前标签页的数据
+      this.loadTabData();
     }, 1000);
   },
 
   /**
-   * 加载用户数据（动态、习惯、挑战）
+   * 加载标签页数据
    */
-  loadUserData() {
+  loadTabData() {
     const { activeTab } = this.data;
     
     switch (activeTab) {
       case 'posts':
-        this.loadUserPosts();
+        this.loadPosts();
         break;
       case 'habits':
-        this.loadUserHabits();
+        this.loadHabits();
         break;
-      case 'challenges':
-        this.loadUserChallenges();
+      case 'achievements':
+        this.loadAchievements();
         break;
     }
   },
 
   /**
-   * 加载用户动态
+   * 切换标签页
    */
-  loadUserPosts(isRefresh = false) {
+  switchTab(e) {
+    const tab = e.currentTarget.dataset.tab;
+    
+    if (tab !== this.data.activeTab) {
+      this.setData({ activeTab: tab }, () => {
+        this.loadTabData();
+      });
+    }
+  },
+
+  /**
+   * 加载动态列表
+   */
+  loadPosts(isRefresh = false) {
     // 如果是刷新，重置页码
     if (isRefresh) {
       this.setData({
@@ -113,7 +143,7 @@ Page({
     }
     
     // 显示加载中
-    wx.showLoading({ title: '加载中' });
+    this.setData({ loadingMore: true });
     
     // 模拟加载延迟
     setTimeout(() => {
@@ -121,27 +151,36 @@ Page({
       const mockPosts = [
         {
           id: '1',
-          content: '今天完成了《原子习惯》的阅读，真的很有启发！',
+          content: '今天完成了《原子习惯》的阅读，真的很有启发！分享一个金句："习惯是复利的魔力：1%的微小改变，带来巨大的人生转变。"',
           images: ['/images/posts/post1.jpg'],
+          tags: ['阅读', '自我提升'],
           likes: 256,
           comments: 48,
-          createdAt: '2023-10-16 08:23'
+          isLiked: false,
+          createdAt: '2023-10-16 08:23',
+          habitName: '阅读习惯'
         },
         {
           id: '2',
-          content: '坚持晨跑第30天，感觉整个人都不一样了！',
+          content: '坚持早起一个月了，感觉整个人的精力和效率都提高了！推荐大家尝试"5点起床法"，确实很有效。',
           images: ['/images/posts/post2.jpg', '/images/posts/post3.jpg'],
-          likes: 189,
+          tags: ['早起', '生活方式'],
+          likes: 128,
           comments: 32,
-          createdAt: '2023-10-15 07:15'
+          isLiked: true,
+          createdAt: '2023-10-15 05:45',
+          habitName: '早起习惯'
         },
         {
           id: '3',
-          content: '早晨冥想20分钟，整个人都平静下来了。',
+          content: '早晨冥想20分钟，整个人都平静下来了。推荐大家尝试"正念呼吸法"，对缓解焦虑真的很有效！',
           images: [],
+          tags: ['冥想', '心理健康'],
           likes: 89,
           comments: 15,
-          createdAt: '2023-10-14 07:30'
+          isLiked: false,
+          createdAt: '2023-10-14 07:30',
+          habitName: '冥想习惯'
         }
       ];
       
@@ -154,18 +193,17 @@ Page({
       
       this.setData({
         posts: newPosts,
+        loadingMore: false,
         'hasMore.posts': hasMore,
         'page.posts': this.data.page.posts + 1
       });
-      
-      wx.hideLoading();
     }, 1000);
   },
 
   /**
-   * 加载用户习惯
+   * 加载习惯列表
    */
-  loadUserHabits(isRefresh = false) {
+  loadHabits(isRefresh = false) {
     // 如果是刷新，重置页码
     if (isRefresh) {
       this.setData({
@@ -181,7 +219,7 @@ Page({
     }
     
     // 显示加载中
-    wx.showLoading({ title: '加载中' });
+    this.setData({ loadingMore: true });
     
     // 模拟加载延迟
     setTimeout(() => {
@@ -193,8 +231,8 @@ Page({
           icon: '/images/habits/reading.png',
           color: '#4F7CFF',
           frequency: '每天',
-          streak: 15,
-          completionRate: 92
+          progress: 85,
+          streak: 15
         },
         {
           id: 'habit2',
@@ -202,8 +240,8 @@ Page({
           icon: '/images/habits/meditation.png',
           color: '#67C23A',
           frequency: '每天',
-          streak: 8,
-          completionRate: 85
+          progress: 60,
+          streak: 8
         },
         {
           id: 'habit3',
@@ -211,8 +249,8 @@ Page({
           icon: '/images/habits/workout.png',
           color: '#E6A23C',
           frequency: '每周3次',
-          streak: 4,
-          completionRate: 78
+          progress: 75,
+          streak: 4
         }
       ];
       
@@ -225,103 +263,90 @@ Page({
       
       this.setData({
         habits: newHabits,
+        loadingMore: false,
         'hasMore.habits': hasMore,
         'page.habits': this.data.page.habits + 1
       });
-      
-      wx.hideLoading();
     }, 1000);
   },
 
   /**
-   * 加载用户挑战
+   * 加载成就列表
    */
-  loadUserChallenges(isRefresh = false) {
+  loadAchievements(isRefresh = false) {
     // 如果是刷新，重置页码
     if (isRefresh) {
       this.setData({
-        'page.challenges': 1,
-        challenges: [],
-        'hasMore.challenges': true
+        'page.achievements': 1,
+        achievements: [],
+        'hasMore.achievements': true
       });
     }
     
     // 如果没有更多数据，直接返回
-    if (!this.data.hasMore.challenges && !isRefresh) {
+    if (!this.data.hasMore.achievements && !isRefresh) {
       return;
     }
     
     // 显示加载中
-    wx.showLoading({ title: '加载中' });
+    this.setData({ loadingMore: true });
     
     // 模拟加载延迟
     setTimeout(() => {
-      // 模拟挑战数据
-      const mockChallenges = [
+      // 模拟成就数据
+      const mockAchievements = [
         {
-          id: 'challenge1',
-          title: '21天阅读挑战',
-          image: '/images/challenges/reading.jpg',
-          progress: 80,
-          totalDays: 21,
-          participants: 1358
+          id: 'achievement1',
+          name: '坚持不懈',
+          icon: '/images/achievements/achievement1.png',
+          description: '连续打卡30天',
+          unlocked: true,
+          unlockedAt: '2023-09-15'
         },
         {
-          id: 'challenge2',
-          title: '早起俱乐部',
-          image: '/images/challenges/morning.jpg',
-          progress: 40,
-          totalDays: 30,
-          participants: 2546
+          id: 'achievement2',
+          name: '早起达人',
+          icon: '/images/achievements/achievement2.png',
+          description: '连续30天5点前起床',
+          unlocked: false,
+          progress: 60
         },
         {
-          id: 'challenge3',
-          title: '每日冥想',
-          image: '/images/challenges/meditation.jpg',
-          progress: 60,
-          totalDays: 14,
-          participants: 863
+          id: 'achievement3',
+          name: '阅读专家',
+          icon: '/images/achievements/achievement3.png',
+          description: '累计阅读100小时',
+          unlocked: false,
+          progress: 45
         }
       ];
       
       // 模拟分页
-      const currentChallenges = this.data.challenges;
-      const newChallenges = isRefresh ? mockChallenges : [...currentChallenges, ...mockChallenges];
+      const currentAchievements = this.data.achievements;
+      const newAchievements = isRefresh ? mockAchievements : [...currentAchievements, ...mockAchievements];
       
       // 判断是否还有更多数据
-      const hasMore = this.data.page.challenges < 2; // 模拟只有2页数据
+      const hasMore = this.data.page.achievements < 2; // 模拟只有2页数据
       
       this.setData({
-        challenges: newChallenges,
-        'hasMore.challenges': hasMore,
-        'page.challenges': this.data.page.challenges + 1
+        achievements: newAchievements,
+        loadingMore: false,
+        'hasMore.achievements': hasMore,
+        'page.achievements': this.data.page.achievements + 1
       });
-      
-      wx.hideLoading();
     }, 1000);
   },
 
   /**
-   * 切换标签
-   */
-  switchTab(e) {
-    const tab = e.currentTarget.dataset.tab;
-    
-    if (tab !== this.data.activeTab) {
-      this.setData({ activeTab: tab });
-      this.loadUserData();
-    }
-  },
-
-  /**
-   * 关注/取消关注用户
+   * 关注/取消关注
    */
   toggleFollow() {
+    if (this.data.isSelf) return;
+    
     const isFollowing = !this.data.isFollowing;
     
     this.setData({ isFollowing });
     
-    // 提示用户
     wx.showToast({
       title: isFollowing ? '已关注' : '已取消关注',
       icon: 'success'
@@ -331,44 +356,11 @@ Page({
   },
 
   /**
-   * 发送私信
+   * 编辑资料
    */
-  sendMessage() {
-    wx.showToast({
-      title: '私信功能开发中',
-      icon: 'none'
-    });
-    
-    // TODO: 跳转到私信页面
-  },
-
-  /**
-   * 查看动态详情
-   */
-  viewPostDetail(e) {
-    const { id } = e.currentTarget.dataset;
+  editProfile() {
     wx.navigateTo({
-      url: `/packageCommunity/pages/post-detail/post-detail?id=${id}`
-    });
-  },
-
-  /**
-   * 查看习惯详情
-   */
-  viewHabitDetail(e) {
-    const { id } = e.currentTarget.dataset;
-    wx.navigateTo({
-      url: `/pages/habits/detail/detail?id=${id}`
-    });
-  },
-
-  /**
-   * 查看挑战详情
-   */
-  viewChallengeDetail(e) {
-    const { id } = e.currentTarget.dataset;
-    wx.navigateTo({
-      url: `/packageCommunity/pages/challenge/challenge?id=${id}`
+      url: '/pages/profile/edit/edit'
     });
   },
 
@@ -391,11 +383,99 @@ Page({
   },
 
   /**
+   * 查看动态详情
+   */
+  viewPostDetail(e) {
+    const { id } = e.currentTarget.dataset;
+    wx.navigateTo({
+      url: `/packageCommunity/pages/post-detail/post-detail?id=${id}`
+    });
+  },
+
+  /**
+   * 点赞/取消点赞
+   */
+  likePost(e) {
+    const { id, index } = e.currentTarget.dataset;
+    const posts = this.data.posts;
+    
+    // 更新点赞状态
+    posts[index].isLiked = !posts[index].isLiked;
+    posts[index].likes = posts[index].isLiked ? posts[index].likes + 1 : posts[index].likes - 1;
+    
+    this.setData({ posts });
+    
+    // TODO: 发送请求到服务器更新点赞状态
+  },
+
+  /**
+   * 评论动态
+   */
+  commentPost(e) {
+    const { id } = e.currentTarget.dataset;
+    wx.navigateTo({
+      url: `/packageCommunity/pages/post-detail/post-detail?id=${id}&focus=comment`
+    });
+  },
+
+  /**
+   * 分享动态
+   */
+  sharePost(e) {
+    const { id } = e.currentTarget.dataset;
+    // 使用小程序分享功能
+  },
+
+  /**
+   * 查看习惯详情
+   */
+  viewHabitDetail(e) {
+    const { id } = e.currentTarget.dataset;
+    wx.navigateTo({
+      url: `/pages/habits/habit-detail/habit-detail?id=${id}`
+    });
+  },
+
+  /**
+   * 查看成就详情
+   */
+  viewAchievementDetail(e) {
+    const { id } = e.currentTarget.dataset;
+    wx.navigateTo({
+      url: `/pages/profile/achievements/detail/detail?id=${id}`
+    });
+  },
+
+  /**
+   * 创建动态
+   */
+  createPost() {
+    wx.navigateTo({
+      url: '/packageCommunity/pages/post/post'
+    });
+  },
+
+  /**
+   * 创建习惯
+   */
+  createHabit() {
+    wx.navigateTo({
+      url: '/pages/habits/create-habit/create-habit'
+    });
+  },
+
+  /**
+   * 返回上一页
+   */
+  navigateBack() {
+    wx.navigateBack();
+  },
+
+  /**
    * 页面相关事件处理函数--监听用户下拉动作
    */
   onPullDownRefresh() {
-    this.loadUserInfo();
-    this.loadUserData();
+    this.loadUserProfile();
     wx.stopPullDownRefresh();
   },
 
@@ -408,17 +488,17 @@ Page({
     switch (activeTab) {
       case 'posts':
         if (this.data.hasMore.posts) {
-          this.loadUserPosts();
+          this.loadPosts();
         }
         break;
       case 'habits':
         if (this.data.hasMore.habits) {
-          this.loadUserHabits();
+          this.loadHabits();
         }
         break;
-      case 'challenges':
-        if (this.data.hasMore.challenges) {
-          this.loadUserChallenges();
+      case 'achievements':
+        if (this.data.hasMore.achievements) {
+          this.loadAchievements();
         }
         break;
     }
@@ -428,12 +508,13 @@ Page({
    * 用户点击右上角分享
    */
   onShareAppMessage() {
-    const { userInfo } = this.data;
+    const { user } = this.data;
     
-    if (userInfo) {
+    if (user) {
       return {
-        title: `${userInfo.name}的习惯打卡主页`,
-        path: `/packageCommunity/pages/user-profile/user-profile?id=${userInfo.id}`
+        title: `${user.name}的个人主页`,
+        path: `/packageCommunity/pages/user-profile/user-profile?id=${user.id}`,
+        imageUrl: user.avatar
       };
     }
     

@@ -4,6 +4,7 @@
  */
 import { getHabits, getCheckins } from '../../../utils/storage';
 import { formatDate, getDaysBetween } from '../../../utils/date';
+import { analyticsAPI, habitAPI, checkinAPI } from '../../../services/api';
 
 interface IPageData {
   loading: boolean;
@@ -91,14 +92,48 @@ Page<IPageData, IPageMethods>({
   loadData() {
     this.setData({ loading: true });
     
-    // 获取习惯和打卡数据
-    const habits = getHabits();
-    const checkins = getCheckins();
+    // 使用API获取月度报告数据
+    const today = new Date();
+    const month = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}`;
     
-    // 生成报告
-    this.generateReport(habits, checkins);
-    
-    this.setData({ loading: false });
+    analyticsAPI.getMonthlyReport({ month })
+      .then(report => {
+        console.log('获取到月度报告数据:', report);
+        
+        // 直接使用API返回的报告数据
+        this.setData({
+          reportData: report,
+          loading: false
+        });
+      })
+      .catch(error => {
+        console.error('获取月度报告数据失败:', error);
+        
+        // API获取失败，回退到本地数据生成
+        Promise.all([
+          habitAPI.getHabits(),
+          checkinAPI.getCheckins()
+        ])
+          .then(([habits, checkins]) => {
+            console.log('回退到本地数据生成报告');
+            // 生成报告
+            this.generateReport(habits, checkins);
+            this.setData({ loading: false });
+          })
+          .catch(err => {
+            console.error('回退到本地数据也失败:', err);
+            // 完全失败，尝试使用本地存储
+            const habits = getHabits();
+            const checkins = getCheckins();
+            this.generateReport(habits, checkins);
+            this.setData({ loading: false });
+            
+            wx.showToast({
+              title: '获取数据失败，使用本地数据',
+              icon: 'none'
+            });
+          });
+      });
   },
 
   /**
@@ -152,8 +187,8 @@ Page<IPageData, IPageMethods>({
     
     // 计算当前连续天数和最长连续天数
     // 简化实现，实际应考虑更复杂的逻辑
-    let currentStreak = 5; // 模拟数据
-    let longestStreak = 12; // 模拟数据
+    const currentStreak = 5; // 模拟数据
+    const longestStreak = 12; // 模拟数据
     
     // 找出最早的习惯创建日期
     let earliestDate = today;

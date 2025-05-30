@@ -3,9 +3,8 @@ Object.defineProperty(exports, "__esModule", { value: true });
 /**
  * 习惯列表页面
  */
-const storage_1 = require("../../utils/storage");
+const api_1 = require("../../services/api");
 const habit_1 = require("../../utils/habit");
-const date_1 = require("../../utils/date");
 Page({
     /**
      * 页面的初始数据
@@ -20,207 +19,81 @@ Page({
         showSortModal: false,
         sortType: 'default',
         sortOrder: 'asc',
-        currentMonth: '',
-        selectedDate: '',
-        calendarDays: []
+        error: '',
+        apiAvailable: true,
+        userInfo: {},
+        hasLogin: false
     },
     /**
      * 生命周期函数--监听页面加载
      */
     onLoad() {
-        this.initCalendar();
+        // 页面加载时执行
+        const app = getApp();
+        this.setData({
+            apiAvailable: app.globalData.apiAvailable
+        });
     },
     /**
      * 生命周期函数--监听页面显示
      */
     onShow() {
-        this.loadHabits();
-    },
-    /**
-     * 初始化日历
-     */
-    initCalendar() {
-        const now = new Date();
-        const year = now.getFullYear();
-        const month = now.getMonth();
-        const today = (0, date_1.formatDate)(now);
-        const currentMonth = `${year}年${month + 1}月`;
-        // 获取当月第一天是周几
-        const firstDay = new Date(year, month, 1).getDay();
-        // 获取当月天数
-        const daysInMonth = new Date(year, month + 1, 0).getDate();
-        // 上个月的天数
-        const prevMonthDays = new Date(year, month, 0).getDate();
-        const calendarDays = [];
-        // 上个月的日期
-        for (let i = 0; i < firstDay; i++) {
-            const day = prevMonthDays - firstDay + i + 1;
-            const date = (0, date_1.formatDate)(new Date(year, month - 1, day));
-            calendarDays.push({
-                date,
-                day,
-                isCurrentMonth: false,
-                isSelected: date === today,
-                isToday: date === today
-            });
-        }
-        // 当月的日期
-        const currentDay = now.getDate();
-        for (let i = 1; i <= daysInMonth; i++) {
-            const date = (0, date_1.formatDate)(new Date(year, month, i));
-            calendarDays.push({
-                date,
-                day: i,
-                isCurrentMonth: true,
-                isSelected: date === today,
-                isToday: date === today
-            });
-        }
-        // 下个月的日期
-        const remainingDays = 42 - calendarDays.length; // 6行7列
-        for (let i = 1; i <= remainingDays; i++) {
-            const date = (0, date_1.formatDate)(new Date(year, month + 1, i));
-            calendarDays.push({
-                date,
-                day: i,
-                isCurrentMonth: false,
-                isSelected: false,
-                isToday: false
-            });
-        }
+        // 从App获取最新的登录状态
+        const app = getApp();
         this.setData({
-            currentMonth,
-            selectedDate: today,
-            calendarDays
+            userInfo: app.globalData.userInfo,
+            hasLogin: app.globalData.hasLogin
         });
-    },
-    /**
-     * 切换月份
-     */
-    changeMonth(e) {
-        const direction = e.currentTarget.dataset.direction;
-        // 获取当前显示的年月
-        const currentMonthStr = this.data.currentMonth;
-        const yearMonth = currentMonthStr.match(/(\d+)年(\d+)月/);
-        if (!yearMonth)
-            return;
-        const year = parseInt(yearMonth[1]);
-        const month = parseInt(yearMonth[2]) - 1; // 转为0-11的月份
-        let newYear = year;
-        let newMonth = month;
-        if (direction === 'prev') {
-            if (month === 0) {
-                newYear = year - 1;
-                newMonth = 11;
-            }
-            else {
-                newMonth = month - 1;
-            }
-        }
-        else {
-            if (month === 11) {
-                newYear = year + 1;
-                newMonth = 0;
-            }
-            else {
-                newMonth = month + 1;
-            }
-        }
-        const newCurrentMonth = `${newYear}年${newMonth + 1}月`;
-        // 获取新月份第一天是周几
-        const firstDay = new Date(newYear, newMonth, 1).getDay();
-        // 获取新月份天数
-        const daysInMonth = new Date(newYear, newMonth + 1, 0).getDate();
-        // 上个月的天数
-        const prevMonthDays = new Date(newYear, newMonth, 0).getDate();
-        const calendarDays = [];
-        const today = (0, date_1.formatDate)(new Date());
-        // 上个月的日期
-        for (let i = 0; i < firstDay; i++) {
-            const day = prevMonthDays - firstDay + i + 1;
-            const date = (0, date_1.formatDate)(new Date(newYear, newMonth - 1, day));
-            calendarDays.push({
-                date,
-                day,
-                isCurrentMonth: false,
-                isSelected: date === this.data.selectedDate,
-                isToday: date === today
-            });
-        }
-        // 当月的日期
-        for (let i = 1; i <= daysInMonth; i++) {
-            const date = (0, date_1.formatDate)(new Date(newYear, newMonth, i));
-            calendarDays.push({
-                date,
-                day: i,
-                isCurrentMonth: true,
-                isSelected: date === this.data.selectedDate,
-                isToday: date === today
-            });
-        }
-        // 下个月的日期
-        const remainingDays = 42 - calendarDays.length; // 6行7列
-        for (let i = 1; i <= remainingDays; i++) {
-            const date = (0, date_1.formatDate)(new Date(newYear, newMonth + 1, i));
-            calendarDays.push({
-                date,
-                day: i,
-                isCurrentMonth: false,
-                isSelected: false,
-                isToday: date === today
-            });
-        }
-        this.setData({
-            currentMonth: newCurrentMonth,
-            calendarDays
-        });
-        // 重新加载习惯数据
-        this.loadHabits();
-    },
-    /**
-     * 选择日期
-     */
-    selectDate(e) {
-        const date = e.currentTarget.dataset.date;
-        // 更新日历选中状态
-        const calendarDays = this.data.calendarDays.map(day => ({
-            ...day,
-            isSelected: day.date === date
-        }));
-        this.setData({
-            selectedDate: date,
-            calendarDays
-        });
-        // 重新加载习惯数据
+        
+        // 加载习惯列表
         this.loadHabits();
     },
     /**
      * 加载习惯数据
      */
     loadHabits() {
-        this.setData({ loading: true });
-        // 获取所有习惯
-        const habits = (0, storage_1.getHabits)();
-        // 计算习惯统计数据
-        const habitStats = {};
-        habits.forEach(habit => {
-            const checkins = (0, storage_1.getCheckinsByHabitId)(habit.id);
-            const stats = (0, habit_1.generateHabitStats)(habit, checkins);
-            habitStats[habit.id] = stats;
-        });
-        // 根据当前标签筛选习惯
-        let filteredHabits = this.filterHabits(habits);
-        // 根据选中的日期筛选习惯
-        if (this.data.selectedDate) {
-            const { shouldDoHabitOnDate } = require('../../utils/habit');
-            filteredHabits = filteredHabits.filter(habit => shouldDoHabitOnDate(habit, this.data.selectedDate));
-        }
-        // 根据当前排序方式排序习惯
-        const sortedHabits = this.sortHabits(filteredHabits, habitStats);
+        // 设置加载状态
         this.setData({
-            habits: sortedHabits,
-            habitStats,
-            loading: false
+            loading: true,
+            error: ''
+        });
+        const app = getApp();
+        // 获取习惯列表
+        api_1.habitAPI.getHabits()
+            .then(habits => {
+            // 获取所有打卡记录
+            return api_1.checkinAPI.getCheckins()
+                .then(checkins => {
+                // 计算习惯统计数据
+                const habitStats = {};
+                habits.forEach(habit => {
+                    const habitCheckins = checkins.filter(c => c.habitId === habit.id);
+                    habitStats[habit.id] = (0, habit_1.generateHabitStats)(habit, habitCheckins);
+                });
+                // 根据当前标签筛选习惯
+                let filteredHabits = this.filterHabits(habits);
+                // 根据当前排序方式排序习惯
+                const sortedHabits = this.sortHabits(filteredHabits, habitStats);
+                // 更新数据
+                this.setData({
+                    habits: sortedHabits,
+                    habitStats,
+                    loading: false,
+                    apiAvailable: true
+                });
+            });
+        })
+            .catch(error => {
+            console.error('获取习惯数据失败:', error);
+            this.setData({
+                loading: false,
+                error: '获取数据失败，请稍后重试',
+                apiAvailable: app.globalData.apiAvailable
+            });
+            wx.showToast({
+                title: '获取数据失败',
+                icon: 'none'
+            });
         });
     },
     /**
@@ -351,28 +224,46 @@ Page({
             content: '删除后将无法恢复，确定要删除吗？',
             success: (res) => {
                 if (res.confirm) {
-                    // 获取所有习惯
-                    const habits = (0, storage_1.getHabits)();
-                    // 删除指定习惯
-                    const newHabits = habits.filter(h => h.id !== habitId);
-                    // 保存修改
-                    (0, storage_1.saveHabits)(newHabits);
-                    // 重新加载习惯数据
-                    this.loadHabits();
-                    wx.showToast({
-                        title: '删除成功',
-                        icon: 'success'
+                    // 设置加载状态
+                    wx.showLoading({
+                        title: '删除中...',
+                        mask: true
+                    });
+                    // 调用API删除习惯
+                    api_1.habitAPI.deleteHabit(habitId)
+                        .then(() => {
+                        // 重新加载习惯数据
+                        this.loadHabits();
+                        wx.hideLoading();
+                        wx.showToast({
+                            title: '删除成功',
+                            icon: 'success'
+                        });
+                    })
+                        .catch(error => {
+                        console.error('删除习惯失败:', error);
+                        wx.hideLoading();
+                        wx.showToast({
+                            title: '删除失败',
+                            icon: 'none'
+                        });
                     });
                 }
             }
         });
     },
     /**
+     * 重试加载
+     */
+    onRetry() {
+        this.loadHabits();
+    },
+    /**
      * 用户点击右上角分享
      */
     onShareAppMessage() {
         return {
-            title: '习惯养成计划',
+            title: '我的习惯养成计划',
             path: '/pages/index/index'
         };
     }

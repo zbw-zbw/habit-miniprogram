@@ -1,34 +1,51 @@
 /* packageCommunity/pages/notifications/notifications.wxss */
+page {
+  background-color: #F5F7FA;
+  height: 100%;
+}
+
 .container {
   display: flex;
   flex-direction: column;
-  height: 100vh;
-  background-color: #F5F7FA;
+  min-height: 100%;
 }
 
-/* 导航栏 */
-.navbar {
+/* 标签页 */
+.tabs {
   display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 0 16px;
-  height: 44px;
   background-color: #FFFFFF;
-  border-bottom: 1px solid #DCDFE6;
+  border-bottom: 1px solid #EBEEF5;
   position: sticky;
   top: 0;
-  z-index: 100;
+  z-index: 10;
 }
 
-.navbar-title {
-  font-size: 18px;
-  font-weight: 500;
-  color: #303133;
-}
-
-.navbar-action {
+.tab-item {
+  flex: 1;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   font-size: 14px;
+  color: #606266;
+  position: relative;
+}
+
+.tab-item.active {
   color: #4F7CFF;
+  font-weight: 500;
+}
+
+.tab-item.active::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 20px;
+  height: 3px;
+  background-color: #4F7CFF;
+  border-radius: 1.5px;
 }
 
 /* 加载状态 */
@@ -38,6 +55,7 @@
   align-items: center;
   justify-content: center;
   padding: 32px 0;
+  flex: 1;
 }
 
 .loading-spinner {
@@ -55,30 +73,29 @@
   border-width: 2px;
 }
 
-.loading-text {
-  margin-top: 8px;
-  font-size: 14px;
-  color: #909399;
-}
-
 @keyframes spin {
   to {
     transform: rotate(360deg);
   }
 }
 
+.loading-text {
+  margin-top: 8px;
+  font-size: 14px;
+  color: #909399;
+}
+
 /* 通知列表 */
-.notification-list {
-  flex: 1;
-  overflow-y: auto;
+.notifications-list {
+  display: flex;
+  flex-direction: column;
 }
 
 .notification-item {
   display: flex;
-  align-items: flex-start;
   padding: 16px;
   background-color: #FFFFFF;
-  border-bottom: 1px solid #E4E7ED;
+  border-bottom: 1px solid #EBEEF5;
   position: relative;
 }
 
@@ -86,57 +103,11 @@
   background-color: #F0F5FF;
 }
 
-.unread-dot {
-  position: absolute;
-  top: 16px;
-  left: 16px;
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background-color: #4F7CFF;
-}
-
-.notification-icon {
+.user-avatar {
   width: 40px;
   height: 40px;
   border-radius: 50%;
   margin-right: 12px;
-  overflow: hidden;
-  background-color: #E4E7ED;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.notification-icon.like {
-  background-color: #FFE6E6;
-}
-
-.notification-icon.comment {
-  background-color: #E6F7FF;
-}
-
-.notification-icon.follow {
-  background-color: #E6FFE6;
-}
-
-.notification-icon.challenge {
-  background-color: #FFF3E6;
-}
-
-.notification-icon.system {
-  background-color: #E6E6FF;
-}
-
-.sender-avatar {
-  width: 100%;
-  height: 100%;
-  border-radius: 50%;
-}
-
-.notification-icon .iconfont {
-  font-size: 20px;
-  color: #606266;
 }
 
 .notification-content {
@@ -147,22 +118,53 @@
 .notification-text {
   font-size: 14px;
   color: #303133;
-  line-height: 1.4;
+  line-height: 1.5;
   margin-bottom: 4px;
+}
+
+.username {
+  font-weight: 500;
+  margin-right: 4px;
+}
+
+.action {
+  color: #606266;
+}
+
+.target {
+  color: #4F7CFF;
 }
 
 .notification-time {
   font-size: 12px;
   color: #909399;
+  margin-bottom: 8px;
 }
 
-.notification-delete {
+.notification-preview {
+  font-size: 12px;
+  color: #606266;
+  background-color: #F5F7FA;
   padding: 8px;
-  color: #909399;
+  border-radius: 4px;
+  line-height: 1.4;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 
-.notification-delete .iconfont {
-  font-size: 18px;
+.notification-target {
+  width: 60px;
+  height: 60px;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.target-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 
 /* 空状态 */
@@ -171,7 +173,8 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 64px 32px;
+  padding: 64px 0;
+  flex: 1;
 }
 
 .empty-icon {
@@ -182,16 +185,7 @@
 
 .empty-text {
   font-size: 16px;
-  font-weight: 500;
-  color: #303133;
-  margin-bottom: 8px;
-}
-
-.empty-subtext {
-  font-size: 14px;
   color: #909399;
-  text-align: center;
-  line-height: 1.4;
 }
 
 /* 加载更多和没有更多 */
@@ -200,6 +194,10 @@
   align-items: center;
   justify-content: center;
   padding: 16px;
+}
+
+.loading-more {
+  gap: 8px;
 }
 
 .no-more {

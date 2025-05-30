@@ -1,10 +1,13 @@
 /* packageCommunity/pages/post-detail/post-detail.wxss */
+page {
+  background-color: #F5F7FA;
+  height: 100%;
+}
+
 .container {
   display: flex;
   flex-direction: column;
-  min-height: 100vh;
-  background-color: #F5F7FA;
-  padding-bottom: 60px; /* 为评论输入框留出空间 */
+  min-height: 100%;
 }
 
 /* 加载状态 */
@@ -32,77 +35,78 @@
   border-width: 2px;
 }
 
-.loading-text {
-  margin-top: 8px;
-  font-size: 14px;
-  color: #909399;
-}
-
 @keyframes spin {
   to {
     transform: rotate(360deg);
   }
 }
 
+.loading-text {
+  margin-top: 8px;
+  font-size: 14px;
+  color: #909399;
+}
+
 /* 动态详情 */
 .post-detail {
   background-color: #FFFFFF;
   padding: 16px;
-  margin-bottom: 12px;
+  margin-bottom: 60px;
 }
 
-/* 用户信息 */
+/* 动态头部 */
 .post-header {
   display: flex;
   align-items: center;
-  margin-bottom: 12px;
+  margin-bottom: 16px;
 }
 
 .user-avatar {
-  width: 48px;
-  height: 48px;
+  width: 40px;
+  height: 40px;
   border-radius: 50%;
   margin-right: 12px;
 }
 
-.user-info {
+.post-user-info {
   flex: 1;
 }
 
-.user-name {
-  font-size: 16px;
+.username {
+  font-size: 14px;
   font-weight: 500;
   color: #303133;
   margin-bottom: 4px;
+  display: block;
 }
 
-.post-meta {
-  display: flex;
-  align-items: center;
+.post-time {
   font-size: 12px;
   color: #909399;
 }
 
-.post-time {
-  margin-right: 12px;
+.post-more {
+  padding: 8px;
+  margin: -8px;
 }
 
-.post-location {
-  display: flex;
-  align-items: center;
-}
-
-.post-location .iconfont {
-  margin-right: 4px;
-  font-size: 12px;
+.post-more .iconfont {
+  font-size: 20px;
+  color: #909399;
 }
 
 /* 动态内容 */
 .post-content {
+  margin-bottom: 16px;
+}
+
+.post-text {
   font-size: 16px;
   color: #303133;
   line-height: 1.6;
   margin-bottom: 16px;
+  white-space: pre-wrap;
+  word-break: break-all;
 }
 
 /* 标签 */
@@ -112,11 +116,21 @@
   margin-bottom: 16px;
 }
 
-.tag-item {
-  font-size: 14px;
+.post-tag {
+  display: flex;
+  align-items: center;
+  font-size: 12px;
   color: #4F7CFF;
-  margin-right: 12px;
+  background-color: rgba(79, 124, 255, 0.1);
+  padding: 4px 12px;
+  border-radius: 16px;
+  margin-right: 8px;
   margin-bottom: 8px;
+}
+
+.post-tag .iconfont {
+  font-size: 12px;
+  margin-right: 4px;
 }
 
 /* 图片 */
@@ -139,58 +153,124 @@
   width: 100%;
   height: 100px;
   border-radius: 4px;
+  object-fit: cover;
 }
 
-/* 互动数据 */
-.post-stats {
-  display: flex;
-  margin-bottom: 16px;
-}
-
-.stat-item {
+/* 关联习惯 */
+.post-habit {
   display: flex;
   align-items: center;
-  margin-right: 24px;
-  font-size: 14px;
-  color: #606266;
+  background-color: #F5F7FA;
+  padding: 12px;
+  border-radius: 8px;
 }
 
-.stat-item .iconfont {
-  margin-right: 4px;
+.habit-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 12px;
+}
+
+.habit-icon image {
+  width: 20px;
+  height: 20px;
+}
+
+.habit-name {
+  flex: 1;
+  font-size: 14px;
+  color: #303133;
+}
+
+.post-habit .iconfont {
+  font-size: 16px;
+  color: #909399;
+}
+
+/* 互动统计 */
+.post-stats {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 16px;
+  font-size: 12px;
+  color: #909399;
 }
 
 /* 互动按钮 */
 .post-actions {
   display: flex;
-  justify-content: space-around;
-  padding: 12px 0;
   border-top: 1px solid #EBEEF5;
   border-bottom: 1px solid #EBEEF5;
+  padding: 12px 0;
   margin-bottom: 16px;
 }
 
-.action-btn {
+.post-action {
+  flex: 1;
   display: flex;
-  flex-direction: column;
   align-items: center;
-  font-size: 12px;
+  justify-content: center;
+  font-size: 14px;
   color: #606266;
+  background-color: transparent;
+  padding: 0;
+  margin: 0;
+  line-height: normal;
 }
 
-.action-btn .iconfont {
-  font-size: 20px;
-  margin-bottom: 4px;
+.post-action::after {
+  display: none;
 }
 
-.action-btn.active {
+.post-action .iconfont {
+  margin-right: 4px;
+  font-size: 18px;
+}
+
+.post-action.active {
   color: #4F7CFF;
 }
 
-/* 分隔线 */
-.divider {
-  height: 8px;
+/* 点赞用户 */
+.liked-users {
+  display: flex;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.liked-avatars {
+  display: flex;
+  margin-right: 8px;
+}
+
+.liked-avatar {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  border: 1px solid #FFFFFF;
+  margin-right: -8px;
+}
+
+.liked-more {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
   background-color: #F5F7FA;
-  margin: 0 -16px 16px;
+  border: 1px solid #EBEEF5;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  color: #909399;
+}
+
+.liked-text {
+  font-size: 12px;
+  color: #909399;
 }
 
 /* 评论区 */
@@ -199,6 +279,9 @@
 }
 
 .section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
   margin-bottom: 16px;
 }
 
@@ -206,51 +289,52 @@
   font-size: 16px;
   font-weight: 500;
   color: #303133;
-  margin-bottom: 4px;
 }
 
-.section-subtitle {
+.comment-sort {
+  display: flex;
+  align-items: center;
   font-size: 12px;
   color: #909399;
 }
 
+.comment-sort .iconfont {
+  margin-left: 4px;
+  font-size: 12px;
+}
+
 /* 评论列表 */
-.comment-list {
+.comments-list {
   display: flex;
   flex-direction: column;
 }
 
 .comment-item {
-  padding: 12px 0;
-  border-bottom: 1px solid #EBEEF5;
+  display: flex;
+  margin-bottom: 16px;
 }
 
-.comment-item:last-child {
-  border-bottom: none;
+.comment-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  margin-right: 12px;
+}
+
+.comment-content {
+  flex: 1;
 }
 
 .comment-header {
   display: flex;
-  align-items: center;
-  margin-bottom: 8px;
-}
-
-.comment-avatar {
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
-  margin-right: 8px;
-}
-
-.comment-info {
-  flex: 1;
+  justify-content: space-between;
+  margin-bottom: 4px;
 }
 
 .comment-username {
   font-size: 14px;
   font-weight: 500;
   color: #303133;
-  margin-bottom: 2px;
 }
 
 .comment-time {
@@ -258,28 +342,53 @@
   color: #909399;
 }
 
-.comment-content {
+.comment-text {
   font-size: 14px;
   color: #303133;
   line-height: 1.5;
   margin-bottom: 8px;
-  padding-left: 44px;
 }
 
+/* 回复列表 */
+.replies {
+  background-color: #F5F7FA;
+  padding: 8px 12px;
+  border-radius: 4px;
+  margin-bottom: 8px;
+}
+
+.reply-item {
+  font-size: 13px;
+  color: #606266;
+  margin-bottom: 6px;
+}
+
+.reply-username {
+  font-weight: 500;
+  color: #303133;
+}
+
+.view-more-replies {
+  font-size: 12px;
+  color: #4F7CFF;
+  margin-top: 4px;
+}
+
+/* 评论操作 */
 .comment-actions {
   display: flex;
-  padding-left: 44px;
 }
 
 .comment-action {
   display: flex;
   align-items: center;
-  margin-right: 16px;
   font-size: 12px;
   color: #909399;
+  margin-right: 16px;
 }
 
 .comment-action .iconfont {
+  font-size: 14px;
   margin-right: 4px;
 }
 
@@ -287,98 +396,41 @@
   color: #4F7CFF;
 }
 
-/* 回复列表 */
-.reply-list {
-  margin-top: 8px;
-  padding: 8px;
-  background-color: #F5F7FA;
-  border-radius: 4px;
-  margin-left: 44px;
-}
-
-.reply-item {
-  padding: 8px 0;
-  border-bottom: 1px solid #EBEEF5;
-}
-
-.reply-item:last-child {
-  border-bottom: none;
-}
-
-.reply-header {
-  display: flex;
-  align-items: center;
-  margin-bottom: 4px;
-}
-
-.reply-avatar {
-  width: 24px;
-  height: 24px;
-  border-radius: 50%;
-  margin-right: 8px;
-}
-
-.reply-info {
-  flex: 1;
-}
-
-.reply-username {
-  font-size: 12px;
-  font-weight: 500;
-  color: #303133;
-  margin-bottom: 2px;
-}
-
-.reply-time {
-  font-size: 10px;
-  color: #909399;
-}
-
-.reply-content {
-  font-size: 12px;
-  color: #303133;
-  line-height: 1.5;
-  padding-left: 32px;
-}
-
-/* 评论加载中 */
-.comments-loading {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 16px 0;
-}
-
-.comments-loading .loading-text {
-  margin-left: 8px;
-  margin-top: 0;
-}
-
-/* 没有更多评论 */
-.no-more-comments {
-  text-align: center;
-  padding: 16px 0;
-  font-size: 12px;
-  color: #909399;
-}
-
-/* 暂无评论 */
-.no-comments {
+/* 空评论状态 */
+.empty-comments {
   display: flex;
   flex-direction: column;
   align-items: center;
+  justify-content: center;
   padding: 32px 0;
 }
 
-.no-comments-icon {
+.empty-icon {
   width: 64px;
   height: 64px;
   margin-bottom: 16px;
 }
 
-.no-comments-text {
+.empty-text {
   font-size: 14px;
   color: #909399;
+}
+
+/* 加载更多和没有更多 */
+.loading-more, .no-more {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+}
+
+.loading-more {
+  gap: 8px;
+}
+
+.no-more {
+  color: #909399;
+  font-size: 14px;
 }
 
 /* 评论输入框 */
@@ -387,12 +439,12 @@
   bottom: 0;
   left: 0;
   width: 100%;
+  display: flex;
+  align-items: center;
   padding: 12px 16px;
   background-color: #FFFFFF;
   border-top: 1px solid #EBEEF5;
-  display: flex;
-  align-items: center;
-  z-index: 100;
+  box-sizing: border-box;
 }
 
 .comment-input {
@@ -402,25 +454,20 @@
   border-radius: 18px;
   padding: 0 16px;
   font-size: 14px;
-  color: #303133;
   margin-right: 12px;
 }
 
 .send-btn {
-  padding: 0 16px;
-  height: 36px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 14px;
+  padding: 8px 16px;
+  background-color: #E4E7ED;
   color: #909399;
   border-radius: 18px;
-  background-color: #F5F7FA;
+  font-size: 14px;
 }
 
 .send-btn.active {
-  color: #FFFFFF;
   background-color: #4F7CFF;
+  color: #FFFFFF;
 }
 
 /* 错误状态 */

@@ -14,9 +14,10 @@
 .habit-header {
   padding: 40rpx 30rpx 30rpx;
   color: #FFFFFF;
-  border-radius: 0 0 30rpx 30rpx;
-  box-shadow: 0 4rpx 20rpx rgba(0, 0, 0, 0.1);
+  border-radius: 30rpx;
+  box-shadow: 0 4rpx 20rpx rgba(0, 0, 0, 0.2);
   margin-bottom: 20rpx;
+  overflow: hidden;
 }
 
 .header-content {
@@ -60,13 +61,16 @@
 }
 
 .tag {
-  background-color: rgba(255, 255, 255, 0.3);
+  background-color: rgba(255, 255, 255, 0.6);
   border-radius: 30rpx;
-  padding: 6rpx 20rpx;
+  padding: 8rpx 20rpx;
   font-size: 24rpx;
   margin-right: 20rpx;
   display: flex;
   align-items: center;
+  font-weight: 600;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+  color: #FFFFFF;
 }
 
 .tag .iconfont {
@@ -78,17 +82,18 @@
   display: flex;
   justify-content: space-between;
   text-align: center;
-  background-color: rgba(255, 255, 255, 0.15);
+  background-color: rgba(255, 255, 255, 0.25);
   border-radius: 16rpx;
   padding: 20rpx 10rpx;
+  box-shadow: 0 2rpx 10rpx rgba(0, 0, 0, 0.1);
 }
 
-.stat-item {
+.habit-stat-item {
   flex: 1;
   position: relative;
 }
 
-.stat-item:not(:last-child):after {
+.habit-stat-item:not(:last-child):after {
   content: '';
   position: absolute;
   right: 0;
@@ -98,14 +103,18 @@
   background-color: rgba(255, 255, 255, 0.3);
 }
 
-.stat-value {
+.habit-stat-value {
   font-size: 36rpx;
   font-weight: bold;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+  color: #FFFFFF;
 }
 
-.stat-label {
+.habit-stat-label {
   font-size: 24rpx;
-  opacity: 0.8;
+  font-weight: 500;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+  color: #FFFFFF;
 }
 
 /* 内容区域 */

@@ -1,0 +1,107 @@
+<view class="detail-page">
+  <view wx:if="{{loading}}" class="loading-container">
+    <view class="loading-text">加载中...</view>
+  </view>
+  
+  <block wx:else>
+    <view class="chain-header">
+      <view class="chain-name">{{chain.name}}</view>
+      <view class="chain-description" wx:if="{{chain.description}}">{{chain.description}}</view>
+      
+      <view class="chain-meta">
+        <view class="chain-meta-item">
+          <text class="icon-text">⏱️</text>
+          <text>{{chain.frequency.type === 'daily' ? '每日' : chain.frequency.type === 'weekly' ? '每周' : '自定义'}}</text>
+        </view>
+        <view class="chain-meta-item">
+          <text class="icon-text">🔗</text>
+          <text>{{chain.habits.length}}个习惯</text>
+        </view>
+        <view class="chain-meta-item">
+          <text class="icon-text">📅</text>
+          <text>{{formatDate(chain.createdAt)}}</text>
+        </view>
+      </view>
+      
+      <view class="action-buttons">
+        <view class="action-button edit-button" bindtap="editChain">编辑习惯链</view>
+        <view class="action-button delete-button" bindtap="deleteChain">删除习惯链</view>
+      </view>
+    </view>
+    
+    <view class="section">
+      <view class="section-title">习惯链可视化</view>
+      <view class="visualizer-container">
+        <habit-chain-visualizer 
+          chain="{{chain}}" 
+          habits="{{allHabits}}" 
+          editable="{{false}}"
+        ></habit-chain-visualizer>
+      </view>
+    </view>
+    
+    <view class="section">
+      <view class="section-title">习惯列表</view>
+      <view class="habits-list">
+        <view class="habit-item" wx:for="{{habitDetails}}" wx:key="habitId" bindtap="viewHabitDetail" data-id="{{item.habitId}}">
+          <view class="habit-order">{{item.order}}</view>
+          <view class="habit-icon" style="background-color: {{item.color || '#4F7CFF'}}">{{item.name[0]}}</view>
+          <view class="habit-info">
+            <view class="habit-name">{{item.name}}</view>
+            <view class="habit-status {{item.isOptional ? 'optional' : ''}}">
+              {{item.isOptional ? '可选习惯' : '必须习惯'}}
+            </view>
+          </view>
+        </view>
+      </view>
+    </view>
+    
+    <view class="section">
+      <view class="section-title">完成情况</view>
+      
+      <view class="progress-section">
+        <view class="progress-header">
+          <view class="progress-title">今日进度</view>
+          <view class="progress-date">{{today}}</view>
+        </view>
+        
+        <view class="progress-bar">
+          <view class="progress-fill" style="width: {{todayProgress}}%"></view>
+        </view>
+        
+        <view class="progress-stats">
+          <view>已完成 {{todayCompleted}}/{{chain.habits.length}}</view>
+          <view>{{todayProgress}}%</view>
+        </view>
+        
+        <view class="checkin-button {{canCheckin ? '' : 'disabled'}}" bindtap="checkinChain">
+          {{canCheckin ? '打卡习惯链' : '今日已完成'}}
+        </view>
+      </view>
+      
+      <view class="calendar-container">
+        <view class="calendar-header">
+          <view class="calendar-title">{{year}}年{{month}}月</view>
+          <view class="calendar-nav">
+            <view class="calendar-nav-button" bindtap="prevMonth">上个月</view>
+            <view class="calendar-nav-button" bindtap="nextMonth">下个月</view>
+          </view>
+        </view>
+        
+        <view class="calendar-weekdays">
+          <view class="weekday" wx:for="{{weekdays}}" wx:key="*this">{{item}}</view>
+        </view>
+        
+        <view class="calendar-days">
+          <view 
+            class="day {{item.isCurrentMonth ? '' : 'other-month'}} {{item.isToday ? 'today' : ''}} {{item.status === 'completed' ? 'completed' : item.status === 'partial' ? 'partial' : ''}}"
+            wx:for="{{calendarDays}}"
+            wx:key="date"
+          >
+            <view class="day-inner">{{item.day}}</view>
+          </view>
+        </view>
+      </view>
+    </view>
+  </block>
+</view> 

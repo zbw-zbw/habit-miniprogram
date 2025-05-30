@@ -1,0 +1,135 @@
+.habit-chain-visualizer {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+}
+
+.canvas-container {
+  width: 100%;
+  height: 300px;
+  position: relative;
+  margin-bottom: 20rpx;
+  background-color: #ffffff;
+  border-radius: 12rpx;
+  overflow: hidden;
+}
+
+.chain-canvas {
+  width: 100%;
+  height: 100%;
+}
+
+.controls {
+  width: 100%;
+  padding: 20rpx;
+  box-sizing: border-box;
+}
+
+.title {
+  font-size: 32rpx;
+  font-weight: bold;
+  margin-bottom: 20rpx;
+  color: #333333;
+}
+
+.habits-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16rpx;
+}
+
+.habit-item {
+  display: flex;
+  align-items: center;
+  padding: 16rpx;
+  background-color: #ffffff;
+  border-radius: 12rpx;
+  border-left: 8rpx solid #5E72E4;
+  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+}
+
+.habit-icon {
+  width: 64rpx;
+  height: 64rpx;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 16rpx;
+  color: #ffffff;
+}
+
+.icon-text {
+  font-size: 32rpx;
+  font-weight: bold;
+}
+
+.habit-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.habit-name {
+  font-size: 28rpx;
+  font-weight: bold;
+  color: #333333;
+}
+
+.habit-status {
+  font-size: 24rpx;
+  color: #888888;
+}
+
+.order-controls {
+  display: flex;
+  flex-direction: column;
+  gap: 8rpx;
+}
+
+.order-btn {
+  min-width: 48rpx !important;
+  height: 48rpx !important;
+  padding: 0 !important;
+  line-height: 48rpx !important;
+  font-size: 24rpx !important;
+  margin: 0 !important;
+}
+
+.empty-state {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 200rpx;
+  color: #999999;
+  font-size: 28rpx;
+}
+
+/* 暗色主题 */
+@media (prefers-color-scheme: dark) {
+  .canvas-container {
+    background-color: #222222;
+  }
+  
+  .habit-item {
+    background-color: #333333;
+  }
+  
+  .habit-name {
+    color: #ffffff;
+  }
+  
+  .habit-status {
+    color: #aaaaaa;
+  }
+  
+  .title {
+    color: #ffffff;
+  }
+  
+  .empty-state {
+    color: #aaaaaa;
+  }
+} 

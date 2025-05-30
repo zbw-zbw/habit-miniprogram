@@ -16,7 +16,7 @@
         <image class="avatar" src="{{userInfo.avatarUrl || '/assets/images/default-avatar.png'}}" mode="aspectFill"></image>
       </view>
       <view class="user-detail">
-        <view class="nickname">{{userInfo.nickName || '未登录'}}</view>
+        <view class="nickname">{{userInfo.nickname || '未登录'}}</view>
         <view class="date">{{today}} 星期{{weekday}}</view>
       </view>
     </view>
@@ -45,7 +45,7 @@
     </view>
     
     <view class="habits-list">
-      <block wx:if="{{loading}}">
+      <block wx:if="{{loading.habits || loading.stats || loading.checkins}}">
         <view class="loading">
           <view class="loading-spinner"></view>
           <view class="loading-text">加载中...</view>
@@ -61,9 +61,9 @@
       <block wx:else>
         <habit-card 
           wx:for="{{todayHabits}}" 
-          wx:key="id" 
+          wx:key="_id" 
           habit="{{item}}" 
-          stats="{{habitStats[item.id]}}"
+          stats="{{habitStats[item._id || item.id]}}"
           bindcheckin="onCheckin">
         </habit-card>
       </block>

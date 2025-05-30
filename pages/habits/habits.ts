@@ -1,10 +1,11 @@
 /**
  * 习惯列表页面
  */
-import { getHabits, saveHabits, getCheckinsByHabitId, getCheckins } from '../../utils/storage';
+import { habitAPI, checkinAPI } from '../../services/api';
 import { generateHabitStats } from '../../utils/habit';
 import { generateUUID } from '../../utils/util';
 import { getCurrentDate, formatDate } from '../../utils/date';
+import { getAllHabitCardsData } from '../../services/habit-card';
 
 Page({
   /**
@@ -15,27 +16,39 @@ Page({
     habitStats: {} as Record<string, IHabitStats>,
     loading: true,
     activeTab: 0,
-    categories: ['全部', '学习', '健康', '工作', '生活'] as string[],
+    // 使用英文分类名，方便与后端数据匹配
+    categories: ['all', 'learning', 'health', 'work', 'life'] as string[],
+    // 分类英文到中文的映射
+    categoryMap: {
+      'all': '全部',
+      'learning': '学习',
+      'health': '健康',
+      'work': '工作',
+      'life': '生活',
+      'other': '其他',
+      'reading': '阅读',
+      'exercise': '运动',
+      'diet': '饮食',
+      'sleep': '睡眠',
+      'meditation': '冥想'
+    },
     showCategoryModal: false,
     showSortModal: false,
     sortType: 'default' as 'default' | 'name' | 'createdAt' | 'completionRate',
     sortOrder: 'asc' as 'asc' | 'desc',
-    currentMonth: '',
-    selectedDate: '',
-    calendarDays: [] as Array<{
-      date: string;
-      day: number;
-      isCurrentMonth: boolean;
-      isSelected: boolean;
-      isToday: boolean;
-    }>
+    error: '',
+    apiAvailable: true
   },
 
   /**
    * 生命周期函数--监听页面加载
    */
   onLoad() {
-    this.initCalendar();
+    // 页面加载时执行
+    const app = getApp<IAppOption>();
+    this.setData({
+      apiAvailable: app.globalData.apiAvailable
+    });
   },
 
   /**
@@ -43,227 +56,91 @@ Page({
    */
   onShow() {
     this.loadHabits();
-  },
-
-  /**
-   * 初始化日历
-   */
-  initCalendar() {
-    const now = new Date();
-    const year = now.getFullYear();
-    const month = now.getMonth();
-    const today = formatDate(now);
     
-    const currentMonth = `${year}年${month + 1}月`;
-    
-    // 获取当月第一天是周几
-    const firstDay = new Date(year, month, 1).getDay();
-    // 获取当月天数
-    const daysInMonth = new Date(year, month + 1, 0).getDate();
-    
-    // 上个月的天数
-    const prevMonthDays = new Date(year, month, 0).getDate();
-    
-    const calendarDays = [];
-    
-    // 上个月的日期
-    for (let i = 0; i < firstDay; i++) {
-      const day = prevMonthDays - firstDay + i + 1;
-      const date = formatDate(new Date(year, month - 1, day));
-      calendarDays.push({
-        date,
-        day,
-        isCurrentMonth: false,
-        isSelected: date === today,
-        isToday: date === today
-      });
-    }
-    
-    // 当月的日期
-    const currentDay = now.getDate();
-    for (let i = 1; i <= daysInMonth; i++) {
-      const date = formatDate(new Date(year, month, i));
-      calendarDays.push({
-        date,
-        day: i,
-        isCurrentMonth: true,
-        isSelected: date === today,
-        isToday: date === today
-      });
-    }
-    
-    // 下个月的日期
-    const remainingDays = 42 - calendarDays.length; // 6行7列
-    for (let i = 1; i <= remainingDays; i++) {
-      const date = formatDate(new Date(year, month + 1, i));
-      calendarDays.push({
-        date,
-        day: i,
-        isCurrentMonth: false,
-        isSelected: false,
-        isToday: false
-      });
-    }
-    
-    this.setData({
-      currentMonth,
-      selectedDate: today,
-      calendarDays
-    });
-  },
-
-  /**
-   * 切换月份
-   */
-  changeMonth(e: any) {
-    const direction = e.currentTarget.dataset.direction;
-    
-    // 获取当前显示的年月
-    const currentMonthStr = this.data.currentMonth;
-    const yearMonth = currentMonthStr.match(/(\d+)年(\d+)月/);
-    
-    if (!yearMonth) return;
-    
-    const year = parseInt(yearMonth[1]);
-    const month = parseInt(yearMonth[2]) - 1; // 转为0-11的月份
-    
-    let newYear = year;
-    let newMonth = month;
-    
-    if (direction === 'prev') {
-      if (month === 0) {
-        newYear = year - 1;
-        newMonth = 11;
-      } else {
-        newMonth = month - 1;
-      }
-    } else {
-      if (month === 11) {
-        newYear = year + 1;
-        newMonth = 0;
-      } else {
-        newMonth = month + 1;
-      }
-    }
-    
-    const newCurrentMonth = `${newYear}年${newMonth + 1}月`;
-    
-    // 获取新月份第一天是周几
-    const firstDay = new Date(newYear, newMonth, 1).getDay();
-    // 获取新月份天数
-    const daysInMonth = new Date(newYear, newMonth + 1, 0).getDate();
-    
-    // 上个月的天数
-    const prevMonthDays = new Date(newYear, newMonth, 0).getDate();
-    
-    const calendarDays = [];
-    const today = formatDate(new Date());
-    
-    // 上个月的日期
-    for (let i = 0; i < firstDay; i++) {
-      const day = prevMonthDays - firstDay + i + 1;
-      const date = formatDate(new Date(newYear, newMonth - 1, day));
-      calendarDays.push({
-        date,
-        day,
-        isCurrentMonth: false,
-        isSelected: date === this.data.selectedDate,
-        isToday: date === today
-      });
-    }
-    
-    // 当月的日期
-    for (let i = 1; i <= daysInMonth; i++) {
-      const date = formatDate(new Date(newYear, newMonth, i));
-      calendarDays.push({
-        date,
-        day: i,
-        isCurrentMonth: true,
-        isSelected: date === this.data.selectedDate,
-        isToday: date === today
-      });
-    }
-    
-    // 下个月的日期
-    const remainingDays = 42 - calendarDays.length; // 6行7列
-    for (let i = 1; i <= remainingDays; i++) {
-      const date = formatDate(new Date(newYear, newMonth + 1, i));
-      calendarDays.push({
-        date,
-        day: i,
-        isCurrentMonth: false,
-        isSelected: false,
-        isToday: date === today
-      });
-    }
-    
-    this.setData({
-      currentMonth: newCurrentMonth,
-      calendarDays
-    });
-    
-    // 重新加载习惯数据
-    this.loadHabits();
-  },
-
-  /**
-   * 选择日期
-   */
-  selectDate(e: any) {
-    const date = e.currentTarget.dataset.date;
-    
-    // 更新日历选中状态
-    const calendarDays = this.data.calendarDays.map(day => ({
-      ...day,
-      isSelected: day.date === date
-    }));
-    
-    this.setData({
-      selectedDate: date,
-      calendarDays
-    });
-    
-    // 重新加载习惯数据
-    this.loadHabits();
+    // 延迟执行诊断
+    setTimeout(() => {
+      this.debug();
+    }, 2000);
   },
 
   /**
    * 加载习惯数据
    */
   loadHabits() {
-    this.setData({ loading: true });
-    
-    // 获取所有习惯
-    const habits = getHabits();
-    
-    // 计算习惯统计数据
-    const habitStats: Record<string, IHabitStats> = {};
-    
-    habits.forEach(habit => {
-      const checkins = getCheckinsByHabitId(habit.id);
-      const stats = generateHabitStats(habit, checkins);
-      habitStats[habit.id] = stats;
+    // 设置加载状态
+    this.setData({ 
+      loading: true,
+      error: ''
     });
     
-    // 根据当前标签筛选习惯
-    let filteredHabits = this.filterHabits(habits);
+    const app = getApp<IAppOption>();
     
-    // 根据选中的日期筛选习惯
-    if (this.data.selectedDate) {
-      const { shouldDoHabitOnDate } = require('../../utils/habit');
-      filteredHabits = filteredHabits.filter(habit => 
-        shouldDoHabitOnDate(habit, this.data.selectedDate)
-      );
-    }
-    
-    // 根据当前排序方式排序习惯
-    const sortedHabits = this.sortHabits(filteredHabits, habitStats);
-    
-    this.setData({
-      habits: sortedHabits,
-      habitStats,
-      loading: false
-    });
+    // 使用habitAPI获取习惯数据
+    habitAPI.getHabits()
+      .then(habits => {
+        console.log('获取到所有习惯数据:', habits);
+        
+        // 获取每个习惯的统计数据
+        const statsPromises = habits.map(habit => 
+          habitAPI.getHabitStats(habit.id || habit._id || '')
+            .catch(error => {
+              console.error(`获取习惯${habit.id || habit._id}的统计数据失败:`, error);
+              // 返回默认统计数据
+              return {
+                totalCompletions: 0,
+                totalDays: 0,
+                completionRate: 0,
+                currentStreak: 0,
+                longestStreak: 0,
+                lastCompletedDate: null
+              } as IHabitStats;
+            })
+        );
+        
+        // 等待所有统计数据获取完成
+        return Promise.all([Promise.resolve(habits), Promise.all(statsPromises)]);
+      })
+      .then(([habits, statsArray]) => {
+        // 创建习惯ID到统计数据的映射
+        const habitStats: Record<string, IHabitStats> = {};
+        habits.forEach((habit, index) => {
+          const habitId = habit.id || habit._id || '';
+          if (habitId) {
+            habitStats[habitId] = statsArray[index];
+          }
+        });
+        
+        // 根据当前标签筛选习惯
+        const filteredHabits = this.filterHabits(habits);
+        
+        console.log('筛选后的习惯列表:', filteredHabits);
+        
+        // 根据当前排序方式排序习惯
+        const sortedHabits = this.sortHabits(filteredHabits, habitStats);
+        
+        // 更新数据
+        this.setData({
+          habits: sortedHabits,
+          habitStats,
+          loading: false,
+          apiAvailable: true
+        });
+        
+        console.log('更新后的habitStats:', habitStats);
+      })
+      .catch(error => {
+        console.error('获取习惯数据失败:', error);
+        this.setData({ 
+          loading: false,
+          error: '获取数据失败，请稍后重试',
+          apiAvailable: app.globalData.apiAvailable
+        });
+        
+        wx.showToast({
+          title: '获取数据失败',
+          icon: 'none'
+        });
+      });
   },
 
   /**
@@ -272,14 +149,25 @@ Page({
   filterHabits(habits: IHabit[]): IHabit[] {
     const { activeTab, categories } = this.data;
     
+    // 获取当前选中的分类
+    const selectedCategory = categories[activeTab];
+    
     // 如果是"全部"标签，则不进行筛选
-    if (activeTab === 0) {
+    if (selectedCategory === 'all') {
       return habits.filter(habit => !habit.isArchived);
     }
     
     // 根据类别筛选
-    const category = categories[activeTab];
-    return habits.filter(habit => !habit.isArchived && habit.category === category);
+    return habits.filter(habit => {
+      // 过滤掉已归档的习惯
+      if (habit.isArchived) return false;
+      
+      // 获取习惯分类，默认为'other'
+      const habitCategory = habit.category || 'other';
+      
+      // 匹配分类
+      return habitCategory === selectedCategory;
+    });
   },
 
   /**
@@ -304,8 +192,14 @@ Page({
         break;
       case 'completionRate':
         sortedHabits.sort((a, b) => {
-          const rateA = habitStats[a.id]?.completionRate || 0;
-          const rateB = habitStats[b.id]?.completionRate || 0;
+          // 获取习惯ID (只使用_id)
+          const habitIdA = a._id || '';
+          const habitIdB = b._id || '';
+          
+          // 获取完成率
+          const rateA = habitIdA ? (habitStats[habitIdA]?.completionRate || 0) : 0;
+          const rateB = habitIdB ? (habitStats[habitIdB]?.completionRate || 0) : 0;
+          
           const result = rateA - rateB;
           return sortOrder === 'asc' ? result : -result;
         });
@@ -387,7 +281,7 @@ Page({
     if (!habitId) return;
     
     // 获取习惯信息，用于传递到打卡页面
-    const habit = this.data.habits.find(h => h.id === habitId);
+    const habit = this.data.habits.find(h => h.id === habitId || h._id === habitId);
     if (!habit) return;
     
     // 跳转到打卡页面
@@ -408,25 +302,44 @@ Page({
       content: '删除后将无法恢复，确定要删除吗？',
       success: (res) => {
         if (res.confirm) {
-          // 获取所有习惯
-          const habits = getHabits();
-          
-          // 删除指定习惯
-          const newHabits = habits.filter(h => h.id !== habitId);
-          
-          // 保存修改
-          saveHabits(newHabits);
-          
-          // 重新加载习惯数据
-          this.loadHabits();
-          
-          wx.showToast({
-            title: '删除成功',
-            icon: 'success'
+          // 设置加载状态
+          wx.showLoading({
+            title: '删除中...',
+            mask: true
           });
+          
+          // 调用API删除习惯
+          habitAPI.deleteHabit(habitId)
+            .then(() => {
+              wx.hideLoading();
+              
+              // 重新加载数据
+              this.loadHabits();
+              
+              wx.showToast({
+                title: '删除成功',
+                icon: 'success'
+              });
+            })
+            .catch(error => {
+              wx.hideLoading();
+              console.error('删除习惯失败:', error);
+              
+              wx.showToast({
+                title: '删除失败',
+                icon: 'none'
+              });
+            });
         }
       }
     });
+  },
+
+  /**
+   * 重试加载
+   */
+  onRetry() {
+    this.loadHabits();
   },
 
   /**
@@ -434,8 +347,48 @@ Page({
    */
   onShareAppMessage() {
     return {
-      title: '习惯养成计划',
+      title: '我的习惯养成计划',
       path: '/pages/index/index'
     };
+  },
+
+  /**
+   * 诊断习惯卡片问题
+   */
+  debug() {
+    console.log('==== 习惯卡片诊断开始 ====');
+    
+    const { habits, habitStats } = this.data;
+    
+    console.log('当前标签页索引:', this.data.activeTab);
+    console.log('当前选中分类:', this.data.categories[this.data.activeTab]);
+    console.log('习惯总数:', habits.length);
+    console.log('统计数据对象:', habitStats);
+    
+    habits.forEach(habit => {
+      const habitId = habit._id || habit.id;
+      const stats = habitStats[habitId];
+      
+      console.log(`习惯: ${habit.name}`);
+      console.log(`- ID: ${habitId}`);
+      console.log(`- _id: ${habit._id}`);
+      console.log(`- id: ${habit.id}`);
+      console.log(`- 分类: ${habit.category}`);
+      console.log(`- 中文分类: ${this.data.categoryMap[habit.category as keyof typeof this.data.categoryMap] || habit.category}`);
+      console.log(`- 统计数据:`, stats);
+      
+      if (stats) {
+        console.log(`  - 完成率: ${stats.completionRate}%`);
+        console.log(`  - 连续天数: ${stats.currentStreak}`);
+        console.log(`  - 总完成次数: ${stats.totalCompletions}`);
+        console.log(`  - 最后完成日期: ${stats.lastCompletedDate}`);
+      } else {
+        console.log(`  - 无统计数据`);
+      }
+      
+      console.log(`--------------------------`);
+    });
+    
+    console.log('==== 习惯卡片诊断结束 ====');
   }
 }); 

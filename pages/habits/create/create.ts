@@ -1,7 +1,7 @@
 /**
  * 创建习惯页面
  */
-import { getHabits, saveHabits } from '../../../utils/storage';
+import { habitAPI } from '../../../services/api';
 import { generateUUID } from '../../../utils/util';
 
 Page({
@@ -9,9 +9,12 @@ Page({
    * 页面的初始数据
    */
   data: {
+    id: '', // 编辑模式下的习惯ID
+    isEdit: false, // 是否为编辑模式
     name: '',
     description: '',
-    category: '学习',
+    category: 'learning', // 默认使用英文ID
+    categoryName: '学习', // 显示用的中文名称
     icon: 'habit',
     color: '#4F7CFF',
     frequency: 'daily',
@@ -20,7 +23,15 @@ Page({
     isReminderEnabled: false,
     goalValue: 1,
     goalUnit: '次',
-    categories: ['学习', '健康', '工作', '生活'],
+    // 分类显示用的中文名称
+    categoryOptions: [
+      { id: 'learning', name: '学习', icon: 'book' },
+      { id: 'health', name: '健康', icon: 'heart' },
+      { id: 'work', name: '工作', icon: 'briefcase' },
+      { id: 'social', name: '社交', icon: 'users' },
+      { id: 'finance', name: '财务', icon: 'dollar-sign' },
+      { id: 'other', name: '其他', icon: 'more-horizontal' }
+    ],
     icons: ['habit', 'book', 'run', 'work', 'sleep', 'water', 'food', 'meditation', 'gym'],
     colors: ['#4F7CFF', '#67C23A', '#E6A23C', '#F56C6C', '#909399', '#9C27B0', '#FF9800', '#795548', '#00BCD4'],
     frequencyOptions: [
@@ -41,8 +52,143 @@ Page({
   /**
    * 生命周期函数--监听页面加载
    */
-  onLoad() {
+  onLoad(options) {
+    // 加载分类列表
+    this.loadCategories();
     
+    if (options.id) {
+      // 编辑模式
+      this.setData({
+        id: options.id,
+        isEdit: true
+      });
+      
+      wx.setNavigationBarTitle({
+        title: '编辑习惯'
+      });
+      
+      // 加载习惯详情
+      this.loadHabitDetail(options.id);
+    }
+  },
+  
+  /**
+   * 加载分类列表
+   */
+  async loadCategories() {
+    try {
+      // 使用any类型暂时绕过类型检查，因为API响应格式可能与类型定义不一致
+      const response: any = await habitAPI.getCategories();
+      
+      // API响应格式为 { success: boolean, data: HabitCategory[] }
+      if (response && response.success && Array.isArray(response.data)) {
+        this.setData({
+          categoryOptions: response.data
+        });
+        
+        // 如果有分类数据，更新当前选中的分类名称
+        const currentCategory = this.data.category;
+        const categoryOption = response.data.find((item: { id: string; name: string; }) => item.id === currentCategory);
+        if (categoryOption) {
+          this.setData({
+            categoryName: categoryOption.name
+          });
+        }
+      }
+    } catch (error) {
+      console.error('加载分类列表失败:', error);
+      // 出错时使用默认分类列表
+      const defaultCategories = [
+        { id: 'learning', name: '学习', icon: 'book' },
+        { id: 'health', name: '健康', icon: 'heart' },
+        { id: 'work', name: '工作', icon: 'briefcase' },
+        { id: 'social', name: '社交', icon: 'users' },
+        { id: 'finance', name: '财务', icon: 'dollar-sign' },
+        { id: 'other', name: '其他', icon: 'more-horizontal' }
+      ];
+      
+      this.setData({
+        categoryOptions: defaultCategories
+      });
+    }
+  },
+  
+  /**
+   * 加载习惯详情
+   */
+  async loadHabitDetail(habitId: string) {
+    wx.showLoading({
+      title: '加载中'
+    });
+    
+    try {
+      const habit = await habitAPI.getHabit(habitId);
+      
+      // 查找分类对应的中文名称
+      const categoryOption = this.data.categoryOptions.find(item => item.id === habit.category);
+      const categoryName = categoryOption ? categoryOption.name : '其他';
+      
+      // 设置表单数据
+      this.setData({
+        name: habit.name,
+        description: habit.description || '',
+        category: habit.category,
+        categoryName: categoryName,
+        icon: habit.icon,
+        color: habit.color,
+        isReminderEnabled: habit.reminder?.enabled || false,
+        reminderTime: habit.reminder?.time || '08:00',
+        goalValue: habit.target || 1,
+        goalUnit: habit.unit || '次'
+      });
+      
+      // 设置频率
+      if (habit.frequency) {
+        let frequency = 'daily';
+        let customDays = [0, 1, 2, 3, 4, 5, 6];
+        
+        if (habit.frequency.type === 'weekly' && habit.frequency.days) {
+          const days = habit.frequency.days;
+          
+          // 检查是否是工作日
+          if (days.length === 5 && days.includes(1) && days.includes(2) && 
+              days.includes(3) && days.includes(4) && days.includes(5) && 
+              !days.includes(0) && !days.includes(6)) {
+            frequency = 'workdays';
+          } 
+          // 检查是否是周末
+          else if (days.length === 2 && days.includes(0) && days.includes(6) && 
+                  !days.includes(1) && !days.includes(2) && !days.includes(3) && 
+                  !days.includes(4) && !days.includes(5)) {
+            frequency = 'weekends';
+          }
+          // 检查是否是每周一次
+          else if (days.length === 1) {
+            frequency = 'weekly';
+          }
+          // 其他情况为自定义
+          else {
+            frequency = 'custom';
+          }
+          
+          customDays = days;
+        }
+        
+        this.setData({
+          frequency,
+          customDays
+        });
+      }
+      
+      wx.hideLoading();
+    } catch (error) {
+      console.error('加载习惯详情失败:', error);
+      wx.hideLoading();
+      wx.showToast({
+        title: '加载失败',
+        icon: 'error'
+      });
+    }
   },
 
   /**
@@ -234,20 +380,37 @@ Page({
   /**
    * 选择分类
    */
-  selectCategory(e: any) {
-    const { category } = e.currentTarget.dataset;
+  onSelectCategory(e: WechatMiniprogram.TouchEvent) {
+    const { id, name } = e.currentTarget.dataset as { id: string, name: string };
     this.setData({
-      category,
+      category: id,
+      categoryName: name,
       showCategoryPicker: false
     });
   },
 
   /**
-   * 表单提交
+   * 提交表单
    */
   async onSubmit() {
+    const {
+      id,
+      isEdit,
+      name,
+      description,
+      category, // 使用英文ID
+      icon,
+      color,
+      frequency,
+      customDays,
+      isReminderEnabled,
+      reminderTime,
+      goalValue,
+      goalUnit
+    } = this.data;
+    
     // 表单验证
-    if (!this.data.name.trim()) {
+    if (!name.trim()) {
       wx.showToast({
         title: '请输入习惯名称',
         icon: 'none'
@@ -264,56 +427,56 @@ Page({
       isSubmitting: true
     });
     
+    wx.showLoading({
+      title: isEdit ? '保存中' : '创建中'
+    });
+    
     try {
-      // 获取现有习惯
-      const habits = getHabits();
-      
-      // 创建新习惯
-      const newHabit: IHabit = {
-        id: generateUUID(),
-        name: this.data.name.trim(),
-        description: this.data.description.trim(),
-        category: this.data.category,
-        icon: this.data.icon,
-        color: this.data.color,
+      // 准备习惯数据
+      const habitData: Partial<IHabit> = {
+        name: name.trim(),
+        description: description.trim(),
+        category, // 使用英文ID
+        icon,
+        color,
         frequency: {
-          type: this.data.frequency as 'daily' | 'weekly' | 'custom' | 'monthly',
-          days: this.data.customDays
+          type: frequency === 'daily' ? 'daily' : 'weekly',
+          days: frequency === 'daily' ? undefined : customDays
         },
         reminder: {
-          enabled: this.data.isReminderEnabled,
-          time: this.data.reminderTime
+          enabled: isReminderEnabled,
+          time: reminderTime
         },
-        goalValue: this.data.goalValue,
-        goalUnit: this.data.goalUnit,
-        isArchived: false,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
+        target: Number(goalValue),
+        unit: goalUnit,
+        startDate: new Date().toISOString().split('T')[0]
       };
       
-      // 添加到习惯列表
-      habits.push(newHabit);
+      if (isEdit) {
+        // 更新习惯
+        await habitAPI.updateHabit(id, habitData);
+      } else {
+        // 创建习惯
+        await habitAPI.createHabit(habitData);
+      }
       
-      // 保存习惯列表
-      saveHabits(habits);
-      
-      // 显示成功提示
+      wx.hideLoading();
       wx.showToast({
-        title: '创建成功',
+        title: isEdit ? '保存成功' : '创建成功',
         icon: 'success'
       });
       
-      // 延迟返回
+      // 返回上一页
       setTimeout(() => {
         wx.navigateBack();
       }, 1500);
     } catch (error) {
-      console.error('创建习惯失败', error);
+      console.error(isEdit ? '更新习惯失败:' : '创建习惯失败:', error);
+      wx.hideLoading();
       wx.showToast({
-        title: '创建失败，请重试',
-        icon: 'none'
+        title: isEdit ? '保存失败' : '创建失败',
+        icon: 'error'
       });
-    } finally {
       this.setData({
         isSubmitting: false
       });
@@ -321,9 +484,25 @@ Page({
   },
 
   /**
-   * 取消创建
+   * 取消
    */
   onCancel() {
     wx.navigateBack();
+  },
+
+  /**
+   * 切换分类选择器
+   */
+  toggleCategoryPicker() {
+    this.setData({
+      showCategoryPicker: !this.data.showCategoryPicker
+    });
+  },
+
+  /**
+   * 阻止事件冒泡
+   */
+  stopPropagation() {
+    // 阻止事件冒泡
   }
 }); 

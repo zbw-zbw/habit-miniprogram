@@ -1,50 +1,44 @@
 // packageCommunity/pages/search/search.js
+const { communityAPI } = require('../../services/api');
+
 Page({
   /**
    * 页面的初始数据
    */
   data: {
     keyword: '',
-    activeTab: 'all', // all, users, posts, habits, challenges
+    hasSearched: false,
     loading: false,
-    hasResult: false,
+    loadingMore: false,
+    hasMore: true,
+    activeTab: 'all',
     searchHistory: [],
-    hotKeywords: ['早起', '阅读', '运动', '冥想', '写作', '学习', '健康饮食'],
-    results: {
-      users: [],
-      posts: [],
-      habits: [],
-      challenges: []
-    },
-    hasMore: {
-      users: false,
-      posts: false,
-      habits: false,
-      challenges: false
-    }
+    hotSearches: ['习惯养成', '早起', '阅读', '运动', '冥想', '学习', '健康饮食', '写作'],
+    results: [],
+    page: 1
   },
 
   /**
    * 生命周期函数--监听页面加载
    */
   onLoad(options) {
-    // 获取搜索历史
-    this.loadSearchHistory();
-    
-    // 如果有传入的关键词参数，自动执行搜索
+    // 如果有传入的关键词，自动搜索
     if (options.keyword) {
-      this.setData({ keyword: options.keyword });
-      this.search();
+      this.setData({ keyword: options.keyword }, () => {
+        this.doSearch();
+      });
     }
+    
+    // 加载搜索历史
+    this.loadSearchHistory();
   },
 
   /**
    * 加载搜索历史
    */
   loadSearchHistory() {
-    // 从本地存储获取搜索历史
-    const history = wx.getStorageSync('searchHistory') || [];
-    this.setData({ searchHistory: history });
+    const searchHistory = wx.getStorageSync('searchHistory') || [];
+    this.setData({ searchHistory });
   },
 
   /**
@@ -53,70 +47,87 @@ Page({
   saveSearchHistory(keyword) {
     if (!keyword.trim()) return;
     
-    let history = this.data.searchHistory;
+    let searchHistory = wx.getStorageSync('searchHistory') || [];
     
-    // 如果已存在相同关键词，先移除
-    history = history.filter(item => item !== keyword);
-    
-    // 添加到历史记录开头
-    history.unshift(keyword);
-    
-    // 限制历史记录数量
-    if (history.length > 10) {
-      history = history.slice(0, 10);
+    // 如果已存在，先删除旧的
+    const index = searchHistory.indexOf(keyword);
+    if (index !== -1) {
+      searchHistory.splice(index, 1);
     }
     
-    // 更新数据和本地存储
-    this.setData({ searchHistory: history });
-    wx.setStorageSync('searchHistory', history);
+    // 添加到最前面
+    searchHistory.unshift(keyword);
+    
+    // 最多保存10条
+    if (searchHistory.length > 10) {
+      searchHistory = searchHistory.slice(0, 10);
+    }
+    
+    // 保存到本地
+    wx.setStorageSync('searchHistory', searchHistory);
+    
+    // 更新页面
+    this.setData({ searchHistory });
   },
 
   /**
    * 清空搜索历史
    */
-  clearSearchHistory() {
+  clearHistory() {
     wx.showModal({
-      title: '清空搜索历史',
-      content: '确定要清空所有搜索历史吗？',
+      title: '提示',
+      content: '确定要清空搜索历史吗？',
       success: (res) => {
         if (res.confirm) {
+          wx.removeStorageSync('searchHistory');
           this.setData({ searchHistory: [] });
-          wx.setStorageSync('searchHistory', []);
         }
       }
     });
   },
 
   /**
-   * 输入搜索关键词
+   * 输入关键词
    */
   inputKeyword(e) {
     this.setData({ keyword: e.detail.value });
   },
 
   /**
-   * 清空搜索关键词
+   * 清空关键词
    */
   clearKeyword() {
-    this.setData({ 
+    this.setData({
       keyword: '',
-      hasResult: false
+      hasSearched: false,
+      results: []
     });
   },
 
   /**
-   * 点击搜索历史或热门关键词
+   * 使用历史关键词
    */
-  tapKeyword(e) {
-    const keyword = e.currentTarget.dataset.keyword;
-    this.setData({ keyword });
-    this.search();
+  useHistoryKeyword(e) {
+    const { keyword } = e.currentTarget.dataset;
+    this.setData({ keyword }, () => {
+      this.doSearch();
+    });
+  },
+
+  /**
+   * 使用热门关键词
+   */
+  useHotKeyword(e) {
+    const { keyword } = e.currentTarget.dataset;
+    this.setData({ keyword }, () => {
+      this.doSearch();
+    });
   },
 
   /**
    * 执行搜索
    */
-  search() {
+  doSearch() {
     const { keyword } = this.data;
     
     if (!keyword.trim()) {
@@ -128,166 +139,227 @@ Page({
     }
     
     // 保存搜索历史
-    this.saveSearchHistory(keyword);
+    this.saveSearchHistory(keyword.trim());
     
-    // 显示加载中
-    this.setData({ 
+    // 重置搜索状态
+    this.setData({
+      hasSearched: true,
       loading: true,
-      hasResult: false,
-      results: {
-        users: [],
-        posts: [],
-        habits: [],
-        challenges: []
-      },
-      hasMore: {
-        users: false,
-        posts: false,
-        habits: false,
-        challenges: false
-      }
+      results: [],
+      page: 1,
+      hasMore: true
     });
     
-    // 模拟搜索延迟
-    setTimeout(() => {
-      // 模拟搜索结果
-      const mockResults = {
-        users: [
-          {
-            id: '101',
-            name: '李小华',
-            avatar: '/images/avatars/avatar1.png',
-            bio: '热爱阅读和写作的文艺青年',
-            isFollowing: true
-          },
-          {
-            id: '102',
-            name: '张明',
-            avatar: '/images/avatars/avatar2.png',
-            bio: '运动健身爱好者，每日5公里跑步',
-            isFollowing: false
-          }
-        ],
-        posts: [
-          {
-            id: '1',
-            userId: '101',
-            userName: '李小华',
-            userAvatar: '/images/avatars/avatar1.png',
-            content: '今天完成了《原子习惯》的阅读，真的很有启发！',
-            images: ['/images/posts/post1.jpg'],
-            likes: 256,
-            comments: 48,
-            createdAt: '2023-10-16 08:23'
-          },
-          {
-            id: '3',
-            userId: '103',
-            userName: '王丽',
-            userAvatar: '/images/avatars/avatar3.png',
-            content: '早晨冥想20分钟，整个人都平静下来了。',
-            images: [],
-            likes: 89,
-            comments: 15,
-            createdAt: '2023-10-14 07:30'
-          }
-        ],
-        habits: [
-          {
-            id: 'habit1',
-            name: '每日阅读',
-            icon: '/images/habits/reading.png',
-            color: '#4F7CFF',
-            frequency: '每天',
-            streak: 15
-          },
-          {
-            id: 'habit2',
-            name: '晨间冥想',
-            icon: '/images/habits/meditation.png',
-            color: '#67C23A',
-            frequency: '每天',
-            streak: 8
-          }
-        ],
-        challenges: [
-          {
-            id: 'challenge1',
-            title: '21天阅读挑战',
-            image: '/images/challenges/reading.jpg',
-            participants: 1358,
-            isJoined: false
-          },
-          {
-            id: 'challenge3',
-            title: '每日冥想',
-            image: '/images/challenges/meditation.jpg',
-            participants: 863,
-            isJoined: false
-          }
-        ]
-      };
-      
-      // 根据关键词过滤结果
-      const keyword = this.data.keyword.toLowerCase();
-      
-      const filteredResults = {
-        users: mockResults.users.filter(item => 
-          item.name.toLowerCase().includes(keyword) || 
-          item.bio.toLowerCase().includes(keyword)
-        ),
-        posts: mockResults.posts.filter(item => 
-          item.content.toLowerCase().includes(keyword) || 
-          item.userName.toLowerCase().includes(keyword)
-        ),
-        habits: mockResults.habits.filter(item => 
-          item.name.toLowerCase().includes(keyword)
-        ),
-        challenges: mockResults.challenges.filter(item => 
-          item.title.toLowerCase().includes(keyword)
-        )
-      };
-      
-      // 判断是否有结果
-      const hasResult = 
-        filteredResults.users.length > 0 || 
-        filteredResults.posts.length > 0 || 
-        filteredResults.habits.length > 0 || 
-        filteredResults.challenges.length > 0;
-      
-      // 更新数据
-      this.setData({
-        loading: false,
-        hasResult: hasResult,
-        results: filteredResults,
-        hasMore: {
-          users: filteredResults.users.length >= 2,
-          posts: filteredResults.posts.length >= 2,
-          habits: filteredResults.habits.length >= 2,
-          challenges: filteredResults.challenges.length >= 2
-        }
-      });
-    }, 1000);
+    // 执行搜索
+    this.searchResults();
   },
 
   /**
-   * 切换标签
+   * 搜索结果
+   */
+  searchResults(isLoadMore = false) {
+    const { keyword, activeTab, page } = this.data;
+    
+    // 如果是加载更多，显示加载更多状态
+    if (isLoadMore) {
+      this.setData({ loadingMore: true });
+    }
+    
+    // 构建请求参数
+    const params = {
+      keyword: keyword,
+      type: activeTab === 'all' ? undefined : activeTab,
+      page: page,
+      limit: 10
+    };
+    
+    // 调用搜索API
+    communityAPI.search(params)
+      .then(result => {
+        console.log('搜索结果:', result);
+        
+        // 处理分页数据
+        const { items, total, page: currentPage, limit } = result;
+        const hasMore = currentPage * limit < total;
+        
+        // 添加新数据到列表
+        const currentResults = this.data.results;
+        const newResults = isLoadMore ? [...currentResults, ...items] : items;
+        
+        this.setData({
+          results: newResults,
+          loading: false,
+          loadingMore: false,
+          hasMore: hasMore,
+          page: page + 1
+        });
+      })
+      .catch(error => {
+        console.error('搜索失败:', error);
+        this.setData({ 
+          loading: false, 
+          loadingMore: false 
+        });
+        
+        // 显示错误提示
+        wx.showToast({
+          title: '搜索失败，请重试',
+          icon: 'none'
+        });
+        
+        // 如果API调用失败，使用模拟数据（开发阶段过渡用）
+        this.searchWithMockData(isLoadMore);
+      });
+  },
+  
+  /**
+   * 使用模拟数据搜索（API不可用时的备选方案）
+   */
+  searchWithMockData(isLoadMore = false) {
+    const { activeTab, page } = this.data;
+    
+    // 模拟搜索结果
+    let mockResults = [];
+    
+    // 根据标签页过滤结果
+    switch (activeTab) {
+      case 'all':
+        mockResults = this.getMockResults();
+        break;
+      case 'posts':
+        mockResults = this.getMockResults().filter(item => item.type === 'post');
+        break;
+      case 'users':
+        mockResults = this.getMockResults().filter(item => item.type === 'user');
+        break;
+      case 'habits':
+        mockResults = this.getMockResults().filter(item => item.type === 'habit');
+        break;
+      case 'topics':
+        mockResults = this.getMockResults().filter(item => item.type === 'topic');
+        break;
+    }
+    
+    // 模拟分页
+    const currentResults = this.data.results;
+    const newResults = isLoadMore ? [...currentResults, ...mockResults] : mockResults;
+    
+    // 判断是否还有更多数据
+    const hasMore = page < 3; // 模拟只有3页数据
+    
+    this.setData({
+      results: newResults,
+      loading: false,
+      loadingMore: false,
+      hasMore: hasMore,
+      page: page + 1
+    });
+  },
+
+  /**
+   * 获取模拟搜索结果
+   */
+  getMockResults() {
+    const { keyword } = this.data;
+    
+    // 模拟搜索结果
+    return [
+      // 动态结果
+      {
+        id: 'post1',
+        type: 'post',
+        userId: '101',
+        userName: '李小华',
+        userAvatar: '/images/avatars/avatar1.png',
+        content: `今天完成了《原子习惯》的阅读，真的很有启发！分享一个金句："习惯是复利的魔力：1%的微小改变，带来巨大的人生转变。"`,
+        likes: 256,
+        comments: 48,
+        time: '2小时前'
+      },
+      {
+        id: 'post2',
+        type: 'post',
+        userId: '102',
+        userName: '张明',
+        userAvatar: '/images/avatars/avatar2.png',
+        content: `坚持早起一个月了，感觉整个人的精力和效率都提高了！推荐大家尝试"5点起床法"，确实很有效。`,
+        likes: 128,
+        comments: 32,
+        time: '3小时前'
+      },
+      
+      // 用户结果
+      {
+        id: '101',
+        type: 'user',
+        name: '李小华',
+        avatar: '/images/avatars/avatar1.png',
+        bio: '热爱阅读，每天学习一点点',
+        isFollowing: false
+      },
+      {
+        id: '102',
+        type: 'user',
+        name: '张明',
+        avatar: '/images/avatars/avatar2.png',
+        bio: '早起俱乐部创始人，5点起床法实践者',
+        isFollowing: true
+      },
+      
+      // 习惯结果
+      {
+        id: 'habit1',
+        type: 'habit',
+        name: '每日阅读',
+        icon: '/images/habits/reading.png',
+        color: '#4F7CFF',
+        users: 2568,
+        isAdded: false
+      },
+      {
+        id: 'habit2',
+        type: 'habit',
+        name: '早起打卡',
+        icon: '/images/habits/wakeup.png',
+        color: '#67C23A',
+        users: 3721,
+        isAdded: true
+      },
+      
+      // 话题结果
+      {
+        id: 'topic1',
+        type: 'topic',
+        name: '习惯养成',
+        image: '/images/topics/habit.png',
+        posts: 1256
+      },
+      {
+        id: 'topic2',
+        type: 'topic',
+        name: '早起打卡',
+        image: '/images/topics/wakeup.png',
+        posts: 986
+      }
+    ];
+  },
+
+  /**
+   * 切换标签页
    */
   switchTab(e) {
     const tab = e.currentTarget.dataset.tab;
-    this.setData({ activeTab: tab });
-  },
-
-  /**
-   * 查看更多结果
-   */
-  viewMore(e) {
-    const type = e.currentTarget.dataset.type;
-    const { keyword } = this.data;
     
-    wx.navigateTo({
-      url: `/packageCommunity/pages/search-result/search-result?keyword=${keyword}&type=${type}`
-    });
+    if (tab !== this.data.activeTab) {
+      this.setData({
+        activeTab: tab,
+        results: [],
+        page: 1,
+        hasMore: true
+      }, () => {
+        this.searchResults();
+      });
+    }
   },
 
   /**
@@ -298,6 +370,44 @@ Page({
     wx.navigateTo({
       url: `/packageCommunity/pages/user-profile/user-profile?id=${id}`
     });
+  },
+
+  /**
+   * 关注/取消关注用户
+   */
+  toggleFollow(e) {
+    const { id, index } = e.currentTarget.dataset;
+    const results = this.data.results;
+    const userIndex = results.findIndex(item => item.id === id && item.type === 'user');
+    
+    if (userIndex !== -1) {
+      results[userIndex].isFollowing = !results[userIndex].isFollowing;
+      this.setData({ results });
+      
+      wx.showToast({
+        title: results[userIndex].isFollowing ? '已关注' : '已取消关注',
+        icon: 'success'
+      });
+    }
+  },
+
+  /**
+   * 添加/移除习惯
+   */
+  toggleAddHabit(e) {
+    const { id, index } = e.currentTarget.dataset;
+    const results = this.data.results;
+    const habitIndex = results.findIndex(item => item.id === id && item.type === 'habit');
+    
+    if (habitIndex !== -1) {
+      results[habitIndex].isAdded = !results[habitIndex].isAdded;
+      this.setData({ results });
+      
+      wx.showToast({
+        title: results[habitIndex].isAdded ? '已添加' : '已移除',
+        icon: 'success'
+      });
+    }
   },
 
   /**
@@ -316,43 +426,33 @@ Page({
   viewHabitDetail(e) {
     const { id } = e.currentTarget.dataset;
     wx.navigateTo({
-      url: `/pages/habits/detail/detail?id=${id}`
+      url: `/pages/habits/habit-detail/habit-detail?id=${id}`
     });
   },
 
   /**
-   * 查看挑战详情
+   * 查看话题详情
    */
-  viewChallengeDetail(e) {
+  viewTopicDetail(e) {
     const { id } = e.currentTarget.dataset;
     wx.navigateTo({
-      url: `/packageCommunity/pages/challenge/challenge?id=${id}`
+      url: `/packageCommunity/pages/topic/topic?id=${id}`
     });
   },
 
   /**
-   * 关注/取消关注用户
+   * 返回上一页
    */
-  toggleFollow(e) {
-    const { id, index } = e.currentTarget.dataset;
-    
-    // 防止事件冒泡
-    e.stopPropagation();
-    
-    // 更新关注状态
-    const users = this.data.results.users;
-    users[index].isFollowing = !users[index].isFollowing;
-    
-    this.setData({
-      'results.users': users
-    });
-    
-    // 提示用户
-    wx.showToast({
-      title: users[index].isFollowing ? '已关注' : '已取消关注',
-      icon: 'success'
-    });
-    
-    // TODO: 发送请求到服务器更新关注状态
+  navigateBack() {
+    wx.navigateBack();
+  },
+
+  /**
+   * 页面上拉触底事件的处理函数
+   */
+  onReachBottom() {
+    if (this.data.hasMore && !this.data.loading && !this.data.loadingMore) {
+      this.searchResults(true);
+    }
   }
 }) 

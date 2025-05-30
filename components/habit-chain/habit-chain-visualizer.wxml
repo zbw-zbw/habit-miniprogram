@@ -1,0 +1,54 @@
+<view class="habit-chain-visualizer">
+  <view id="canvas-container" class="canvas-container">
+    <canvas 
+      id="chain-canvas" 
+      type="2d" 
+      class="chain-canvas"
+      bindtouchstart="onTouchStart"
+      bindtouchmove="onTouchMove"
+      bindtouchend="onTouchEnd"
+      bindtap="onNodeClick"
+    ></canvas>
+  </view>
+  
+  <view class="controls" wx:if="{{editable && nodes.length > 0}}">
+    <view class="title">编辑习惯链</view>
+    <view class="habits-list">
+      <view class="habit-item" 
+        wx:for="{{nodes}}" 
+        wx:key="id"
+        data-habit-id="{{item.id}}"
+        bindtap="toggleOptional"
+        style="border-color: {{item.color}}; opacity: {{item.isOptional ? 0.6 : 1}}"
+      >
+        <view class="habit-icon" style="background-color: {{item.color}}">
+          <text class="icon-text">{{item.name[0]}}</text>
+        </view>
+        <view class="habit-info">
+          <text class="habit-name">{{item.name}}</text>
+          <text class="habit-status">{{item.isOptional ? '可选' : '必须'}}</text>
+        </view>
+        <view class="order-controls">
+          <button class="order-btn" 
+            size="mini" 
+            catchtap="changeNodeOrder" 
+            data-habit-id="{{item.id}}" 
+            data-new-order="{{index - 1}}"
+            disabled="{{index === 0}}"
+          >↑</button>
+          <button class="order-btn" 
+            size="mini" 
+            catchtap="changeNodeOrder" 
+            data-habit-id="{{item.id}}" 
+            data-new-order="{{index + 1}}"
+            disabled="{{index === nodes.length - 1}}"
+          >↓</button>
+        </view>
+      </view>
+    </view>
+  </view>
+  
+  <view class="empty-state" wx:if="{{!nodes.length}}">
+    <text>没有可用的习惯链数据</text>
+  </view>
+</view> 

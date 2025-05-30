@@ -16,28 +16,28 @@
           </view>
           <view class="tag">
             <text class="iconfont icon-tag"></text>
-            {{habit.category}}
+            {{categoryMap[habit.category] || habit.category}}
           </view>
         </view>
       </view>
     </view>
     
     <view class="habit-stats">
-      <view class="stat-item">
-        <view class="stat-value">{{stats.totalCompletions || 0}}</view>
-        <view class="stat-label">总打卡</view>
+      <view class="habit-stat-item">
+        <view class="habit-stat-value">{{stats.totalCompletions || 0}}</view>
+        <view class="habit-stat-label">总打卡</view>
       </view>
-      <view class="stat-item">
-        <view class="stat-value">{{stats.currentStreak || 0}}</view>
-        <view class="stat-label">连续天数</view>
+      <view class="habit-stat-item">
+        <view class="habit-stat-value">{{stats.currentStreak || 0}}</view>
+        <view class="habit-stat-label">连续天数</view>
       </view>
-      <view class="stat-item">
-        <view class="stat-value">{{completionRateFormatted}}%</view>
-        <view class="stat-label">完成率</view>
+      <view class="habit-stat-item">
+        <view class="habit-stat-value">{{completionRateFormatted}}%</view>
+        <view class="habit-stat-label">完成率</view>
       </view>
-      <view class="stat-item">
-        <view class="stat-value">{{stats.longestStreak || 0}}</view>
-        <view class="stat-label">最长连续</view>
+      <view class="habit-stat-item">
+        <view class="habit-stat-value">{{stats.longestStreak || 0}}</view>
+        <view class="habit-stat-label">最长连续</view>
       </view>
     </view>
   </view>
@@ -131,13 +131,13 @@
       <view class="stats-grid">
         <view class="stat-card">
           <view class="stat-label">本周完成率</view>
-          <view class="stat-main-value">92%</view>
-          <view class="stat-sub-value">较上周 <text class="positive">+15%</text></view>
+          <view class="stat-main-value">{{weeklyStats.completionRate || 0}}%</view>
+          <view class="stat-sub-value">较上周 <text class="{{weeklyStats.trend > 0 ? 'positive' : ''}}">{{weeklyStats.trend > 0 ? '+' : ''}}{{weeklyStats.trend || 0}}%</text></view>
         </view>
         <view class="stat-card">
           <view class="stat-label">平均时长</view>
-          <view class="stat-main-value">35分钟</view>
-          <view class="stat-sub-value">目标: <text>30分钟</text></view>
+          <view class="stat-main-value">{{weeklyStats.averageDuration || 0}}分钟</view>
+          <view class="stat-sub-value">目标: <text>{{habit.target || 0}}{{habit.unit || '分钟'}}</text></view>
         </view>
       </view>
       
@@ -145,23 +145,27 @@
       <view class="section">
         <view class="section-header">
           <view class="section-title">最近打卡记录</view>
-          <view class="section-action">查看全部</view>
+          <view class="section-action" bindtap="switchTab" data-tab="records">查看全部</view>
         </view>
         
         <view class="checkin-records">
-          <view class="record-item" wx:for="{{checkins}}" wx:key="id">
+          <view class="record-item" wx:for="{{checkins}}" wx:key="id" wx:if="{{index < 3}}">
             <view class="record-header">
               <view class="record-mood">
                 <text class="iconfont icon-smile"></text>
               </view>
               <view class="record-meta">
                 <view class="record-date">{{item.date === todayFormatted ? '今天' : item.date}}</view>
-                <view class="record-time">{{item.formattedTime}} · 30分钟</view>
+                <view class="record-time">{{item.formattedTime}}{{item.duration ? ' · ' + item.duration + '分钟' : ''}}</view>
               </view>
             </view>
             <view class="record-content" wx:if="{{item.note}}">
               <text>{{item.note}}</text>
             </view>
+          </view>
+          <view class="empty-state" wx:if="{{checkins.length === 0}}">
+            <text class="iconfont icon-empty"></text>
+            <view class="empty-text">暂无打卡记录</view>
           </view>
         </view>
       </view>
@@ -183,7 +187,7 @@
               </view>
               <view class="record-meta">
                 <view class="record-date">{{item.date === todayFormatted ? '今天' : item.date}}</view>
-                <view class="record-time">{{item.formattedTime}} · 30分钟</view>
+                <view class="record-time">{{item.formattedTime}}{{item.duration ? ' · ' + item.duration + '分钟' : ''}}</view>
               </view>
             </view>
             <view class="record-content" wx:if="{{item.note}}">
@@ -216,11 +220,11 @@
         <view class="stats-summary">
           <view class="summary-item">
             <view class="summary-label">平均</view>
-            <view class="summary-value">35分钟</view>
+            <view class="summary-value">{{statsData.averageDuration || 0}}分钟</view>
           </view>
           <view class="summary-item">
             <view class="summary-label">最长</view>
-            <view class="summary-value">45分钟</view>
+            <view class="summary-value">{{statsData.maxDuration || 0}}分钟</view>
           </view>
         </view>
       </view>

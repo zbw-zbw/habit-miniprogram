@@ -43,6 +43,33 @@
       </scroll-view>
     </view>
     
+    <!-- 小组列表 -->
+    <view class="groups-section">
+      <view class="section-header">
+        <text class="section-title">热门小组</text>
+        <text class="section-more" bindtap="viewAllGroups">查看全部</text>
+      </view>
+      
+      <scroll-view class="groups-scroll" scroll-x="true" enhanced="true" show-scrollbar="false">
+        <view class="group-item" 
+              wx:for="{{groups}}" 
+              wx:key="id" 
+              bindtap="viewGroupDetail"
+              data-id="{{item.id}}">
+          <image class="group-avatar" src="{{item.avatar}}" mode="aspectFill"></image>
+          <view class="group-info">
+            <text class="group-name">{{item.name}}</text>
+            <text class="group-members">{{item.membersCount}}人</text>
+          </view>
+        </view>
+        
+        <!-- 如果没有小组数据，显示空状态 -->
+        <view class="empty-state" wx:if="{{groups.length === 0}}">
+          <text>暂无小组数据</text>
+        </view>
+      </scroll-view>
+    </view>
+    
     <!-- 热门挑战 -->
     <view class="challenges-section">
       <view class="section-header">
@@ -67,6 +94,24 @@
                 data-id="{{item.id}}"
                 data-index="{{index}}">
             <text class="iconfont {{item.isJoined ? 'icon-check' : 'icon-plus'}}"></text>
+          </view>
+        </view>
+        
+        <!-- 空状态展示 -->
+        <view class="empty-challenge" wx:if="{{!challenges || challenges.length === 0}}">
+          <view class="empty-challenge-item">
+            <view class="empty-challenge-icon">
+              <text class="iconfont icon-challenge"></text>
+            </view>
+            <text class="empty-challenge-text">暂无挑战</text>
+            <view class="empty-challenge-btn" catchtap="viewAllChallenges">创建挑战</view>
+          </view>
+          <view class="empty-challenge-item">
+            <view class="empty-challenge-icon">
+              <text class="iconfont icon-calendar"></text>
+            </view>
+            <text class="empty-challenge-text">参与挑战</text>
+            <view class="empty-challenge-btn" catchtap="viewAllChallenges">浏览更多</view>
           </view>
         </view>
       </scroll-view>

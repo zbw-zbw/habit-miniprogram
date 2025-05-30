@@ -1,6 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 const date_1 = require("../../../utils/date");
+const api_1 = require("../../../services/api");
 Page({
     data: {
         habitId: '',
@@ -11,9 +12,24 @@ Page({
         todayFormatted: (0, date_1.formatDate)(new Date()),
         activeTab: 'overview',
         currentMonth: '',
-        calendarDays: []
+        calendarDays: [],
+        loading: {
+            habit: true,
+            checkins: true,
+            stats: true
+        },
+        error: {
+            habit: '',
+            checkins: '',
+            stats: ''
+        },
+        apiAvailable: true
     },
     onLoad(options) {
+        const app = getApp();
+        this.setData({
+            apiAvailable: app.globalData.apiAvailable
+        });
         if (options.id) {
             this.setData({
                 habitId: options.id
@@ -21,7 +37,6 @@ Page({
             this.loadHabitDetail();
             this.loadCheckins();
             this.loadStats();
-            this.initCalendar();
         }
         else {
             wx.showToast({
@@ -33,120 +48,91 @@ Page({
             }, 1500);
         }
     },
+    // 页面显示时重新加载数据
+    onShow() {
+        if (this.data.habitId) {
+            this.loadCheckins();
+            this.loadStats();
+        }
+    },
     // 加载习惯详情
     async loadHabitDetail() {
-        wx.showLoading({
-            title: '加载中'
+        this.setData({
+            'loading.habit': true,
+            'error.habit': ''
         });
         try {
-            // 模拟API请求
-            // 实际项目中应替换为真实API调用
-            setTimeout(() => {
-                const habit = {
-                    id: this.data.habitId,
-                    name: '每日阅读',
-                    description: '每天阅读30分钟，培养阅读习惯',
-                    category: '学习',
-                    icon: 'book',
-                    color: '#4F7CFF',
-                    frequency: {
-                        type: 'daily'
-                    },
-                    reminder: {
-                        enabled: true,
-                        time: '07:00'
-                    },
-                    isArchived: false,
-                    createdAt: '2023-06-01',
-                    updatedAt: '2023-06-15'
-                };
-                this.setData({
-                    habit
-                });
-                wx.hideLoading();
-            }, 500);
+            const habit = await api_1.habitAPI.getHabit(this.data.habitId);
+            this.setData({
+                habit,
+                'loading.habit': false
+            });
+            // 初始化日历（在获取习惯信息后）
+            this.updateCalendar();
         }
         catch (error) {
-            wx.hideLoading();
-            wx.showToast({
-                title: '加载失败',
-                icon: 'error'
+            console.error('加载习惯详情失败:', error);
+            this.setData({
+                'loading.habit': false,
+                'error.habit': '加载习惯详情失败'
             });
         }
     },
     // 加载打卡记录
     async loadCheckins() {
+        this.setData({
+            'loading.checkins': true,
+            'error.checkins': ''
+        });
         try {
-            // 模拟API请求
-            // 实际项目中应替换为真实API调用
-            setTimeout(() => {
-                // 获取基础数据
-                const baseCheckins = [
-                    {
-                        id: '1',
-                        habitId: this.data.habitId,
-                        date: (0, date_1.formatDate)(new Date()),
-                        isCompleted: true,
-                        note: '今天读完了《原子习惯》第15章，关于如何建立良好习惯的反馈系统。作者提出了"习惯追踪"的概念，非常实用！',
-                        createdAt: new Date().toISOString()
-                    },
-                    {
-                        id: '2',
-                        habitId: this.data.habitId,
-                        date: (0, date_1.formatDate)(new Date(Date.now() - 86400000)),
-                        isCompleted: true,
-                        note: '读完第14章，关于如何让好习惯变得容易。作者提出的"环境设计"理念很有启发，我决定在床头放本书，让阅读变得更容易开始。',
-                        createdAt: new Date(Date.now() - 86400000).toISOString()
-                    }
-                ];
-                // 处理打卡记录，添加格式化的时间
-                const checkins = baseCheckins.map(checkin => ({
-                    ...checkin,
-                    formattedTime: checkin.createdAt.substring(11, 16)
-                }));
-                this.setData({
-                    checkins
-                });
-            }, 500);
+            // 获取习惯的打卡记录
+            const baseCheckins = await api_1.checkinAPI.getCheckins({ habitId: this.data.habitId });
+            // 处理打卡记录，添加格式化的时间
+            const checkins = baseCheckins.map((checkin) => ({
+                ...checkin,
+                formattedTime: new Date(checkin.createdAt).toTimeString().substring(0, 5)
+            }));
+            this.setData({
+                checkins,
+                'loading.checkins': false
+            });
+            // 更新日历上的打卡记录
+            this.updateCalendar();
         }
         catch (error) {
-            wx.showToast({
-                title: '记录加载失败',
-                icon: 'error'
+            console.error('加载打卡记录失败:', error);
+            this.setData({
+                'loading.checkins': false,
+                'error.checkins': '加载打卡记录失败'
             });
         }
     },
     // 加载统计数据
     async loadStats() {
+        this.setData({
+            'loading.stats': true,
+            'error.stats': ''
+        });
         try {
-            // 模拟API请求
-            // 实际项目中应替换为真实API调用
-            setTimeout(() => {
-                const stats = {
-                    totalCompletions: 45,
-                    totalDays: 49,
-                    completionRate: 0.92,
-                    currentStreak: 12,
-                    longestStreak: 12,
-                    lastCompletedDate: (0, date_1.formatDate)(new Date())
-                };
-                // 预先计算格式化的完成率
-                const completionRateFormatted = (stats.completionRate * 100).toFixed(0);
-                this.setData({
-                    stats,
-                    completionRateFormatted
-                });
-            }, 500);
+            const stats = await api_1.habitAPI.getHabitStats(this.data.habitId);
+            // 预先计算格式化的完成率
+            const completionRateFormatted = (stats.completionRate * 100).toFixed(0);
+            this.setData({
+                stats,
+                completionRateFormatted,
+                'loading.stats': false
+            });
         }
         catch (error) {
-            wx.showToast({
-                title: '统计加载失败',
-                icon: 'error'
+            console.error('加载统计数据失败:', error);
+            this.setData({
+                'loading.stats': false,
+                'error.stats': '加载统计数据失败'
             });
         }
     },
-    // 初始化日历
-    initCalendar() {
+    // 更新日历
+    updateCalendar() {
         const now = new Date();
         const year = now.getFullYear();
         const month = now.getMonth();
@@ -161,40 +147,51 @@ Page({
         // 上个月的日期
         for (let i = 0; i < firstDay; i++) {
             const day = prevMonthDays - firstDay + i + 1;
+            const date = (0, date_1.formatDate)(new Date(year, month - 1, day));
             calendarDays.push({
-                date: `${year}-${month === 0 ? 12 : month}-${day}`,
+                date,
                 day,
                 isCurrentMonth: false,
-                isCompleted: false,
-                isToday: false
+                isCompleted: this.isDateCompleted(date),
+                isToday: this.isToday(date)
             });
         }
         // 当月的日期
         const today = now.getDate();
         for (let i = 1; i <= daysInMonth; i++) {
+            const date = (0, date_1.formatDate)(new Date(year, month, i));
             calendarDays.push({
-                date: `${year}-${month + 1}-${i}`,
+                date,
                 day: i,
                 isCurrentMonth: true,
-                isCompleted: i < today,
-                isToday: i === today
+                isCompleted: this.isDateCompleted(date),
+                isToday: this.isToday(date)
             });
         }
         // 下个月的日期
         const remainingDays = 42 - calendarDays.length; // 6行7列
         for (let i = 1; i <= remainingDays; i++) {
+            const date = (0, date_1.formatDate)(new Date(year, month + 1, i));
             calendarDays.push({
-                date: `${year}-${month + 2}-${i}`,
+                date,
                 day: i,
                 isCurrentMonth: false,
-                isCompleted: false,
-                isToday: false
+                isCompleted: this.isDateCompleted(date),
+                isToday: this.isToday(date)
             });
         }
         this.setData({
             currentMonth,
             calendarDays
         });
+    },
+    // 检查日期是否已完成打卡
+    isDateCompleted(date) {
+        return this.data.checkins.some(c => c.date === date && c.isCompleted);
+    },
+    // 检查是否是今天
+    isToday(date) {
+        return date === this.data.todayFormatted;
     },
     // 切换标签
     switchTab(e) {
@@ -208,23 +205,21 @@ Page({
         if (!this.data.habit)
             return;
         wx.navigateTo({
-            url: `/pages/checkin/checkin?habitId=${this.data.habitId}&habitName=${this.data.habit.name}`
+            url: `/pages/checkin/checkin?habitId=${this.data.habitId}&habitName=${encodeURIComponent(this.data.habit.name)}`
         });
     },
     // 分享
     onShareAppMessage() {
-        const habit = this.data.habit;
-        if (!habit)
-            return {};
+        const habitName = this.data.habit?.name || '习惯养成';
         return {
-            title: `我正在坚持「${habit.name}」，一起来吧！`,
-            path: `/pages/habits/detail/detail?id=${this.data.habitId}`
+            title: `我正在坚持「${habitName}」，一起来打卡吧！`,
+            path: `/pages/index/index?share=habit&id=${this.data.habitId}`
         };
     },
     // 切换月份
     changeMonth(e) {
-        const direction = e.currentTarget.dataset.direction;
-        // 实际项目中应该实现月份切换逻辑
+        const { direction } = e.currentTarget.dataset;
+        // 暂时在前端未实现月份切换功能，可以在这里添加
         wx.showToast({
             title: `切换到${direction === 'prev' ? '上' : '下'}个月`,
             icon: 'none'
@@ -232,38 +227,49 @@ Page({
     },
     // 编辑习惯
     editHabit() {
-        if (!this.data.habit)
-            return;
-        // 将习惯数据转为查询参数，以便传递到编辑页面
-        const habit = this.data.habit;
-        const queryParams = [
-            `id=${this.data.habitId}`,
-            `name=${encodeURIComponent(habit.name)}`,
-            `description=${encodeURIComponent(habit.description || '')}`,
-            `category=${encodeURIComponent(habit.category)}`,
-            `icon=${encodeURIComponent(habit.icon)}`,
-            `color=${encodeURIComponent(habit.color)}`,
-            `isEdit=true`
-        ].join('&');
         wx.navigateTo({
-            url: `/pages/habits/create/create?${queryParams}`
+            url: `/pages/habits/create/create?id=${this.data.habitId}`
         });
     },
     // 归档习惯
     archiveHabit() {
+        if (!this.data.habit)
+            return;
+        const isArchived = this.data.habit.isArchived;
+        const actionText = isArchived ? '取消归档' : '归档';
         wx.showModal({
-            title: '归档习惯',
-            content: '归档后，该习惯将不再显示在习惯列表中，但历史记录将被保留。确认归档？',
-            success: (res) => {
+            title: `${actionText}习惯`,
+            content: isArchived ?
+                '取消归档后，习惯将重新显示在习惯列表中' :
+                '归档后，习惯将不再显示在主列表中，但不会被删除',
+            confirmColor: '#4F7CFF',
+            success: async (res) => {
                 if (res.confirm) {
-                    // 实际项目中应调用API归档习惯
-                    wx.showToast({
-                        title: '归档成功',
-                        icon: 'success'
+                    wx.showLoading({
+                        title: `${actionText}中...`,
+                        mask: true
                     });
-                    setTimeout(() => {
-                        wx.navigateBack();
-                    }, 1500);
+                    try {
+                        // 更新习惯状态
+                        await api_1.habitAPI.updateHabit(this.data.habitId, {
+                            isArchived: !isArchived
+                        });
+                        // 重新加载习惯数据
+                        await this.loadHabitDetail();
+                        wx.hideLoading();
+                        wx.showToast({
+                            title: `${actionText}成功`,
+                            icon: 'success'
+                        });
+                    }
+                    catch (error) {
+                        console.error(`${actionText}习惯失败:`, error);
+                        wx.hideLoading();
+                        wx.showToast({
+                            title: `${actionText}失败`,
+                            icon: 'error'
+                        });
+                    }
                 }
             }
         });
@@ -272,17 +278,35 @@ Page({
     deleteHabit() {
         wx.showModal({
             title: '删除习惯',
-            content: '删除后，该习惯及所有历史记录将被永久删除，无法恢复。确认删除？',
-            success: (res) => {
+            content: '删除后将无法恢复，确定要删除吗？',
+            confirmColor: '#F56C6C',
+            success: async (res) => {
                 if (res.confirm) {
-                    // 实际项目中应调用API删除习惯
-                    wx.showToast({
-                        title: '删除成功',
-                        icon: 'success'
+                    wx.showLoading({
+                        title: '删除中...',
+                        mask: true
                     });
-                    setTimeout(() => {
-                        wx.navigateBack();
-                    }, 1500);
+                    try {
+                        // 删除习惯
+                        await api_1.habitAPI.deleteHabit(this.data.habitId);
+                        wx.hideLoading();
+                        wx.showToast({
+                            title: '删除成功',
+                            icon: 'success'
+                        });
+                        // 返回上一页
+                        setTimeout(() => {
+                            wx.navigateBack();
+                        }, 1500);
+                    }
+                    catch (error) {
+                        console.error('删除习惯失败:', error);
+                        wx.hideLoading();
+                        wx.showToast({
+                            title: '删除失败',
+                            icon: 'error'
+                        });
+                    }
                 }
             }
         });

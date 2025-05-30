@@ -3,9 +3,11 @@ Page({
    * 页面的初始数据
    */
   data: {
+    activeTab: 'all',
     loading: true,
-    notifications: [],
+    loadingMore: false,
     hasMore: true,
+    notifications: [],
     page: 1,
     pageSize: 20,
     unreadCount: 0
@@ -15,11 +17,34 @@ Page({
    * 生命周期函数--监听页面加载
    */
   onLoad(options) {
+    // 如果有指定标签页，切换到该标签页
+    if (options.tab && ['all', 'like', 'comment', 'follow'].includes(options.tab)) {
+      this.setData({ activeTab: options.tab });
+    }
+    
     this.loadNotifications();
   },
 
   /**
-   * 加载通知数据
+   * 切换标签页
+   */
+  switchTab(e) {
+    const tab = e.currentTarget.dataset.tab;
+    
+    if (tab !== this.data.activeTab) {
+      this.setData({
+        activeTab: tab,
+        notifications: [],
+        page: 1,
+        hasMore: true
+      }, () => {
+        this.loadNotifications();
+      });
+    }
+  },
+
+  /**
+   * 加载通知列表
    */
   loadNotifications(isRefresh = false) {
     // 如果是刷新，重置页码
@@ -31,83 +56,36 @@ Page({
       });
     }
     
+    // 如果没有更多数据，直接返回
+    if (!this.data.hasMore && !isRefresh) {
+      return;
+    }
+    
     // 显示加载中
-    this.setData({ loading: true });
+    this.setData({
+      loading: this.data.notifications.length === 0,
+      loadingMore: this.data.notifications.length > 0
+    });
     
     // 模拟加载延迟
     setTimeout(() => {
-      // 模拟通知数据
-      const mockNotifications = [
-        {
-          id: 'n1',
-          type: 'like',
-          isRead: false,
-          createdAt: '2023-10-16 14:30',
-          content: '赵强赞了你的动态',
-          sender: {
-            id: '104',
-            name: '赵强',
-            avatar: '/images/avatars/avatar4.png'
-          },
-          targetId: '1',
-          targetType: 'post'
-        },
-        {
-          id: 'n2',
-          type: 'comment',
-          isRead: false,
-          createdAt: '2023-10-15 18:45',
-          content: '陈静评论了你的动态：这个习惯很棒，我也想尝试！',
-          sender: {
-            id: '105',
-            name: '陈静',
-            avatar: '/images/avatars/avatar5.png'
-          },
-          targetId: '2',
-          targetType: 'post'
-        },
-        {
-          id: 'n3',
-          type: 'follow',
-          isRead: true,
-          createdAt: '2023-10-14 09:20',
-          content: '李小华关注了你',
-          sender: {
-            id: '101',
-            name: '李小华',
-            avatar: '/images/avatars/avatar1.png'
-          },
-          targetId: null,
-          targetType: null
-        },
-        {
-          id: 'n4',
-          type: 'challenge',
-          isRead: true,
-          createdAt: '2023-10-13 12:15',
-          content: '你的好友张明邀请你参加"早起俱乐部"挑战',
-          sender: {
-            id: '102',
-            name: '张明',
-            avatar: '/images/avatars/avatar2.png'
-          },
-          targetId: '2',
-          targetType: 'challenge'
-        },
-        {
-          id: 'n5',
-          type: 'system',
-          isRead: true,
-          createdAt: '2023-10-12 10:00',
-          content: '恭喜你获得"坚持不懈"徽章！',
-          sender: null,
-          targetId: '3',
-          targetType: 'achievement'
-        }
-      ];
+      // 根据当前标签页获取不同类型的通知
+      let mockNotifications = [];
       
-      // 计算未读通知数量
-      const unreadCount = mockNotifications.filter(item => !item.isRead).length;
+      switch (this.data.activeTab) {
+        case 'all':
+          mockNotifications = this.getMockNotifications();
+          break;
+        case 'like':
+          mockNotifications = this.getMockNotifications().filter(item => item.type === 'like');
+          break;
+        case 'comment':
+          mockNotifications = this.getMockNotifications().filter(item => item.type === 'comment');
+          break;
+        case 'follow':
+          mockNotifications = this.getMockNotifications().filter(item => item.type === 'follow');
+          break;
+      }
       
       // 模拟分页
       const currentNotifications = this.data.notifications;
@@ -119,32 +97,150 @@ Page({
       this.setData({
         notifications: newNotifications,
         loading: false,
+        loadingMore: false,
         hasMore: hasMore,
-        page: this.data.page + 1,
-        unreadCount: unreadCount
+        page: this.data.page + 1
       });
     }, 1000);
   },
 
   /**
+   * 获取模拟通知数据
+   */
+  getMockNotifications() {
+    return [
+      {
+        id: '1',
+        type: 'like',
+        userId: '101',
+        userName: '李小华',
+        userAvatar: '/images/avatars/avatar1.png',
+        actionText: '赞了你的动态',
+        targetText: '',
+        previewText: '今天完成了《原子习惯》的阅读，真的很有启发！分享一个金句："习惯是复利的魔力：1%的微小改变，带来巨大的人生转变。"',
+        targetImage: '/images/posts/post1.jpg',
+        targetId: 'post1',
+        time: '2分钟前',
+        isRead: false
+      },
+      {
+        id: '2',
+        type: 'comment',
+        userId: '102',
+        userName: '张明',
+        userAvatar: '/images/avatars/avatar2.png',
+        actionText: '评论了你的动态',
+        targetText: '',
+        previewText: '这本书我也在读，确实很棒！推荐你也看看《深度工作》，两本书结合起来效果更好。',
+        targetImage: '/images/posts/post1.jpg',
+        targetId: 'post1',
+        time: '10分钟前',
+        isRead: false
+      },
+      {
+        id: '3',
+        type: 'follow',
+        userId: '103',
+        userName: '王丽',
+        userAvatar: '/images/avatars/avatar3.png',
+        actionText: '关注了你',
+        targetText: '',
+        previewText: '',
+        targetImage: '',
+        targetId: '',
+        time: '1小时前',
+        isRead: true
+      },
+      {
+        id: '4',
+        type: 'like',
+        userId: '104',
+        userName: '赵强',
+        userAvatar: '/images/avatars/avatar4.png',
+        actionText: '赞了你的评论',
+        targetText: '在《晨间日记的奇迹》',
+        previewText: '早起确实需要一个有效的方法，我现在用番茄工作法结合这个习惯，效果很好！',
+        targetImage: '',
+        targetId: 'comment1',
+        time: '2小时前',
+        isRead: true
+      },
+      {
+        id: '5',
+        type: 'system',
+        userId: 'system',
+        userName: '系统通知',
+        userAvatar: '/images/icons/system.png',
+        actionText: '你获得了新的成就',
+        targetText: '「坚持不懈」',
+        previewText: '恭喜你连续打卡30天，获得"坚持不懈"成就！',
+        targetImage: '/images/achievements/achievement1.png',
+        targetId: 'achievement1',
+        time: '1天前',
+        isRead: true
+      }
+    ];
+  },
+
+  /**
+   * 处理通知点击
+   */
+  handleNotification(e) {
+    const { id, type, targetId } = e.currentTarget.dataset;
+    
+    // 标记为已读
+    this.markAsRead(id);
+    
+    // 根据不同类型的通知跳转到不同页面
+    switch (type) {
+      case 'like':
+      case 'comment':
+        // 跳转到动态详情页
+        wx.navigateTo({
+          url: `/packageCommunity/pages/post-detail/post-detail?id=${targetId}`
+        });
+        break;
+      case 'follow':
+        // 跳转到用户资料页
+        wx.navigateTo({
+          url: `/packageCommunity/pages/user-profile/user-profile?id=${e.currentTarget.dataset.userId}`
+        });
+        break;
+      case 'system':
+        // 根据系统通知类型处理
+        if (targetId.startsWith('achievement')) {
+          // 跳转到成就详情
+          wx.navigateTo({
+            url: `/pages/profile/achievements/detail/detail?id=${targetId}`
+          });
+        }
+        break;
+    }
+  },
+
+  /**
+   * 查看用户资料
+   */
+  viewUserProfile(e) {
+    const { id } = e.currentTarget.dataset;
+    wx.navigateTo({
+      url: `/packageCommunity/pages/user-profile/user-profile?id=${id}`
+    });
+  },
+
+  /**
    * 标记通知为已读
    */
-  markAsRead(e) {
-    const { id, index } = e.currentTarget.dataset;
+  markAsRead(id) {
+    const { notifications } = this.data;
+    const index = notifications.findIndex(item => item.id === id);
     
-    // 更新通知状态
-    const notifications = this.data.notifications;
-    
-    if (notifications[index].isRead) return;
-    
-    notifications[index].isRead = true;
-    
-    this.setData({
-      notifications: notifications,
-      unreadCount: this.data.unreadCount - 1
-    });
-    
-    // TODO: 发送请求到服务器更新通知状态
+    if (index !== -1 && !notifications[index].isRead) {
+      notifications[index].isRead = true;
+      this.setData({ notifications });
+      
+      // TODO: 发送请求到服务器更新已读状态
+    }
   },
 
   /**
@@ -166,43 +262,6 @@ Page({
       title: '已全部标为已读',
       icon: 'success'
     });
-  },
-
-  /**
-   * 查看通知详情
-   */
-  viewNotification(e) {
-    const { id, index, type, targetId, targetType } = e.currentTarget.dataset;
-    
-    // 标记为已读
-    this.markAsRead(e);
-    
-    // 根据通知类型和目标类型导航到相应页面
-    switch (targetType) {
-      case 'post':
-        wx.navigateTo({
-          url: `/packageCommunity/pages/post-detail/post-detail?id=${targetId}`
-        });
-        break;
-      case 'challenge':
-        wx.navigateTo({
-          url: `/packageCommunity/pages/challenge/challenge?id=${targetId}`
-        });
-        break;
-      case 'achievement':
-        wx.navigateTo({
-          url: `/pages/profile/achievements/detail/detail?id=${targetId}`
-        });
-        break;
-      default:
-        if (type === 'follow') {
-          const { sender } = this.data.notifications[index];
-          wx.navigateTo({
-            url: `/packageCommunity/pages/user-profile/user-profile?id=${sender.id}`
-          });
-        }
-        break;
-    }
   },
 
   /**
@@ -255,7 +314,7 @@ Page({
    * 页面上拉触底事件的处理函数
    */
   onReachBottom() {
-    if (!this.data.loading && this.data.hasMore) {
+    if (this.data.hasMore) {
       this.loadNotifications();
     }
   },

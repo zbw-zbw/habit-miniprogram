@@ -1,0 +1,98 @@
+<!--API测试页面-->
+<view class="container">
+  <view class="page-header">
+    <text class="page-title">前后端联调测试</text>
+    <text class="page-subtitle">测试API调用</text>
+  </view>
+
+  <!--登录表单-->
+  <view class="login-form" wx:if="{{showLoginForm}}">
+    <view class="form-group">
+      <text class="form-label">用户名</text>
+      <input class="form-input" value="{{username}}" bindinput="inputUsername" placeholder="请输入用户名" />
+    </view>
+    <view class="form-group">
+      <text class="form-label">密码</text>
+      <input class="form-input" value="{{password}}" bindinput="inputPassword" password placeholder="请输入密码" />
+    </view>
+    <view class="form-actions">
+      <button class="btn btn-primary" bindtap="testRegister" disabled="{{loading}}">注册</button>
+      <button class="btn btn-default" bindtap="testLogin" disabled="{{loading}}">登录</button>
+    </view>
+  </view>
+
+  <!--已登录状态-->
+  <view class="user-info" wx:else>
+    <text class="token-info">已登录 (Token: {{token.slice(0, 10)}}...)</text>
+    <button class="btn btn-danger" bindtap="logout">退出登录</button>
+  </view>
+
+  <!-- 调试模式切换 -->
+  <view class="debug-toggle">
+    <text class="debug-label">调试模式</text>
+    <switch checked="{{debugMode}}" bindchange="toggleDebugMode" color="#4F7CFF" />
+  </view>
+
+  <!--API测试按钮-->
+  <view class="test-actions">
+    <view class="action-group">
+      <text class="group-title">用户相关</text>
+      <button class="btn btn-sm" bindtap="{{debugMode ? 'testGetUserInfoDebug' : 'testGetUserInfo'}}" disabled="{{loading || !token}}">获取用户信息</button>
+    </view>
+
+    <view class="action-group">
+      <text class="group-title">习惯相关</text>
+      <button class="btn btn-sm" bindtap="{{debugMode ? 'testGetHabitsDebug' : 'testGetHabits'}}" disabled="{{loading || !token}}">获取习惯列表</button>
+      <button class="btn btn-sm" bindtap="{{debugMode ? 'testGetTemplatesDebug' : 'testGetTemplates'}}" disabled="{{loading || !token}}">获取习惯模板</button>
+      <button class="btn btn-sm" bindtap="testCreateHabit" disabled="{{loading || !token}}">创建习惯</button>
+    </view>
+
+    <view class="action-group">
+      <text class="group-title">打卡相关</text>
+      <button class="btn btn-sm" bindtap="testGetCheckins" disabled="{{loading || !token}}">获取打卡记录</button>
+    </view>
+
+    <view class="action-group">
+      <text class="group-title">数据分析</text>
+      <button class="btn btn-sm" bindtap="testGetAnalytics" disabled="{{loading || !token}}">获取数据分析</button>
+    </view>
+  </view>
+
+  <!--测试结果-->
+  <view class="test-results">
+    <view class="results-header">
+      <text class="results-title">测试结果</text>
+      <button class="btn btn-sm btn-text" bindtap="clearTestResults" disabled="{{loading}}">清除</button>
+    </view>
+    
+    <view class="results-list">
+      <block wx:if="{{testResults.length > 0}}">
+        <view class="result-item {{item.success ? 'success' : 'error'}}" wx:for="{{testResults}}" wx:key="id">
+          <view class="result-header">
+            <text class="result-name">{{item.name}}</text>
+            <text class="result-time">{{item.time}}</text>
+          </view>
+          <view class="result-message">{{item.message}}</view>
+          
+          <view class="result-data" wx:if="{{item.data && debugMode}}">
+            <text class="data-title">响应数据:</text>
+            <text class="data-content">{{item.data.statusCode ? '状态码: ' + item.data.statusCode : ''}}</text>
+            <text class="data-content">{{JSON.stringify(item.data, null, 2)}}</text>
+          </view>
+        </view>
+      </block>
+      <view class="no-results" wx:else>
+        <text>暂无测试结果</text>
+      </view>
+    </view>
+  </view>
+
+  <!--加载中-->
+  <view class="loading-mask" wx:if="{{loading}}">
+    <view class="loading-content">
+      <view class="loading-spinner"></view>
+      <text class="loading-text">请求中...</text>
+    </view>
+  </view>
+</view> 
+ 

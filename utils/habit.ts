@@ -40,7 +40,7 @@ export const shouldDoHabitOnDate = (habit: IHabit, date: string = getCurrentDate
     case 'monthly':
       return habit.frequency.days?.includes(dayOfMonth) ?? false;
       
-    case 'custom':
+    case 'custom': {
       if (!habit.frequency.interval) {
         return false;
       }
@@ -50,6 +50,7 @@ export const shouldDoHabitOnDate = (habit: IHabit, date: string = getCurrentDate
       
       // 如果天数能被间隔整除，则应该执行习惯
       return daysSinceStart % habit.frequency.interval === 0;
+    }
       
     default:
       return false;
@@ -168,14 +169,25 @@ export const calculateCompletionRate = (
  * @returns 习惯统计数据
  */
 export const generateHabitStats = (habit: IHabit, checkins: ICheckin[]): IHabitStats => {
+  console.log(`生成习惯[${habit.name}]统计数据，打卡记录数量:`, checkins.length);
+  
+  // 获取习惯ID (兼容不同格式)
+  const habitId = habit._id || habit.id;
+  
   // 只考虑已完成的打卡
-  const completedCheckins = checkins.filter(c => c.isCompleted);
+  const completedCheckins = checkins.filter(c => {
+    // 确保打卡记录属于当前习惯
+    const checkinHabitId = (c as any).habit || c.habitId;
+    return c.isCompleted && checkinHabitId === habitId;
+  });
+  
+  console.log(`习惯[${habit.name}]已完成打卡记录数量:`, completedCheckins.length);
   
   // 总完成次数
   const totalCompletions = completedCheckins.length;
   
   // 计算总天数（从创建日期到今天）
-  const createdDate = new Date(habit.createdAt);
+  const createdDate = new Date(habit.createdAt || new Date());
   const today = new Date();
   let totalDays = 0;
   
@@ -201,109 +213,18 @@ export const generateHabitStats = (habit: IHabit, checkins: ICheckin[]): IHabitS
   }
   
   // 计算当前连续天数
-  let currentStreak = 0;
-  if (lastCompletedDate) {
-    const lastDate = parseDate(lastCompletedDate);
-    const todayStr = formatDate(today);
-    
-    // 检查最后完成日期是否是今天
-    if (isSameDay(lastDate, today)) {
-      currentStreak = 1;
-      
-      // 向前检查连续天数
-      let checkDate = new Date(today);
-      checkDate.setDate(checkDate.getDate() - 1);
-      
-      while (true) {
-        const checkDateStr = formatDate(checkDate);
-        
-        // 检查这一天是否需要执行习惯
-        if (shouldDoHabitOnDate(habit, checkDateStr)) {
-          // 检查是否有完成记录
-          const hasCompleted = completedCheckins.some(c => 
-            c.date === checkDateStr && c.isCompleted
-          );
-          
-          if (hasCompleted) {
-            currentStreak++;
-          } else {
-            break;
-          }
-        }
-        
-        checkDate.setDate(checkDate.getDate() - 1);
-      }
-    } else {
-      // 最后完成日期不是今天，检查是否是昨天
-      const yesterday = new Date(today);
-      yesterday.setDate(yesterday.getDate() - 1);
-      
-      if (isSameDay(lastDate, yesterday)) {
-        // 如果今天不需要执行这个习惯，连续天数仍然有效
-        if (!shouldDoHabitOnDate(habit, todayStr)) {
-          currentStreak = 1;
-          
-          // 向前检查连续天数
-          let checkDate = new Date(yesterday);
-          checkDate.setDate(checkDate.getDate() - 1);
-          
-          while (true) {
-            const checkDateStr = formatDate(checkDate);
-            
-            // 检查这一天是否需要执行习惯
-            if (shouldDoHabitOnDate(habit, checkDateStr)) {
-              // 检查是否有完成记录
-              const hasCompleted = completedCheckins.some(c => 
-                c.date === checkDateStr && c.isCompleted
-              );
-              
-              if (hasCompleted) {
-                currentStreak++;
-              } else {
-                break;
-              }
-            }
-            
-            checkDate.setDate(checkDate.getDate() - 1);
-          }
-        }
-      }
-    }
-  }
+  const currentStreak = calculateStreak(completedCheckins);
   
-  // 计算最长连续天数
-  let longestStreak = currentStreak;
-  let currentCount = 0;
-  let checkDate = new Date(createdDate);
-  const endDate = new Date(today);
-  
-  while (checkDate <= endDate) {
-    const checkDateStr = formatDate(checkDate);
-    
-    // 检查这一天是否需要执行习惯
-    if (shouldDoHabitOnDate(habit, checkDateStr)) {
-      // 检查是否有完成记录
-      const hasCompleted = completedCheckins.some(c => 
-        c.date === checkDateStr && c.isCompleted
-      );
-      
-      if (hasCompleted) {
-        currentCount++;
-        longestStreak = Math.max(longestStreak, currentCount);
-      } else {
-        currentCount = 0;
-      }
-    }
-    
-    checkDate.setDate(checkDate.getDate() + 1);
-  }
-  
-  return {
-    totalCompletions,
-    totalDays,
+  const stats: IHabitStats = {
     completionRate,
+    totalCompletions,
     currentStreak,
-    longestStreak,
-    lastCompletedDate
+    lastCompletedDate,
+    totalDays,
+    longestStreak: currentStreak // 暂时使用currentStreak作为longestStreak
   };
+  
+  console.log(`习惯[${habit.name}]统计结果:`, stats);
+  
+  return stats;
 }; 

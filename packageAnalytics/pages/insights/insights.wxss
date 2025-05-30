@@ -2,9 +2,9 @@
 
 /* 数据分析-洞察页面样式 */
 .insights-container {
+  padding: 32rpx;
+  background-color: var(--background-color, #F5F7FA);
   min-height: 100vh;
-  background-color: #F5F7FA;
-  padding: 16px;
 }
 
 /* 加载状态 */
@@ -13,166 +13,195 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  height: 200px;
+  padding: 100rpx 0;
 }
 
 .loading-icon {
-  width: 40px;
-  height: 40px;
-  border: 3px solid #E4E7ED;
-  border-top: 3px solid #4F7CFF;
+  width: 60rpx;
+  height: 60rpx;
+  border: 4rpx solid #DCDFE6;
+  border-top-color: #4F7CFF;
   border-radius: 50%;
-  animation: spin 1s linear infinite;
-  margin-bottom: 16px;
+  animation: spin 0.8s linear infinite;
 }
 
 @keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
+  to { transform: rotate(360deg); }
 }
 
 /* 内容区域 */
 .content {
-  padding-bottom: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 24rpx;
 }
 
 /* 通用部分样式 */
 .section {
-  margin-bottom: 16px;
-  border-radius: 12px;
   background-color: #FFFFFF;
-  overflow: hidden;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  border-radius: 12rpx;
+  padding: 24rpx;
+  box-shadow: 0 2rpx 10rpx rgba(0, 0, 0, 0.05);
 }
 
 .section-header {
-  padding: 16px;
-  border-bottom: 1px solid #E4E7ED;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16rpx;
 }
 
 .section-title {
-  font-size: 16px;
+  font-size: 32rpx;
   font-weight: 600;
   color: #303133;
 }
 
 /* 洞察卡片样式 */
 .insights-list {
-  padding: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 16rpx;
 }
 
 .insight-card {
   display: flex;
-  align-items: center;
-  padding: 12px;
-  margin-bottom: 8px;
-  border-radius: 8px;
+  padding: 16rpx;
+  border-radius: 8rpx;
   background-color: #F5F7FA;
-}
-
-.insight-card:last-child {
-  margin-bottom: 0;
+  align-items: center;
 }
 
 .insight-card.success {
-  background-color: rgba(103, 194, 58, 0.1);
+  background-color: #F0F9EB;
 }
 
 .insight-card.warning {
-  background-color: rgba(230, 162, 60, 0.1);
+  background-color: #FDF6EC;
 }
 
 .insight-card.info {
-  background-color: rgba(144, 147, 153, 0.1);
+  background-color: #EDF2FC;
+}
+
+.insight-card.error {
+  background-color: #FEF0F0;
 }
 
 .insight-icon {
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
+  width: 64rpx;
+  height: 64rpx;
+  border-radius: 32rpx;
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-right: 12px;
+  margin-right: 16rpx;
   flex-shrink: 0;
 }
 
 .icon-success {
-  width: 24px;
-  height: 24px;
+  width: 40rpx;
+  height: 40rpx;
   background-color: #67C23A;
   border-radius: 50%;
   position: relative;
 }
 
 .icon-success::before {
-  content: "";
+  content: '';
   position: absolute;
-  top: 12px;
-  left: 8px;
-  width: 12px;
-  height: 6px;
-  border-left: 2px solid #FFFFFF;
-  border-bottom: 2px solid #FFFFFF;
+  width: 20rpx;
+  height: 10rpx;
+  border-left: 3rpx solid #FFFFFF;
+  border-bottom: 3rpx solid #FFFFFF;
   transform: rotate(-45deg);
+  top: 12rpx;
+  left: 10rpx;
 }
 
 .icon-warning {
-  width: 24px;
-  height: 24px;
+  width: 40rpx;
+  height: 40rpx;
   background-color: #E6A23C;
   border-radius: 50%;
   position: relative;
 }
 
 .icon-warning::before {
-  content: "";
+  content: '';
   position: absolute;
-  top: 7px;
-  left: 11px;
-  width: 2px;
-  height: 8px;
+  width: 4rpx;
+  height: 16rpx;
   background-color: #FFFFFF;
+  top: 8rpx;
+  left: 18rpx;
 }
 
 .icon-warning::after {
-  content: "";
+  content: '';
   position: absolute;
-  top: 17px;
-  left: 11px;
-  width: 2px;
-  height: 2px;
+  width: 4rpx;
+  height: 4rpx;
   background-color: #FFFFFF;
   border-radius: 50%;
+  top: 26rpx;
+  left: 18rpx;
 }
 
 .icon-info {
-  width: 24px;
-  height: 24px;
+  width: 40rpx;
+  height: 40rpx;
   background-color: #909399;
   border-radius: 50%;
   position: relative;
 }
 
 .icon-info::before {
-  content: "";
+  content: '';
   position: absolute;
-  top: 7px;
-  left: 11px;
-  width: 2px;
-  height: 2px;
+  width: 4rpx;
+  height: 16rpx;
   background-color: #FFFFFF;
-  border-radius: 50%;
+  top: 12rpx;
+  left: 18rpx;
 }
 
 .icon-info::after {
-  content: "";
+  content: '';
   position: absolute;
-  top: 11px;
-  left: 11px;
-  width: 2px;
-  height: 8px;
+  width: 4rpx;
+  height: 4rpx;
   background-color: #FFFFFF;
+  border-radius: 50%;
+  top: 8rpx;
+  left: 18rpx;
+}
+
+.icon-error {
+  width: 40rpx;
+  height: 40rpx;
+  background-color: #F56C6C;
+  border-radius: 50%;
+  position: relative;
+}
+
+.icon-error::before,
+.icon-error::after {
+  content: '';
+  position: absolute;
+  width: 20rpx;
+  height: 3rpx;
+  background-color: #FFFFFF;
+  top: 18rpx;
+  left: 10rpx;
+}
+
+.icon-error::before {
+  transform: rotate(45deg);
+}
+
+.icon-error::after {
+  transform: rotate(-45deg);
 }
 
 .insight-content {
@@ -180,46 +209,49 @@
 }
 
 .insight-title {
-  font-size: 15px;
+  font-size: 28rpx;
   font-weight: 500;
   color: #303133;
-  display: block;
-  margin-bottom: 4px;
+  margin-bottom: 4rpx;
 }
 
 .insight-description {
-  font-size: 13px;
+  font-size: 24rpx;
   color: #606266;
-  display: block;
+  line-height: 1.5;
 }
 
 .insight-arrow {
-  width: 16px;
-  height: 16px;
-  margin-left: 8px;
+  width: 40rpx;
+  height: 40rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .icon-arrow {
-  width: 8px;
-  height: 8px;
-  border-top: 2px solid #C0C4CC;
-  border-right: 2px solid #C0C4CC;
+  width: 16rpx;
+  height: 16rpx;
+  border-top: 2rpx solid #909399;
+  border-right: 2rpx solid #909399;
   transform: rotate(45deg);
 }
 
 .empty-insights {
-  padding: 24px 0;
+  padding: 40rpx 0;
   text-align: center;
   color: #909399;
-  font-size: 14px;
+  font-size: 28rpx;
 }
 
 /* 最佳习惯样式 */
 .best-habit-card {
   display: flex;
-  align-items: center;
   justify-content: space-between;
-  padding: 16px;
+  align-items: center;
+  padding: 16rpx;
+  background-color: #EFF5FF;
+  border-radius: 8rpx;
 }
 
 .best-habit-info {
@@ -227,32 +259,33 @@
 }
 
 .best-habit-name {
-  font-size: 16px;
+  font-size: 32rpx;
   font-weight: 500;
   color: #303133;
-  display: block;
-  margin-bottom: 4px;
+  margin-bottom: 8rpx;
 }
 
 .best-habit-stats {
-  font-size: 14px;
+  font-size: 24rpx;
   color: #606266;
 }
 
 .best-habit-badge {
   background-color: #4F7CFF;
   color: #FFFFFF;
-  font-size: 12px;
-  padding: 4px 8px;
-  border-radius: 4px;
+  padding: 4rpx 16rpx;
+  border-radius: 16rpx;
+  font-size: 24rpx;
 }
 
 /* 需要改进的习惯样式 */
 .improve-habit-card {
   display: flex;
-  align-items: center;
   justify-content: space-between;
-  padding: 16px;
+  align-items: center;
+  padding: 16rpx;
+  background-color: #FDF6EC;
+  border-radius: 8rpx;
 }
 
 .improve-habit-info {
@@ -260,85 +293,83 @@
 }
 
 .improve-habit-name {
-  font-size: 16px;
+  font-size: 32rpx;
   font-weight: 500;
   color: #303133;
-  display: block;
-  margin-bottom: 4px;
+  margin-bottom: 8rpx;
 }
 
 .improve-habit-stats {
-  font-size: 14px;
+  font-size: 24rpx;
   color: #606266;
 }
 
 .improve-habit-badge {
   background-color: #E6A23C;
   color: #FFFFFF;
-  font-size: 12px;
-  padding: 4px 8px;
-  border-radius: 4px;
+  padding: 4rpx 16rpx;
+  border-radius: 16rpx;
+  font-size: 24rpx;
 }
 
 /* 习惯模式分析样式 */
 .patterns-card {
-  display: flex;
-  padding: 16px;
+  padding: 16rpx;
 }
 
 .pattern-item {
-  flex: 1;
   display: flex;
-  flex-direction: column;
-  align-items: center;
-  text-align: center;
+  justify-content: space-between;
+  padding: 16rpx 0;
+  border-bottom: 1px solid #EBEEF5;
+}
+
+.pattern-item:last-child {
+  border-bottom: none;
 }
 
 .pattern-label {
-  font-size: 14px;
-  color: #909399;
-  margin-bottom: 8px;
+  font-size: 28rpx;
+  color: #606266;
 }
 
 .pattern-value {
-  font-size: 16px;
+  font-size: 28rpx;
   font-weight: 500;
   color: #303133;
 }
 
 /* 个性化建议样式 */
 .recommendations-list {
-  padding: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 16rpx;
 }
 
 .recommendation-card {
-  padding: 16px;
-  margin-bottom: 8px;
+  padding: 16rpx;
   background-color: #F5F7FA;
-  border-radius: 8px;
-}
-
-.recommendation-card:last-child {
-  margin-bottom: 0;
+  border-radius: 8rpx;
 }
 
 .recommendation-title {
-  font-size: 15px;
+  font-size: 28rpx;
   font-weight: 500;
   color: #303133;
+  margin-bottom: 8rpx;
   display: block;
-  margin-bottom: 8px;
 }
 
 .recommendation-description {
-  font-size: 14px;
+  font-size: 24rpx;
   color: #606266;
   line-height: 1.5;
+  display: block;
 }
 
 .empty-recommendations {
-  padding: 24px 0;
+  padding: 40rpx 0;
   text-align: center;
   color: #909399;
-  font-size: 14px;
+  font-size: 28rpx;
 }

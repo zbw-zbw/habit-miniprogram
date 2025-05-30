@@ -1,2 +1,274 @@
 <!--packageCommunity/pages/group/group.wxml-->
-<text>packageCommunity/pages/group/group.wxml</text>
+<view class="container">
+  <!-- 加载状态 -->
+  <view class="loading" wx:if="{{loading}}">
+    <view class="loading-spinner"></view>
+    <text class="loading-text">加载中...</text>
+  </view>
+  
+  <!-- 小组信息 -->
+  <view class="group-info" wx:if="{{!loading && group}}">
+    <!-- 小组封面 -->
+    <image class="group-cover" src="{{group.coverImage}}" mode="aspectFill"></image>
+    <view class="group-overlay"></view>
+    
+    <!-- 小组基本信息 -->
+    <view class="group-header">
+      <image class="group-avatar" src="{{group.avatar}}" mode="aspectFill"></image>
+      <view class="group-meta">
+        <text class="group-name">{{group.name}}</text>
+        <text class="group-description">{{group.description}}</text>
+      </view>
+    </view>
+    
+    <!-- 小组统计 -->
+    <view class="group-stats">
+      <view class="stat-item">
+        <text class="stat-count">{{group.membersCount}}</text>
+        <text class="stat-label">成员</text>
+      </view>
+      <view class="stat-item">
+        <text class="stat-count">{{group.postsCount}}</text>
+        <text class="stat-label">动态</text>
+      </view>
+      <view class="stat-item">
+        <text class="stat-count">{{group.challengesCount}}</text>
+        <text class="stat-label">挑战</text>
+      </view>
+    </view>
+    
+    <!-- 加入按钮 -->
+    <view class="join-btn-container">
+      <button class="join-btn {{isJoined ? 'quit' : ''}}" bindtap="toggleJoinGroup">
+        {{isJoined ? '退出小组' : '加入小组'}}
+      </button>
+    </view>
+  </view>
+  
+  <!-- 标签页导航 -->
+  <view class="tabs" wx:if="{{!loading && group}}">
+    <view class="tab-item {{activeTab === 'posts' ? 'active' : ''}}" bindtap="switchTab" data-tab="posts">动态</view>
+    <view class="tab-item {{activeTab === 'members' ? 'active' : ''}}" bindtap="switchTab" data-tab="members">成员</view>
+    <view class="tab-item {{activeTab === 'challenges' ? 'active' : ''}}" bindtap="switchTab" data-tab="challenges">挑战</view>
+    <view class="tab-item {{activeTab === 'about' ? 'active' : ''}}" bindtap="switchTab" data-tab="about">关于</view>
+  </view>
+  
+  <!-- 动态列表 -->
+  <view class="content-section" wx:if="{{!loading && activeTab === 'posts'}}">
+    <block wx:if="{{posts.length > 0}}">
+      <view class="post-list">
+        <view class="post-item" wx:for="{{posts}}" wx:key="id" bindtap="viewPostDetail" data-id="{{item.id}}">
+          <!-- 用户信息 -->
+          <view class="post-header">
+            <view class="post-user" catchtap="viewUserProfile" data-id="{{item.userId}}">
+              <image class="post-avatar" src="{{item.userAvatar}}" mode="aspectFill"></image>
+              <view class="post-user-info">
+                <view class="post-username">{{item.userName}}</view>
+                <view class="post-time">{{item.createdAt}}</view>
+              </view>
+            </view>
+          </view>
+          
+          <!-- 动态内容 -->
+          <view class="post-content">
+            <text class="post-text">{{item.content}}</text>
+            
+            <!-- 图片 -->
+            <view class="post-images" wx:if="{{item.images && item.images.length > 0}}">
+              <block wx:if="{{item.images.length === 1}}">
+                <image class="post-image single" src="{{item.images[0]}}" mode="aspectFill"></image>
+              </block>
+              <block wx:elif="{{item.images.length > 1}}">
+                <view class="image-grid">
+                  <image class="post-image multiple" 
+                         wx:for="{{item.images}}" 
+                         wx:for-item="img"
+                         wx:key="*this"
+                         src="{{img}}" 
+                         mode="aspectFill"></image>
+                </view>
+              </block>
+            </view>
+          </view>
+          
+          <!-- 互动按钮 -->
+          <view class="post-actions">
+            <view class="post-action {{item.isLiked ? 'active' : ''}}" catchtap="likePost" data-id="{{item.id}}" data-index="{{index}}">
+              <text class="iconfont {{item.isLiked ? 'icon-heart-fill' : 'icon-heart'}}"></text>
+              <text>{{item.likes}}</text>
+            </view>
+            <view class="post-action" catchtap="commentPost" data-id="{{item.id}}">
+              <text class="iconfont icon-comment"></text>
+              <text>{{item.comments}}</text>
+            </view>
+            <view class="post-action" catchtap="sharePost" data-id="{{item.id}}">
+              <text class="iconfont icon-share"></text>
+              <text>分享</text>
+            </view>
+          </view>
+        </view>
+      </view>
+      
+      <!-- 加载更多 -->
+      <view class="loading-more" wx:if="{{loadingMore}}">
+        <view class="loading-spinner small"></view>
+        <text class="loading-text">加载更多...</text>
+      </view>
+      
+      <!-- 没有更多数据 -->
+      <view class="no-more" wx:if="{{!loadingMore && !hasMore.posts}}">
+        <text>没有更多动态了</text>
+      </view>
+    </block>
+    
+    <!-- 空状态 -->
+    <view class="empty-state" wx:else>
+      <image class="empty-icon" src="/images/icons/empty-posts.png" mode="aspectFit"></image>
+      <text class="empty-text">暂无动态</text>
+      <button class="create-btn" bindtap="createPost">发布动态</button>
+    </view>
+  </view>
+  
+  <!-- 成员列表 -->
+  <view class="content-section" wx:if="{{!loading && activeTab === 'members'}}">
+    <block wx:if="{{members.length > 0}}">
+      <view class="members-list">
+        <!-- 管理员 -->
+        <view class="member-section" wx:if="{{admins.length > 0}}">
+          <view class="section-title">管理员</view>
+          <view class="member-grid">
+            <view class="member-item" 
+                  wx:for="{{admins}}" 
+                  wx:key="id"
+                  bindtap="viewUserProfile"
+                  data-id="{{item.id}}">
+              <image class="member-avatar" src="{{item.avatar}}" mode="aspectFill"></image>
+              <text class="member-name">{{item.name}}</text>
+              <text class="member-role">管理员</text>
+            </view>
+          </view>
+        </view>
+        
+        <!-- 普通成员 -->
+        <view class="member-section">
+          <view class="section-title">成员</view>
+          <view class="member-grid">
+            <view class="member-item" 
+                  wx:for="{{members}}" 
+                  wx:key="id"
+                  bindtap="viewUserProfile"
+                  data-id="{{item.id}}">
+              <image class="member-avatar" src="{{item.avatar}}" mode="aspectFill"></image>
+              <text class="member-name">{{item.name}}</text>
+            </view>
+          </view>
+        </view>
+        
+        <!-- 加载更多 -->
+        <view class="loading-more" wx:if="{{loadingMore}}">
+          <view class="loading-spinner small"></view>
+          <text class="loading-text">加载更多...</text>
+        </view>
+        
+        <!-- 没有更多数据 -->
+        <view class="no-more" wx:if="{{!loadingMore && !hasMore.members}}">
+          <text>没有更多成员了</text>
+        </view>
+      </view>
+    </block>
+    
+    <!-- 空状态 -->
+    <view class="empty-state" wx:else>
+      <image class="empty-icon" src="/images/icons/empty-members.png" mode="aspectFit"></image>
+      <text class="empty-text">暂无成员</text>
+      <button class="invite-btn" bindtap="inviteMembers">邀请好友</button>
+    </view>
+  </view>
+  
+  <!-- 挑战列表 -->
+  <view class="content-section" wx:if="{{!loading && activeTab === 'challenges'}}">
+    <block wx:if="{{challenges.length > 0}}">
+      <view class="challenges-list">
+        <view class="challenge-item" 
+              wx:for="{{challenges}}" 
+              wx:key="id"
+              bindtap="viewChallengeDetail"
+              data-id="{{item.id}}">
+          <image class="challenge-image" src="{{item.image}}" mode="aspectFill"></image>
+          <view class="challenge-overlay"></view>
+          <view class="challenge-info">
+            <text class="challenge-title">{{item.title}}</text>
+            <text class="challenge-participants">{{item.participants}}人参与</text>
+            
+            <!-- 进度条 (仅显示已参加的挑战) -->
+            <view class="challenge-progress" wx:if="{{item.isJoined}}">
+              <view class="progress-bar">
+                <view class="progress-inner" style="width: {{item.progress}}%"></view>
+              </view>
+              <text class="progress-text">{{item.progress}}%</text>
+            </view>
+          </view>
+        </view>
+        
+        <!-- 加载更多 -->
+        <view class="loading-more" wx:if="{{loadingMore}}">
+          <view class="loading-spinner small"></view>
+          <text class="loading-text">加载更多...</text>
+        </view>
+        
+        <!-- 没有更多数据 -->
+        <view class="no-more" wx:if="{{!loadingMore && !hasMore.challenges}}">
+          <text>没有更多挑战了</text>
+        </view>
+      </view>
+    </block>
+    
+    <!-- 空状态 -->
+    <view class="empty-state" wx:else>
+      <image class="empty-icon" src="/images/icons/empty-challenges.png" mode="aspectFit"></image>
+      <text class="empty-text">暂无挑战</text>
+      <button class="create-btn" bindtap="createChallenge">创建挑战</button>
+    </view>
+  </view>
+  
+  <!-- 关于小组 -->
+  <view class="content-section" wx:if="{{!loading && activeTab === 'about'}}">
+    <view class="about-section">
+      <!-- 小组介绍 -->
+      <view class="about-item">
+        <view class="about-title">小组介绍</view>
+        <view class="about-content">{{group.description}}</view>
+      </view>
+      
+      <!-- 创建时间 -->
+      <view class="about-item">
+        <view class="about-title">创建时间</view>
+        <view class="about-content">{{group.createdAt}}</view>
+      </view>
+      
+      <!-- 小组规则 -->
+      <view class="about-item">
+        <view class="about-title">小组规则</view>
+        <view class="about-content">{{group.rules || '暂无规则'}}</view>
+      </view>
+      
+      <!-- 管理员操作 -->
+      <view class="admin-actions" wx:if="{{isAdmin}}">
+        <button class="admin-btn" bindtap="editGroup">编辑小组</button>
+        <button class="admin-btn danger" bindtap="deleteGroup">解散小组</button>
+      </view>
+    </view>
+  </view>
+  
+  <!-- 小组不存在 -->
+  <view class="error-state" wx:if="{{!loading && !group}}">
+    <image class="error-icon" src="/images/icons/error.png" mode="aspectFit"></image>
+    <text class="error-text">小组不存在或已被删除</text>
+    <button class="back-btn" bindtap="navigateBack">返回</button>
+  </view>
+  
+  <!-- 发布按钮 -->
+  <view class="create-post-btn" bindtap="createPost" wx:if="{{!loading && group && isJoined && activeTab === 'posts'}}">
+    <text class="iconfont icon-edit"></text>
+  </view>
+</view>

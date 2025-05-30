@@ -1,4 +1,6 @@
 // packageCommunity/pages/post-detail/post-detail.js
+const { communityAPI } = require('../../services/api');
+
 Page({
   /**
    * 页面的初始数据
@@ -17,7 +19,13 @@ Page({
     isFavorited: false,
     showImagePreview: false,
     currentImage: '',
-    imageUrls: []
+    imageUrls: [],
+    loadingMore: false,
+    commentText: '',
+    commentFocus: false,
+    replyTo: '',
+    replyCommentId: '',
+    commentSort: 'time' // time 或 hot
   },
 
   /**
@@ -28,6 +36,11 @@ Page({
       this.setData({ postId: options.id });
       this.loadPostDetail();
       this.loadComments();
+      
+      // 如果需要聚焦评论框
+      if (options.focus === 'comment') {
+        this.setData({ commentFocus: true });
+      }
     } else {
       wx.showToast({
         title: '动态ID不存在',
@@ -44,40 +57,26 @@ Page({
    * 加载动态详情
    */
   loadPostDetail() {
-    // 显示加载中
     this.setData({ loading: true });
     
-    // 模拟加载延迟
-    setTimeout(() => {
-      // 模拟动态数据
-      const mockPost = {
-        id: this.data.postId,
-        userId: '101',
-        userName: '李小华',
-        userAvatar: '/images/avatars/avatar1.png',
-        content: '今天完成了《原子习惯》的阅读，真的很有启发！这本书教会了我如何通过微小的改变积累成巨大的成果，强烈推荐给大家。',
-        images: ['/images/posts/post1.jpg', '/images/posts/post2.jpg'],
-        likes: 256,
-        comments: 48,
-        favorites: 32,
-        createdAt: '2023-10-16 08:23',
-        location: '北京市朝阳区',
-        isLiked: false,
-        isFavorited: false,
-        tags: ['阅读', '习惯养成', '自我提升']
-      };
-      
-      // 设置图片预览数组
-      const imageUrls = mockPost.images || [];
-      
-      this.setData({
-        post: mockPost,
-        loading: false,
-        isLiked: mockPost.isLiked,
-        isFavorited: mockPost.isFavorited,
-        imageUrls
+    communityAPI.getPost(this.data.postId)
+      .then(post => {
+        console.log('获取到动态详情:', post);
+        this.setData({
+          post: post,
+          loading: false,
+          isLiked: post.isLiked || false,
+          imageUrls: post.images || []
+        });
+      })
+      .catch(error => {
+        console.error('获取动态详情失败:', error);
+        this.setData({ loading: false });
+        wx.showToast({
+          title: '获取动态详情失败',
+          icon: 'none'
+        });
       });
-    }, 1000);
   },
 
   /**
@@ -101,139 +100,121 @@ Page({
     // 显示加载中
     this.setData({ commentsLoading: true });
     
-    // 模拟加载延迟
-    setTimeout(() => {
-      // 模拟评论数据
-      const mockComments = [
-        {
-          id: 'c1',
-          userId: '102',
-          userName: '张明',
-          userAvatar: '/images/avatars/avatar2.png',
-          content: '我也在读这本书，确实很棒！',
-          createdAt: '2023-10-16 09:15',
-          likes: 12,
-          isLiked: false,
-          replies: []
-        },
-        {
-          id: 'c2',
-          userId: '103',
-          userName: '王丽',
-          userAvatar: '/images/avatars/avatar3.png',
-          content: '能分享一下你最大的收获是什么吗？',
-          createdAt: '2023-10-16 10:30',
-          likes: 8,
-          isLiked: false,
-          replies: [
-            {
-              id: 'r1',
-              userId: '101',
-              userName: '李小华',
-              userAvatar: '/images/avatars/avatar1.png',
-              content: '最大的收获是理解了习惯的复利效应，以及如何通过环境设计来促进好习惯的养成。',
-              createdAt: '2023-10-16 11:05',
-              parentId: 'c2'
-            }
-          ]
-        },
-        {
-          id: 'c3',
-          userId: '104',
-          userName: '赵强',
-          userAvatar: '/images/avatars/avatar4.png',
-          content: '推荐你也可以看看《深度工作》这本书，和《原子习惯》很搭配。',
-          createdAt: '2023-10-16 13:45',
-          likes: 15,
-          isLiked: true,
-          replies: []
-        }
-      ];
-      
-      // 模拟分页
-      const currentComments = this.data.comments;
-      const newComments = isRefresh ? mockComments : [...currentComments, ...mockComments];
-      
-      // 判断是否还有更多数据
-      const hasMore = this.data.page < 3; // 模拟只有3页数据
-      
-      this.setData({
-        comments: newComments,
-        commentsLoading: false,
-        hasMore: hasMore,
-        page: this.data.page + 1
+    // 构建请求参数
+    const params = {
+      page: this.data.page,
+      limit: this.data.pageSize,
+      sort: this.data.commentSort
+    };
+    
+    communityAPI.getComments(this.data.postId, params)
+      .then(result => {
+        console.log('获取到评论列表:', result);
+        
+        // 处理分页数据
+        const { comments, total, page, limit } = result;
+        const hasMore = page * limit < total;
+        
+        // 添加新数据到列表
+        const currentComments = this.data.comments;
+        const newComments = isRefresh ? comments : [...currentComments, ...comments];
+        
+        this.setData({
+          comments: newComments,
+          commentsLoading: false,
+          hasMore: hasMore,
+          page: this.data.page + 1
+        });
+      })
+      .catch(error => {
+        console.error('获取评论列表失败:', error);
+        this.setData({ commentsLoading: false });
+        wx.showToast({
+          title: '获取评论失败',
+          icon: 'none'
+        });
       });
-    }, 1000);
   },
 
   /**
-   * 点赞/取消点赞
+   * 显示操作菜单
    */
-  toggleLike() {
-    const isLiked = !this.data.isLiked;
-    const post = this.data.post;
+  showActionSheet() {
+    const { post } = this.data;
+    const isMyPost = post.userId === getApp().globalData.userInfo?.id;
     
-    // 更新点赞数
-    post.likes = isLiked ? post.likes + 1 : post.likes - 1;
+    const items = [];
     
-    this.setData({
-      isLiked: isLiked,
-      post: post
-    });
+    if (isMyPost) {
+      items.push('编辑', '删除');
+    } else {
+      items.push('举报');
+    }
     
-    // TODO: 发送请求到服务器更新点赞状态
-  },
-
-  /**
-   * 收藏/取消收藏
-   */
-  toggleFavorite() {
-    const isFavorited = !this.data.isFavorited;
-    const post = this.data.post;
-    
-    // 更新收藏数
-    post.favorites = isFavorited ? post.favorites + 1 : post.favorites - 1;
-    
-    this.setData({
-      isFavorited: isFavorited,
-      post: post
-    });
-    
-    // TODO: 发送请求到服务器更新收藏状态
-  },
-
-  /**
-   * 分享
-   */
-  sharePost() {
     wx.showActionSheet({
-      itemList: ['分享给朋友', '分享到朋友圈', '复制链接'],
+      itemList: items,
       success: (res) => {
-        switch (res.tapIndex) {
-          case 0:
-            // 分享给朋友
-            break;
-          case 1:
-            // 分享到朋友圈
-            wx.showToast({
-              title: '分享到朋友圈功能开发中',
-              icon: 'none'
-            });
-            break;
-          case 2:
-            // 复制链接
-            wx.setClipboardData({
-              data: `https://example.com/post/${this.data.postId}`,
-              success: () => {
-                wx.showToast({
-                  title: '链接已复制',
-                  icon: 'success'
-                });
-              }
-            });
-            break;
+        const index = res.tapIndex;
+        if (isMyPost) {
+          if (index === 0) {
+            this.editPost();
+          } else if (index === 1) {
+            this.deletePost();
+          }
+        } else {
+          if (index === 0) {
+            this.reportPost();
+          }
         }
       }
+    });
+  },
+
+  /**
+   * 编辑动态
+   */
+  editPost() {
+    wx.navigateTo({
+      url: `/packageCommunity/pages/post/post?id=${this.data.postId}&edit=true`
+    });
+  },
+
+  /**
+   * 删除动态
+   */
+  deletePost() {
+    wx.showModal({
+      title: '删除动态',
+      content: '确定要删除这条动态吗？删除后无法恢复。',
+      success: (res) => {
+        if (res.confirm) {
+          // 模拟删除操作
+          wx.showLoading({
+            title: '删除中...'
+          });
+          
+          setTimeout(() => {
+            wx.hideLoading();
+            wx.showToast({
+              title: '删除成功',
+              icon: 'success'
+            });
+            
+            setTimeout(() => {
+              wx.navigateBack();
+            }, 1500);
+          }, 1000);
+        }
+      }
+    });
+  },
+
+  /**
+   * 举报动态
+   */
+  reportPost() {
+    wx.navigateTo({
+      url: `/packageCommunity/pages/report/report?type=post&id=${this.data.postId}`
     });
   },
 
@@ -241,9 +222,9 @@ Page({
    * 查看用户资料
    */
   viewUserProfile() {
-    const { userId } = this.data.post;
+    const { post } = this.data;
     wx.navigateTo({
-      url: `/packageCommunity/pages/user-profile/user-profile?id=${userId}`
+      url: `/packageCommunity/pages/user-profile/user-profile?id=${post.userId}`
     });
   },
 
@@ -258,98 +239,63 @@ Page({
   },
 
   /**
-   * 点赞/取消点赞评论
+   * 点赞/取消点赞动态
    */
-  toggleCommentLike(e) {
-    const { id, index } = e.currentTarget.dataset;
-    const comments = this.data.comments;
-    const comment = comments[index];
+  toggleLike() {
+    const { post } = this.data;
     
     // 更新点赞状态
-    comment.isLiked = !comment.isLiked;
-    comment.likes = comment.isLiked ? comment.likes + 1 : comment.likes - 1;
+    post.isLiked = !post.isLiked;
+    post.likes = post.isLiked ? post.likes + 1 : post.likes - 1;
     
-    this.setData({
-      comments: comments
-    });
-    
-    // TODO: 发送请求到服务器更新评论点赞状态
-  },
-
-  /**
-   * 回复评论
-   */
-  replyComment(e) {
-    const { id, userName } = e.currentTarget.dataset;
-    
-    this.setData({
-      newComment: `回复 @${userName}: `
-    });
-    
-    // 聚焦评论输入框
-    this.selectComponent('#commentInput').focus();
-  },
-
-  /**
-   * 输入评论
-   */
-  inputComment(e) {
-    this.setData({
-      newComment: e.detail.value
-    });
-  },
-
-  /**
-   * 提交评论
-   */
-  submitComment() {
-    const { newComment, comments, post } = this.data;
-    
-    if (!newComment.trim()) {
-      wx.showToast({
-        title: '评论内容不能为空',
-        icon: 'none'
-      });
-      return;
-    }
-    
-    // 模拟提交评论
-    wx.showLoading({ title: '提交中' });
-    
-    setTimeout(() => {
-      // 创建新评论
-      const newCommentObj = {
-        id: `c${Date.now()}`,
-        userId: 'self',
-        userName: '我',
-        userAvatar: '/images/avatars/self.png',
-        content: newComment,
-        createdAt: '刚刚',
-        likes: 0,
-        isLiked: false,
-        replies: []
+    // 如果点赞，添加当前用户到点赞列表
+    if (post.isLiked) {
+      const currentUser = getApp().globalData.userInfo || {
+        id: 'current',
+        name: '我',
+        avatar: '/images/avatars/default.png'
       };
       
-      // 更新评论列表和评论数
-      const updatedComments = [newCommentObj, ...comments];
-      const updatedPost = { ...post };
-      updatedPost.comments += 1;
-      
-      this.setData({
-        comments: updatedComments,
-        post: updatedPost,
-        newComment: ''
+      post.likedUsers.unshift({
+        id: currentUser.id,
+        name: currentUser.name,
+        avatar: currentUser.avatar
       });
+    } else {
+      // 如果取消点赞，从点赞列表移除当前用户
+      const currentUserId = getApp().globalData.userInfo?.id || 'current';
+      const index = post.likedUsers.findIndex(user => user.id === currentUserId);
       
-      wx.hideLoading();
-      
-      wx.showToast({
-        title: '评论成功',
-        icon: 'success'
-      });
-      
-      // TODO: 发送请求到服务器提交评论
-    }, 500);
+      if (index !== -1) {
+        post.likedUsers.splice(index, 1);
+      }
+    }
+    
+    this.setData({ post });
+    
+    // 显示提示
+    wx.showToast({
+      title: post.isLiked ? '已点赞' : '已取消点赞',
+      icon: 'success'
+    });
+    
+    // TODO: 发送请求到服务器更新点赞状态
+  },
+
+  /**
+   * 点赞/取消点赞评论
+   */
+  likeComment(e) {
+    const { id, index } = e.currentTarget.dataset;
+    const { post } = this.data;
+    
+    // 更新评论点赞状态
+    post.comments[index].isLiked = !post.comments[index].isLiked;
+    post.comments[index].likes = post.comments[index].isLiked ? post.comments[index].likes + 1 : post.comments[index].likes - 1;
+    
+    this.setData({ post });
+    
+    // TODO: 发送请求到服务器更新评论点赞状态
   },
 
   /**
@@ -357,11 +303,11 @@ Page({
    */
   previewImage(e) {
     const { index } = e.currentTarget.dataset;
-    const { imageUrls } = this.data;
+    const { images } = this.data.post;
     
     wx.previewImage({
-      current: imageUrls[index],
-      urls: imageUrls
+      current: images[index],
+      urls: images
     });
   },
 
@@ -402,7 +348,7 @@ Page({
     
     if (post) {
       return {
-        title: post.content.substring(0, 30) + '...',
+        title: post.content.substring(0, 30) + (post.content.length > 30 ? '...' : ''),
         path: `/packageCommunity/pages/post-detail/post-detail?id=${post.id}`,
         imageUrl: post.images && post.images.length > 0 ? post.images[0] : ''
       };
@@ -412,5 +358,176 @@ Page({
       title: '习惯打卡',
       path: '/pages/index/index'
     };
+  },
+
+  /**
+   * 切换评论排序方式
+   */
+  toggleCommentSort() {
+    const { commentSort, post } = this.data;
+    const newSort = commentSort === 'time' ? 'hot' : 'time';
+    
+    // 根据排序方式重新排序评论
+    let sortedComments = [...post.comments];
+    
+    if (newSort === 'time') {
+      // 按时间排序（从新到旧）
+      sortedComments.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+    } else {
+      // 按热度排序（点赞数）
+      sortedComments.sort((a, b) => b.likes - a.likes);
+    }
+    
+    post.comments = sortedComments;
+    
+    this.setData({
+      commentSort: newSort,
+      post
+    });
+  },
+
+  /**
+   * 查看所有回复
+   */
+  viewAllReplies(e) {
+    const { id } = e.currentTarget.dataset;
+    wx.navigateTo({
+      url: `/packageCommunity/pages/replies/replies?commentId=${id}`
+    });
+  },
+
+  /**
+   * 回复评论
+   */
+  replyComment(e) {
+    const { id, name } = e.currentTarget.dataset;
+    
+    this.setData({
+      commentFocus: true,
+      replyTo: name,
+      replyCommentId: id
+    });
+  },
+
+  /**
+   * 聚焦评论输入框
+   */
+  focusComment() {
+    this.setData({
+      commentFocus: true,
+      replyTo: '',
+      replyCommentId: ''
+    });
+  },
+
+  /**
+   * 输入评论内容
+   */
+  inputComment(e) {
+    this.setData({
+      commentText: e.detail.value
+    });
+  },
+
+  /**
+   * 提交评论
+   */
+  submitComment() {
+    const { commentText, replyTo, replyCommentId, post } = this.data;
+    
+    if (!commentText.trim()) {
+      return;
+    }
+    
+    // 模拟当前用户
+    const currentUser = getApp().globalData.userInfo || {
+      id: 'current',
+      name: '我',
+      avatar: '/images/avatars/default.png'
+    };
+    
+    if (replyCommentId) {
+      // 回复评论
+      const commentIndex = post.comments.findIndex(comment => comment.id === replyCommentId);
+      
+      if (commentIndex !== -1) {
+        // 创建新回复
+        const newReply = {
+          id: `reply${Date.now()}`,
+          userId: currentUser.id,
+          userName: currentUser.name,
+          content: commentText,
+          createdAt: this.formatTime(new Date())
+        };
+        
+        // 添加到回复列表
+        if (!post.comments[commentIndex].replies) {
+          post.comments[commentIndex].replies = [];
+        }
+        
+        post.comments[commentIndex].replies.push(newReply);
+        post.comments[commentIndex].replyCount = (post.comments[commentIndex].replyCount || 0) + 1;
+      }
+    } else {
+      // 发表新评论
+      const newComment = {
+        id: `comment${Date.now()}`,
+        userId: currentUser.id,
+        userName: currentUser.name,
+        userAvatar: currentUser.avatar,
+        content: commentText,
+        createdAt: this.formatTime(new Date()),
+        likes: 0,
+        isLiked: false,
+        replyCount: 0,
+        replies: []
+      };
+      
+      // 添加到评论列表
+      post.comments.unshift(newComment);
+    }
+    
+    // 更新数据
+    this.setData({
+      post,
+      commentText: '',
+      replyTo: '',
+      replyCommentId: ''
+    });
+    
+    // 显示提示
+    wx.showToast({
+      title: replyCommentId ? '回复成功' : '评论成功',
+      icon: 'success'
+    });
+    
+    // TODO: 发送请求到服务器保存评论/回复
+  },
+
+  /**
+   * 格式化时间
+   */
+  formatTime(date) {
+    const year = date.getFullYear();
+    const month = date.getMonth() + 1;
+    const day = date.getDate();
+    const hour = date.getHours();
+    const minute = date.getMinutes();
+    
+    return `${year}-${this.formatNumber(month)}-${this.formatNumber(day)} ${this.formatNumber(hour)}:${this.formatNumber(minute)}`;
+  },
+
+  /**
+   * 格式化数字
+   */
+  formatNumber(n) {
+    return n < 10 ? `0${n}` : n;
+  },
+
+  /**
+   * 返回上一页
+   */
+  navigateBack() {
+    wx.navigateBack();
   }
 }) 

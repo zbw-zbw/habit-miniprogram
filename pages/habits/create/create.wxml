@@ -23,11 +23,11 @@
           data-field="description" />
       </view>
       
-      <view class="form-item">
+      <view class="form-item" bindtap="toggleCategoryPicker">
         <view class="form-label">分类</view>
-        <view class="form-picker" bindtap="openCategoryPicker">
-          <text>{{category}}</text>
-          <text class="iconfont icon-right"></text>
+        <view class="form-value">
+          <text>{{categoryName}}</text>
+          <text class="icon-right">></text>
         </view>
       </view>
     </view>
@@ -204,25 +204,23 @@
     </view>
   </view>
   
-  <!-- 分类选择器 -->
-  <view class="modal {{showCategoryPicker ? 'show' : ''}}" catchtouchmove="true">
-    <view class="modal-mask" bindtap="closeCategoryPicker"></view>
-    <view class="modal-content">
+  <!-- 分类选择弹窗 -->
+  <view class="modal {{showCategoryPicker ? 'show' : ''}}" bindtap="toggleCategoryPicker">
+    <view class="modal-content" catchtap="stopPropagation">
       <view class="modal-header">
-        <view class="modal-title">选择分类</view>
-        <view class="modal-close" bindtap="closeCategoryPicker">×</view>
+        <text>选择分类</text>
+        <text class="close" bindtap="toggleCategoryPicker">×</text>
       </view>
       <view class="modal-body">
-        <view class="category-list">
-          <view 
-            wx:for="{{categories}}" 
-            wx:key="index" 
-            class="category-item {{category === item ? 'active' : ''}}" 
-            bindtap="selectCategory" 
-            data-category="{{item}}">
-            <text>{{item}}</text>
-            <text class="iconfont icon-check" wx:if="{{category === item}}"></text>
-          </view>
+        <view 
+          wx:for="{{categoryOptions}}" 
+          wx:key="id" 
+          class="category-item {{category === item.id ? 'active' : ''}}"
+          bindtap="onSelectCategory"
+          data-id="{{item.id}}"
+          data-name="{{item.name}}">
+          <text class="category-icon">{{item.icon}}</text>
+          <text>{{item.name}}</text>
         </view>
       </view>
     </view>

@@ -1,7 +1,7 @@
 /**
  * 社区页面
  */
-import { getUserInfo, getStorage, setStorage } from '../../utils/storage';
+import { communityAPI } from '../../services/api';
 
 interface IPageData {
   activeTab: 'follow' | 'discover' | 'nearby' | 'rank';
@@ -17,15 +17,18 @@ interface IPageData {
     content: string;
     images: string[];
     tags: string[];
+    habitId?: string;
   };
+  page: number;
+  pageSize: number;
 }
 
 interface IPageMethods {
   loadData(): void;
   switchTab(e: WechatMiniprogram.TouchEvent): void;
-  loadPosts(): void;
-  loadChallenges(): void;
-  loadFriends(): void;
+  loadPosts(): Promise<{posts: IPost[], hasMore: boolean}>;
+  loadChallenges(): Promise<IChallenge[]>;
+  loadFriends(): Promise<IFriend[]>;
   refreshData(): void;
   loadMorePosts(): void;
   viewPostDetail(e: WechatMiniprogram.TouchEvent): void;
@@ -36,6 +39,7 @@ interface IPageMethods {
   sharePost(e: WechatMiniprogram.TouchEvent): void;
   joinChallenge(e: WechatMiniprogram.TouchEvent): void;
   viewAllChallenges(e: WechatMiniprogram.TouchEvent): void;
+  viewAllGroups(): void;
   showCreatePost(): void;
   hideCreatePost(): void;
   chooseImage(): void;
@@ -44,6 +48,7 @@ interface IPageMethods {
   removeTag(e: WechatMiniprogram.TouchEvent): void;
   inputContent(e: WechatMiniprogram.Input): void;
   submitPost(): void;
+  uploadImages(images: string[]): Promise<string[]>;
   navigateToNotifications(): void;
   navigateToSearch(): void;
 }
@@ -66,7 +71,9 @@ Page<IPageData, IPageMethods>({
       content: '',
       images: [],
       tags: []
-    }
+    },
+    page: 1,
+    pageSize: 10
   },
 
   /**
@@ -97,16 +104,18 @@ Page<IPageData, IPageMethods>({
   loadData() {
     this.setData({ loading: true });
     
-    // 加载社区动态
-    this.loadPosts();
-    
-    // 加载热门挑战
-    this.loadChallenges();
-    
-    // 加载好友列表
-    this.loadFriends();
-    
-    this.setData({ loading: false });
+    // 并行加载数据
+    Promise.all([
+      this.loadPosts(),
+      this.loadChallenges(),
+      this.loadFriends()
+    ])
+      .catch(error => {
+        console.error('加载社区数据失败:', error);
+      })
+      .finally(() => {
+        this.setData({ loading: false });
+      });
   },
 
   /**
@@ -114,7 +123,11 @@ Page<IPageData, IPageMethods>({
    */
   switchTab(e: WechatMiniprogram.TouchEvent) {
     const tab = e.currentTarget.dataset.tab as 'follow' | 'discover' | 'nearby' | 'rank';
-    this.setData({ activeTab: tab }, () => {
+    this.setData({ 
+      activeTab: tab,
+      page: 1,
+      posts: []
+    }, () => {
       this.refreshData();
     });
   },
@@ -123,217 +136,119 @@ Page<IPageData, IPageMethods>({
    * 加载社区动态
    */
   loadPosts() {
-    // 模拟加载社区动态数据
-    const mockPosts: IPost[] = [
-      {
-        id: '1',
-        userId: '101',
-        userName: '李小华',
-        userAvatar: '/images/avatars/avatar1.png',
-        content: '今天完成了《原子习惯》的阅读，真的很有启发！分享一个金句："习惯是复利的魔力：1%的微小改变，带来巨大的人生转变。"',
-        images: ['/images/posts/post1.jpg'],
-        tags: ['阅读', '自我提升'],
-        likes: 256,
-        comments: 48,
-        isLiked: false,
-        createdAt: '2023-10-16 08:23',
-        habitName: '阅读习惯'
-      },
-      {
-        id: '2',
-        userId: '102',
-        userName: '张明',
-        userAvatar: '/images/avatars/avatar2.png',
-        content: '今天完成了10公里跑步，突破了自己的记录！坚持就是胜利，明天继续加油！',
-        images: ['/images/posts/post2.jpg'],
-        tags: ['跑步', '健身'],
-        likes: 128,
-        comments: 32,
-        isLiked: true,
-        createdAt: '2023-10-15 19:45',
-        habitName: '跑步习惯'
-      },
-      {
-        id: '3',
-        userId: '103',
-        userName: '王丽',
-        userAvatar: '/images/avatars/avatar3.png',
-        content: '早晨冥想20分钟，整个人都平静下来了。推荐大家尝试"正念呼吸法"，对缓解焦虑真的很有效！现在已经坚持了45天，感觉自己的情绪管理能力有了很大提升。',
-        images: [],
-        tags: ['冥想', '心理健康'],
-        likes: 89,
-        comments: 15,
-        isLiked: false,
-        createdAt: '2023-10-14 07:30',
-        habitName: '冥想习惯'
-      }
-    ];
+    const { activeTab, page, pageSize } = this.data;
     
-    this.setData({ posts: mockPosts });
+    return communityAPI.getPosts({
+      type: activeTab,
+      page,
+      pageSize
+    })
+      .then(result => {
+        this.setData({
+          posts: page === 1 ? result.posts : [...this.data.posts, ...result.posts],
+          hasMore: result.hasMore
+        });
+        return result;
+      })
+      .catch(error => {
+        console.error('加载社区动态失败:', error);
+        wx.showToast({
+          title: '加载动态失败',
+          icon: 'none'
+        });
+        return Promise.reject(error);
+      });
   },
 
   /**
    * 加载热门挑战
    */
   loadChallenges() {
-    // 模拟加载热门挑战数据
-    const mockChallenges: IChallenge[] = [
-      {
-        id: '1',
-        title: '21天早起挑战',
-        image: '/images/challenges/challenge1.jpg',
-        participants: 2145,
-        isJoined: false
-      },
-      {
-        id: '2',
-        title: '每日1万步',
-        image: '/images/challenges/challenge2.jpg',
-        participants: 3872,
-        isJoined: false
-      },
-      {
-        id: '3',
-        title: '30天健康饮食',
-        image: '/images/challenges/challenge3.jpg',
-        participants: 1658,
-        isJoined: false
-      }
-    ];
-    
-    this.setData({ challenges: mockChallenges });
+    return communityAPI.getChallenges({ limit: 3 })
+      .then(challenges => {
+        this.setData({ challenges });
+        return challenges;
+      })
+      .catch(error => {
+        console.error('加载热门挑战失败:', error);
+        return Promise.reject(error);
+      });
   },
 
   /**
    * 加载好友列表
    */
   loadFriends() {
-    // 模拟加载好友列表数据
-    const mockFriends: IFriend[] = [
-      {
-        id: '101',
-        name: '李小华',
-        avatar: '/images/avatars/avatar1.png',
-        hasUpdate: true
-      },
-      {
-        id: '102',
-        name: '张明',
-        avatar: '/images/avatars/avatar2.png',
-        hasUpdate: true
-      },
-      {
-        id: '103',
-        name: '王丽',
-        avatar: '/images/avatars/avatar3.png',
-        hasUpdate: true
-      },
-      {
-        id: '104',
-        name: '赵强',
-        avatar: '/images/avatars/avatar4.png',
-        hasUpdate: false
-      },
-      {
-        id: '105',
-        name: '陈静',
-        avatar: '/images/avatars/avatar5.png',
-        hasUpdate: true
-      }
-    ];
-    
-    this.setData({ friends: mockFriends });
+    return communityAPI.getFriends()
+      .then(friends => {
+        this.setData({ friends });
+        return friends;
+      })
+      .catch(error => {
+        console.error('加载好友列表失败:', error);
+        return Promise.reject(error);
+      });
   },
 
   /**
    * 刷新数据
    */
   refreshData() {
-    const { activeTab } = this.data;
-    
-    this.setData({ loading: true });
+    // 重置页码
+    this.setData({
+      page: 1,
+      hasMore: true
+    });
     
     // 根据当前标签加载不同数据
-    switch (activeTab) {
-      case 'follow':
-        this.loadPosts();
-        this.loadFriends();
-        break;
-      case 'discover':
-        this.loadPosts();
-        this.loadChallenges();
-        break;
-      case 'nearby':
-        // 加载附近的人数据
-        break;
-      case 'rank':
-        // 加载排行榜数据
-        break;
-    }
+    const { activeTab } = this.data;
     
-    this.setData({ loading: false });
+    wx.showNavigationBarLoading();
     
-    // 停止下拉刷新
-    wx.stopPullDownRefresh();
+    this.loadPosts()
+      .then(() => {
+        // 如果是关注标签，还需要刷新好友列表
+        if (activeTab === 'follow') {
+          return this.loadFriends();
+        }
+        // 明确返回类型，避免Promise<void>和Promise<IFriend[]>类型不匹配问题
+        return Promise.resolve([]) as Promise<IFriend[]>;
+      })
+      .catch((error: Error) => {
+        console.error('刷新数据失败:', error);
+      })
+      .finally(() => {
+        wx.hideNavigationBarLoading();
+        wx.stopPullDownRefresh();
+      });
   },
 
   /**
    * 加载更多动态
    */
   loadMorePosts() {
-    if (!this.data.hasMore) return;
+    if (!this.data.hasMore || this.data.loading) {
+      return;
+    }
     
-    wx.showLoading({ title: '加载中' });
+    this.setData({
+      loading: true,
+      page: this.data.page + 1
+    });
     
-    // 模拟加载更多数据
-    setTimeout(() => {
-      const newPosts: IPost[] = [
-        {
-          id: '4',
-          userId: '104',
-          userName: '赵强',
-          userAvatar: '/images/avatars/avatar4.png',
-          content: '坚持写日记一个月了，记录生活中的点点滴滴，回顾时感觉很有成就感！',
-          images: ['/images/posts/post4.jpg'],
-          tags: ['写作', '日记'],
-          likes: 56,
-          comments: 8,
-          isLiked: false,
-          createdAt: '2023-10-13 22:10',
-          habitName: '写日记'
-        },
-        {
-          id: '5',
-          userId: '105',
-          userName: '陈静',
-          userAvatar: '/images/avatars/avatar5.png',
-          content: '今天的瑜伽课很棒，学会了新的体式，感觉身体更加柔软了！',
-          images: ['/images/posts/post5.jpg'],
-          tags: ['瑜伽', '健身'],
-          likes: 78,
-          comments: 12,
-          isLiked: false,
-          createdAt: '2023-10-12 18:30',
-          habitName: '瑜伽习惯'
-        }
-      ];
-      
-      this.setData({
-        posts: [...this.data.posts, ...newPosts],
-        hasMore: false // 模拟没有更多数据了
+    this.loadPosts()
+      .finally(() => {
+        this.setData({ loading: false });
       });
-      
-      wx.hideLoading();
-    }, 1000);
   },
 
   /**
    * 查看动态详情
    */
   viewPostDetail(e: WechatMiniprogram.TouchEvent) {
-    const { id } = e.currentTarget.dataset;
+    const { postId } = e.currentTarget.dataset;
     wx.navigateTo({
-      url: `/packageCommunity/pages/post-detail/post-detail?id=${id}`
+      url: `/pages/community/post-detail/post-detail?id=${postId}`
     });
   },
 
@@ -341,9 +256,9 @@ Page<IPageData, IPageMethods>({
    * 查看挑战详情
    */
   viewChallengeDetail(e: WechatMiniprogram.TouchEvent) {
-    const id = e.currentTarget.dataset.id;
+    const { challengeId } = e.currentTarget.dataset;
     wx.navigateTo({
-      url: `/packageCommunity/pages/challenge/challenge?id=${id}`
+      url: `/pages/community/challenges/detail/detail?id=${challengeId}`
     });
   },
 
@@ -351,9 +266,9 @@ Page<IPageData, IPageMethods>({
    * 查看用户资料
    */
   viewUserProfile(e: WechatMiniprogram.TouchEvent) {
-    const { id } = e.currentTarget.dataset;
+    const { userId } = e.currentTarget.dataset;
     wx.navigateTo({
-      url: `/packageCommunity/pages/user-profile/user-profile?id=${id}`
+      url: `/pages/profile/user/user?id=${userId}`
     });
   },
 
@@ -361,25 +276,43 @@ Page<IPageData, IPageMethods>({
    * 点赞动态
    */
   likePost(e: WechatMiniprogram.TouchEvent) {
-    const { id, index } = e.currentTarget.dataset;
-    const posts = [...this.data.posts];
+    const { postId, index } = e.currentTarget.dataset;
+    const post = this.data.posts[index];
     
-    // 切换点赞状态
-    posts[index].isLiked = !posts[index].isLiked;
-    posts[index].likes += posts[index].isLiked ? 1 : -1;
+    if (!post) return;
     
-    this.setData({ posts });
+    const isLiked = post.isLiked;
+    const newLikes = isLiked ? post.likes - 1 : post.likes + 1;
     
-    // TODO: 发送点赞请求到服务器
+    // 更新本地状态
+    this.setData({
+      [`posts[${index}].isLiked`]: !isLiked,
+      [`posts[${index}].likes`]: newLikes
+    });
+    
+    // 调用API更新服务端状态
+    (isLiked ? communityAPI.unlikePost(postId) : communityAPI.likePost(postId))
+      .catch(error => {
+        console.error('点赞失败:', error);
+        // 恢复原状态
+        this.setData({
+          [`posts[${index}].isLiked`]: isLiked,
+          [`posts[${index}].likes`]: post.likes
+        });
+        wx.showToast({
+          title: '操作失败',
+          icon: 'none'
+        });
+      });
   },
 
   /**
    * 评论动态
    */
   commentPost(e: WechatMiniprogram.TouchEvent) {
-    const { id } = e.currentTarget.dataset;
+    const { postId } = e.currentTarget.dataset;
     wx.navigateTo({
-      url: `/packageCommunity/pages/post-detail/post-detail?id=${id}&focus=comment`
+      url: `/pages/community/post-detail/post-detail?id=${postId}&focus=comment`
     });
   },
 
@@ -387,34 +320,49 @@ Page<IPageData, IPageMethods>({
    * 分享动态
    */
   sharePost(e: WechatMiniprogram.TouchEvent) {
-    const { id } = e.currentTarget.dataset;
-    // 使用小程序分享功能
+    // 分享功能由微信小程序原生支持
+    // 在onShareAppMessage中处理
   },
 
   /**
    * 参加挑战
    */
   joinChallenge(e: WechatMiniprogram.TouchEvent) {
-    const { id, index } = e.currentTarget.dataset;
-    const challenges = [...this.data.challenges];
+    const { challengeId, index } = e.currentTarget.dataset;
+    const challenge = this.data.challenges[index];
     
-    // 切换参加状态
-    challenges[index].isJoined = !challenges[index].isJoined;
-    challenges[index].participants += challenges[index].isJoined ? 1 : -1;
+    if (!challenge) return;
     
-    this.setData({ challenges });
-    
-    // 提示用户
-    wx.showToast({
-      title: challenges[index].isJoined ? '已参加挑战' : '已退出挑战',
-      icon: 'success'
+    wx.showLoading({
+      title: '处理中'
     });
     
-    // TODO: 发送参加挑战请求到服务器
+    communityAPI.joinChallenge(challengeId)
+      .then(() => {
+        // 更新本地状态
+        this.setData({
+          [`challenges[${index}].isJoined`]: true,
+          [`challenges[${index}].participants`]: challenge.participants + 1
+        });
+        wx.showToast({
+          title: '已成功参加',
+          icon: 'success'
+        });
+      })
+      .catch(error => {
+        console.error('参加挑战失败:', error);
+        wx.showToast({
+          title: '参加失败',
+          icon: 'none'
+        });
+      })
+      .finally(() => {
+        wx.hideLoading();
+      });
   },
 
   /**
-   * 显示发布动态弹窗
+   * 显示创建动态模态框
    */
   showCreatePost() {
     if (!this.data.hasLogin) {
@@ -425,14 +373,23 @@ Page<IPageData, IPageMethods>({
       return;
     }
     
-    this.setData({ showPostModal: true });
+    this.setData({
+      showPostModal: true,
+      newPost: {
+        content: '',
+        images: [],
+        tags: []
+      }
+    });
   },
 
   /**
-   * 隐藏发布动态弹窗
+   * 隐藏创建动态模态框
    */
   hideCreatePost() {
-    this.setData({ showPostModal: false });
+    this.setData({
+      showPostModal: false
+    });
   },
 
   /**
@@ -455,6 +412,7 @@ Page<IPageData, IPageMethods>({
       sizeType: ['compressed'],
       sourceType: ['album', 'camera'],
       success: (res) => {
+        // 更新图片列表
         this.setData({
           'newPost.images': [...images, ...res.tempFilePaths]
         });
@@ -463,11 +421,11 @@ Page<IPageData, IPageMethods>({
   },
 
   /**
-   * 移除图片
+   * 删除图片
    */
   removeImage(e: WechatMiniprogram.TouchEvent) {
     const { index } = e.currentTarget.dataset;
-    const { images } = this.data.newPost;
+    const images = [...this.data.newPost.images];
     
     images.splice(index, 1);
     
@@ -481,21 +439,33 @@ Page<IPageData, IPageMethods>({
    */
   addTag(e: WechatMiniprogram.TouchEvent) {
     const { tag } = e.currentTarget.dataset;
-    const { tags } = this.data.newPost;
+    const tags = [...this.data.newPost.tags];
     
-    if (tags.includes(tag)) return;
+    if (tags.includes(tag)) {
+      return;
+    }
+    
+    if (tags.length >= 5) {
+      wx.showToast({
+        title: '最多添加5个标签',
+        icon: 'none'
+      });
+      return;
+    }
+    
+    tags.push(tag);
     
     this.setData({
-      'newPost.tags': [...tags, tag]
+      'newPost.tags': tags
     });
   },
 
   /**
-   * 移除标签
+   * 删除标签
    */
   removeTag(e: WechatMiniprogram.TouchEvent) {
     const { index } = e.currentTarget.dataset;
-    const { tags } = this.data.newPost;
+    const tags = [...this.data.newPost.tags];
     
     tags.splice(index, 1);
     
@@ -505,7 +475,7 @@ Page<IPageData, IPageMethods>({
   },
 
   /**
-   * 输入动态内容
+   * 输入内容
    */
   inputContent(e: WechatMiniprogram.Input) {
     this.setData({
@@ -517,69 +487,97 @@ Page<IPageData, IPageMethods>({
    * 提交动态
    */
   submitPost() {
-    const { content, images, tags } = this.data.newPost;
+    const { content, images, tags, habitId } = this.data.newPost;
     
-    if (!content.trim()) {
+    if (!content.trim() && images.length === 0) {
       wx.showToast({
-        title: '请输入动态内容',
+        title: '请输入内容或添加图片',
         icon: 'none'
       });
       return;
     }
     
-    wx.showLoading({ title: '发布中' });
+    wx.showLoading({
+      title: '发布中'
+    });
     
-    // 模拟发布动态
-    setTimeout(() => {
-      // 重置表单
-      this.setData({
-        showPostModal: false,
-        newPost: {
-          content: '',
-          images: [],
-          tags: []
-        }
+    // 如果有图片，先上传图片
+    const uploadImages = images.length > 0 
+      ? this.uploadImages(images) 
+      : Promise.resolve([]);
+    
+    uploadImages
+      .then((imageUrls: string[]) => {
+        // 创建动态
+        return communityAPI.createPost({
+          content: content.trim(),
+          images: imageUrls,
+          tags,
+          habitId
+        });
+      })
+      .then((post: IPost) => {
+        wx.hideLoading();
+        wx.showToast({
+          title: '发布成功',
+          icon: 'success'
+        });
+        
+        // 关闭模态框
+        this.hideCreatePost();
+        
+        // 刷新数据
+        this.refreshData();
+      })
+      .catch((error: Error) => {
+        console.error('发布动态失败:', error);
+        wx.hideLoading();
+        wx.showToast({
+          title: '发布失败',
+          icon: 'none'
+        });
       });
-      
-      // 刷新动态列表
-      this.loadPosts();
-      
-      wx.hideLoading();
-      
-      wx.showToast({
-        title: '发布成功',
-        icon: 'success'
-      });
-    }, 1500);
+  },
+  
+  /**
+   * 上传图片
+   */
+  uploadImages(images: string[]): Promise<string[]> {
+    return Promise.all(
+      images.map(image => 
+        communityAPI.uploadImage(image)
+          .then(result => result.url)
+      )
+    );
   },
 
   /**
-   * 跳转到通知页面
+   * 导航到通知页面
    */
   navigateToNotifications() {
     wx.navigateTo({
-      url: '/packageCommunity/pages/notifications/notifications'
+      url: '/pages/community/notifications/notifications'
     });
   },
 
   /**
-   * 跳转到搜索页面
+   * 导航到搜索页面
    */
   navigateToSearch() {
     wx.navigateTo({
-      url: '/packageCommunity/pages/search/search'
+      url: '/pages/community/search/search'
     });
   },
 
   /**
-   * 页面相关事件处理函数--监听用户下拉动作
+   * 下拉刷新
    */
   onPullDownRefresh() {
     this.refreshData();
   },
 
   /**
-   * 页面上拉触底事件的处理函数
+   * 上拉加载更多
    */
   onReachBottom() {
     this.loadMorePosts();
@@ -588,7 +586,20 @@ Page<IPageData, IPageMethods>({
   /**
    * 用户点击右上角分享
    */
-  onShareAppMessage() {
+  onShareAppMessage(res: any) {
+    if (res.from === 'button') {
+      const { postId, index } = res.target.dataset;
+      const post = this.data.posts[index];
+      
+      if (post) {
+        return {
+          title: `${post.userName}的习惯打卡分享`,
+          path: `/pages/community/post-detail/post-detail?id=${postId}`,
+          imageUrl: post.images && post.images.length > 0 ? post.images[0] : '/images/share-default.png'
+        };
+      }
+    }
+    
     return {
       title: '习惯打卡社区',
       path: '/pages/community/community'
@@ -599,9 +610,17 @@ Page<IPageData, IPageMethods>({
    * 查看所有挑战
    */
   viewAllChallenges(e: WechatMiniprogram.TouchEvent) {
-    console.log('查看全部挑战');
     wx.navigateTo({
       url: '/pages/community/challenges/challenges'
     });
   },
+
+  /**
+   * 查看所有小组
+   */
+  viewAllGroups() {
+    wx.navigateTo({
+      url: '/pages/community/groups/groups'
+    });
+  }
 }); 

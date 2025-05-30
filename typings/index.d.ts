@@ -13,6 +13,10 @@ interface IAppOption {
     theme?: 'light' | 'dark' | 'system';
     unlockedAchievement?: IAchievement | null;
     showAchievementUnlock?: boolean;
+    apiBaseUrl?: string; // API服务基础URL
+    apiAvailable?: boolean; // API服务是否可用
+    token?: string; // 用户认证令牌
+    refreshToken?: string; // 刷新令牌
   };
   userInfoReadyCallback?: WechatMiniprogram.GetUserInfoSuccessCallback;
   login(userInfo: IUserInfo, callback: (success: boolean) => void): void;
@@ -23,6 +27,14 @@ interface IAppOption {
   onAchievementUnlocked(achievement: IAchievement): void;
   showAchievementUnlockNotification(achievement: IAchievement): void;
   onThemeChange?(callback: (theme: 'light' | 'dark' | 'system') => void): void;
+  checkApiAvailability?(): void; // 检查API服务可用性
+  showApiUnavailableMessage?(): void; // 显示API服务不可用提示
+  clearAuthData?(): void; // 清除认证数据
+  loadTokenFromStorage?(): void; // 从本地存储加载令牌
+  verifyToken?(): void; // 验证令牌有效性
+  refreshAuthToken?(): void; // 刷新认证令牌
+  mockLogin?(userInfo: IUserInfo, callback: (success: boolean) => void): void; // 本地模拟登录
+  onShow?(): void; // 当小程序从后台进入前台显示时触发
 }
 
 // 用户信息
@@ -39,6 +51,7 @@ interface IUserInfo {
 // 习惯
 interface IHabit {
   id: string;
+  _id?: string; // 添加MongoDB ID字段
   name: string;
   description: string;
   category: string;
@@ -126,6 +139,37 @@ interface IChallenge {
   participantsCount: number;
   isJoined: boolean;
   createdAt: string;
+}
+
+// 朋友接口
+interface IFriend {
+  id: string;
+  userId: string;
+  nickName: string;
+  avatarUrl: string;
+  motto?: string;
+  isFollowing: boolean;
+  isFollower: boolean;
+  lastActive?: string;
+  habits?: number; // 习惯数量
+  streak?: number; // 当前连续天数
+}
+
+// 通知接口
+interface INotification {
+  id: string;
+  userId: string;
+  type: 'like' | 'comment' | 'follow' | 'challenge' | 'system';
+  title: string;
+  content: string;
+  isRead: boolean;
+  createdAt: string;
+  relatedId?: string; // 相关的ID（如postId, challengeId等）
+  sender?: {
+    userId: string;
+    nickName: string;
+    avatarUrl: string;
+  };
 }
 
 // 成就接口

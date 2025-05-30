@@ -1,0 +1,212 @@
+<view class="habit-chain-page">
+  <view class="page-header">
+    <view class="page-title">习惯链</view>
+    <view class="page-description">将多个习惯组合成链，更有效地培养良好习惯</view>
+  </view>
+  
+  <view class="tab-container">
+    <view class="tab {{activeTab === 'my' ? 'active' : ''}}" bindtap="switchTab" data-tab="my">我的习惯链</view>
+    <view class="tab {{activeTab === 'create' ? 'active' : ''}}" bindtap="switchTab" data-tab="create">创建习惯链</view>
+    <view class="tab {{activeTab === 'analysis' ? 'active' : ''}}" bindtap="switchTab" data-tab="analysis">习惯关联分析</view>
+  </view>
+  
+  <view class="page-content">
+    <!-- 我的习惯链 -->
+    <block wx:if="{{activeTab === 'my'}}">
+      <view wx:if="{{loading}}" class="loading-container">
+        <view class="loading-text">加载中...</view>
+      </view>
+      
+      <block wx:elif="{{chains.length > 0}}">
+        <view class="chain-list">
+          <view class="chain-item" wx:for="{{chains}}" wx:key="id" bindtap="viewChainDetail" data-id="{{item.id}}">
+            <view class="chain-item-header">
+              <text class="chain-name">{{item.name}}</text>
+              <view class="chain-actions">
+                <view class="chain-action" catchtap="editChain" data-id="{{item.id}}">
+                  <text class="icon-text">✏️</text>
+                </view>
+                <view class="chain-action" catchtap="deleteChain" data-id="{{item.id}}">
+                  <text class="icon-text">🗑️</text>
+                </view>
+              </view>
+            </view>
+            
+            <view class="chain-description" wx:if="{{item.description}}">{{item.description}}</view>
+            
+            <view class="chain-habits">
+              <view class="chain-habit {{habit.isOptional ? 'optional' : ''}}" 
+                wx:for="{{item.habitDetails}}" 
+                wx:for-item="habit" 
+                wx:key="habitId"
+              >
+                <view class="chain-habit-icon" style="background-color: {{habit.color || '#4F7CFF'}}">{{habit.name[0]}}</view>
+                <text>{{habit.name}}</text>
+              </view>
+            </view>
+            
+            <view class="chain-meta">
+              <view class="chain-meta-item">
+                <text class="icon-text">⏱️</text>
+                <text>{{item.frequency.type === 'daily' ? '每日' : item.frequency.type === 'weekly' ? '每周' : '自定义'}}</text>
+              </view>
+              <view class="chain-meta-item">
+                <text class="icon-text">🔗</text>
+                <text>{{item.habits.length}}个习惯</text>
+              </view>
+            </view>
+          </view>
+        </view>
+        
+        <view class="fixed-bottom">
+          <button class="btn-recommend" bindtap="navigateToRecommend">获取推荐习惯链</button>
+        </view>
+      </block>
+      
+      <view wx:else class="empty-state">
+        <view class="empty-state-icon">
+          <text class="big-icon">🔗</text>
+        </view>
+        <view class="empty-state-text">您还没有创建任何习惯链</view>
+        <button class="btn-create" bindtap="switchTab" data-tab="create">创建习惯链</button>
+        <button class="btn-recommend" bindtap="navigateToRecommend">获取推荐习惯链</button>
+      </view>
+    </block>
+    
+    <!-- 创建习惯链 -->
+    <block wx:elif="{{activeTab === 'create'}}">
+      <view class="section">
+        <view class="section-title">习惯链信息</view>
+        
+        <view class="form-item">
+          <view class="form-label">习惯链名称</view>
+          <input class="form-input" placeholder="给习惯链起个名字" value="{{chainForm.name}}" bindinput="onNameInput" />
+        </view>
+        
+        <view class="form-item">
+          <view class="form-label">描述</view>
+          <textarea class="form-textarea" placeholder="描述一下这个习惯链的目标或用途" value="{{chainForm.description}}" bindinput="onDescriptionInput"></textarea>
+        </view>
+        
+        <view class="form-item">
+          <view class="form-label">频率</view>
+          <view class="frequency-options">
+            <view class="frequency-option {{chainForm.frequency.type === 'daily' ? 'active' : ''}}" bindtap="setFrequency" data-type="daily">每天</view>
+            <view class="frequency-option {{chainForm.frequency.type === 'weekly' ? 'active' : ''}}" bindtap="setFrequency" data-type="weekly">每周</view>
+            <view class="frequency-option {{chainForm.frequency.type === 'custom' ? 'active' : ''}}" bindtap="setFrequency" data-type="custom">自定义</view>
+          </view>
+          
+          <view class="frequency-options" wx:if="{{chainForm.frequency.type === 'weekly'}}">
+            <view class="frequency-option {{chainForm.frequency.days.includes(1) ? 'active' : ''}}" bindtap="toggleDay" data-day="1">周一</view>
+            <view class="frequency-option {{chainForm.frequency.days.includes(2) ? 'active' : ''}}" bindtap="toggleDay" data-day="2">周二</view>
+            <view class="frequency-option {{chainForm.frequency.days.includes(3) ? 'active' : ''}}" bindtap="toggleDay" data-day="3">周三</view>
+            <view class="frequency-option {{chainForm.frequency.days.includes(4) ? 'active' : ''}}" bindtap="toggleDay" data-day="4">周四</view>
+            <view class="frequency-option {{chainForm.frequency.days.includes(5) ? 'active' : ''}}" bindtap="toggleDay" data-day="5">周五</view>
+            <view class="frequency-option {{chainForm.frequency.days.includes(6) ? 'active' : ''}}" bindtap="toggleDay" data-day="6">周六</view>
+            <view class="frequency-option {{chainForm.frequency.days.includes(0) ? 'active' : ''}}" bindtap="toggleDay" data-day="0">周日</view>
+          </view>
+        </view>
+      </view>
+      
+      <view class="section">
+        <view class="section-title">
+          <text>选择习惯</text>
+          <text class="action" bindtap="addHabit">添加习惯</text>
+        </view>
+        
+        <view wx:if="{{selectedHabits.length > 0}}">
+          <view class="visualizer-container">
+            <habit-chain-visualizer 
+              chain="{{previewChain}}" 
+              habits="{{allHabits}}" 
+              editable="{{true}}" 
+              bind:change="onChainChange"
+            ></habit-chain-visualizer>
+          </view>
+        </view>
+        
+        <view wx:else class="empty-state">
+          <view class="empty-state-text">请添加至少两个习惯组成习惯链</view>
+          <button class="btn-create" bindtap="addHabit">添加习惯</button>
+        </view>
+      </view>
+      
+      <view class="fixed-bottom">
+        <button class="btn-create" bindtap="saveChain" disabled="{{!canSave}}">保存习惯链</button>
+      </view>
+    </block>
+    
+    <!-- 习惯关联分析 -->
+    <block wx:elif="{{activeTab === 'analysis'}}">
+      <view wx:if="{{analyzing}}" class="loading-container">
+        <view class="loading-text">正在分析习惯关联...</view>
+      </view>
+      
+      <block wx:else>
+        <view class="section" wx:if="{{relations.length > 0}}">
+          <view class="section-title">习惯关联分析</view>
+          
+          <view class="analysis-result" wx:if="{{analysisResult}}">
+            <view class="analysis-title">分析结果</view>
+            <view class="analysis-content">{{analysisResult}}</view>
+          </view>
+          
+          <view class="relation-list">
+            <view class="relation-item" wx:for="{{relations}}" wx:key="index">
+              <view class="relation-habits">
+                <view class="relation-habit">{{item.sourceHabitName}}</view>
+                <view class="relation-arrow">→</view>
+                <view class="relation-habit">{{item.targetHabitName}}</view>
+              </view>
+              
+              <view class="relation-type {{item.type}}">
+                {{item.type === 'trigger' ? '触发' : 
+                  item.type === 'complementary' ? '互补' : 
+                  item.type === 'sequential' ? '序列' : '冲突'}}
+              </view>
+            </view>
+          </view>
+        </view>
+        
+        <view class="section">
+          <view class="section-title">推荐习惯链</view>
+          
+          <view wx:if="{{recommendedChains.length > 0}}" class="chain-list">
+            <view class="chain-item" wx:for="{{recommendedChains}}" wx:key="id">
+              <view class="chain-item-header">
+                <text class="chain-name">{{item.name}}</text>
+                <view class="chain-actions">
+                  <view class="chain-action" catchtap="saveRecommendedChain" data-index="{{index}}">
+                    <text class="icon-text">➕</text>
+                  </view>
+                </view>
+              </view>
+              
+              <view class="chain-description" wx:if="{{item.description}}">{{item.description}}</view>
+              
+              <view class="chain-habits">
+                <view class="chain-habit {{habit.isOptional ? 'optional' : ''}}" 
+                  wx:for="{{item.habitDetails}}" 
+                  wx:for-item="habit" 
+                  wx:key="habitId"
+                >
+                  <view class="chain-habit-icon" style="background-color: {{habit.color || '#4F7CFF'}}">{{habit.name[0]}}</view>
+                  <text>{{habit.name}}</text>
+                </view>
+              </view>
+            </view>
+          </view>
+          
+          <view wx:else class="empty-state">
+            <view class="empty-state-text">暂无推荐习惯链</view>
+            <button class="btn-create" bindtap="analyzeHabits">分析习惯关联</button>
+          </view>
+        </view>
+      </block>
+      
+      <view class="fixed-bottom">
+        <button class="btn-create" bindtap="analyzeHabits">重新分析习惯关联</button>
+      </view>
+    </block>
+  </view>
+</view> 

@@ -1,5 +1,10 @@
 <!--packageCommunity/pages/user-profile/user-profile.wxml-->
 <view class="container">
+  <!-- 返回按钮 -->
+  <view class="back-btn" bindtap="navigateBack">
+    <text class="iconfont icon-back"></text>
+  </view>
+  
   <!-- 加载状态 -->
   <view class="loading" wx:if="{{loading}}">
     <view class="loading-spinner"></view>
@@ -7,68 +12,73 @@
   </view>
   
   <!-- 用户信息 -->
-  <view class="user-profile" wx:if="{{!loading && userInfo}}">
-    <!-- 用户基本信息 -->
+  <view class="user-profile" wx:if="{{!loading && user}}">
+    <!-- 用户封面 -->
+    <image class="user-cover" src="{{user.coverImage}}" mode="aspectFill"></image>
+    <view class="cover-overlay"></view>
+    
+    <!-- 用户头像和基本信息 -->
     <view class="user-header">
-      <image class="user-avatar" src="{{userInfo.avatar}}" mode="aspectFill"></image>
+      <image class="user-avatar" src="{{user.avatar}}" mode="aspectFill"></image>
       <view class="user-info">
-        <text class="user-name">{{userInfo.name}}</text>
-        <text class="user-bio">{{userInfo.bio}}</text>
+        <view class="user-name">{{user.name}}</view>
+        <view class="user-bio">{{user.bio}}</view>
+      </view>
+      
+      <!-- 关注按钮 -->
+      <view class="follow-btn {{isFollowing ? 'following' : ''}}" bindtap="toggleFollow" wx:if="{{!isSelf}}">
+        {{isFollowing ? '已关注' : '关注'}}
+      </view>
+      
+      <!-- 编辑资料按钮 -->
+      <view class="edit-btn" bindtap="editProfile" wx:if="{{isSelf}}">
+        编辑资料
       </view>
     </view>
     
-    <!-- 关注信息 -->
+    <!-- 用户统计 -->
     <view class="user-stats">
+      <view class="stat-item" bindtap="switchTab" data-tab="habits">
+        <text class="stat-count">{{user.habitsCount}}</text>
+        <text class="stat-label">习惯</text>
+      </view>
       <view class="stat-item" bindtap="viewFollowing">
-        <text class="stat-count">{{userInfo.followingCount}}</text>
+        <text class="stat-count">{{user.followingCount}}</text>
         <text class="stat-label">关注</text>
       </view>
       <view class="stat-item" bindtap="viewFollowers">
-        <text class="stat-count">{{userInfo.followersCount}}</text>
+        <text class="stat-count">{{user.followersCount}}</text>
         <text class="stat-label">粉丝</text>
-      </view>
-      <view class="stat-item">
-        <text class="stat-count">{{userInfo.postsCount}}</text>
-        <text class="stat-label">动态</text>
-      </view>
-    </view>
-    
-    <!-- 操作按钮 -->
-    <view class="user-actions">
-      <view class="action-btn {{isFollowing ? 'following' : ''}}" bindtap="toggleFollow">
-        {{isFollowing ? '已关注' : '关注'}}
-      </view>
-      <view class="action-btn message" bindtap="sendMessage">
-        发消息
       </view>
     </view>
     
     <!-- 标签页导航 -->
     <view class="tabs">
-      <view class="tab-item {{activeTab === 'posts' ? 'active' : ''}}" bindtap="switchTab" data-tab="posts">
-        动态
-      </view>
-      <view class="tab-item {{activeTab === 'habits' ? 'active' : ''}}" bindtap="switchTab" data-tab="habits">
-        习惯 <text class="count">{{userInfo.habitsCount}}</text>
-      </view>
-      <view class="tab-item {{activeTab === 'challenges' ? 'active' : ''}}" bindtap="switchTab" data-tab="challenges">
-        挑战 <text class="count">{{userInfo.challengesCount}}</text>
-      </view>
+      <view class="tab-item {{activeTab === 'posts' ? 'active' : ''}}" bindtap="switchTab" data-tab="posts">动态</view>
+      <view class="tab-item {{activeTab === 'habits' ? 'active' : ''}}" bindtap="switchTab" data-tab="habits">习惯</view>
+      <view class="tab-item {{activeTab === 'achievements' ? 'active' : ''}}" bindtap="switchTab" data-tab="achievements">成就</view>
     </view>
-    
-    <!-- 动态列表 -->
-    <view class="content-section" wx:if="{{activeTab === 'posts'}}">
-      <block wx:if="{{posts.length > 0}}">
-        <view class="post-list">
-          <view class="post-item" 
-                wx:for="{{posts}}" 
-                wx:key="id"
-                bindtap="viewPostDetail"
-                data-id="{{item.id}}">
-            <view class="post-content">{{item.content}}</view>
+  </view>
+  
+  <!-- 动态列表 -->
+  <view class="content-section" wx:if="{{!loading && activeTab === 'posts'}}">
+    <block wx:if="{{posts.length > 0}}">
+      <view class="post-list">
+        <view class="post-item" wx:for="{{posts}}" wx:key="id" bindtap="viewPostDetail" data-id="{{item.id}}">
+          <!-- 动态内容 -->
+          <view class="post-content">
+            <text class="post-text">{{item.content}}</text>
             
-            <!-- 图片展示 -->
-            <view class="post-images" wx:if="{{item.images.length > 0}}">
+            <!-- 标签 -->
+            <view class="post-tags" wx:if="{{item.tags && item.tags.length > 0}}">
+              <view class="post-tag" wx:for="{{item.tags}}" wx:key="*this" wx:for-item="tag">
+                <text class="iconfont icon-tag"></text>
+                <text>{{tag}}</text>
+              </view>
+            </view>
+            
+            <!-- 图片 -->
+            <view class="post-images" wx:if="{{item.images && item.images.length > 0}}">
               <block wx:if="{{item.images.length === 1}}">
                 <image class="post-image single" src="{{item.images[0]}}" mode="aspectFill"></image>
               </block>
@@ -83,139 +93,147 @@
                 </view>
               </block>
             </view>
-            
-            <!-- 互动数据 -->
-            <view class="post-stats">
-              <view class="post-time">{{item.createdAt}}</view>
-              <view class="post-actions">
-                <text class="action-item">
-                  <text class="iconfont icon-like"></text> {{item.likes}}
-                </text>
-                <text class="action-item">
-                  <text class="iconfont icon-comment"></text> {{item.comments}}
-                </text>
-              </view>
+          </view>
+          
+          <!-- 动态元信息 -->
+          <view class="post-meta">
+            <text class="post-time">{{item.createdAt}}</text>
+            <text class="post-habit" wx:if="{{item.habitName}}">{{item.habitName}}</text>
+          </view>
+          
+          <!-- 互动按钮 -->
+          <view class="post-actions">
+            <view class="post-action {{item.isLiked ? 'active' : ''}}" catchtap="likePost" data-id="{{item.id}}" data-index="{{index}}">
+              <text class="iconfont {{item.isLiked ? 'icon-heart-fill' : 'icon-heart'}}"></text>
+              <text>{{item.likes}}</text>
+            </view>
+            <view class="post-action" catchtap="commentPost" data-id="{{item.id}}">
+              <text class="iconfont icon-comment"></text>
+              <text>{{item.comments}}</text>
+            </view>
+            <view class="post-action" catchtap="sharePost" data-id="{{item.id}}">
+              <text class="iconfont icon-share"></text>
+              <text>分享</text>
             </view>
           </view>
         </view>
-        
-        <!-- 加载更多 -->
-        <view class="load-more" wx:if="{{hasMore.posts}}">
-          <view class="loading-spinner small"></view>
-          <text class="loading-text">加载更多...</text>
-        </view>
-        
-        <!-- 没有更多 -->
-        <view class="no-more" wx:else>
-          <text>没有更多动态了</text>
-        </view>
-      </block>
-      
-      <!-- 空状态 -->
-      <view class="empty-state" wx:else>
-        <image class="empty-icon" src="/images/icons/empty-posts.png" mode="aspectFit"></image>
-        <text class="empty-text">暂无动态</text>
       </view>
-    </view>
+      
+      <!-- 加载更多 -->
+      <view class="loading-more" wx:if="{{loadingMore}}">
+        <view class="loading-spinner small"></view>
+        <text class="loading-text">加载更多...</text>
+      </view>
+      
+      <!-- 没有更多数据 -->
+      <view class="no-more" wx:if="{{!loadingMore && !hasMore.posts}}">
+        <text>没有更多动态了</text>
+      </view>
+    </block>
     
-    <!-- 习惯列表 -->
-    <view class="content-section" wx:if="{{activeTab === 'habits'}}">
-      <block wx:if="{{habits.length > 0}}">
-        <view class="habit-list">
-          <view class="habit-item" 
-                wx:for="{{habits}}" 
-                wx:key="id"
-                bindtap="viewHabitDetail"
-                data-id="{{item.id}}">
-            <view class="habit-icon" style="background-color: {{item.color}}">
-              <image src="{{item.icon}}" mode="aspectFit"></image>
-            </view>
-            <view class="habit-info">
-              <text class="habit-name">{{item.name}}</text>
-              <text class="habit-frequency">{{item.frequency}}</text>
-              
-              <!-- 进度条 -->
-              <view class="habit-progress">
-                <view class="progress-bar">
-                  <view class="progress-inner" style="width: {{item.completionRate}}%"></view>
-                </view>
-                <text class="progress-text">{{item.completionRate}}%</text>
-              </view>
-            </view>
-            <view class="habit-streak">
-              <text class="streak-count">{{item.streak}}</text>
-              <text class="streak-label">天</text>
-            </view>
-          </view>
-        </view>
-        
-        <!-- 加载更多 -->
-        <view class="load-more" wx:if="{{hasMore.habits}}">
-          <view class="loading-spinner small"></view>
-          <text class="loading-text">加载更多...</text>
-        </view>
-        
-        <!-- 没有更多 -->
-        <view class="no-more" wx:else>
-          <text>没有更多习惯了</text>
-        </view>
-      </block>
-      
-      <!-- 空状态 -->
-      <view class="empty-state" wx:else>
-        <image class="empty-icon" src="/images/icons/empty-habits.png" mode="aspectFit"></image>
-        <text class="empty-text">暂无习惯</text>
-      </view>
+    <!-- 空状态 -->
+    <view class="empty-state" wx:else>
+      <image class="empty-icon" src="/images/icons/empty-posts.png" mode="aspectFit"></image>
+      <text class="empty-text">暂无动态</text>
+      <button class="create-btn" bindtap="createPost" wx:if="{{isSelf}}">发布动态</button>
     </view>
-    
-    <!-- 挑战列表 -->
-    <view class="content-section" wx:if="{{activeTab === 'challenges'}}">
-      <block wx:if="{{challenges.length > 0}}">
-        <view class="challenge-list">
-          <view class="challenge-item" 
-                wx:for="{{challenges}}" 
-                wx:key="id"
-                bindtap="viewChallengeDetail"
-                data-id="{{item.id}}">
-            <image class="challenge-image" src="{{item.image}}" mode="aspectFill"></image>
-            <view class="challenge-overlay"></view>
-            <view class="challenge-info">
-              <text class="challenge-title">{{item.title}}</text>
-              <text class="challenge-participants">{{item.participants}}人参与</text>
-              
-              <!-- 进度条 -->
-              <view class="challenge-progress">
-                <view class="progress-bar">
-                  <view class="progress-inner" style="width: {{item.progress}}%"></view>
-                </view>
-                <text class="progress-text">{{item.progress}}%</text>
+  </view>
+  
+  <!-- 习惯列表 -->
+  <view class="content-section" wx:if="{{!loading && activeTab === 'habits'}}">
+    <block wx:if="{{habits.length > 0}}">
+      <view class="habits-list">
+        <view class="habit-item" 
+              wx:for="{{habits}}" 
+              wx:key="id"
+              bindtap="viewHabitDetail"
+              data-id="{{item.id}}">
+          <view class="habit-icon" style="background-color: {{item.color}}">
+            <image src="{{item.icon}}" mode="aspectFit"></image>
+          </view>
+          <view class="habit-info">
+            <text class="habit-name">{{item.name}}</text>
+            <text class="habit-frequency">{{item.frequency}}</text>
+            <view class="habit-progress">
+              <view class="progress-bar">
+                <view class="progress-inner" style="width: {{item.progress}}%"></view>
               </view>
+              <text class="progress-text">{{item.progress}}%</text>
             </view>
           </view>
+          <view class="habit-streak">
+            <text class="streak-count">{{item.streak}}</text>
+            <text class="streak-label">天</text>
+          </view>
         </view>
-        
-        <!-- 加载更多 -->
-        <view class="load-more" wx:if="{{hasMore.challenges}}">
-          <view class="loading-spinner small"></view>
-          <text class="loading-text">加载更多...</text>
-        </view>
-        
-        <!-- 没有更多 -->
-        <view class="no-more" wx:else>
-          <text>没有更多挑战了</text>
-        </view>
-      </block>
-      
-      <!-- 空状态 -->
-      <view class="empty-state" wx:else>
-        <image class="empty-icon" src="/images/icons/empty-challenges.png" mode="aspectFit"></image>
-        <text class="empty-text">暂无挑战</text>
       </view>
+      
+      <!-- 加载更多 -->
+      <view class="loading-more" wx:if="{{loadingMore}}">
+        <view class="loading-spinner small"></view>
+        <text class="loading-text">加载更多...</text>
+      </view>
+      
+      <!-- 没有更多数据 -->
+      <view class="no-more" wx:if="{{!loadingMore && !hasMore.habits}}">
+        <text>没有更多习惯了</text>
+      </view>
+    </block>
+    
+    <!-- 空状态 -->
+    <view class="empty-state" wx:else>
+      <image class="empty-icon" src="/images/icons/empty-habits.png" mode="aspectFit"></image>
+      <text class="empty-text">暂无习惯</text>
+      <button class="create-btn" bindtap="createHabit" wx:if="{{isSelf}}">创建习惯</button>
+    </view>
+  </view>
+  
+  <!-- 成就列表 -->
+  <view class="content-section" wx:if="{{!loading && activeTab === 'achievements'}}">
+    <block wx:if="{{achievements.length > 0}}">
+      <view class="achievements-list">
+        <view class="achievement-item" 
+              wx:for="{{achievements}}" 
+              wx:key="id"
+              bindtap="viewAchievementDetail"
+              data-id="{{item.id}}">
+          <image class="achievement-icon {{item.unlocked ? '' : 'locked'}}" src="{{item.icon}}" mode="aspectFit"></image>
+          <view class="achievement-info">
+            <text class="achievement-name">{{item.name}}</text>
+            <text class="achievement-description">{{item.description}}</text>
+            <view class="achievement-progress" wx:if="{{!item.unlocked}}">
+              <view class="progress-bar">
+                <view class="progress-inner" style="width: {{item.progress}}%"></view>
+              </view>
+              <text class="progress-text">{{item.progress}}%</text>
+            </view>
+            <text class="achievement-date" wx:if="{{item.unlocked}}">{{item.unlockedAt}}</text>
+          </view>
+        </view>
+      </view>
+      
+      <!-- 加载更多 -->
+      <view class="loading-more" wx:if="{{loadingMore}}">
+        <view class="loading-spinner small"></view>
+        <text class="loading-text">加载更多...</text>
+      </view>
+      
+      <!-- 没有更多数据 -->
+      <view class="no-more" wx:if="{{!loadingMore && !hasMore.achievements}}">
+        <text>没有更多成就了</text>
+      </view>
+    </block>
+    
+    <!-- 空状态 -->
+    <view class="empty-state" wx:else>
+      <image class="empty-icon" src="/images/icons/empty-achievements.png" mode="aspectFit"></image>
+      <text class="empty-text">暂无成就</text>
+      <text class="empty-tips" wx:if="{{isSelf}}">坚持打卡可以解锁更多成就哦</text>
     </view>
   </view>
   
   <!-- 用户不存在 -->
-  <view class="error-state" wx:if="{{!loading && !userInfo}}">
+  <view class="error-state" wx:if="{{!loading && !user}}">
     <image class="error-icon" src="/images/icons/error.png" mode="aspectFit"></image>
     <text class="error-text">用户不存在或已被删除</text>
     <button class="back-btn" bindtap="navigateBack">返回</button>

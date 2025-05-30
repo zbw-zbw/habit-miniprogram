@@ -1,11 +1,11 @@
 <!--packageCommunity/pages/notifications/notifications.wxml-->
 <view class="container">
-  <!-- 顶部导航栏 -->
-  <view class="navbar">
-    <view class="navbar-title">通知</view>
-    <view class="navbar-action" bindtap="markAllAsRead" wx:if="{{unreadCount > 0}}">
-      全部已读
-    </view>
+  <!-- 标签页导航 -->
+  <view class="tabs">
+    <view class="tab-item {{activeTab === 'all' ? 'active' : ''}}" bindtap="switchTab" data-tab="all">全部</view>
+    <view class="tab-item {{activeTab === 'like' ? 'active' : ''}}" bindtap="switchTab" data-tab="like">点赞</view>
+    <view class="tab-item {{activeTab === 'comment' ? 'active' : ''}}" bindtap="switchTab" data-tab="comment">评论</view>
+    <view class="tab-item {{activeTab === 'follow' ? 'active' : ''}}" bindtap="switchTab" data-tab="follow">关注</view>
   </view>
   
   <!-- 加载状态 -->
@@ -15,57 +15,55 @@
   </view>
   
   <!-- 通知列表 -->
-  <view class="notification-list" wx:if="{{!loading && notifications.length > 0}}">
+  <view class="notifications-list" wx:if="{{!loading && notifications.length > 0}}">
     <view class="notification-item {{item.isRead ? '' : 'unread'}}" 
           wx:for="{{notifications}}" 
           wx:key="id"
-          bindtap="viewNotification"
+          bindtap="handleNotification"
           data-id="{{item.id}}"
-          data-index="{{index}}"
           data-type="{{item.type}}"
-          data-target-id="{{item.targetId}}"
-          data-target-type="{{item.targetType}}">
-      <!-- 未读标记 -->
-      <view class="unread-dot" wx:if="{{!item.isRead}}"></view>
-      
-      <!-- 通知图标 -->
-      <view class="notification-icon {{item.type}}">
-        <block wx:if="{{item.type === 'system'}}">
-          <text class="iconfont icon-system"></text>
-        </block>
-        <block wx:elif="{{item.sender}}">
-          <image class="sender-avatar" src="{{item.sender.avatar}}" mode="aspectFill"></image>
-        </block>
-      </view>
+          data-target-id="{{item.targetId}}">
+      <!-- 用户头像 -->
+      <image class="user-avatar" src="{{item.userAvatar}}" mode="aspectFill" catchtap="viewUserProfile" data-id="{{item.userId}}"></image>
       
       <!-- 通知内容 -->
       <view class="notification-content">
-        <view class="notification-text">{{item.content}}</view>
-        <view class="notification-time">{{item.createdAt}}</view>
+        <view class="notification-text">
+          <text class="username">{{item.userName}}</text>
+          <text class="action">{{item.actionText}}</text>
+          <text class="target">{{item.targetText}}</text>
+        </view>
+        
+        <!-- 通知时间 -->
+        <view class="notification-time">{{item.time}}</view>
+        
+        <!-- 通知预览 -->
+        <view class="notification-preview" wx:if="{{item.previewText}}">
+          <text>{{item.previewText}}</text>
+        </view>
       </view>
       
-      <!-- 删除按钮 -->
-      <view class="notification-delete" catchtap="deleteNotification" data-id="{{item.id}}" data-index="{{index}}">
-        <text class="iconfont icon-delete"></text>
+      <!-- 目标内容缩略图 -->
+      <view class="notification-target" wx:if="{{item.targetImage}}">
+        <image class="target-image" src="{{item.targetImage}}" mode="aspectFill"></image>
       </view>
+    </view>
+    
+    <!-- 加载更多 -->
+    <view class="loading-more" wx:if="{{loadingMore}}">
+      <view class="loading-spinner small"></view>
+      <text class="loading-text">加载更多...</text>
+    </view>
+    
+    <!-- 没有更多数据 -->
+    <view class="no-more" wx:if="{{!loadingMore && !hasMore}}">
+      <text>没有更多通知了</text>
     </view>
   </view>
   
   <!-- 空状态 -->
   <view class="empty-state" wx:if="{{!loading && notifications.length === 0}}">
-    <image class="empty-icon" src="/images/icons/empty-notification.png" mode="aspectFit"></image>
+    <image class="empty-icon" src="/images/icons/empty-notifications.png" mode="aspectFit"></image>
     <text class="empty-text">暂无通知</text>
-    <text class="empty-subtext">当有人对你的动态点赞、评论或有新的系统通知时，会显示在这里</text>
-  </view>
-  
-  <!-- 加载更多 -->
-  <view class="loading-more" wx:if="{{loading && notifications.length > 0}}">
-    <view class="loading-spinner small"></view>
-    <text class="loading-text">加载更多...</text>
-  </view>
-  
-  <!-- 没有更多数据 -->
-  <view class="no-more" wx:if="{{!loading && !hasMore && notifications.length > 0}}">
-    <text>没有更多通知了</text>
   </view>
 </view> 

@@ -45,16 +45,19 @@
       </view>
     </view>
     
-    <!-- 图表区域 -->
+    <!-- 完成率图表 -->
     <view class="chart-card">
-      <!-- 实际项目中应使用图表组件 -->
-      <view class="chart-placeholder">
-        <view class="chart-bars">
-          <view wx:for="{{chartData.values}}" wx:key="index" class="chart-bar" style="height: {{item * 10}}rpx; background-color: {{item > 0 ? '#4F7CFF' : '#F5F7FA'}}"></view>
-        </view>
-        <view class="chart-labels">
-          <view wx:for="{{chartData.dates}}" wx:key="index" class="chart-label">{{item.substring(5)}}</view>
-        </view>
+      <view class="chart-title">完成率趋势</view>
+      <view class="chart-container">
+        <canvas canvas-id="completionChart" class="chart-canvas"></canvas>
+      </view>
+    </view>
+    
+    <!-- 打卡次数图表 -->
+    <view class="chart-card">
+      <view class="chart-title">打卡次数</view>
+      <view class="chart-container">
+        <canvas canvas-id="checkinsChart" class="chart-canvas"></canvas>
       </view>
     </view>
     
@@ -115,12 +118,12 @@
   <block wx:if="{{activeTab === 'calendar' && !loading}}">
     <view class="calendar-card">
       <view class="calendar-header">
-        <view class="calendar-title">2023年10月</view>
+        <view class="calendar-title">{{calendarTitle}}</view>
         <view class="calendar-actions">
-          <view class="calendar-action">
+          <view class="calendar-action" bindtap="changeMonth" data-direction="prev">
             <text class="iconfont icon-left"></text>
           </view>
-          <view class="calendar-action">
+          <view class="calendar-action" bindtap="changeMonth" data-direction="next">
             <text class="iconfont icon-right"></text>
           </view>
         </view>
@@ -137,42 +140,15 @@
       </view>
       
       <view class="calendar-days">
-        <!-- 示例数据，实际应根据日期动态生成 -->
-        <view class="calendar-day other-month">30</view>
-        <view class="calendar-day">1</view>
-        <view class="calendar-day">2</view>
-        <view class="calendar-day completed">3</view>
-        <view class="calendar-day completed">4</view>
-        <view class="calendar-day completed">5</view>
-        <view class="calendar-day completed">6</view>
-        <view class="calendar-day completed">7</view>
-        <view class="calendar-day completed">8</view>
-        <view class="calendar-day completed">9</view>
-        <view class="calendar-day completed">10</view>
-        <view class="calendar-day completed">11</view>
-        <view class="calendar-day completed">12</view>
-        <view class="calendar-day completed">13</view>
-        <view class="calendar-day completed">14</view>
-        <view class="calendar-day completed">15</view>
-        <view class="calendar-day today">16</view>
-        <view class="calendar-day">17</view>
-        <view class="calendar-day">18</view>
-        <view class="calendar-day">19</view>
-        <view class="calendar-day">20</view>
-        <view class="calendar-day">21</view>
-        <view class="calendar-day">22</view>
-        <view class="calendar-day">23</view>
-        <view class="calendar-day">24</view>
-        <view class="calendar-day">25</view>
-        <view class="calendar-day">26</view>
-        <view class="calendar-day">27</view>
-        <view class="calendar-day">28</view>
-        <view class="calendar-day">29</view>
-        <view class="calendar-day">30</view>
-        <view class="calendar-day">31</view>
-        <view class="calendar-day other-month">1</view>
-        <view class="calendar-day other-month">2</view>
-        <view class="calendar-day other-month">3</view>
+        <view 
+          wx:for="{{calendarDays}}" 
+          wx:key="date" 
+          class="calendar-day {{item.isCurrentMonth ? '' : 'other-month'}} {{item.isCompleted ? 'completed' : ''}} {{item.isToday ? 'today' : ''}}"
+          bindtap="viewDayDetail"
+          data-date="{{item.date}}"
+        >
+          {{item.day}}
+        </view>
       </view>
       
       <view class="calendar-legend">

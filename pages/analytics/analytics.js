@@ -4,7 +4,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
  * 数据分析页面
  */
 const date_1 = require("../../utils/date");
-const storage_1 = require("../../utils/storage");
+const api_1 = require("../../services/api");
 Page({
     /**
      * 页面的初始数据
@@ -33,8 +33,7 @@ Page({
      * 生命周期函数--监听页面加载
      */
     onLoad() {
-        // 确保有测试数据
-        (0, storage_1.createTestData)();
+        // 页面加载时执行
     },
     /**
      * 生命周期函数--监听页面显示
@@ -48,15 +47,27 @@ Page({
     loadData() {
         this.setData({ loading: true });
         // 获取习惯和打卡数据
-        const habits = (0, storage_1.getHabits)();
-        const checkins = (0, storage_1.getCheckins)();
-        // 计算总体统计数据
-        this.calculateOverallStats(habits, checkins);
-        // 计算各习惯统计数据
-        this.calculateHabitStats(habits, checkins);
-        // 生成图表数据
-        this.generateChartData(habits, checkins);
-        this.setData({ loading: false });
+        Promise.all([
+            api_1.habitAPI.getHabits(),
+            api_1.checkinAPI.getCheckins()
+        ])
+            .then(([habits, checkins]) => {
+            // 计算总体统计数据
+            this.calculateOverallStats(habits, checkins);
+            // 计算各习惯统计数据
+            this.calculateHabitStats(habits, checkins);
+            // 生成图表数据
+            this.generateChartData(habits, checkins);
+            this.setData({ loading: false });
+        })
+            .catch(error => {
+            console.error('加载数据失败:', error);
+            wx.showToast({
+                title: '加载失败',
+                icon: 'none'
+            });
+            this.setData({ loading: false });
+        });
     },
     /**
      * 计算总体统计数据
@@ -65,70 +76,65 @@ Page({
         const today = (0, date_1.formatDate)(new Date());
         const activeHabits = habits.filter(h => !h.isArchived);
         const completedToday = checkins.filter(c => c.date === today && c.isCompleted).length;
-        // 计算总体完成率
-        let totalDays = 0;
-        let completedDays = 0;
-        activeHabits.forEach(habit => {
-            const habitCheckins = checkins.filter(c => c.habitId === habit.id);
-            // 获取该习惯应该执行的天数
-            const startDate = new Date(habit.createdAt);
-            const now = new Date();
-            for (let d = new Date(startDate); d <= now; d.setDate(d.getDate() + 1)) {
-                const dateStr = (0, date_1.formatDate)(d);
-                // 简化逻辑，实际应调用 shouldDoHabitOnDate
-                totalDays++;
-                // 检查是否完成
-                if (habitCheckins.some(c => c.date === dateStr && c.isCompleted)) {
-                    completedDays++;
-                }
-            }
-        });
-        const completionRate = totalDays > 0 ? Math.round((completedDays / totalDays) * 100) : 0;
-        // 计算当前连续天数和最长连续天数
-        // 简化实现，实际应考虑更复杂的逻辑
-        let currentStreak = 0;
-        let longestStreak = 0;
-        // 模拟数据
-        currentStreak = 5;
-        longestStreak = 12;
-        this.setData({
-            'stats.totalHabits': habits.length,
-            'stats.activeHabits': activeHabits.length,
-            'stats.completedToday': completedToday,
-            'stats.completionRate': completionRate,
-            'stats.totalCheckins': checkins.filter(c => c.isCompleted).length,
-            'stats.currentStreak': currentStreak,
-            'stats.longestStreak': longestStreak
+        // 获取所有习惯的统计数据
+        const statsPromises = activeHabits.map(habit => api_1.habitAPI.getHabitStats(habit.id));
+        Promise.all(statsPromises)
+            .then(statsArray => {
+            // 计算总体完成率
+            let totalCompletions = 0;
+            let totalDays = 0;
+            let maxCurrentStreak = 0;
+            let maxLongestStreak = 0;
+            statsArray.forEach(stats => {
+                totalCompletions += stats.totalCompletions;
+                totalDays += stats.totalDays;
+                maxCurrentStreak = Math.max(maxCurrentStreak, stats.currentStreak);
+                maxLongestStreak = Math.max(maxLongestStreak, stats.longestStreak);
+            });
+            const completionRate = totalDays > 0 ? Math.round((totalCompletions / totalDays) * 100) : 0;
+            this.setData({
+                'stats.totalHabits': habits.length,
+                'stats.activeHabits': activeHabits.length,
+                'stats.completedToday': completedToday,
+                'stats.completionRate': completionRate,
+                'stats.totalCheckins': checkins.filter(c => c.isCompleted).length,
+                'stats.currentStreak': maxCurrentStreak,
+                'stats.longestStreak': maxLongestStreak
+            });
+        })
+            .catch(error => {
+            console.error('计算总体统计数据失败:', error);
         });
     },
     /**
      * 计算各习惯统计数据
      */
     calculateHabitStats(habits, checkins) {
-        const habitStats = habits
-            .filter(h => !h.isArchived)
-            .map(habit => {
+        const activeHabits = habits.filter(h => !h.isArchived);
+        // 获取每个习惯的统计数据
+        const statsPromises = activeHabits.map(habit => api_1.habitAPI.getHabitStats(habit.id)
+            .then(stats => {
             const habitCheckins = checkins.filter(c => c.habitId === habit.id);
             const totalCheckins = habitCheckins.filter(c => c.isCompleted).length;
-            // 计算完成率
-            const totalDays = 30; // 简化为最近30天
-            const completedDays = habitCheckins.filter(c => c.isCompleted).length;
-            const completionRate = totalDays > 0 ? Math.round((completedDays / totalDays) * 100) : 0;
-            // 计算连续天数
-            // 简化实现，实际应考虑更复杂的逻辑
-            const streak = Math.floor(Math.random() * 10) + 1; // 模拟数据
             return {
                 id: habit.id,
                 name: habit.name,
                 color: habit.color,
                 icon: habit.icon,
-                completionRate,
-                streak,
+                completionRate: Math.round(stats.completionRate * 100),
+                streak: stats.currentStreak,
                 totalCheckins
             };
+        }));
+        Promise.all(statsPromises)
+            .then(habitStats => {
+            // 按完成率排序
+            habitStats.sort((a, b) => b.completionRate - a.completionRate);
+            this.setData({ habitStats });
         })
-            .sort((a, b) => b.completionRate - a.completionRate);
-        this.setData({ habitStats });
+            .catch(error => {
+            console.error('计算习惯统计数据失败:', error);
+        });
     },
     /**
      * 生成图表数据
@@ -147,20 +153,34 @@ Page({
                 days = 365;
                 break;
         }
-        // 获取过去n天的日期
+        // 获取过去几天的日期
         const dates = (0, date_1.getPastDates)(days);
-        // 计算每天的打卡次数
-        const values = dates.map(date => {
-            return checkins.filter(c => c.date === date && c.isCompleted).length;
-        });
-        // 计算每天的完成率
-        const completionRates = dates.map(date => {
-            const totalHabits = habits.filter(h => !h.isArchived).length;
-            const completed = checkins.filter(c => c.date === date && c.isCompleted).length;
-            return totalHabits > 0 ? Math.round((completed / totalHabits) * 100) : 0;
+        const activeHabits = habits.filter(h => !h.isArchived);
+        // 计算每天的完成情况
+        const values = [];
+        const completionRates = [];
+        for (const date of dates) {
+            let totalHabits = 0;
+            let completedHabits = 0;
+            activeHabits.forEach(habit => {
+                // 简化逻辑，实际应调用 shouldDoHabitOnDate
+                totalHabits++;
+                // 检查是否完成
+                if (checkins.some(c => c.habitId === habit.id && c.date === date && c.isCompleted)) {
+                    completedHabits++;
+                }
+            });
+            values.push(completedHabits);
+            const rate = totalHabits > 0 ? Math.round((completedHabits / totalHabits) * 100) : 0;
+            completionRates.push(rate);
+        }
+        // 格式化日期为短格式
+        const formattedDates = dates.map(date => {
+            const parts = date.split('-');
+            return `${parts[1]}/${parts[2]}`;
         });
         this.setData({
-            'chartData.dates': dates,
+            'chartData.dates': formattedDates,
             'chartData.values': values,
             'chartData.completionRates': completionRates
         });
@@ -178,10 +198,8 @@ Page({
     switchTimeRange(e) {
         const range = e.currentTarget.dataset.range;
         this.setData({ timeRange: range }, () => {
-            // 重新生成图表数据
-            const habits = (0, storage_1.getHabits)();
-            const checkins = (0, storage_1.getCheckins)();
-            this.generateChartData(habits, checkins);
+            // 重新加载数据
+            this.loadData();
         });
     },
     /**
@@ -194,16 +212,18 @@ Page({
         });
     },
     /**
-     * 生成详细报告
+     * 生成报告
      */
     generateReport() {
-        wx.showToast({
-            title: '正在生成报告...',
-            icon: 'loading'
+        wx.showLoading({
+            title: '生成报告中'
         });
         setTimeout(() => {
-            wx.navigateTo({
-                url: '/packageAnalytics/pages/report/report'
+            wx.hideLoading();
+            wx.showModal({
+                title: '报告已生成',
+                content: '您的习惯分析报告已生成，可以在"我的-报告"中查看',
+                showCancel: false
             });
         }, 1500);
     },
@@ -212,12 +232,13 @@ Page({
      */
     onShareAppMessage() {
         return {
-            title: '我的习惯数据分析',
-            path: '/pages/analytics/analytics'
+            title: '我的习惯分析报告',
+            path: '/pages/analytics/analytics',
+            imageUrl: '/images/share-analytics.png'
         };
     },
     /**
-     * 导航到习惯洞察页面
+     * 跳转到习惯洞察页面
      */
     navigateToInsights() {
         wx.navigateTo({

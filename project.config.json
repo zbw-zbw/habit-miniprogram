@@ -1,12 +1,17 @@
 {
   "description": "项目配置文件",
   "packOptions": {
-    "ignore": [],
+    "ignore": [
+      {
+        "value": "server",
+        "type": "folder"
+      }
+    ],
     "include": []
   },
   "miniprogramRoot": "",
   "compileType": "miniprogram",
-  "projectname": "习惯打卡小程序",
+  "projectname": "HabitTracker",
   "setting": {
     "useCompilerPlugins": [
       "typescript"

@@ -1,0 +1,390 @@
+.habit-chain-page {
+  padding: 16px;
+  background-color: #F5F7FA;
+  min-height: 100vh;
+}
+
+.page-header {
+  margin-bottom: 16px;
+}
+
+.page-title {
+  font-size: 24px;
+  font-weight: 600;
+  color: #303133;
+  margin-bottom: 8px;
+}
+
+.page-description {
+  font-size: 14px;
+  color: #909399;
+  margin-bottom: 16px;
+}
+
+.section {
+  background-color: #FFFFFF;
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 16px;
+  box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.05);
+}
+
+.section-title {
+  font-size: 18px;
+  font-weight: 500;
+  color: #303133;
+  margin-bottom: 12px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.section-title .action {
+  font-size: 14px;
+  color: #4F7CFF;
+  font-weight: normal;
+}
+
+.chain-list {
+  margin-top: 16px;
+}
+
+.chain-item {
+  background-color: #FFFFFF;
+  border-radius: 8px;
+  padding: 16px;
+  margin-bottom: 12px;
+  border-left: 4px solid #4F7CFF;
+  position: relative;
+}
+
+.chain-item-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.chain-name {
+  font-size: 16px;
+  font-weight: 500;
+  color: #303133;
+}
+
+.chain-actions {
+  display: flex;
+}
+
+.chain-action {
+  margin-left: 12px;
+  color: #909399;
+}
+
+.chain-description {
+  font-size: 14px;
+  color: #606266;
+  margin-bottom: 12px;
+}
+
+.chain-habits {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.chain-habit {
+  background-color: #F5F7FA;
+  border-radius: 16px;
+  padding: 4px 12px;
+  font-size: 12px;
+  color: #606266;
+  display: flex;
+  align-items: center;
+}
+
+.chain-habit.optional {
+  border: 1px dashed #DCDFE6;
+  background-color: transparent;
+}
+
+.chain-habit-icon {
+  width: 16px;
+  height: 16px;
+  margin-right: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background-color: #4F7CFF;
+  color: #FFFFFF;
+  font-size: 10px;
+}
+
+.chain-meta {
+  display: flex;
+  font-size: 12px;
+  color: #909399;
+}
+
+.chain-meta-item {
+  margin-right: 16px;
+  display: flex;
+  align-items: center;
+}
+
+.chain-meta-item mp-icon {
+  margin-right: 4px;
+}
+
+.chain-meta-item .icon-text {
+  margin-right: 4px;
+  font-size: 14px;
+}
+
+.visualizer-container {
+  height: 300px;
+  width: 100%;
+  margin-bottom: 16px;
+}
+
+.empty-state {
+  padding: 40px 0;
+  text-align: center;
+  color: #909399;
+}
+
+.empty-state-icon {
+  font-size: 48px;
+  margin-bottom: 16px;
+  color: #DCDFE6;
+}
+
+.empty-state-text {
+  font-size: 14px;
+  margin-bottom: 24px;
+}
+
+.btn-create {
+  background-color: #4F7CFF;
+  color: #FFFFFF;
+  border-radius: 8px;
+  font-size: 16px;
+  padding: 8px 24px;
+}
+
+.btn-recommend {
+  background-color: #67C23A;
+  color: #FFFFFF;
+  border-radius: 8px;
+  font-size: 16px;
+  padding: 8px 24px;
+  margin-top: 12px;
+}
+
+.tab-container {
+  display: flex;
+  background-color: #FFFFFF;
+  border-radius: 8px;
+  margin-bottom: 16px;
+  overflow: hidden;
+}
+
+.tab {
+  flex: 1;
+  text-align: center;
+  padding: 12px 0;
+  font-size: 14px;
+  color: #606266;
+  position: relative;
+}
+
+.tab.active {
+  color: #4F7CFF;
+  font-weight: 500;
+}
+
+.tab.active::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 20px;
+  height: 3px;
+  background-color: #4F7CFF;
+  border-radius: 3px;
+}
+
+.loading-container {
+  display: flex;
+  justify-content: center;
+  padding: 20px 0;
+}
+
+.analysis-result {
+  background-color: #F0F9EB;
+  border-radius: 8px;
+  padding: 12px;
+  margin-bottom: 16px;
+  border-left: 4px solid #67C23A;
+}
+
+.analysis-title {
+  font-size: 14px;
+  font-weight: 500;
+  color: #67C23A;
+  margin-bottom: 8px;
+}
+
+.analysis-content {
+  font-size: 14px;
+  color: #606266;
+  line-height: 1.5;
+}
+
+.relation-item {
+  padding: 12px;
+  border-radius: 8px;
+  background-color: #F5F7FA;
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+}
+
+.relation-habits {
+  flex: 1;
+  display: flex;
+  align-items: center;
+}
+
+.relation-habit {
+  padding: 4px 8px;
+  background-color: #FFFFFF;
+  border-radius: 4px;
+  font-size: 12px;
+  max-width: 80px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.relation-arrow {
+  margin: 0 8px;
+  color: #909399;
+}
+
+.relation-type {
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  margin-left: 8px;
+}
+
+.relation-type.trigger {
+  background-color: #ECF5FF;
+  color: #4F7CFF;
+}
+
+.relation-type.complementary {
+  background-color: #F0F9EB;
+  color: #67C23A;
+}
+
+.relation-type.sequential {
+  background-color: #FDF6EC;
+  color: #E6A23C;
+}
+
+.relation-type.conflicting {
+  background-color: #FEF0F0;
+  color: #F56C6C;
+}
+
+.fixed-bottom {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 16px;
+  background-color: #FFFFFF;
+  box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.05);
+  z-index: 100;
+  display: flex;
+  justify-content: space-around;
+}
+
+.page-content {
+  padding-bottom: 80px;
+}
+
+.editor-section {
+  margin-top: 16px;
+}
+
+.form-item {
+  margin-bottom: 16px;
+}
+
+.form-label {
+  font-size: 14px;
+  color: #606266;
+  margin-bottom: 8px;
+}
+
+.form-input {
+  background-color: #FFFFFF;
+  border: 1px solid #DCDFE6;
+  border-radius: 4px;
+  padding: 8px 12px;
+  font-size: 14px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.form-textarea {
+  height: 80px;
+  width: 100%;
+  background-color: #FFFFFF;
+  border: 1px solid #DCDFE6;
+  border-radius: 4px;
+  padding: 8px 12px;
+  font-size: 14px;
+  box-sizing: border-box;
+}
+
+.frequency-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.frequency-option {
+  padding: 6px 12px;
+  border-radius: 4px;
+  font-size: 14px;
+  border: 1px solid #DCDFE6;
+  color: #606266;
+}
+
+.frequency-option.active {
+  background-color: #4F7CFF;
+  color: #FFFFFF;
+  border-color: #4F7CFF;
+}
+
+.icon-text {
+  font-size: 18px;
+  line-height: 1;
+}
+
+.big-icon {
+  font-size: 48px;
+  line-height: 1;
+}
+
+.loading-text {
+  color: #909399;
+  font-size: 14px;
+} 

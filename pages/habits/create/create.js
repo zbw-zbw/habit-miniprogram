@@ -3,13 +3,14 @@ Object.defineProperty(exports, "__esModule", { value: true });
 /**
  * 创建习惯页面
  */
-const storage_1 = require("../../../utils/storage");
-const util_1 = require("../../../utils/util");
+const api_1 = require("../../../services/api");
 Page({
     /**
      * 页面的初始数据
      */
     data: {
+        id: '',
+        isEdit: false,
         name: '',
         description: '',
         category: '学习',
@@ -41,7 +42,84 @@ Page({
     /**
      * 生命周期函数--监听页面加载
      */
-    onLoad() {
+    onLoad(options) {
+        if (options.id) {
+            // 编辑模式
+            this.setData({
+                id: options.id,
+                isEdit: true
+            });
+            wx.setNavigationBarTitle({
+                title: '编辑习惯'
+            });
+            // 加载习惯详情
+            this.loadHabitDetail(options.id);
+        }
+    },
+    /**
+     * 加载习惯详情
+     */
+    async loadHabitDetail(habitId) {
+        wx.showLoading({
+            title: '加载中'
+        });
+        try {
+            const habit = await api_1.habitAPI.getHabit(habitId);
+            // 设置表单数据
+            this.setData({
+                name: habit.name,
+                description: habit.description || '',
+                category: habit.category,
+                icon: habit.icon,
+                color: habit.color,
+                isReminderEnabled: habit.reminder?.enabled || false,
+                reminderTime: habit.reminder?.time || '08:00',
+                goalValue: habit.target || 1,
+                goalUnit: habit.unit || '次'
+            });
+            // 设置频率
+            if (habit.frequency) {
+                let frequency = 'daily';
+                let customDays = [0, 1, 2, 3, 4, 5, 6];
+                if (habit.frequency.type === 'weekly' && habit.frequency.days) {
+                    const days = habit.frequency.days;
+                    // 检查是否是工作日
+                    if (days.length === 5 && days.includes(1) && days.includes(2) &&
+                        days.includes(3) && days.includes(4) && days.includes(5) &&
+                        !days.includes(0) && !days.includes(6)) {
+                        frequency = 'workdays';
+                    }
+                    // 检查是否是周末
+                    else if (days.length === 2 && days.includes(0) && days.includes(6) &&
+                        !days.includes(1) && !days.includes(2) && !days.includes(3) &&
+                        !days.includes(4) && !days.includes(5)) {
+                        frequency = 'weekends';
+                    }
+                    // 检查是否是每周一次
+                    else if (days.length === 1) {
+                        frequency = 'weekly';
+                    }
+                    // 其他情况为自定义
+                    else {
+                        frequency = 'custom';
+                    }
+                    customDays = days;
+                }
+                this.setData({
+                    frequency,
+                    customDays
+                });
+            }
+            wx.hideLoading();
+        }
+        catch (error) {
+            console.error('加载习惯详情失败:', error);
+            wx.hideLoading();
+            wx.showToast({
+                title: '加载失败',
+                icon: 'error'
+            });
+        }
     },
     /**
      * 输入框变化事件
@@ -221,11 +299,12 @@ Page({
         });
     },
     /**
-     * 表单提交
+     * 提交表单
      */
     async onSubmit() {
+        const { id, isEdit, name, description, category, icon, color, frequency, customDays, isReminderEnabled, reminderTime, goalValue, goalUnit } = this.data;
         // 表单验证
-        if (!this.data.name.trim()) {
+        if (!name.trim()) {
             wx.showToast({
                 title: '请输入习惯名称',
                 icon: 'none'
@@ -239,60 +318,61 @@ Page({
         this.setData({
             isSubmitting: true
         });
+        wx.showLoading({
+            title: isEdit ? '保存中' : '创建中'
+        });
         try {
-            // 获取现有习惯
-            const habits = (0, storage_1.getHabits)();
-            // 创建新习惯
-            const newHabit = {
-                id: (0, util_1.generateUUID)(),
-                name: this.data.name.trim(),
-                description: this.data.description.trim(),
-                category: this.data.category,
-                icon: this.data.icon,
-                color: this.data.color,
+            // 准备习惯数据
+            const habitData = {
+                name: name.trim(),
+                description: description.trim(),
+                category,
+                icon,
+                color,
                 frequency: {
-                    type: this.data.frequency,
-                    days: this.data.customDays
+                    type: frequency === 'daily' ? 'daily' : 'weekly',
+                    days: frequency === 'daily' ? undefined : customDays
                 },
                 reminder: {
-                    enabled: this.data.isReminderEnabled,
-                    time: this.data.reminderTime
+                    enabled: isReminderEnabled,
+                    time: reminderTime
                 },
-                goalValue: this.data.goalValue,
-                goalUnit: this.data.goalUnit,
-                isArchived: false,
-                createdAt: new Date().toISOString(),
-                updatedAt: new Date().toISOString()
+                target: Number(goalValue),
+                unit: goalUnit,
+                startDate: new Date().toISOString().split('T')[0]
             };
-            // 添加到习惯列表
-            habits.push(newHabit);
-            // 保存习惯列表
-            (0, storage_1.saveHabits)(habits);
-            // 显示成功提示
+            if (isEdit) {
+                // 更新习惯
+                await api_1.habitAPI.updateHabit(id, habitData);
+            }
+            else {
+                // 创建习惯
+                await api_1.habitAPI.createHabit(habitData);
+            }
+            wx.hideLoading();
             wx.showToast({
-                title: '创建成功',
+                title: isEdit ? '保存成功' : '创建成功',
                 icon: 'success'
             });
-            // 延迟返回
+            // 返回上一页
             setTimeout(() => {
                 wx.navigateBack();
             }, 1500);
         }
         catch (error) {
-            console.error('创建习惯失败', error);
+            console.error(isEdit ? '更新习惯失败:' : '创建习惯失败:', error);
+            wx.hideLoading();
             wx.showToast({
-                title: '创建失败，请重试',
-                icon: 'none'
+                title: isEdit ? '保存失败' : '创建失败',
+                icon: 'error'
             });
-        }
-        finally {
             this.setData({
                 isSubmitting: false
             });
         }
     },
     /**
-     * 取消创建
+     * 取消
      */
     onCancel() {
         wx.navigateBack();

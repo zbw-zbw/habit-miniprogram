@@ -24,7 +24,7 @@ export const setStorage = <T>(key: string, data: T): void => {
 export const getStorage = <T>(key: string, defaultValue: T): T => {
   try {
     const value = wx.getStorageSync(key);
-    return (value === "" || value === null || value === undefined) ? defaultValue : value;
+    return (value === '' || value === null || value === undefined) ? defaultValue : value;
   } catch (error) {
     console.error(`获取本地存储失败: ${key}`, error);
     return defaultValue;
@@ -182,7 +182,11 @@ export const createTestData = (): void => {
  * @param habits 习惯数组
  */
 export const saveHabits = (habits: IHabit[]): void => {
-  setStorage('habits', habits);
+  try {
+    wx.setStorageSync('habits', habits);
+  } catch (e) {
+    console.error('保存习惯数据失败:', e);
+  }
 };
 
 /**
@@ -190,9 +194,12 @@ export const saveHabits = (habits: IHabit[]): void => {
  * @returns 习惯数组
  */
 export const getHabits = (): IHabit[] => {
-  // 检查是否需要创建测试数据
-  createTestData();
-  return getStorage<IHabit[]>('habits', []);
+  try {
+    return wx.getStorageSync('habits') || [];
+  } catch (e) {
+    console.error('获取习惯数据失败:', e);
+    return [];
+  }
 };
 
 /**
@@ -200,7 +207,11 @@ export const getHabits = (): IHabit[] => {
  * @param checkins 打卡记录数组
  */
 export const saveCheckins = (checkins: ICheckin[]): void => {
-  setStorage('checkins', checkins);
+  try {
+    wx.setStorageSync('checkins', checkins);
+  } catch (e) {
+    console.error('保存打卡记录失败:', e);
+  }
 };
 
 /**
@@ -208,7 +219,12 @@ export const saveCheckins = (checkins: ICheckin[]): void => {
  * @returns 打卡记录数组
  */
 export const getCheckins = (): ICheckin[] => {
-  return getStorage<ICheckin[]>('checkins', []);
+  try {
+    return wx.getStorageSync('checkins') || [];
+  } catch (e) {
+    console.error('获取打卡记录失败:', e);
+    return [];
+  }
 };
 
 /**
@@ -226,7 +242,11 @@ export const getCheckinsByHabitId = (habitId: string): ICheckin[] => {
  * @param userInfo 用户信息
  */
 export const saveUserInfo = (userInfo: IUserInfo): void => {
-  setStorage('userInfo', userInfo);
+  try {
+    wx.setStorageSync('userInfo', userInfo);
+  } catch (e) {
+    console.error('保存用户信息失败:', e);
+  }
 };
 
 /**
@@ -234,7 +254,12 @@ export const saveUserInfo = (userInfo: IUserInfo): void => {
  * @returns 用户信息
  */
 export const getUserInfo = (): IUserInfo | null => {
-  return getStorage<IUserInfo | null>('userInfo', null);
+  try {
+    return wx.getStorageSync('userInfo') || null;
+  } catch (e) {
+    console.error('获取用户信息失败:', e);
+    return null;
+  }
 };
 
 /**
@@ -277,4 +302,82 @@ export const saveTheme = (theme: 'light' | 'dark'): void => {
  */
 export const getTheme = (): 'light' | 'dark' => {
   return getStorage<'light' | 'dark'>('theme', 'light');
+};
+
+/**
+ * 保存习惯统计数据到本地存储
+ * @param habitId 习惯ID
+ * @param stats 统计数据
+ */
+export const saveHabitStats = (habitId: string, stats: IHabitStats): void => {
+  try {
+    const allStats = wx.getStorageSync('habitStats') || {};
+    allStats[habitId] = stats;
+    wx.setStorageSync('habitStats', allStats);
+  } catch (e) {
+    console.error('保存习惯统计数据失败:', e);
+  }
+};
+
+/**
+ * 获取本地存储的习惯统计数据
+ * @param habitId 习惯ID
+ * @returns 统计数据或null
+ */
+export const getHabitStats = (habitId: string): IHabitStats | null => {
+  try {
+    const allStats = wx.getStorageSync('habitStats') || {};
+    return allStats[habitId] || null;
+  } catch (e) {
+    console.error('获取习惯统计数据失败:', e);
+    return null;
+  }
+};
+
+/**
+ * 保存所有习惯统计数据
+ * @param stats 所有习惯的统计数据
+ */
+export const saveAllHabitStats = (stats: Record<string, IHabitStats>): void => {
+  try {
+    wx.setStorageSync('habitStats', stats);
+  } catch (e) {
+    console.error('保存所有习惯统计数据失败:', e);
+  }
+};
+
+/**
+ * 获取所有习惯统计数据
+ * @returns 所有习惯的统计数据
+ */
+export const getAllHabitStats = (): Record<string, IHabitStats> => {
+  try {
+    return wx.getStorageSync('habitStats') || {};
+  } catch (e) {
+    console.error('获取所有习惯统计数据失败:', e);
+    return {};
+  }
+};
+
+/**
+ * 清除所有本地存储的数据
+ */
+export const clearAllData = (): void => {
+  try {
+    wx.clearStorageSync();
+  } catch (e) {
+    console.error('清除本地存储失败:', e);
+  }
+};
+
+/**
+ * 清除认证相关数据
+ */
+export const clearAuthData = (): void => {
+  try {
+    wx.removeStorageSync('token');
+    wx.removeStorageSync('refreshToken');
+  } catch (e) {
+    console.error('清除认证数据失败:', e);
+  }
 }; 

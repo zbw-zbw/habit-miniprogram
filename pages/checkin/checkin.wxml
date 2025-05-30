@@ -62,25 +62,25 @@
         <view class="form-item">
           <view class="form-label">今日心情</view>
           <view class="mood-selector">
-            <view class="mood-option {{formData.mood === 'happy' ? 'selected' : ''}}" bindtap="selectMood" data-mood="happy">
+            <view class="mood-option {{formData.mood === 'great' ? 'selected' : ''}}" bindtap="selectMood" data-mood="great">
               <view class="mood-emoji">😊</view>
-              <view class="mood-label">开心</view>
+              <view class="mood-label">超棒</view>
             </view>
-            <view class="mood-option {{formData.mood === 'calm' ? 'selected' : ''}}" bindtap="selectMood" data-mood="calm">
+            <view class="mood-option {{formData.mood === 'good' ? 'selected' : ''}}" bindtap="selectMood" data-mood="good">
               <view class="mood-emoji">😌</view>
-              <view class="mood-label">平静</view>
+              <view class="mood-label">不错</view>
             </view>
-            <view class="mood-option {{formData.mood === 'thinking' ? 'selected' : ''}}" bindtap="selectMood" data-mood="thinking">
+            <view class="mood-option {{formData.mood === 'neutral' ? 'selected' : ''}}" bindtap="selectMood" data-mood="neutral">
               <view class="mood-emoji">🤔</view>
-              <view class="mood-label">思考</view>
+              <view class="mood-label">一般</view>
             </view>
-            <view class="mood-option {{formData.mood === 'tired' ? 'selected' : ''}}" bindtap="selectMood" data-mood="tired">
+            <view class="mood-option {{formData.mood === 'bad' ? 'selected' : ''}}" bindtap="selectMood" data-mood="bad">
               <view class="mood-emoji">😴</view>
-              <view class="mood-label">疲惫</view>
+              <view class="mood-label">不佳</view>
             </view>
-            <view class="mood-option {{formData.mood === 'sad' ? 'selected' : ''}}" bindtap="selectMood" data-mood="sad">
+            <view class="mood-option {{formData.mood === 'terrible' ? 'selected' : ''}}" bindtap="selectMood" data-mood="terrible">
               <view class="mood-emoji">😢</view>
-              <view class="mood-label">难过</view>
+              <view class="mood-label">糟糕</view>
             </view>
           </view>
         </view>
@@ -165,6 +165,31 @@
             {{item.day}}
           </view>
         </view>
+      </view>
+    </view>
+  </view>
+  
+  <!-- 打卡成功弹窗 -->
+  <view class="success-popup" wx:if="{{showSuccessPopup}}">
+    <view class="success-popup-content">
+      <view class="success-icon">✓</view>
+      <view class="success-title">{{successMessage.title}}</view>
+      <view class="success-subtitle">{{successMessage.subtitle}}</view>
+      
+      <view class="success-stats">
+        <view class="stats-item">
+          <view class="stats-value">{{successMessage.streak}}</view>
+          <view class="stats-label">连续天数</view>
+        </view>
+        <view class="stats-item">
+          <view class="stats-value">+{{successMessage.points}}</view>
+          <view class="stats-label">积分</view>
+        </view>
+      </view>
+      
+      <view class="success-actions">
+        <button class="success-btn share" bindtap="shareCheckin">分享</button>
+        <button class="success-btn close" bindtap="closeSuccessPopup">确定</button>
       </view>
     </view>
   </view>

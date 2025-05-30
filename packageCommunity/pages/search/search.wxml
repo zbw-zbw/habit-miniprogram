@@ -1,301 +1,176 @@
 <!--packageCommunity/pages/search/search.wxml-->
 <view class="container">
-  <!-- 搜索框 -->
+  <!-- 搜索栏 -->
   <view class="search-bar">
-    <view class="search-input-wrapper">
+    <view class="search-input-container">
       <text class="iconfont icon-search"></text>
       <input class="search-input" 
-             placeholder="搜索用户、动态、习惯、挑战" 
-             value="{{keyword}}"
+             placeholder="搜索习惯、话题、用户" 
+             value="{{keyword}}" 
              bindinput="inputKeyword"
-             bindconfirm="search"
-             confirm-type="search"
-             focus="true" />
+             bindconfirm="doSearch"
+             focus="true"
+             confirm-type="search" />
       <text class="iconfont icon-close" bindtap="clearKeyword" wx:if="{{keyword}}"></text>
     </view>
-    <view class="search-btn" bindtap="search">搜索</view>
+    <view class="cancel-btn" bindtap="navigateBack">取消</view>
   </view>
   
-  <!-- 搜索历史和热门搜索 -->
-  <view class="search-suggestions" wx:if="{{!hasResult && !loading}}">
-    <!-- 搜索历史 -->
-    <view class="search-section" wx:if="{{searchHistory.length > 0}}">
-      <view class="section-header">
-        <text class="section-title">搜索历史</text>
-        <text class="section-action" bindtap="clearSearchHistory">清空</text>
-      </view>
-      <view class="keyword-list">
-        <view class="keyword-item" 
-              wx:for="{{searchHistory}}" 
-              wx:key="*this"
-              bindtap="tapKeyword"
-              data-keyword="{{item}}">
-          <text class="iconfont icon-history"></text>
-          <text class="keyword-text">{{item}}</text>
-        </view>
-      </view>
-    </view>
-    
-    <!-- 热门搜索 -->
-    <view class="search-section">
-      <view class="section-header">
-        <text class="section-title">热门搜索</text>
-      </view>
-      <view class="keyword-tags">
-        <view class="keyword-tag" 
-              wx:for="{{hotKeywords}}" 
-              wx:key="*this"
-              bindtap="tapKeyword"
-              data-keyword="{{item}}">
-          {{item}}
-        </view>
-      </view>
-    </view>
-  </view>
-  
-  <!-- 加载状态 -->
-  <view class="loading" wx:if="{{loading}}">
-    <view class="loading-spinner"></view>
-    <text class="loading-text">搜索中...</text>
-  </view>
-  
-  <!-- 搜索结果 -->
-  <view class="search-results" wx:if="{{hasResult && !loading}}">
-    <!-- 标签页导航 -->
-    <view class="tabs">
-      <view class="tab-item {{activeTab === 'all' ? 'active' : ''}}" bindtap="switchTab" data-tab="all">全部</view>
-      <view class="tab-item {{activeTab === 'users' ? 'active' : ''}}" bindtap="switchTab" data-tab="users">用户</view>
-      <view class="tab-item {{activeTab === 'posts' ? 'active' : ''}}" bindtap="switchTab" data-tab="posts">动态</view>
-      <view class="tab-item {{activeTab === 'habits' ? 'active' : ''}}" bindtap="switchTab" data-tab="habits">习惯</view>
-      <view class="tab-item {{activeTab === 'challenges' ? 'active' : ''}}" bindtap="switchTab" data-tab="challenges">挑战</view>
-    </view>
-    
-    <!-- 全部结果 -->
-    <view class="result-section" wx:if="{{activeTab === 'all'}}">
-      <!-- 用户结果 -->
-      <block wx:if="{{results.users.length > 0}}">
+  <!-- 搜索内容区域 -->
+  <view class="search-content">
+    <!-- 搜索历史和热门搜索 -->
+    <view class="search-initial" wx:if="{{!keyword || !hasSearched}}">
+      <!-- 搜索历史 -->
+      <view class="search-history" wx:if="{{searchHistory.length > 0}}">
         <view class="section-header">
-          <text class="section-title">用户</text>
-          <text class="section-more" bindtap="viewMore" data-type="users" wx:if="{{hasMore.users}}">查看更多</text>
+          <text class="section-title">搜索历史</text>
+          <text class="clear-btn" bindtap="clearHistory">清空</text>
         </view>
-        <view class="user-list">
-          <view class="user-item" 
-                wx:for="{{results.users}}" 
-                wx:key="id"
-                bindtap="viewUserProfile"
-                data-id="{{item.id}}">
-            <image class="user-avatar" src="{{item.avatar}}" mode="aspectFill"></image>
-            <view class="user-info">
-              <text class="user-name">{{item.name}}</text>
-              <text class="user-bio">{{item.bio}}</text>
+        <view class="history-list">
+          <view class="history-item" 
+                wx:for="{{searchHistory}}" 
+                wx:key="*this"
+                bindtap="useHistoryKeyword"
+                data-keyword="{{item}}">
+            <text class="iconfont icon-time"></text>
+            <text class="history-text">{{item}}</text>
+          </view>
+        </view>
+      </view>
+      
+      <!-- 热门搜索 -->
+      <view class="hot-search">
+        <view class="section-header">
+          <text class="section-title">热门搜索</text>
+        </view>
+        <view class="hot-tags">
+          <view class="hot-tag" 
+                wx:for="{{hotSearches}}" 
+                wx:key="*this"
+                bindtap="useHotKeyword"
+                data-keyword="{{item}}">
+            {{item}}
+          </view>
+        </view>
+      </view>
+    </view>
+    
+    <!-- 搜索结果 -->
+    <view class="search-results" wx:if="{{keyword && hasSearched}}">
+      <!-- 标签页导航 -->
+      <view class="tabs">
+        <view class="tab-item {{activeTab === 'all' ? 'active' : ''}}" bindtap="switchTab" data-tab="all">全部</view>
+        <view class="tab-item {{activeTab === 'posts' ? 'active' : ''}}" bindtap="switchTab" data-tab="posts">动态</view>
+        <view class="tab-item {{activeTab === 'users' ? 'active' : ''}}" bindtap="switchTab" data-tab="users">用户</view>
+        <view class="tab-item {{activeTab === 'habits' ? 'active' : ''}}" bindtap="switchTab" data-tab="habits">习惯</view>
+        <view class="tab-item {{activeTab === 'topics' ? 'active' : ''}}" bindtap="switchTab" data-tab="topics">话题</view>
+      </view>
+      
+      <!-- 加载状态 -->
+      <view class="loading" wx:if="{{loading}}">
+        <view class="loading-spinner"></view>
+        <text class="loading-text">搜索中...</text>
+      </view>
+      
+      <!-- 搜索结果列表 -->
+      <view class="result-list" wx:if="{{!loading && results.length > 0}}">
+        <!-- 动态结果 -->
+        <view class="post-item" 
+              wx:for="{{activeTab === 'all' || activeTab === 'posts' ? results : []}}" 
+              wx:key="id"
+              wx:if="{{item.type === 'post'}}"
+              bindtap="viewPostDetail"
+              data-id="{{item.id}}">
+          <view class="post-header">
+            <image class="user-avatar" src="{{item.userAvatar}}" mode="aspectFill" catchtap="viewUserProfile" data-id="{{item.userId}}"></image>
+            <view class="post-user-info">
+              <text class="username">{{item.userName}}</text>
+              <text class="post-time">{{item.time}}</text>
             </view>
-            <view class="follow-btn {{item.isFollowing ? 'following' : ''}}" 
+          </view>
+          <view class="post-content">
+            <text class="post-text">{{item.content}}</text>
+          </view>
+          <view class="post-stats">
+            <text class="post-stat">{{item.likes}}赞</text>
+            <text class="post-stat">{{item.comments}}评论</text>
+          </view>
+        </view>
+        
+        <!-- 用户结果 -->
+        <view class="user-item" 
+              wx:for="{{activeTab === 'all' || activeTab === 'users' ? results : []}}" 
+              wx:key="id"
+              wx:if="{{item.type === 'user'}}"
+              bindtap="viewUserProfile"
+              data-id="{{item.id}}">
+          <image class="user-avatar" src="{{item.avatar}}" mode="aspectFill"></image>
+          <view class="user-info">
+            <text class="username">{{item.name}}</text>
+            <text class="user-bio">{{item.bio}}</text>
+          </view>
+          <button class="follow-btn {{item.isFollowing ? 'following' : ''}}" 
                   catchtap="toggleFollow" 
                   data-id="{{item.id}}"
                   data-index="{{index}}">
-              {{item.isFollowing ? '已关注' : '关注'}}
-            </view>
+            {{item.isFollowing ? '已关注' : '关注'}}
+          </button>
+        </view>
+        
+        <!-- 习惯结果 -->
+        <view class="habit-item" 
+              wx:for="{{activeTab === 'all' || activeTab === 'habits' ? results : []}}" 
+              wx:key="id"
+              wx:if="{{item.type === 'habit'}}"
+              bindtap="viewHabitDetail"
+              data-id="{{item.id}}">
+          <view class="habit-icon" style="background-color: {{item.color}}">
+            <image src="{{item.icon}}" mode="aspectFit"></image>
           </view>
-        </view>
-      </block>
-      
-      <!-- 动态结果 -->
-      <block wx:if="{{results.posts.length > 0}}">
-        <view class="section-header">
-          <text class="section-title">动态</text>
-          <text class="section-more" bindtap="viewMore" data-type="posts" wx:if="{{hasMore.posts}}">查看更多</text>
-        </view>
-        <view class="post-list">
-          <view class="post-item" 
-                wx:for="{{results.posts}}" 
-                wx:key="id"
-                bindtap="viewPostDetail"
-                data-id="{{item.id}}">
-            <view class="post-header">
-              <image class="post-avatar" src="{{item.userAvatar}}" mode="aspectFill"></image>
-              <view class="post-user">
-                <text class="post-username">{{item.userName}}</text>
-                <text class="post-time">{{item.createdAt}}</text>
-              </view>
-            </view>
-            <view class="post-content">{{item.content}}</view>
-            <view class="post-images" wx:if="{{item.images.length > 0}}">
-              <image class="post-image" src="{{item.images[0]}}" mode="aspectFill"></image>
-            </view>
-            <view class="post-stats">
-              <text class="post-stat">{{item.likes}} 赞</text>
-              <text class="post-stat">{{item.comments}} 评论</text>
-            </view>
+          <view class="habit-info">
+            <text class="habit-name">{{item.name}}</text>
+            <text class="habit-users">{{item.users}}人在坚持</text>
           </view>
-        </view>
-      </block>
-      
-      <!-- 习惯结果 -->
-      <block wx:if="{{results.habits.length > 0}}">
-        <view class="section-header">
-          <text class="section-title">习惯</text>
-          <text class="section-more" bindtap="viewMore" data-type="habits" wx:if="{{hasMore.habits}}">查看更多</text>
-        </view>
-        <view class="habit-list">
-          <view class="habit-item" 
-                wx:for="{{results.habits}}" 
-                wx:key="id"
-                bindtap="viewHabitDetail"
-                data-id="{{item.id}}">
-            <view class="habit-icon" style="background-color: {{item.color}}">
-              <image src="{{item.icon}}" mode="aspectFit"></image>
-            </view>
-            <view class="habit-info">
-              <text class="habit-name">{{item.name}}</text>
-              <text class="habit-frequency">{{item.frequency}}</text>
-            </view>
-            <view class="habit-streak">
-              <text class="streak-count">{{item.streak}}</text>
-              <text class="streak-label">天</text>
-            </view>
-          </view>
-        </view>
-      </block>
-      
-      <!-- 挑战结果 -->
-      <block wx:if="{{results.challenges.length > 0}}">
-        <view class="section-header">
-          <text class="section-title">挑战</text>
-          <text class="section-more" bindtap="viewMore" data-type="challenges" wx:if="{{hasMore.challenges}}">查看更多</text>
-        </view>
-        <view class="challenge-list">
-          <view class="challenge-item" 
-                wx:for="{{results.challenges}}" 
-                wx:key="id"
-                bindtap="viewChallengeDetail"
-                data-id="{{item.id}}">
-            <image class="challenge-image" src="{{item.image}}" mode="aspectFill"></image>
-            <view class="challenge-overlay"></view>
-            <view class="challenge-info">
-              <text class="challenge-title">{{item.title}}</text>
-              <text class="challenge-participants">{{item.participants}}人参与</text>
-            </view>
-          </view>
-        </view>
-      </block>
-    </view>
-    
-    <!-- 用户结果 -->
-    <view class="result-section" wx:if="{{activeTab === 'users'}}">
-      <block wx:if="{{results.users.length > 0}}">
-        <view class="user-list">
-          <view class="user-item" 
-                wx:for="{{results.users}}" 
-                wx:key="id"
-                bindtap="viewUserProfile"
-                data-id="{{item.id}}">
-            <image class="user-avatar" src="{{item.avatar}}" mode="aspectFill"></image>
-            <view class="user-info">
-              <text class="user-name">{{item.name}}</text>
-              <text class="user-bio">{{item.bio}}</text>
-            </view>
-            <view class="follow-btn {{item.isFollowing ? 'following' : ''}}" 
-                  catchtap="toggleFollow" 
+          <button class="add-btn {{item.isAdded ? 'added' : ''}}" 
+                  catchtap="toggleAddHabit" 
                   data-id="{{item.id}}"
                   data-index="{{index}}">
-              {{item.isFollowing ? '已关注' : '关注'}}
-            </view>
+            {{item.isAdded ? '已添加' : '添加'}}
+          </button>
+        </view>
+        
+        <!-- 话题结果 -->
+        <view class="topic-item" 
+              wx:for="{{activeTab === 'all' || activeTab === 'topics' ? results : []}}" 
+              wx:key="id"
+              wx:if="{{item.type === 'topic'}}"
+              bindtap="viewTopicDetail"
+              data-id="{{item.id}}">
+          <image class="topic-image" src="{{item.image}}" mode="aspectFill"></image>
+          <view class="topic-info">
+            <text class="topic-name">#{{item.name}}</text>
+            <text class="topic-posts">{{item.posts}}条动态</text>
           </view>
         </view>
-      </block>
-      <view class="empty-result" wx:else>
-        <text class="empty-text">没有找到相关用户</text>
       </view>
-    </view>
-    
-    <!-- 动态结果 -->
-    <view class="result-section" wx:if="{{activeTab === 'posts'}}">
-      <block wx:if="{{results.posts.length > 0}}">
-        <view class="post-list">
-          <view class="post-item" 
-                wx:for="{{results.posts}}" 
-                wx:key="id"
-                bindtap="viewPostDetail"
-                data-id="{{item.id}}">
-            <view class="post-header">
-              <image class="post-avatar" src="{{item.userAvatar}}" mode="aspectFill"></image>
-              <view class="post-user">
-                <text class="post-username">{{item.userName}}</text>
-                <text class="post-time">{{item.createdAt}}</text>
-              </view>
-            </view>
-            <view class="post-content">{{item.content}}</view>
-            <view class="post-images" wx:if="{{item.images.length > 0}}">
-              <image class="post-image" src="{{item.images[0]}}" mode="aspectFill"></image>
-            </view>
-            <view class="post-stats">
-              <text class="post-stat">{{item.likes}} 赞</text>
-              <text class="post-stat">{{item.comments}} 评论</text>
-            </view>
-          </view>
-        </view>
-      </block>
-      <view class="empty-result" wx:else>
-        <text class="empty-text">没有找到相关动态</text>
+      
+      <!-- 空状态 -->
+      <view class="empty-state" wx:if="{{!loading && results.length === 0}}">
+        <image class="empty-icon" src="/images/icons/empty-search.png" mode="aspectFit"></image>
+        <text class="empty-text">没有找到相关内容</text>
+        <text class="empty-tips">换个关键词试试吧</text>
       </view>
-    </view>
-    
-    <!-- 习惯结果 -->
-    <view class="result-section" wx:if="{{activeTab === 'habits'}}">
-      <block wx:if="{{results.habits.length > 0}}">
-        <view class="habit-list">
-          <view class="habit-item" 
-                wx:for="{{results.habits}}" 
-                wx:key="id"
-                bindtap="viewHabitDetail"
-                data-id="{{item.id}}">
-            <view class="habit-icon" style="background-color: {{item.color}}">
-              <image src="{{item.icon}}" mode="aspectFit"></image>
-            </view>
-            <view class="habit-info">
-              <text class="habit-name">{{item.name}}</text>
-              <text class="habit-frequency">{{item.frequency}}</text>
-            </view>
-            <view class="habit-streak">
-              <text class="streak-count">{{item.streak}}</text>
-              <text class="streak-label">天</text>
-            </view>
-          </view>
-        </view>
-      </block>
-      <view class="empty-result" wx:else>
-        <text class="empty-text">没有找到相关习惯</text>
+      
+      <!-- 加载更多 -->
+      <view class="loading-more" wx:if="{{loadingMore}}">
+        <view class="loading-spinner small"></view>
+        <text class="loading-text">加载更多...</text>
       </view>
-    </view>
-    
-    <!-- 挑战结果 -->
-    <view class="result-section" wx:if="{{activeTab === 'challenges'}}">
-      <block wx:if="{{results.challenges.length > 0}}">
-        <view class="challenge-list">
-          <view class="challenge-item" 
-                wx:for="{{results.challenges}}" 
-                wx:key="id"
-                bindtap="viewChallengeDetail"
-                data-id="{{item.id}}">
-            <image class="challenge-image" src="{{item.image}}" mode="aspectFill"></image>
-            <view class="challenge-overlay"></view>
-            <view class="challenge-info">
-              <text class="challenge-title">{{item.title}}</text>
-              <text class="challenge-participants">{{item.participants}}人参与</text>
-            </view>
-          </view>
-        </view>
-      </block>
-      <view class="empty-result" wx:else>
-        <text class="empty-text">没有找到相关挑战</text>
+      
+      <!-- 没有更多数据 -->
+      <view class="no-more" wx:if="{{!loading && !loadingMore && !hasMore && results.length > 0}}">
+        <text>没有更多结果了</text>
       </view>
-    </view>
-    
-    <!-- 没有结果 -->
-    <view class="no-result" wx:if="{{!loading && !hasResult}}">
-      <image class="no-result-icon" src="/images/icons/no-result.png" mode="aspectFit"></image>
-      <text class="no-result-text">没有找到相关内容</text>
-      <text class="no-result-tips">换个关键词试试吧</text>
     </view>
   </view>
 </view> 

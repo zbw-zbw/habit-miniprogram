@@ -1,0 +1,6 @@
+{
+  "navigationBarTitleText": "习惯链",
+  "usingComponents": {
+    "habit-chain-visualizer": "/components/habit-chain/habit-chain-visualizer"
+  }
+} 
