@@ -4,6 +4,35 @@
 import { communityAPI } from '../../services/api';
 import { useAuth } from '../../utils/use-auth';
 import { login as authLogin } from '../../utils/auth';
+import { formatRelativeTime } from '../../utils/util';
+
+// 后端返回的Post类型
+interface IPostResponse {
+  _id: string;
+  user: {
+    _id: string;
+    username?: string;
+    nickname?: string;
+    avatar?: string;
+  };
+  content: string;
+  media?: Array<{
+    type: string;
+    url: string;
+    thumbnail?: string;
+  }>;
+  tags?: string[];
+  likeCount: number;
+  commentCount: number;
+  isLiked: boolean;
+  createdAt: string;
+  habit?: {
+    name: string;
+    category?: string;
+    icon?: string;
+    color?: string;
+  };
+}
 
 interface IPageData {
   activeTab: 'groups' | 'challenges' | 'posts' | 'friends';
@@ -206,8 +235,27 @@ Page<IPageData, IPageMethods>({
       pageSize
     })
       .then(result => {
+        // 处理返回的帖子数据，添加格式化的日期和用户信息
+        const formattedPosts = (result.posts as unknown as IPostResponse[]).map(post => {
+          // 构建符合IPost接口的数据对象
+          return {
+            id: post._id,
+            userId: post.user?._id || '',
+            userAvatar: post.user?.avatar || '/assets/images/default-avatar.png',
+            userName: post.user?.nickname || post.user?.username || '匿名用户',
+            content: post.content || '',
+            images: post.media?.map(m => m.url) || [],
+            tags: post.tags || [],
+            likes: post.likeCount || 0,
+            comments: post.commentCount || 0,
+            isLiked: post.isLiked || false,
+            createdAt: formatRelativeTime(post.createdAt || new Date()),
+            habitName: post.habit?.name || ''
+          } as IPost;
+        });
+        
         this.setData({
-          posts: page === 1 ? result.posts : [...this.data.posts, ...result.posts],
+          posts: page === 1 ? formattedPosts : [...this.data.posts, ...formattedPosts],
           hasMore: result.hasMore
         });
         return result;
@@ -365,9 +413,16 @@ Page<IPageData, IPageMethods>({
    * 查看动态详情
    */
   viewPostDetail(e: WechatMiniprogram.TouchEvent) {
-    const { postId } = e.currentTarget.dataset;
+    const id = e.detail?.id || e.currentTarget.dataset.id;
+    
+    if (!id) {
+      console.error('缺少动态ID');
+      return;
+    }
+    
+    // 跳转到动态详情页
     wx.navigateTo({
-      url: `/pages/community/post-detail/post-detail?id=${postId}`
+      url: `/pages/community/post-detail/post-detail?id=${id}`
     });
   },
 
@@ -385,9 +440,15 @@ Page<IPageData, IPageMethods>({
    * 查看用户资料
    */
   viewUserProfile(e: WechatMiniprogram.TouchEvent) {
-    const { userId } = e.currentTarget.dataset;
+    const userId = e.detail?.userId || e.currentTarget.dataset.id;
+    
+    if (!userId) {
+      console.error('缺少用户ID');
+      return;
+    }
+    
     wx.navigateTo({
-      url: `/pages/profile/user/user?id=${userId}`
+      url: `/pages/profile/user-profile/user-profile?id=${userId}`
     });
   },
 
@@ -395,29 +456,48 @@ Page<IPageData, IPageMethods>({
    * 点赞动态
    */
   likePost(e: WechatMiniprogram.TouchEvent) {
-    const { postId, index } = e.currentTarget.dataset;
+    // 如果未登录，跳转到登录页
+    if (!this.data.hasLogin) {
+      return this.login();
+    }
+
+    const { id, index } = e.detail || e.currentTarget.dataset;
+    
+    if (!id) {
+      console.error('缺少动态ID');
+      return;
+    }
+    
     const post = this.data.posts[index];
     
-    if (!post) return;
+    // 乐观更新UI
+    post.isLiked = !post.isLiked;
+    post.likes = post.isLiked ? post.likes + 1 : Math.max(0, post.likes - 1);
     
-    const isLiked = post.isLiked;
-    const newLikes = isLiked ? post.likes - 1 : post.likes + 1;
-    
-    // 更新本地状态
+    // 更新指定索引的动态数据
     this.setData({
-      [`posts[${index}].isLiked`]: !isLiked,
-      [`posts[${index}].likes`]: newLikes
+      [`posts[${index}].isLiked`]: post.isLiked,
+      [`posts[${index}].likes`]: post.likes
     });
-    
-    // 调用API更新服务端状态
-    (isLiked ? communityAPI.unlikePost(postId) : communityAPI.likePost(postId))
+
+    // 调用API
+    const apiCall = post.isLiked 
+      ? communityAPI.likePost(id)
+      : communityAPI.unlikePost(id);
+
+    apiCall
       .catch(error => {
-        console.error('点赞失败:', error);
-        // 恢复原状态
+        console.error('点赞操作失败:', error);
+        
+        // 发生错误时回滚UI更新
+        post.isLiked = !post.isLiked;
+        post.likes = post.isLiked ? post.likes + 1 : Math.max(0, post.likes - 1);
+        
         this.setData({
-          [`posts[${index}].isLiked`]: isLiked,
+          [`posts[${index}].isLiked`]: post.isLiked,
           [`posts[${index}].likes`]: post.likes
         });
+        
         wx.showToast({
           title: '操作失败',
           icon: 'none'
@@ -429,9 +509,21 @@ Page<IPageData, IPageMethods>({
    * 评论动态
    */
   commentPost(e: WechatMiniprogram.TouchEvent) {
-    const { postId } = e.currentTarget.dataset;
+    // 如果未登录，跳转到登录页
+    if (!this.data.hasLogin) {
+      return this.login();
+    }
+    
+    const id = e.detail?.id || e.currentTarget.dataset.id;
+    
+    if (!id) {
+      console.error('缺少动态ID');
+      return;
+    }
+    
+    // 跳转到动态详情页并自动聚焦评论框
     wx.navigateTo({
-      url: `/pages/community/post-detail/post-detail?id=${postId}&focus=comment`
+      url: `/pages/community/post-detail/post-detail?id=${id}&focus=comment`
     });
   },
 
@@ -439,8 +531,18 @@ Page<IPageData, IPageMethods>({
    * 分享动态
    */
   sharePost(e: WechatMiniprogram.TouchEvent) {
-    // 分享功能由微信小程序原生支持
-    // 在onShareAppMessage中处理
+    const id = e.detail?.id || e.currentTarget.dataset.id;
+    
+    if (!id) {
+      console.error('缺少动态ID');
+      return;
+    }
+    
+    // 调用系统分享
+    wx.showShareMenu({
+      withShareTicket: true,
+      menus: ['shareAppMessage', 'shareTimeline']
+    });
   },
 
   /**

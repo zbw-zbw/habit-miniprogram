@@ -2,6 +2,7 @@
  * 个人中心-设置页面
  */
 import { getStorage, setStorage } from '../../../utils/storage';
+import { useAuth } from '../../../utils/use-auth';
 
 interface IPageData {
   settings: {
@@ -26,6 +27,8 @@ interface IPageData {
   showLanguageModal: boolean;
   showClearModal: boolean;
   showLogoutModal: boolean;
+  hasLogin: boolean;
+  userInfo: any;
 }
 
 interface IPageMethods {
@@ -75,13 +78,16 @@ Page<IPageData, IPageMethods>({
     showThemeModal: false,
     showLanguageModal: false,
     showClearModal: false,
-    showLogoutModal: false
+    showLogoutModal: false,
+    hasLogin: false,
+    userInfo: null
   },
 
   /**
    * 生命周期函数--监听页面加载
    */
   onLoad() {
+    useAuth(this);
     this.loadSettings();
   },
 

@@ -37,7 +37,10 @@
       <view class="content-card">
         <view class="section-header">
           <text class="section-title">热门小组</text>
-          <text class="section-more" bindtap="viewAllGroups">查看全部</text>
+          <text class="section-more" bindtap="viewAllGroups">
+            查看全部
+            <text class="iconfont icon-right"></text>
+          </text>
         </view>
         
         <view class="groups-grid">
@@ -75,7 +78,10 @@
       <view class="content-card">
         <view class="section-header">
           <text class="section-title">热门挑战</text>
-          <text class="section-more" bindtap="viewAllChallenges">查看全部</text>
+          <text class="section-more" bindtap="viewAllChallenges">
+              查看全部
+             <text class="iconfont icon-right"></text>
+          </text>
         </view>
         
         <view class="challenges-grid">
@@ -120,65 +126,23 @@
       <view class="content-card">
         <view class="section-header">
           <text class="section-title">动态列表</text>
-          <text class="section-more" bindtap="viewAllPosts" wx:if="{{posts.length > 0}}">查看全部</text>
+          <view class="section-more" bindtap="viewAllPosts" wx:if="{{posts.length > 0}}">
+            查看全部
+            <text class="iconfont icon-right"></text>
+          </view>
         </view>
         
-        <view class="post-item" wx:for="{{posts}}" wx:key="id">
-          <!-- 用户信息 -->
-          <view class="post-header">
-            <view class="post-user" bindtap="viewUserProfile" data-id="{{item.userId}}">
-              <image class="post-avatar" src="{{item.userAvatar}}" mode="aspectFill"></image>
-              <view class="post-user-info">
-                <view class="post-username">{{item.userName}}</view>
-                <view class="post-meta">{{item.createdAt}} · {{item.habitName}}</view>
-              </view>
-            </view>
-            <view class="post-more">
-              <text class="iconfont icon-more"></text>
-            </view>
-          </view>
-          
-          <!-- 动态内容 -->
-          <view class="post-content" bindtap="viewPostDetail" data-id="{{item.id}}">
-            <text class="post-text">{{item.content}}</text>
-            
-            <!-- 标签 -->
-            <view class="post-tags" wx:if="{{item.tags && item.tags.length > 0}}">
-              <view class="post-tag" wx:for="{{item.tags}}" wx:key="*this" wx:for-item="tag">
-                <text class="iconfont icon-tag"></text>
-                <text>{{tag}}</text>
-              </view>
-            </view>
-            
-            <!-- 图片 -->
-            <view class="post-images" wx:if="{{item.images && item.images.length > 0}}">
-              <image 
-                class="post-image {{item.images.length === 1 ? 'single' : ''}}" 
-                wx:for="{{item.images}}" 
-                wx:key="*this" 
-                wx:for-item="image" 
-                src="{{image}}" 
-                mode="aspectFill"
-              ></image>
-            </view>
-          </view>
-          
-          <!-- 互动按钮 -->
-          <view class="post-actions">
-            <view class="post-action {{item.isLiked ? 'active' : ''}}" bindtap="likePost" data-id="{{item.id}}" data-index="{{index}}">
-              <text class="iconfont {{item.isLiked ? 'icon-heart-fill' : 'icon-heart'}}"></text>
-              <text>{{item.likes}}</text>
-            </view>
-            <view class="post-action" bindtap="commentPost" data-id="{{item.id}}">
-              <text class="iconfont icon-comment"></text>
-              <text>{{item.comments}}</text>
-            </view>
-            <view class="post-action" bindtap="sharePost" data-id="{{item.id}}">
-              <text class="iconfont icon-share"></text>
-              <text>分享</text>
-            </view>
-          </view>
-        </view>
+        <block wx:for="{{posts}}" wx:key="id">
+          <post-card 
+            post="{{item}}" 
+            index="{{index}}" 
+            bind:viewDetail="viewPostDetail"
+            bind:viewUser="viewUserProfile"
+            bind:like="likePost"
+            bind:comment="commentPost"
+            bind:share="sharePost">
+          </post-card>
+        </block>
         
         <!-- 加载更多 -->
         <view class="loading-more" wx:if="{{loading && posts.length > 0}}">
@@ -212,7 +176,10 @@
       <view class="content-card">
         <view class="section-header">
           <text class="section-title">我的好友</text>
-          <text class="section-more" bindtap="viewAllFriends" wx:if="{{friends.length > 0}}">查看全部</text>
+          <text class="section-more" bindtap="viewAllFriends" wx:if="{{friends.length > 0}}">
+            查看全部
+             <text class="iconfont icon-right"></text>
+          </text>
         </view>
         
         <view class="friends-grid" wx:if="{{friends.length > 0}}">

@@ -99,7 +99,7 @@ Page<PageData, PageInstance>({
     try {
       // 构建请求选项
       const options: WechatMiniprogram.RequestOption = {
-        url: `http://localhost:3001${url}`,
+        url: `http://localhost:3000${url}`,
         method,
         header: {
           'content-type': 'application/json'

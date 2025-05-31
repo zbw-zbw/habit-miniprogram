@@ -31,7 +31,7 @@ export const userAPI = {
     // 使用wx.uploadFile上传文件
     return new Promise<{ avatarUrl: string }>((resolve, reject) => {
       wx.uploadFile({
-        url: 'http://localhost:3001/api/users/me/avatar',
+        url: 'http://localhost:3000/api/users/me/avatar',
         filePath: avatarFile,
         name: 'avatar',
         header: {

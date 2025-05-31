@@ -111,8 +111,8 @@ exports.createGroup = async (req, res) => {
       description,
       isPrivate: isPrivate || false,
       tags: tags || [],
-      avatar: avatar || '/assets/images/default-group-avatar.png',
-      coverImage: coverImage || '/assets/images/default-group-cover.png',
+      avatar: avatar || '/assets/images/groups.png',
+      coverImage: coverImage || '/assets/images/groups.png',
       creator: req.user._id,
       members: [req.user._id],
       membersCount: 1

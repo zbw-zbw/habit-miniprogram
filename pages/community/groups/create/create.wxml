@@ -2,7 +2,7 @@
 <view class="container">
   <view class="navbar">
     <view class="navbar-left" bindtap="goBack">
-      <text class="iconfont icon-back"></text>
+      <text class="iconfont icon-left"></text>
     </view>
     <view class="navbar-title">创建小组</view>
     <view class="navbar-right"></view>
@@ -13,7 +13,7 @@
       <!-- 小组头像 -->
       <view class="form-item avatar-item">
         <view class="avatar-upload" bindtap="chooseAvatar">
-          <image class="avatar-preview" src="{{formData.avatar || '/assets/images/default-group-avatar.png'}}" mode="aspectFill"></image>
+          <image class="avatar-preview" src="{{formData.avatar || '/assets/images/groups.png'}}" mode="aspectFill"></image>
           <view class="avatar-upload-mask">
             <text class="iconfont icon-camera"></text>
             <text class="upload-text">上传头像</text>

@@ -272,6 +272,32 @@ export const communityAPI = {
    */
   getHotTopics: (): Promise<{id: string; name: string; count: number}[]> => {
     return get('/api/community/hot-topics');
-  }
+  },
+
+  /**
+   * 搜索用户
+   * @param params 搜索参数
+   * @returns Promise<IUser[]>
+   */
+  searchUsers: (params: { keyword: string }): Promise<any[]> => {
+    return get('/api/community/search/users', params);
+  },
+  
+  /**
+   * 获取推荐用户
+   * @returns Promise<IUser[]>
+   */
+  getRecommendUsers: (): Promise<any[]> => {
+    return get('/api/community/recommend-users');
+  },
+  
+  /**
+   * 添加好友
+   * @param userId 用户ID
+   * @returns Promise<{success: boolean}>
+   */
+  addFriend: (userId: string): Promise<{success: boolean}> => {
+    return post(`/api/friends/${userId}/add`, {});
+  },
 }; 
  

@@ -228,7 +228,7 @@ Page({
    */
   createChallenge() {
     wx.navigateTo({
-      url: '/pages/community/challenge/create/create'
+      url: '/pages/community/challenges/create/create'
     });
   },
   

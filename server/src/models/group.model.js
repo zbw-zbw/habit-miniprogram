@@ -33,11 +33,11 @@ const groupSchema = new Schema({
   }],
   avatar: {
     type: String,
-    default: '/assets/images/default-group-avatar.png'
+    default: '/assets/images/groups.png'
   },
   coverImage: {
     type: String,
-    default: '/assets/images/default-group-cover.png'
+    default: '/assets/images/groups.png'
   },
   creator: {
     type: Schema.Types.ObjectId,

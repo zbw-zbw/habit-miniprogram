@@ -3,41 +3,50 @@
 
 .fab-button {
   position: fixed;
-  width: 100rpx;
-  height: 100rpx;
-  border-radius: 28px;
+  width: 110rpx;
+  height: 110rpx;
+  border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  box-shadow: var(--shadow-button);
   z-index: 100;
+  transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.fab-button:active {
+  transform: scale(0.92) translateY(2rpx);
 }
 
 .fab-button.primary {
-  background-color: #4F7CFF;
+  background: var(--primary-gradient);
 }
 
 .fab-button.secondary {
-  background-color: #67C23A;
+  background: linear-gradient(135deg, var(--success-color) 0%, #4CD964 100%);
 }
 
 .fab-button .iconfont {
-  font-size: 24px;
+  font-size: 50rpx;
   color: #FFFFFF;
 }
 
 .fab-button.bottom-right {
-  bottom: 32px;
-  right: 24px;
+  bottom: 60rpx;
+  right: 32rpx;
 }
 
 .fab-button.bottom-center {
-  bottom: 32px;
+  bottom: 60rpx;
   left: 50%;
   transform: translateX(-50%);
 }
 
+.fab-button.bottom-center:active {
+  transform: translateX(-50%) scale(0.92) translateY(2rpx);
+}
+
 .fab-button.bottom-left {
-  bottom: 32px;
-  left: 24px;
+  bottom: 60rpx;
+  left: 32rpx;
 } 

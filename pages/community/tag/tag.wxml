@@ -2,7 +2,7 @@
 <view class="container">
   <view class="navbar">
     <view class="navbar-left" bindtap="goBack">
-      <text class="iconfont icon-back"></text>
+      <text class="iconfont icon-left"></text>
     </view>
     <view class="navbar-title">{{tagName}}</view>
     <view class="navbar-right">

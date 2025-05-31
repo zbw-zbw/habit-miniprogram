@@ -1,8 +1,8 @@
-<!--pages/community/challenge/create/create.wxml-->
+<!--pages/community/challenges/create/create.wxml-->
 <view class="container">
   <view class="navbar">
     <view class="navbar-left" bindtap="goBack">
-      <text class="iconfont icon-back"></text>
+      <text class="iconfont icon-left"></text>
     </view>
     <view class="navbar-title">创建挑战</view>
     <view class="navbar-right"></view>
@@ -13,7 +13,7 @@
       <!-- 挑战封面 -->
       <view class="form-item cover-item">
         <view class="cover-upload" bindtap="chooseCover">
-          <image class="cover-preview" src="{{formData.image || '/assets/images/default-challenge-cover.png'}}" mode="aspectFill"></image>
+          <image class="cover-preview" src="{{formData.image || '/assets/images/challenge.png'}}" mode="aspectFill"></image>
           <view class="cover-upload-mask">
             <text class="iconfont icon-camera"></text>
             <text class="upload-text">上传封面</text>

@@ -1,0 +1,90 @@
+<!--关于我们页面-->
+<view class="container">
+  <view class="header">
+    <image class="logo" src="/assets/images/logo.png" mode="aspectFit"></image>
+    <view class="app-info">
+      <view class="app-name">习惯打卡</view>
+      <view class="app-version">v{{version}}</view>
+      <view class="app-slogan">让习惯培养更简单</view>
+    </view>
+  </view>
+  
+  <view class="content">
+    <view class="section">
+      <view class="section-title">关于我们</view>
+      <view class="section-content">
+        <view class="paragraph">
+          习惯打卡是一款专注于帮助用户培养良好习惯的小程序。我们相信，好习惯的培养是提升生活品质的关键。通过科学的习惯跟踪、数据分析和社区互动，我们希望能帮助每个人轻松建立并坚持健康、积极的生活方式。
+        </view>
+        <view class="paragraph">
+          我们的核心理念是：简单、坚持、成长。无论是健身、阅读、学习还是冥想，只要你想培养的习惯，我们都能帮你一步步实现。
+        </view>
+      </view>
+    </view>
+    
+    <view class="section">
+      <view class="section-title">产品特色</view>
+      <view class="feature-list">
+        <view class="feature-item">
+          <text class="iconfont icon-check"></text>
+          <text class="feature-text">简单易用的习惯追踪</text>
+        </view>
+        <view class="feature-item">
+          <text class="iconfont icon-chart"></text>
+          <text class="feature-text">直观的数据统计与分析</text>
+        </view>
+        <view class="feature-item">
+          <text class="iconfont icon-community"></text>
+          <text class="feature-text">丰富的社区互动功能</text>
+        </view>
+        <view class="feature-item">
+          <text class="iconfont icon-medal"></text>
+          <text class="feature-text">激励性的成就系统</text>
+        </view>
+        <view class="feature-item">
+          <text class="iconfont icon-reminder"></text>
+          <text class="feature-text">智能提醒，不错过打卡</text>
+        </view>
+      </view>
+    </view>
+    
+    <view class="section">
+      <view class="section-title">联系我们</view>
+      <view class="contact-list">
+        <view class="contact-item" bindtap="copyEmail">
+          <text class="iconfont icon-email"></text>
+          <text class="contact-text">support@habittracker.com</text>
+          <text class="contact-action">复制</text>
+        </view>
+        <view class="contact-item" bindtap="copyWechat">
+          <text class="iconfont icon-wechat"></text>
+          <text class="contact-text">habittracker</text>
+          <text class="contact-action">复制</text>
+        </view>
+        <view class="contact-item" bindtap="openWebsite">
+          <text class="iconfont icon-website"></text>
+          <text class="contact-text">www.habittracker.com</text>
+          <text class="contact-action">访问</text>
+        </view>
+      </view>
+    </view>
+    
+    <view class="section">
+      <view class="section-title">用户协议与隐私政策</view>
+      <view class="link-list">
+        <view class="link-item" bindtap="showAgreement">
+          <text>用户协议</text>
+          <text class="iconfont icon-arrow-right"></text>
+        </view>
+        <view class="link-item" bindtap="showPrivacy">
+          <text>隐私政策</text>
+          <text class="iconfont icon-arrow-right"></text>
+        </view>
+      </view>
+    </view>
+  </view>
+  
+  <view class="footer">
+    <view class="copyright">© {{year}} 习惯打卡团队 版权所有</view>
+  </view>
+</view> 

@@ -1,0 +1,165 @@
+/* components/post-card/post-card.wxss */
+@import "/styles/iconfont.wxss";
+
+.post-item {
+  background-color: #FFFFFF;
+  border-radius: 16rpx;
+  padding: 24rpx;
+  margin-bottom: 20rpx;
+  box-shadow: 0 2rpx 10rpx rgba(0, 0, 0, 0.05);
+}
+
+.post-item:last-child {
+  border-bottom: none;
+}
+
+.post-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20rpx;
+}
+
+.post-user {
+  display: flex;
+  align-items: center;
+}
+
+.post-avatar {
+  width: 80rpx;
+  height: 80rpx;
+  border-radius: 50%;
+  margin-right: 16rpx;
+  border: 1px solid #fff;
+  box-shadow: 0 2rpx 6rpx rgba(0, 0, 0, 0.1);
+}
+
+.post-user-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.post-username {
+  font-size: 28rpx;
+  font-weight: 500;
+  color: #303133;
+  margin-bottom: 4rpx;
+}
+
+.post-meta {
+  font-size: 24rpx;
+  color: #909399;
+}
+
+.post-more {
+  padding: 10rpx;
+}
+
+.post-more .iconfont {
+  font-size: 36rpx;
+  color: #C0C4CC;
+}
+
+.post-content {
+  margin-bottom: 20rpx;
+}
+
+.post-text {
+  font-size: 28rpx;
+  color: #303133;
+  line-height: 1.5;
+  margin-bottom: 16rpx;
+  display: block;
+  white-space: pre-wrap;
+}
+
+.post-tags {
+  display: flex;
+  flex-wrap: wrap;
+  margin-bottom: 16rpx;
+}
+
+.post-tag {
+  display: flex;
+  align-items: center;
+  font-size: 24rpx;
+  color: #4F7CFF;
+  background-color: rgba(79, 124, 255, 0.1);
+  padding: 4rpx 12rpx;
+  border-radius: 24rpx;
+  margin-right: 12rpx;
+  margin-bottom: 8rpx;
+}
+
+.post-tag .iconfont {
+  font-size: 24rpx;
+  margin-right: 4rpx;
+}
+
+.post-images {
+  display: flex;
+  flex-wrap: wrap;
+  margin: 0 -4rpx;
+}
+
+.post-image {
+  width: calc((100% - 16rpx) / 3);
+  height: 180rpx;
+  margin: 4rpx;
+  border-radius: 8rpx;
+  object-fit: cover;
+}
+
+.post-image.single {
+  width: 80%;
+  height: 360rpx;
+  margin: 0 auto;
+}
+
+.post-actions {
+  display: flex;
+  align-items: center;
+  padding-top: 16rpx;
+  border-top: 1rpx solid #E4E7ED;
+}
+
+.post-action {
+  display: flex;
+  align-items: center;
+  margin-right: 48rpx;
+  padding: 8rpx 0;
+  background-color: transparent;
+  font-size: 24rpx;
+  color: #909399;
+  line-height: normal;
+}
+
+.post-action:last-child {
+  margin-right: 0;
+}
+
+.post-action .iconfont {
+  font-size: 32rpx;
+  color: #C0C4CC;
+  margin-right: 8rpx;
+}
+
+.post-action.active .iconfont {
+  color: #F56C6C;
+}
+
+.post-action text:last-child {
+  font-size: 24rpx;
+  color: #909399;
+}
+
+.share-btn {
+  font-size: 24rpx;
+  color: #909399;
+  padding: 0;
+  margin: 0;
+}
+
+.share-btn::after {
+  display: none;
+} 

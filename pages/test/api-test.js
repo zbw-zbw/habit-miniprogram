@@ -59,7 +59,7 @@ Page({
         try {
             // 构建请求选项
             const options = {
-                url: `http://localhost:3001${url}`,
+                url: `http://localhost:3000${url}`,
                 method,
                 header: {
                     'content-type': 'application/json'

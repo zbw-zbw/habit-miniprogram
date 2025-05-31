@@ -121,7 +121,7 @@ global.getApp = jest.fn().mockReturnValue({
     },
     hasLogin: true,
     theme: 'light',
-    apiBaseUrl: 'http://localhost:3001',
+    apiBaseUrl: 'http://localhost:3000',
     apiAvailable: true
   },
   onAchievementUnlock: jest.fn(),

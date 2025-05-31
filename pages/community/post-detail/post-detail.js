@@ -67,6 +67,15 @@ Page({
     
     communityAPI.getPost(postId)
       .then(post => {
+        // 格式化时间
+        if (post.createdAt) {
+          post.createdAt = utils.formatRelativeTime(post.createdAt);
+        }
+        
+        // 确保点赞数和评论数正确
+        post.likes = post.likeCount || 0;
+        post.comments = post.commentCount || 0;
+        
         this.setData({ 
           post,
           loading: false
@@ -137,7 +146,7 @@ Page({
   /**
    * 点赞动态
    */
-  likePost() {
+  likePost(e) {
     const post = this.data.post;
     const apiCall = post.isLiked 
       ? communityAPI.unlikePost(post.id)
@@ -320,22 +329,27 @@ Page({
    * 查看用户资料
    */
   viewUserProfile(e) {
-    const userId = e.currentTarget.dataset.id;
+    const userId = e.detail ? e.detail.userId : e.currentTarget.dataset.id;
+    
+    if (!userId) {
+      return;
+    }
+    
     wx.navigateTo({
-      url: `/pages/profile/user/user?id=${userId}`
+      url: `/pages/profile/user-profile/user-profile?id=${userId}`
     });
   },
   
   /**
-   * 查看图片
+   * 预览图片
    */
   previewImage(e) {
-    const index = e.currentTarget.dataset.index;
-    const images = this.data.post.images;
+    const { index, images } = e.detail || e.currentTarget.dataset;
+    const urls = images || this.data.post.images;
     
     wx.previewImage({
-      current: images[index],
-      urls: images
+      current: urls[index],
+      urls: urls
     });
   },
   
@@ -343,9 +357,10 @@ Page({
    * 查看标签
    */
   viewTag(e) {
-    const tag = e.currentTarget.dataset.tag;
+    const tag = e.detail ? e.detail.tag : e.currentTarget.dataset.tag;
+    
     wx.navigateTo({
-      url: `/pages/community/tag/tag?name=${tag}`
+      url: `/pages/community/tag-posts/tag-posts?tag=${encodeURIComponent(tag)}`
     });
   },
 

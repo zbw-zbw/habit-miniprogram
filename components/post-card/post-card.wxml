@@ -1,0 +1,75 @@
+<!-- components/post-card/post-card.wxml -->
+<view class="post-item" bindtap="{{!isDetail ? 'viewPostDetail' : ''}}">
+  <view class="post-header">
+    <view class="post-user" catchtap="viewUserProfile">
+      <image class="post-avatar" src="{{post.userAvatar}}" mode="aspectFill"></image>
+      <view class="post-user-info">
+        <text class="post-username">{{post.userName}}</text>
+        <text class="post-meta">{{post.createdAt}}</text>
+      </view>
+    </view>
+    <view class="post-more">
+      <text class="iconfont icon-more"></text>
+    </view>
+  </view>
+  
+  <view class="post-content">
+    <text class="post-text">{{post.content}}</text>
+    
+    <!-- 标签 -->
+    <view class="post-tags" wx:if="{{post.tags && post.tags.length > 0}}">
+      <view class="post-tag" 
+            wx:for="{{post.tags}}" 
+            wx:key="*this" 
+            wx:for-item="tag"
+            catchtap="{{!isDetail ? 'viewTag' : ''}}"
+            data-tag="{{tag}}">
+        <text class="iconfont icon-tag"></text>
+        <text>{{tag}}</text>
+      </view>
+    </view>
+    
+    <!-- 图片 -->
+    <view class="post-images" wx:if="{{post.images && post.images.length > 0}}">
+      <block wx:if="{{post.images.length === 1}}">
+        <image 
+          class="post-image single" 
+          src="{{post.images[0]}}" 
+          mode="aspectFill"
+          catchtap="{{!isDetail ? 'previewImage' : ''}}"
+          data-index="0"
+        ></image>
+      </block>
+      <block wx:else>
+        <image 
+          class="post-image" 
+          wx:for="{{post.images}}" 
+          wx:key="*this" 
+          src="{{item}}" 
+          mode="aspectFill"
+          catchtap="{{!isDetail ? 'previewImage' : ''}}"
+          data-index="{{index}}"
+        ></image>
+      </block>
+    </view>
+  </view>
+  
+  <view class="post-actions">
+    <view class="post-action {{post.isLiked ? 'active' : ''}}" catchtap="likePost">
+      <text class="iconfont {{post.isLiked ? 'icon-heart-fill' : 'icon-heart'}}"></text>
+      <text>{{post.likes}}</text>
+    </view>
+    <view class="post-action" catchtap="commentPost">
+      <text class="iconfont icon-comment"></text>
+      <text>{{post.comments}}</text>
+    </view>
+    <button class="post-action share-btn" open-type="share" wx:if="{{isDetail}}">
+      <text class="iconfont icon-share"></text>
+      <text>分享</text>
+    </button>
+    <view class="post-action" catchtap="sharePost" wx:else>
+      <text class="iconfont icon-share"></text>
+      <text>分享</text>
+    </view>
+  </view>
+</view> 

@@ -1,0 +1,140 @@
+<!--社区通知页面-->
+<view class="container">
+  <!-- 顶部标签页 -->
+  <view class="tabs">
+    <view 
+      class="tab-item {{activeTab === 'all' ? 'active' : ''}}" 
+      bindtap="switchTab" 
+      data-tab="all"
+    >全部</view>
+    <view 
+      class="tab-item {{activeTab === 'like' ? 'active' : ''}}" 
+      bindtap="switchTab" 
+      data-tab="like"
+    >点赞</view>
+    <view 
+      class="tab-item {{activeTab === 'comment' ? 'active' : ''}}" 
+      bindtap="switchTab" 
+      data-tab="comment"
+    >评论</view>
+    <view 
+      class="tab-item {{activeTab === 'follow' ? 'active' : ''}}" 
+      bindtap="switchTab" 
+      data-tab="follow"
+    >关注</view>
+    <view 
+      class="tab-item {{activeTab === 'system' ? 'active' : ''}}" 
+      bindtap="switchTab" 
+      data-tab="system"
+    >系统</view>
+  </view>
+  
+  <!-- 加载中 -->
+  <view class="loading" wx:if="{{loading}}">
+    <view class="loading-spinner"></view>
+    <text class="loading-text">加载中...</text>
+  </view>
+  
+  <!-- 无通知 -->
+  <view class="empty-state" wx:if="{{!loading && notifications.length === 0}}">
+    <image class="empty-icon" src="/assets/images/empty-notification.png" mode="aspectFit"></image>
+    <text class="empty-text">暂无{{tabName}}消息</text>
+    <text class="empty-tips">与社区互动，参与话题讨论，获取更多消息通知</text>
+  </view>
+  
+  <!-- 通知列表 -->
+  <view class="notification-list" wx:if="{{!loading && notifications.length > 0}}">
+    <view class="notification-item {{item.isRead ? '' : 'unread'}}" 
+      wx:for="{{notifications}}" 
+      wx:key="id"
+      bindtap="handleNotification"
+      data-id="{{item.id}}"
+      data-type="{{item.type}}"
+      data-target-id="{{item.targetId}}"
+    >
+      <!-- 点赞通知 -->
+      <view class="notification-content" wx:if="{{item.type === 'like'}}">
+        <image class="avatar" src="{{item.sender.avatar}}" mode="aspectFill"></image>
+        <view class="content">
+          <view class="title">
+            <text class="username">{{item.sender.nickname}}</text>
+            <text>赞了你的动态</text>
+          </view>
+          <view class="time">{{item.time}}</view>
+          <view class="post-preview" wx:if="{{item.post}}">{{item.post.content}}</view>
+        </view>
+        <view class="action">
+          <image class="preview-image" src="{{item.post.image}}" mode="aspectFill" wx:if="{{item.post.image}}"></image>
+          <text class="iconfont icon-heart like-icon" wx:else></text>
+        </view>
+      </view>
+      
+      <!-- 评论通知 -->
+      <view class="notification-content" wx:if="{{item.type === 'comment'}}">
+        <image class="avatar" src="{{item.sender.avatar}}" mode="aspectFill"></image>
+        <view class="content">
+          <view class="title">
+            <text class="username">{{item.sender.nickname}}</text>
+            <text>评论了你的动态</text>
+          </view>
+          <view class="time">{{item.time}}</view>
+          <view class="comment-preview">{{item.comment.content}}</view>
+          <view class="post-preview" wx:if="{{item.post}}">{{item.post.content}}</view>
+        </view>
+        <view class="action">
+          <image class="preview-image" src="{{item.post.image}}" mode="aspectFill" wx:if="{{item.post.image}}"></image>
+        </view>
+      </view>
+      
+      <!-- 关注通知 -->
+      <view class="notification-content" wx:if="{{item.type === 'follow'}}">
+        <image class="avatar" src="{{item.sender.avatar}}" mode="aspectFill"></image>
+        <view class="content">
+          <view class="title">
+            <text class="username">{{item.sender.nickname}}</text>
+            <text>关注了你</text>
+          </view>
+          <view class="time">{{item.time}}</view>
+          <view class="user-bio" wx:if="{{item.sender.bio}}">{{item.sender.bio}}</view>
+        </view>
+        <view class="action">
+          <button 
+            class="follow-btn {{item.isFollowing ? 'following' : ''}}" 
+            catchtap="toggleFollow" 
+            data-id="{{item.sender.id}}" 
+            data-index="{{index}}"
+          >
+            {{item.isFollowing ? '已关注' : '关注'}}
+          </button>
+        </view>
+      </view>
+      
+      <!-- 系统通知 -->
+      <view class="notification-content" wx:if="{{item.type === 'system'}}">
+        <view class="system-icon">
+          <text class="iconfont {{item.systemIcon || 'icon-notice'}}"></text>
+        </view>
+        <view class="content">
+          <view class="title">
+            <text class="system-title">{{item.title}}</text>
+          </view>
+          <view class="time">{{item.time}}</view>
+          <view class="system-message">{{item.message}}</view>
+        </view>
+      </view>
+    </view>
+  </view>
+  
+  <!-- 加载更多 -->
+  <view class="load-more" wx:if="{{!loading && hasMore}}" bindtap="loadMore">
+    <text>加载更多</text>
+  </view>
+  
+  <!-- 没有更多 -->
+  <view class="no-more" wx:if="{{!loading && !hasMore && notifications.length > 0}}">
+    <text>没有更多了</text>
+  </view>
+  
+  <!-- 底部间距 -->
+  <view class="bottom-space"></view>
+</view> 

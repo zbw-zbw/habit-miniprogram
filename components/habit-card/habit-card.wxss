@@ -7,27 +7,50 @@
 
 .habit-card {
   display: flex;
-  background-color: #FFFFFF;
-  border-radius: 16rpx;
+  background-color: var(--card-background);
+  border-radius: var(--radius-large);
   padding: 24rpx;
-  box-shadow: 0 2rpx 10rpx rgba(0, 0, 0, 0.05);
+  box-shadow: var(--shadow-light);
   position: relative;
+  overflow: hidden;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.habit-card:active {
+  transform: scale(0.98);
+  box-shadow: var(--shadow-light);
 }
 
 /* 左侧图标 */
 .habit-icon {
-  width: 80rpx;
-  height: 80rpx;
-  border-radius: 50%;
+  width: 88rpx;
+  height: 88rpx;
+  border-radius: var(--radius-medium);
   display: flex;
   align-items: center;
   justify-content: center;
   margin-right: 24rpx;
   flex-shrink: 0;
+  position: relative;
+  overflow: hidden;
+}
+
+.habit-icon::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: inherit;
+  opacity: 0.2;
+  z-index: 1;
 }
 
 .habit-icon .iconfont {
-  font-size: 40rpx;
+  font-size: 44rpx;
+  position: relative;
+  z-index: 2;
 }
 
 /* 中间内容 */
@@ -39,11 +62,13 @@
 .habit-name {
   font-size: 32rpx;
   font-weight: 600;
-  color: #32325D;
+  color: var(--title-color);
   margin-bottom: 8rpx;
   white-space: nowrap;
   text-overflow: ellipsis;
   overflow: hidden;
+  display: flex;
+  align-items: center;
 }
 
 .habit-info {
@@ -55,23 +80,27 @@
 .habit-category {
   font-size: 24rpx;
   color: #FFFFFF;
-  padding: 6rpx 14rpx;
+  padding: 4rpx 16rpx;
   border-radius: 20rpx;
   margin-right: 16rpx;
   font-weight: 500;
+  box-shadow: 0 2rpx 4rpx rgba(0, 0, 0, 0.1);
 }
 
 .habit-frequency {
   font-size: 24rpx;
-  color: #606266;
+  color: var(--text-color-secondary);
+  background-color: var(--divider-color);
+  padding: 4rpx 16rpx;
+  border-radius: 20rpx;
 }
 
 .habit-stats {
   display: flex;
   align-items: center;
-  background-color: #F8FAFC;
+  background-color: var(--background-color);
   border-radius: 12rpx;
-  padding: 10rpx 16rpx;
+  padding: 12rpx 16rpx;
   margin-top: 4rpx;
 }
 
@@ -81,17 +110,29 @@
   align-items: center;
   margin-right: 32rpx;
   padding: 6rpx 0;
+  position: relative;
+}
+
+.stat-item:not(:last-child)::after {
+  content: '';
+  position: absolute;
+  right: -16rpx;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 1px;
+  height: 70%;
+  background-color: var(--divider-color);
 }
 
 .stat-value {
   font-size: 28rpx;
   font-weight: 600;
-  color: #4F7CFF;
+  color: var(--primary-color);
 }
 
 .stat-label {
   font-size: 22rpx;
-  color: #606266;
+  color: var(--text-color-secondary);
   margin-top: 4rpx;
 }
 
@@ -106,24 +147,40 @@
 }
 
 .checkin-btn {
-  background-color: #5E72E4;
+  background: var(--primary-gradient);
   color: #FFFFFF;
   font-size: 28rpx;
-  padding: 8rpx 24rpx;
-  border-radius: 8rpx;
+  padding: 10rpx 28rpx;
+  border-radius: var(--radius-medium);
   margin-bottom: 16rpx;
   transition: all 0.3s ease;
+  box-shadow: var(--shadow-button);
+  font-weight: 500;
 }
 
 .checkin-btn.completed {
-  background-color: #E4E7ED;
-  color: #8898AA;
+  background: var(--divider-color);
+  color: var(--text-color-secondary);
+  box-shadow: none;
 }
 
 .more-btn {
+  width: 60rpx;
+  height: 60rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-color-secondary);
+  border-radius: 50%;
+  transition: background-color 0.2s ease;
+}
+
+.more-btn:active {
+  background-color: var(--divider-color);
+}
+
+.more-btn .iconfont {
   font-size: 40rpx;
-  color: #909399;
-  padding: 8rpx;
 }
 
 /* 操作菜单 */
@@ -141,6 +198,7 @@
   visibility: hidden;
   opacity: 0;
   transition: all 0.3s ease;
+  backdrop-filter: blur(4px);
 }
 
 .action-menu.show {
@@ -150,16 +208,22 @@
 
 .action-menu-content {
   width: 80%;
-  background-color: #FFFFFF;
-  border-radius: 16rpx;
+  background-color: var(--card-background);
+  border-radius: var(--radius-large);
   overflow: hidden;
+  box-shadow: var(--shadow-medium);
 }
 
 .action-item {
   display: flex;
   align-items: center;
   padding: 32rpx;
-  border-bottom: 1px solid #E4E7ED;
+  border-bottom: 1px solid var(--divider-color);
+  transition: background-color 0.2s ease;
+}
+
+.action-item:active {
+  background-color: rgba(0, 0, 0, 0.03);
 }
 
 .action-item:last-child {
@@ -169,20 +233,20 @@
 .action-item .iconfont {
   font-size: 40rpx;
   margin-right: 16rpx;
-  color: #4F7CFF;
+  color: var(--primary-color);
 }
 
 .action-item text {
   font-size: 32rpx;
-  color: #303133;
+  color: var(--title-color);
 }
 
 .action-item.delete .iconfont {
-  color: #F56C6C;
+  color: var(--error-color);
 }
 
 .action-item.delete text {
-  color: #F56C6C;
+  color: var(--error-color);
 }
 
 /* 紧凑模式 */
@@ -191,12 +255,13 @@
 }
 
 .compact .habit-icon {
-  width: 64rpx;
-  height: 64rpx;
+  width: 72rpx;
+  height: 72rpx;
+  border-radius: var(--radius-small);
 }
 
 .compact .habit-icon .iconfont {
-  font-size: 32rpx;
+  font-size: 36rpx;
 }
 
 .compact .habit-name {
@@ -209,15 +274,16 @@
 
 .compact .habit-category {
   font-size: 22rpx;
-  padding: 4rpx 10rpx;
+  padding: 2rpx 12rpx;
 }
 
 .compact .habit-frequency {
   font-size: 22rpx;
+  padding: 2rpx 12rpx;
 }
 
 .compact .habit-stats {
-  padding: 6rpx 12rpx;
+  padding: 8rpx 12rpx;
 }
 
 .compact .stat-item {
@@ -235,7 +301,7 @@
 
 .compact .checkin-btn {
   font-size: 24rpx;
-  padding: 6rpx 16rpx;
+  padding: 6rpx 20rpx;
 }
 
 /* 简单模式 */
@@ -253,17 +319,21 @@
 }
 
 .simple .stat-item {
-  background-color: #F8FAFC;
+  background-color: var(--background-color);
   border-radius: 8rpx;
   padding: 8rpx 16rpx;
   margin-right: 16rpx;
+}
+
+.simple .stat-item::after {
+  display: none;
 }
 
 .archive-badge {
   display: inline-block;
   font-size: 20rpx;
   color: #fff;
-  background-color: #909399;
+  background-color: var(--text-color-secondary);
   padding: 2rpx 10rpx;
   border-radius: 8rpx;
   margin-left: 10rpx;

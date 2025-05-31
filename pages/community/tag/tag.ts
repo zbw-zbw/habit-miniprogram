@@ -456,7 +456,7 @@ Page<IPageData, {
     
     // 跳转到创建挑战页面，并预填标签
     wx.navigateTo({
-      url: `/pages/community/challenge/create/create?tag=${encodeURIComponent(this.data.tagName)}`
+      url: `/pages/community/challenges/create/create?tag=${encodeURIComponent(this.data.tagName)}`
     });
   },
 

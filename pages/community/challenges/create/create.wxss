@@ -1,4 +1,4 @@
-/* pages/community/challenge/create/create.wxss */
+/* pages/community/challenges/create/create.wxss */
 @import "/styles/iconfont.wxss";
 
 .container {

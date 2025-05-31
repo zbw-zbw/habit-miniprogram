@@ -1,0 +1,60 @@
+/* 用户协议页面样式 */
+.container {
+  background-color: var(--background-color);
+  min-height: 100vh;
+  padding: 32rpx;
+  box-sizing: border-box;
+}
+
+.agreement-content {
+  background-color: var(--card-background);
+  border-radius: var(--radius-large);
+  padding: 40rpx;
+  box-shadow: var(--shadow-light);
+}
+
+.section {
+  margin-bottom: 40rpx;
+}
+
+.section:last-child {
+  margin-bottom: 0;
+}
+
+.section-title {
+  font-size: 36rpx;
+  font-weight: 600;
+  color: var(--title-color);
+  margin-bottom: 16rpx;
+  text-align: center;
+}
+
+.section-date {
+  font-size: 24rpx;
+  color: var(--text-color-secondary);
+  margin-bottom: 32rpx;
+  text-align: center;
+}
+
+.section-subtitle {
+  font-size: 32rpx;
+  font-weight: 500;
+  color: var(--title-color);
+  margin-bottom: 16rpx;
+}
+
+.paragraph {
+  font-size: 28rpx;
+  color: var(--text-color);
+  line-height: 1.6;
+  margin-bottom: 16rpx;
+  text-align: justify;
+}
+
+.list-item {
+  font-size: 28rpx;
+  color: var(--text-color);
+  line-height: 1.6;
+  margin-bottom: 8rpx;
+  padding-left: 32rpx;
+} 

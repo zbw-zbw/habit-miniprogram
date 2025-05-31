@@ -21,7 +21,7 @@
   align-items: center;
 }
 
-.login-tip text {
+.login-tip-text {
   font-size: 28rpx;
   color: #606266;
   margin-bottom: 20rpx;

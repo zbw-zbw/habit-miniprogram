@@ -27,7 +27,7 @@
         <view class="form-label">分类</view>
         <view class="form-value">
           <text>{{categoryName}}</text>
-          <text class="icon-right">></text>
+          <text class="iconfont icon-right"></text>
         </view>
       </view>
     </view>

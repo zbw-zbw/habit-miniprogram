@@ -4,6 +4,7 @@
     "pages/habits/habits",
     "pages/habits/create/create",
     "pages/habits/detail/detail",
+    "pages/habits/select/select",
     "pages/checkin/checkin",
     "pages/analytics/analytics",
     "pages/analytics/detail/detail",
@@ -16,9 +17,14 @@
     "pages/community/challenges/create/create",
     "pages/community/tag/tag",
     "pages/community/post-detail/post-detail",
+    "pages/community/friends/add-friend",
     "pages/profile/profile",
     "pages/profile/settings/settings",
     "pages/profile/achievements/achievements",
+    "pages/profile/about/about",
+    "pages/profile/feedback/feedback",
+    "pages/profile/agreement/agreement",
+    "pages/profile/privacy/privacy",
     "pages/test/api-test"
   ],
   "window": {
@@ -78,4 +84,4 @@
     }
   },
   "requiredBackgroundModes": ["audio"]
-} 
+}

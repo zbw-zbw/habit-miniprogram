@@ -192,7 +192,7 @@ Page({
    */
   createGroup() {
     wx.navigateTo({
-      url: '/pages/community/group/create/create'
+      url: '/pages/community/groups/create/create'
     });
   },
 

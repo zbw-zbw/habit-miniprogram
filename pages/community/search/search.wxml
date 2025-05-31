@@ -1,0 +1,198 @@
+<!--社区搜索页面-->
+<view class="container">
+  <!-- 搜索框 -->
+  <view class="search-header">
+    <view class="search-box">
+      <text class="iconfont icon-search"></text>
+      <input 
+        class="search-input" 
+        placeholder="搜索用户、小组、话题或内容" 
+        placeholder-class="placeholder"
+        bindinput="onSearchInput"
+        bindconfirm="onSearch"
+        value="{{keyword}}"
+        confirm-type="search"
+        focus="{{true}}"
+      />
+      <text class="clear-btn iconfont icon-close" wx:if="{{keyword}}" bindtap="clearSearch"></text>
+    </view>
+    <view class="cancel-btn" bindtap="goBack">取消</view>
+  </view>
+  
+  <!-- 搜索历史 -->
+  <view class="search-history" wx:if="{{!keyword && searchHistory.length > 0}}">
+    <view class="history-header">
+      <text class="history-title">搜索历史</text>
+      <text class="clear-history" bindtap="clearHistory">清除</text>
+    </view>
+    <view class="history-tags">
+      <view 
+        class="history-tag" 
+        wx:for="{{searchHistory}}" 
+        wx:key="index" 
+        bindtap="useHistoryKeyword"
+        data-keyword="{{item}}"
+      >
+        {{item}}
+      </view>
+    </view>
+  </view>
+  
+  <!-- 热门搜索 -->
+  <view class="hot-search" wx:if="{{!keyword && hotSearches.length > 0}}">
+    <view class="hot-header">
+      <text class="hot-title">热门搜索</text>
+    </view>
+    <view class="hot-tags">
+      <view 
+        class="hot-tag" 
+        wx:for="{{hotSearches}}" 
+        wx:key="index" 
+        bindtap="useHotKeyword"
+        data-keyword="{{item}}"
+      >
+        <text class="hot-rank" wx:if="{{index < 3}}">{{index + 1}}</text>
+        <text class="hot-text">{{item}}</text>
+      </view>
+    </view>
+  </view>
+  
+  <!-- 搜索结果 -->
+  <view class="search-results" wx:if="{{keyword}}">
+    <!-- 切换标签 -->
+    <view class="result-tabs">
+      <view 
+        class="tab-item {{activeTab === 'all' ? 'active' : ''}}" 
+        bindtap="switchTab" 
+        data-tab="all"
+      >全部</view>
+      <view 
+        class="tab-item {{activeTab === 'users' ? 'active' : ''}}" 
+        bindtap="switchTab" 
+        data-tab="users"
+      >用户</view>
+      <view 
+        class="tab-item {{activeTab === 'groups' ? 'active' : ''}}" 
+        bindtap="switchTab" 
+        data-tab="groups"
+      >小组</view>
+      <view 
+        class="tab-item {{activeTab === 'topics' ? 'active' : ''}}" 
+        bindtap="switchTab" 
+        data-tab="topics"
+      >话题</view>
+      <view 
+        class="tab-item {{activeTab === 'posts' ? 'active' : ''}}" 
+        bindtap="switchTab" 
+        data-tab="posts"
+      >动态</view>
+    </view>
+    
+    <!-- 加载中 -->
+    <view class="loading" wx:if="{{loading}}">
+      <view class="loading-spinner"></view>
+      <text class="loading-text">搜索中...</text>
+    </view>
+    
+    <!-- 搜索为空 -->
+    <view class="empty-result" wx:if="{{!loading && results.length === 0}}">
+      <image class="empty-icon" src="/assets/images/search-empty.png" mode="aspectFit"></image>
+      <text class="empty-text">没有找到"{{keyword}}"相关内容</text>
+      <text class="empty-tips">试试其他关键词，或者查看热门搜索</text>
+    </view>
+    
+    <!-- 用户列表 -->
+    <view class="result-list user-list" wx:if="{{!loading && activeTab === 'users' && userResults.length > 0}}">
+      <view class="user-item" wx:for="{{userResults}}" wx:key="id" bindtap="viewUserProfile" data-id="{{item.id}}">
+        <image class="user-avatar" src="{{item.avatar}}" mode="aspectFill"></image>
+        <view class="user-info">
+          <view class="user-name">{{item.nickname}}</view>
+          <view class="user-bio">{{item.bio || '这个人很懒，没有留下签名'}}</view>
+        </view>
+        <button class="follow-btn {{item.isFollowing ? 'following' : ''}}" catchtap="toggleFollow" data-id="{{item.id}}" data-index="{{index}}">
+          {{item.isFollowing ? '已关注' : '关注'}}
+        </button>
+      </view>
+    </view>
+    
+    <!-- 小组列表 -->
+    <view class="result-list group-list" wx:if="{{!loading && activeTab === 'groups' && groupResults.length > 0}}">
+      <view class="group-item" wx:for="{{groupResults}}" wx:key="id" bindtap="viewGroupDetail" data-id="{{item.id}}">
+        <image class="group-avatar" src="{{item.avatar}}" mode="aspectFill"></image>
+        <view class="group-info">
+          <view class="group-name">{{item.name}}</view>
+          <view class="group-desc">{{item.description}}</view>
+          <view class="group-meta">
+            <text class="group-members">{{item.membersCount}}人</text>
+            <text class="group-posts">{{item.postsCount}}条动态</text>
+          </view>
+        </view>
+        <button class="join-btn {{item.isJoined ? 'joined' : ''}}" catchtap="toggleJoin" data-id="{{item.id}}" data-index="{{index}}">
+          {{item.isJoined ? '已加入' : '加入'}}
+        </button>
+      </view>
+    </view>
+    
+    <!-- 话题列表 -->
+    <view class="result-list topic-list" wx:if="{{!loading && activeTab === 'topics' && topicResults.length > 0}}">
+      <view class="topic-item" wx:for="{{topicResults}}" wx:key="id" bindtap="viewTopicDetail" data-id="{{item.id}}">
+        <view class="topic-info">
+          <view class="topic-title">#{{item.name}}</view>
+          <view class="topic-meta">
+            <text>{{item.postsCount}}条动态</text>
+            <text>{{item.participantsCount}}人参与</text>
+          </view>
+        </view>
+        <view class="topic-trending" wx:if="{{item.isTrending}}">
+          <text class="trending-icon iconfont icon-fire"></text>
+          <text class="trending-text">热门</text>
+        </view>
+      </view>
+    </view>
+    
+    <!-- 动态列表 -->
+    <view class="result-list post-list" wx:if="{{!loading && activeTab === 'posts' && postResults.length > 0}}">
+      <view class="post-item" wx:for="{{postResults}}" wx:key="id" bindtap="viewPostDetail" data-id="{{item.id}}">
+        <view class="post-header">
+          <image class="post-avatar" src="{{item.userAvatar}}" mode="aspectFill"></image>
+          <view class="post-user-info">
+            <view class="post-username">{{item.userName}}</view>
+            <view class="post-time">{{item.createdAt}}</view>
+          </view>
+        </view>
+        <view class="post-content">
+          <text class="post-text">{{item.content}}</text>
+          <view class="post-images" wx:if="{{item.images && item.images.length > 0}}">
+            <image 
+              class="post-image {{item.images.length === 1 ? 'single' : ''}}" 
+              src="{{item.images[0]}}" 
+              mode="aspectFill"
+              wx:if="{{item.images.length > 0}}"
+            ></image>
+            <view class="image-count" wx:if="{{item.images.length > 1}}">+{{item.images.length}}</view>
+          </view>
+        </view>
+        <view class="post-stats">
+          <view class="stat-item">
+            <text class="iconfont icon-heart"></text>
+            <text>{{item.likes || 0}}</text>
+          </view>
+          <view class="stat-item">
+            <text class="iconfont icon-comment"></text>
+            <text>{{item.comments || 0}}</text>
+          </view>
+        </view>
+      </view>
+    </view>
+    
+    <!-- 加载更多 -->
+    <view class="load-more" wx:if="{{!loading && hasMore}}" bindtap="loadMore">
+      <text>加载更多</text>
+    </view>
+    
+    <!-- 没有更多 -->
+    <view class="no-more" wx:if="{{!loading && !hasMore && results.length > 0}}">
+      <text>没有更多了</text>
+    </view>
+  </view>
+</view> 

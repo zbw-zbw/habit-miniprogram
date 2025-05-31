@@ -73,7 +73,7 @@
     <!-- 自动备份 -->
     <view class="settings-item">
       <view class="item-label">
-        <text class="iconfont icon-backup"></text>
+        <text class="iconfont icon-leftup"></text>
         <text>自动备份</text>
       </view>
       <switch class="item-switch" checked="{{settings.autoBackup}}" data-key="autoBackup" bindchange="switchSetting" color="#4F7CFF" />
@@ -112,8 +112,8 @@
     </view>
   </view>
   
-  <!-- 退出登录 -->
-  <view class="logout-button" bindtap="showLogoutModal">退出登录</view>
+  <!-- 退出登录 - 只在已登录状态下显示 -->
+  <view class="logout-button" bindtap="showLogoutModal" wx:if="{{hasLogin}}">退出登录</view>
   
   <!-- 主题选择模态框 -->
   <view class="modal theme-modal {{showThemeModal ? 'show' : ''}}" catchtouchmove="true">

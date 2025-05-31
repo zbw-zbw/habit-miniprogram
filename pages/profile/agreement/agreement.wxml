@@ -1,0 +1,112 @@
+<!--用户协议页面-->
+<view class="container">
+  <view class="agreement-content">
+    <view class="section">
+      <view class="section-title">习惯打卡小程序用户协议</view>
+      <view class="section-date">生效日期：2023年12月1日</view>
+    </view>
+    
+    <view class="section">
+      <view class="section-subtitle">1. 协议的接受</view>
+      <view class="paragraph">
+        欢迎使用"习惯打卡"小程序（以下简称"本小程序"）。本用户协议（以下简称"本协议"）是您与本小程序开发者之间关于使用本小程序服务所订立的协议。在您使用本小程序之前，请您仔细阅读本协议的全部内容。如您不同意本协议的任何内容，请勿注册或使用本小程序。当您注册、使用或以任何方式访问本小程序，即表示您已充分理解并同意接受本协议的全部内容。
+      </view>
+    </view>
+    
+    <view class="section">
+      <view class="section-subtitle">2. 服务内容</view>
+      <view class="paragraph">
+        本小程序是一款帮助用户培养良好习惯的工具应用，主要功能包括但不限于：习惯创建、打卡记录、数据统计、社区互动等。本小程序会不断改进服务，包括但不限于其内容、功能、设计等。
+      </view>
+    </view>
+    
+    <view class="section">
+      <view class="section-subtitle">3. 账号注册与使用</view>
+      <view class="paragraph">
+        3.1 您在使用本小程序时可以注册账号，也可以使用微信账号直接登录。
+      </view>
+      <view class="paragraph">
+        3.2 您应对自己的账号安全负责，并对您账号下的所有行为承担责任。
+      </view>
+      <view class="paragraph">
+        3.3 您不得将账号转让、出售或与他人共享。如发现账号存在安全问题，请立即联系我们。
+      </view>
+    </view>
+    
+    <view class="section">
+      <view class="section-subtitle">4. 用户行为规范</view>
+      <view class="paragraph">
+        4.1 您在使用本小程序时必须遵守中华人民共和国相关法律法规。
+      </view>
+      <view class="paragraph">
+        4.2 您不得利用本小程序发布、传播以下内容：
+      </view>
+      <view class="list-item">- 违反国家法律法规的内容</view>
+      <view class="list-item">- 政治敏感的内容</view>
+      <view class="list-item">- 侮辱、诽谤、威胁他人的内容</view>
+      <view class="list-item">- 色情、暴力、赌博、恐怖内容</view>
+      <view class="list-item">- 广告或商业宣传内容</view>
+      <view class="list-item">- 侵犯他人知识产权或其他合法权益的内容</view>
+      <view class="paragraph">
+        4.3 您不得利用本小程序进行任何可能对互联网正常运行造成不利影响的行为。
+      </view>
+      <view class="paragraph">
+        4.4 您不得利用本小程序从事任何违法犯罪活动。
+      </view>
+    </view>
+    
+    <view class="section">
+      <view class="section-subtitle">5. 知识产权</view>
+      <view class="paragraph">
+        5.1 本小程序的所有权、运营权和一切知识产权均归本小程序开发者所有。
+      </view>
+      <view class="paragraph">
+        5.2 用户在本小程序发布的内容仍归用户所有，但用户授予本小程序开发者一项全球性的、永久的、不可撤销的、免费的、非独家的许可，允许本小程序开发者使用、复制、修改、改编、出版、翻译、创作衍生作品、分发和展示此等内容。
+      </view>
+    </view>
+    
+    <view class="section">
+      <view class="section-subtitle">6. 隐私保护</view>
+      <view class="paragraph">
+        我们重视您的隐私保护。有关我们如何收集、使用和保护您个人信息的详细政策，请参阅我们的《隐私政策》。
+      </view>
+    </view>
+    
+    <view class="section">
+      <view class="section-subtitle">7. 免责声明</view>
+      <view class="paragraph">
+        7.1 本小程序不对用户发布的内容进行实质性审查，但有权根据相关法律法规对用户发布的内容进行管理。
+      </view>
+      <view class="paragraph">
+        7.2 本小程序不保证服务一定能满足用户的所有要求，也不保证服务不会中断，对服务的及时性、安全性、准确性也不作任何保证。
+      </view>
+      <view class="paragraph">
+        7.3 对于因不可抗力或本小程序不能控制的原因造成的服务中断或其他缺陷，本小程序不承担任何责任。
+      </view>
+    </view>
+    
+    <view class="section">
+      <view class="section-subtitle">8. 协议修改</view>
+      <view class="paragraph">
+        我们保留在任何时候修改本协议的权利。对本协议的修改将通过在小程序内公布的方式通知用户。如果您不同意修改后的协议，您可以选择停止使用本小程序；如果您继续使用本小程序，则视为您接受修改后的协议。
+      </view>
+    </view>
+    
+    <view class="section">
+      <view class="section-subtitle">9. 法律适用与管辖</view>
+      <view class="paragraph">
+        本协议的订立、执行和解释及争议的解决均适用中华人民共和国法律。如发生本协议相关的任何争议，双方应友好协商解决；协商不成时，任何一方均有权向本小程序开发者所在地的人民法院提起诉讼。
+      </view>
+    </view>
+    
+    <view class="section">
+      <view class="section-subtitle">10. 联系我们</view>
+      <view class="paragraph">
+        如果您对本协议或本小程序的使用有任何问题，请通过以下方式联系我们：
+      </view>
+      <view class="paragraph">
+        电子邮件：support@habittracker.com
+      </view>
+    </view>
+  </view>
+</view> 

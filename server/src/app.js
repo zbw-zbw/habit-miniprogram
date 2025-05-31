@@ -56,6 +56,19 @@ app.use('/api', dashboardRoutes);
 
 // 直接访问社区接口
 app.get('/api/posts', authMiddleware, postController.getPosts);
+app.post('/api/posts', authMiddleware, postController.createPost);
+app.get('/api/posts/:postId', authMiddleware, postController.getPost);
+app.post('/api/posts/:postId/like', authMiddleware, postController.likePost);
+app.post('/api/posts/:postId/unlike', authMiddleware, postController.unlikePost);
+app.get('/api/posts/:postId/comments', authMiddleware, require('./controllers/comment.controller').getComments);
+app.post('/api/posts/:postId/comments', authMiddleware, require('./controllers/comment.controller').createComment);
+
+// 评论相关操作
+const commentController = require('./controllers/comment.controller');
+app.post('/api/comments/:commentId/like', authMiddleware, commentController.likeComment);
+app.post('/api/comments/:commentId/unlike', authMiddleware, commentController.unlikeComment);
+app.delete('/api/comments/:commentId', authMiddleware, commentController.checkCommentOwner, commentController.deleteComment);
+
 app.get('/api/challenges', authMiddleware, challengeController.getChallenges);
 
 // 根路由

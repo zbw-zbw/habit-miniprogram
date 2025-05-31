@@ -1,0 +1,125 @@
+<!--隐私政策页面-->
+<view class="container">
+  <view class="privacy-content">
+    <view class="section">
+      <view class="section-title">习惯打卡小程序隐私政策</view>
+      <view class="section-date">生效日期：2023年12月1日</view>
+    </view>
+    
+    <view class="section">
+      <view class="section-subtitle">引言</view>
+      <view class="paragraph">
+        "习惯打卡"小程序（以下简称"我们"或"本小程序"）非常重视用户隐私和个人信息保护。本隐私政策旨在向您说明我们如何收集、使用、存储和共享您的个人信息，以及您享有的相关权利。请您在使用我们的服务前，仔细阅读并了解本隐私政策的全部内容。
+      </view>
+      <view class="paragraph">
+        如您不同意本隐私政策的任何内容，您应立即停止使用本小程序。当您开始使用本小程序服务时，即表示您已充分理解并同意本隐私政策。
+      </view>
+    </view>
+    
+    <view class="section">
+      <view class="section-subtitle">1. 我们收集的信息</view>
+      <view class="paragraph">
+        根据合法、正当、必要的原则，我们会收集以下信息：
+      </view>
+      <view class="list-item">
+        <view class="list-title">1.1 您提供的信息</view>
+        <view class="list-content">
+          - 账号信息：当您注册账号时，我们会收集您的微信昵称、头像等基本信息。
+        </view>
+        <view class="list-content">
+          - 个人资料：您在使用本小程序过程中主动填写的信息，如性别、生日等。
+        </view>
+        <view class="list-content">
+          - 习惯和打卡数据：您在本小程序中创建的习惯、打卡记录及相关内容。
+        </view>
+      </view>
+      <view class="list-item">
+        <view class="list-title">1.2 在您使用服务过程中收集的信息</view>
+        <view class="list-content">
+          - 设备信息：设备型号、操作系统版本、设备设置、唯一设备标识符等信息。
+        </view>
+        <view class="list-content">
+          - 日志信息：使用本小程序的详细情况，如使用频率、崩溃数据、性能数据等。
+        </view>
+        <view class="list-content">
+          - 位置信息：经您授权，我们可能会收集您的位置信息，用于提供定位相关服务。
+        </view>
+      </view>
+    </view>
+    
+    <view class="section">
+      <view class="section-subtitle">2. 我们如何使用收集的信息</view>
+      <view class="paragraph">
+        我们可能将收集的信息用于以下目的：
+      </view>
+      <view class="list-content">- 提供、维护和改进我们的服务</view>
+      <view class="list-content">- 处理您的习惯数据，生成统计报告和分析</view>
+      <view class="list-content">- 向您推送通知，如打卡提醒、成就达成等</view>
+      <view class="list-content">- 改善用户体验，开发新功能和服务</view>
+      <view class="list-content">- 预防、检测欺诈和安全问题</view>
+      <view class="list-content">- 进行数据分析，以改进我们的产品和服务</view>
+      <view class="list-content">- 根据法律法规要求</view>
+    </view>
+    
+    <view class="section">
+      <view class="section-subtitle">3. 信息的共享与披露</view>
+      <view class="paragraph">
+        除以下情况外，未经您同意，我们不会与任何第三方共享您的个人信息：
+      </view>
+      <view class="list-content">- 获得您的明确同意后</view>
+      <view class="list-content">- 根据法律法规的要求、强制性的行政或司法要求</view>
+      <view class="list-content">- 与我们的关联公司共享，他们会遵守本隐私政策</view>
+      <view class="list-content">- 与合作伙伴共享，以提供您所要求的服务</view>
+      <view class="list-content">- 为维护我们及其他用户的合法权益</view>
+    </view>
+    
+    <view class="section">
+      <view class="section-subtitle">4. 信息安全</view>
+      <view class="paragraph">
+        我们致力于保护您的个人信息安全。我们使用各种安全技术和程序，以防信息的丢失、不当使用、未经授权阅览或披露。例如，在某些服务中，我们将利用加密技术来保护您提供的个人信息。但请理解，由于技术的限制以及风险防范的局限，即便我们竭尽全力加强安全措施，也无法始终保证信息百分之百的安全。
+      </view>
+    </view>
+    
+    <view class="section">
+      <view class="section-subtitle">5. 您的权利</view>
+      <view class="paragraph">
+        根据相关法律法规，您有权：
+      </view>
+      <view class="list-content">- 访问您的个人信息</view>
+      <view class="list-content">- 更正不准确的个人信息</view>
+      <view class="list-content">- 删除您的个人信息</view>
+      <view class="list-content">- 撤回您的同意</view>
+      <view class="list-content">- 注销您的账号</view>
+      <view class="paragraph">
+        您可以通过本小程序的"个人中心"或联系我们的客服来行使这些权利。
+      </view>
+    </view>
+    
+    <view class="section">
+      <view class="section-subtitle">6. 儿童隐私保护</view>
+      <view class="paragraph">
+        本小程序主要面向成人用户。如果您是18岁以下的未成年人，应在监护人的陪同下阅读本隐私政策，并在监护人的同意下使用我们的服务。如果我们发现自己在未获监护人同意的情况下收集了儿童的个人信息，我们会尽快删除相关数据。
+      </view>
+    </view>
+    
+    <view class="section">
+      <view class="section-subtitle">7. 隐私政策的更新</view>
+      <view class="paragraph">
+        我们可能会不时更新本隐私政策。当我们对隐私政策作出重大变更时，我们会在本小程序中显著位置发布通知，并在更新后的隐私政策中标明生效日期。请您定期查看本隐私政策，了解我们对其所做的任何修改。如果您在隐私政策更新后继续使用我们的服务，即表示您接受修改后的隐私政策。
+      </view>
+    </view>
+    
+    <view class="section">
+      <view class="section-subtitle">8. 联系我们</view>
+      <view class="paragraph">
+        如果您对本隐私政策有任何问题、意见或建议，请通过以下方式与我们联系：
+      </view>
+      <view class="paragraph">
+        电子邮件：privacy@habittracker.com
+      </view>
+      <view class="paragraph">
+        我们会在收到您的问题后30天内做出回复。
+      </view>
+    </view>
+  </view>
+</view> 

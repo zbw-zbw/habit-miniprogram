@@ -1,0 +1,77 @@
+<!--习惯选择页面-->
+<view class="container">
+  <!-- 页面标题 -->
+  <view class="page-header">
+    <text class="header-title">选择习惯</text>
+    <text class="header-subtitle">从推荐列表中选择或创建自定义习惯</text>
+  </view>
+  
+  <!-- 搜索框 -->
+  <view class="search-box">
+    <text class="iconfont icon-search"></text>
+    <input 
+      class="search-input" 
+      placeholder="搜索习惯" 
+      placeholder-class="placeholder"
+      bindinput="onSearchInput"
+      value="{{searchKey}}"
+    />
+    <text class="clear-btn iconfont icon-close" wx:if="{{searchKey}}" bindtap="clearSearch"></text>
+  </view>
+  
+  <!-- 分类标签 -->
+  <view class="category-tabs">
+    <view 
+      wx:for="{{categories}}" 
+      wx:key="index" 
+      class="category-tab {{currentCategory === index ? 'active' : ''}}" 
+      bindtap="switchCategory" 
+      data-index="{{index}}"
+    >
+      {{item.name}}
+    </view>
+  </view>
+  
+  <!-- 加载中 -->
+  <view class="loading" wx:if="{{loading}}">
+    <view class="loading-spinner"></view>
+    <text class="loading-text">加载中...</text>
+  </view>
+  
+  <!-- 习惯列表 -->
+  <view class="habits-grid" wx:if="{{!loading && filteredHabits.length > 0}}">
+    <view 
+      class="habit-item {{item.selected ? 'selected' : ''}}" 
+      wx:for="{{filteredHabits}}" 
+      wx:key="id"
+      bindtap="toggleHabit"
+      data-index="{{index}}"
+    >
+      <view class="habit-icon">
+        <text class="iconfont {{item.icon || 'icon-habit'}}"></text>
+      </view>
+      <view class="habit-name">{{item.name}}</view>
+      <view class="habit-check" wx:if="{{item.selected}}">
+        <text class="iconfont icon-check"></text>
+      </view>
+    </view>
+  </view>
+  
+  <!-- 空状态 -->
+  <view class="empty-state" wx:if="{{!loading && filteredHabits.length === 0}}">
+    <image class="empty-icon" src="/assets/images/empty.png" mode="aspectFit"></image>
+    <text class="empty-text">未找到相关习惯</text>
+    <text class="empty-tips">请尝试其他关键词或创建自定义习惯</text>
+  </view>
+  
+  <!-- 底部按钮 -->
+  <view class="footer">
+    <view class="custom-habit-btn" bindtap="createCustomHabit">
+      <text class="iconfont icon-add"></text>
+      <text>创建自定义习惯</text>
+    </view>
+    <button class="confirm-btn {{selectedHabits.length === 0 ? 'disabled' : ''}}" disabled="{{selectedHabits.length === 0}}" bindtap="confirmSelection">
+      确认选择 ({{selectedHabits.length}})
+    </button>
+  </view>
+</view> 

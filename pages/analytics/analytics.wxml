@@ -95,7 +95,14 @@
   
   <!-- 习惯标签内容 -->
   <block wx:if="{{activeTab === 'habits' && !loading}}">
-    <view class="habits-list">
+    <block wx:if="{{habitStats.length === 0}}">
+      <empty-state
+        title="暂无习惯数据"
+        description="创建并完成习惯后即可查看统计数据"
+        icon="/assets/images/stats.png">
+      </empty-state>
+    </block>
+    <view class="habits-list" wx:else>
       <habit-card 
         wx:for="{{habitStats}}" 
         wx:key="id" 

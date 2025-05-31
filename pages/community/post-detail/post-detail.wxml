@@ -9,69 +9,15 @@
   <!-- 主内容区域 -->
   <view class="content" wx:if="{{!loading}}">
     <!-- 动态详情 -->
-    <view class="post-card">
-      <!-- 用户信息 -->
-      <view class="post-header">
-        <view class="post-user" bindtap="viewUserProfile" data-id="{{post.userId}}">
-          <image class="post-avatar" src="{{post.userAvatar}}" mode="aspectFill"></image>
-          <view class="post-user-info">
-            <view class="post-username">{{post.userName}}</view>
-            <view class="post-meta">{{post.createdAt}} · {{post.habitName}}</view>
-          </view>
-        </view>
-        <view class="post-more">
-          <text class="iconfont icon-more"></text>
-        </view>
-      </view>
-      
-      <!-- 动态内容 -->
-      <view class="post-content">
-        <text class="post-text">{{post.content}}</text>
-        
-        <!-- 标签 -->
-        <view class="post-tags" wx:if="{{post.tags && post.tags.length > 0}}">
-          <view class="post-tag" 
-                wx:for="{{post.tags}}" 
-                wx:key="*this" 
-                wx:for-item="tag"
-                bindtap="viewTag"
-                data-tag="{{tag}}">
-            <text class="iconfont icon-tag"></text>
-            <text>{{tag}}</text>
-          </view>
-        </view>
-        
-        <!-- 图片 -->
-        <view class="post-images" wx:if="{{post.images && post.images.length > 0}}">
-          <image 
-            class="post-image {{post.images.length === 1 ? 'single' : ''}}" 
-            wx:for="{{post.images}}" 
-            wx:key="*this" 
-            wx:for-item="image" 
-            src="{{image}}" 
-            mode="aspectFill"
-            bindtap="previewImage"
-            data-index="{{index}}"
-          ></image>
-        </view>
-      </view>
-      
-      <!-- 互动按钮 -->
-      <view class="post-actions">
-        <view class="post-action {{post.isLiked ? 'active' : ''}}" bindtap="likePost">
-          <text class="iconfont {{post.isLiked ? 'icon-heart-fill' : 'icon-heart'}}"></text>
-          <text>{{post.likes}}</text>
-        </view>
-        <view class="post-action" bindtap="focusCommentInput">
-          <text class="iconfont icon-comment"></text>
-          <text>{{post.comments}}</text>
-        </view>
-        <button class="post-action share-btn" open-type="share">
-          <text class="iconfont icon-share"></text>
-          <text>分享</text>
-        </button>
-      </view>
-    </view>
+    <post-card 
+      post="{{post}}" 
+      isDetail="{{true}}" 
+      bind:viewUser="viewUserProfile"
+      bind:like="likePost"
+      bind:comment="focusCommentInput"
+      bind:previewImage="previewImage"
+      bind:viewTag="viewTag">
+    </post-card>
     
     <!-- 评论区 -->
     <view class="comments-section">

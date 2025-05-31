@@ -2,6 +2,9 @@
   "navigationBarTitleText": "精彩社区",
   "enablePullDownRefresh": true,
   "usingComponents": {
-    "empty-state": "/components/empty-state/empty-state"
-  }
+    "empty-state": "../../components/empty-state/empty-state",
+    "login-tip": "../../components/login-tip/login-tip",
+    "post-card": "../../components/post-card/post-card"
+  },
+  "navigationStyle": "custom"
 } 
