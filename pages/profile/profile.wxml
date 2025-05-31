@@ -4,9 +4,9 @@
   <view class="user-card">
     <block wx:if="{{hasLogin}}">
       <view class="user-info">
-        <image class="avatar" src="{{userInfo.avatarUrl}}" mode="aspectFill"></image>
+        <image class="avatar" src="{{userInfo.avatarUrl ? userInfo.avatarUrl : '/assets/images/default-avatar.png'}}" mode="aspectFill"></image>
         <view class="user-meta">
-          <view class="nickname">{{userInfo.nickName}}</view>
+          <view class="nickname">{{userInfo.nickname || '微信用户'}}</view>
           <view class="user-id">ID: {{userInfo.id}}</view>
         </view>
       </view>
@@ -14,7 +14,7 @@
     <block wx:else>
       <view class="user-info">
         <view class="avatar-placeholder">
-          <text class="iconfont icon-user"></text>
+          <image class="avatar" src="/assets/images/default-avatar.png" mode="aspectFill"></image>
         </view>
         <view class="user-meta">
           <view class="login-tip">未登录</view>
@@ -47,36 +47,41 @@
   <!-- 成就展示 -->
   <view class="section-header">
     <view class="section-title">我的成就</view>
-    <view class="section-more" bindtap="navigateTo" data-url="/pages/profile/achievements/achievements">
+    <view class="section-more" bindtap="navigateTo" data-url="/pages/profile/achievements/achievements" wx:if="{{achievements && achievements.length > 0}}">
       查看全部
       <text class="iconfont icon-arrow-right"></text>
     </view>
   </view>
   
   <view class="achievements-list">
-    <view class="achievement-item" 
-          wx:for="{{achievements}}" 
-          wx:key="id" 
-          wx:if="{{index < 3}}"
-          bindtap="navigateToAchievement"
-          data-id="{{item.id}}">
-      <view class="achievement-icon {{item.isCompleted ? 'completed' : ''}}">
-        <text class="iconfont icon-{{item.icon}}"></text>
-      </view>
-      <view class="achievement-info">
-        <view class="achievement-name">{{item.title}}</view>
-        <view class="achievement-desc">{{item.description}}</view>
-        <view class="achievement-progress">
-          <view class="progress-bar">
-            <view class="progress-inner" style="width: {{item.progress}}%"></view>
+    <block wx:if="{{achievements && achievements.length > 0}}">
+      <view class="achievement-item" 
+            wx:for="{{achievements}}" 
+            wx:key="id" 
+            wx:if="{{index < 3}}"
+            bindtap="navigateToAchievement"
+            data-id="{{item.id}}">
+        <view class="achievement-icon {{item.isCompleted ? 'completed' : ''}}">
+          <text class="iconfont icon-{{item.icon}}"></text>
+        </view>
+        <view class="achievement-info">
+          <view class="achievement-name">{{item.title}}</view>
+          <view class="achievement-desc">{{item.description}}</view>
+          <view class="achievement-progress">
+            <view class="progress-bar">
+              <view class="progress-inner" style="width: {{item.progress}}%"></view>
+            </view>
+            <view class="progress-text">{{item.progress}}%</view>
           </view>
-          <view class="progress-text">{{item.progress}}%</view>
+        </view>
+        <view class="achievement-status">
+          <text class="iconfont icon-check" wx:if="{{item.isCompleted}}"></text>
         </view>
       </view>
-      <view class="achievement-status">
-        <text class="iconfont icon-check" wx:if="{{item.isCompleted}}"></text>
-      </view>
-    </view>
+    </block>
+    <block wx:else>
+      <empty-achievement />
+    </block>
   </view>
   
   <!-- 设置按钮 -->

@@ -1,0 +1,27 @@
+/* 空成就状态 */
+.empty-achievement {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60rpx 30rpx;
+}
+
+.empty-image {
+  width: 200rpx;
+  height: 200rpx;
+  margin-bottom: 20rpx;
+}
+
+.empty-text {
+  font-size: 32rpx;
+  font-weight: 500;
+  color: var(--title-color);
+  margin-bottom: 12rpx;
+}
+
+.empty-tips {
+  font-size: 26rpx;
+  color: var(--text-color-secondary);
+  text-align: center;
+} 

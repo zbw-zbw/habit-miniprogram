@@ -14,6 +14,7 @@ interface IPageMethods {
   loadAchievementDetail(id: string): Promise<void>;
   navigateToHabit(e: WechatMiniprogram.TouchEvent): void;
   onShareAppMessage(): WechatMiniprogram.Page.ICustomShareContent;
+  navigateBack(): void;
 }
 
 Page<IPageData, IPageMethods>({
@@ -108,5 +109,12 @@ Page<IPageData, IPageMethods>({
     wx.navigateTo({
       url: `/pages/habits/detail/detail?id=${id}`
     });
+  },
+  
+  /**
+   * 返回上一页
+   */
+  navigateBack() {
+    wx.navigateBack();
   }
 }); 

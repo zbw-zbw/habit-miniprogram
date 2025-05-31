@@ -1,4 +1,6 @@
 {
   "navigationBarTitleText": "成就详情",
-  "usingComponents": {}
+  "usingComponents": {
+    "empty-achievement": "/components/empty-achievement/empty-achievement"
+  }
 } 

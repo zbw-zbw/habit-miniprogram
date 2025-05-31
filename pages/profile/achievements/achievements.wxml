@@ -14,10 +14,10 @@
   </view>
   
   <!-- 空状态 -->
-  <view class="empty-container" wx:elif="{{filteredAchievements.length === 0}}">
-    <view class="empty-icon">🏆</view>
-    <view class="empty-text">暂无{{activeTab === 'completed' ? '已完成' : activeTab === 'in-progress' ? '进行中' : ''}}成就</view>
-    <view class="empty-desc">继续坚持习惯，解锁更多成就！</view>
+  <view wx:elif="{{filteredAchievements.length === 0}}">
+    <empty-achievement 
+      title="暂无{{activeTab === 'completed' ? '已完成' : activeTab === 'in-progress' ? '进行中' : ''}}成就"
+      tips="继续坚持习惯，解锁更多成就！" />
   </view>
   
   <!-- 成就列表 -->

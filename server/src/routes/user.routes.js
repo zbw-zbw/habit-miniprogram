@@ -47,6 +47,13 @@ const upload = multer({
 router.get('/profile', authMiddleware, userController.getProfile);
 
 /**
+ * @route GET /api/users/profile/all
+ * @desc 获取用户资料聚合数据（包括基本信息、统计数据和成就）
+ * @access Private
+ */
+router.get('/profile/all', authMiddleware, userController.getProfileAll);
+
+/**
  * @route PUT /api/users/profile
  * @desc 更新当前用户资料
  * @access Private
@@ -129,6 +136,13 @@ router.put(
  * @access Private
  */
 router.get('/achievements', authMiddleware, userController.getAchievements);
+
+/**
+ * @route GET /api/users/me/achievements
+ * @desc 获取当前用户的所有成就
+ * @access Private
+ */
+router.get('/me/achievements', authMiddleware, userController.getUserAchievements);
 
 /**
  * @route GET /api/users/stats

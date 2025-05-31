@@ -3,6 +3,7 @@
   "enablePullDownRefresh": true,
   "backgroundColor": "#F5F7FA",
   "usingComponents": {
-    "achievement-card": "/components/achievement-card/achievement-card"
+    "achievement-card": "/components/achievement-card/achievement-card",
+    "empty-achievement": "/components/empty-achievement/empty-achievement"
   }
 } 
