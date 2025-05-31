@@ -1,5 +1,5 @@
 {
-  "navigationBarTitleText": "数据分析",
+  "navigationBarTitleText": "数据统计",
   "enablePullDownRefresh": true,
   "backgroundColor": "#F5F7FA",
   "usingComponents": {

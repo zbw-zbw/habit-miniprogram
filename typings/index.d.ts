@@ -39,7 +39,6 @@ interface IAppOption {
   loadTokenFromStorage?(): void; // 从本地存储加载令牌
   verifyToken?(): void; // 验证令牌有效性
   refreshAuthToken?(): void; // 刷新认证令牌
-  mockLogin?(userInfo: IUserInfo, callback: (success: boolean) => void): void; // 本地模拟登录
   onShow?(): void; // 当小程序从后台进入前台显示时触发
 }
 

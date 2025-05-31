@@ -129,7 +129,7 @@
   <!-- 底部按钮 -->
   <view class="footer">
     <button class="btn btn-outline" bindtap="onCancel">取消</button>
-    <button class="btn btn-primary" bindtap="onSubmit" loading="{{isSubmitting}}">创建</button>
+    <button class="btn btn-primary" bindtap="onSubmit" loading="{{isSubmitting}}">{{isEdit ? '保存' : '创建'}}</button>
   </view>
   
   <!-- 图标选择器 -->

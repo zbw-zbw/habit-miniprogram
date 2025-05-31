@@ -242,6 +242,10 @@ export interface IAppOption {
     token?: string;
     refreshToken?: string;
   };
+  login: (userInfo: IUserInfo, callback: (success: boolean) => void) => void;
+  logout: (callback: () => void) => void;
+  onLoginStateChange: (callback: (loginState: { userInfo: IUserInfo | null; hasLogin: boolean; }) => void) => void;
+  notifyLoginStateChanged: () => void;
 }
 
 /**

@@ -125,7 +125,7 @@ Page({
   viewChallengeDetail(e) {
     const id = e.currentTarget.dataset.id;
     wx.navigateTo({
-      url: `/packageCommunity/pages/challenge/challenge?id=${id}`
+      url: `/pages/community/challenge/challenge?id=${id}`
     });
   },
   
@@ -228,7 +228,7 @@ Page({
    */
   createChallenge() {
     wx.navigateTo({
-      url: '/pages/community/create-challenge/create-challenge'
+      url: '/pages/community/challenge/create/create'
     });
   },
   

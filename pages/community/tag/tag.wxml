@@ -1,0 +1,192 @@
+<!--pages/community/tag/tag.wxml-->
+<view class="container">
+  <view class="navbar">
+    <view class="navbar-left" bindtap="goBack">
+      <text class="iconfont icon-back"></text>
+    </view>
+    <view class="navbar-title">{{tagName}}</view>
+    <view class="navbar-right">
+      <view class="icon-btn" bindtap="navigateToSearch">
+        <text class="iconfont icon-search"></text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 标签页导航 -->
+  <view class="tabs">
+    <view class="tab-item {{activeTab === 'posts' ? 'active' : ''}}" bindtap="switchTab" data-tab="posts">动态</view>
+    <view class="tab-item {{activeTab === 'challenges' ? 'active' : ''}}" bindtap="switchTab" data-tab="challenges">挑战</view>
+    <view class="tab-item {{activeTab === 'groups' ? 'active' : ''}}" bindtap="switchTab" data-tab="groups">小组</view>
+  </view>
+  
+  <!-- 加载状态 -->
+  <view class="loading" wx:if="{{loading}}">
+    <view class="loading-spinner"></view>
+    <text class="loading-text">加载中...</text>
+  </view>
+  
+  <!-- 主内容区域 -->
+  <view class="content" wx:if="{{!loading}}">
+    <!-- 动态内容 - 当activeTab为posts时显示 -->
+    <block wx:if="{{activeTab === 'posts'}}">
+      <view class="post-item" wx:for="{{posts}}" wx:key="id">
+        <!-- 用户信息 -->
+        <view class="post-header">
+          <view class="post-user" bindtap="viewUserProfile" data-id="{{item.userId}}">
+            <image class="post-avatar" src="{{item.userAvatar}}" mode="aspectFill"></image>
+            <view class="post-user-info">
+              <view class="post-username">{{item.userName}}</view>
+              <view class="post-meta">{{item.createdAt}} · {{item.habitName}}</view>
+            </view>
+          </view>
+          <view class="post-more">
+            <text class="iconfont icon-more"></text>
+          </view>
+        </view>
+        
+        <!-- 动态内容 -->
+        <view class="post-content" bindtap="viewPostDetail" data-id="{{item.id}}">
+          <text class="post-text">{{item.content}}</text>
+          
+          <!-- 标签 -->
+          <view class="post-tags" wx:if="{{item.tags && item.tags.length > 0}}">
+            <view class="post-tag" wx:for="{{item.tags}}" wx:key="*this" wx:for-item="tag">
+              <text class="iconfont icon-tag"></text>
+              <text>{{tag}}</text>
+            </view>
+          </view>
+          
+          <!-- 图片 -->
+          <view class="post-images" wx:if="{{item.images && item.images.length > 0}}">
+            <image 
+              class="post-image {{item.images.length === 1 ? 'single' : ''}}" 
+              wx:for="{{item.images}}" 
+              wx:key="*this" 
+              wx:for-item="image" 
+              src="{{image}}" 
+              mode="aspectFill"
+            ></image>
+          </view>
+        </view>
+        
+        <!-- 互动按钮 -->
+        <view class="post-actions">
+          <view class="post-action {{item.isLiked ? 'active' : ''}}" bindtap="likePost" data-id="{{item.id}}" data-index="{{index}}">
+            <text class="iconfont {{item.isLiked ? 'icon-heart-fill' : 'icon-heart'}}"></text>
+            <text>{{item.likes}}</text>
+          </view>
+          <view class="post-action" bindtap="commentPost" data-id="{{item.id}}">
+            <text class="iconfont icon-comment"></text>
+            <text>{{item.comments}}</text>
+          </view>
+          <view class="post-action" bindtap="sharePost" data-id="{{item.id}}">
+            <text class="iconfont icon-share"></text>
+            <text>分享</text>
+          </view>
+        </view>
+      </view>
+
+      <!-- 空状态展示 -->
+      <empty-state 
+        wx:if="{{posts.length === 0}}"
+        title="暂无动态"
+        description="该标签下还没有任何人发布动态"
+        icon="/assets/images/posts.png"
+        actionText="发布动态"
+        showAction="{{hasLogin}}"
+        hasLogin="{{hasLogin}}"
+        bind:action="showCreatePost"
+        bind:login="login">
+      </empty-state>
+    </block>
+    
+    <!-- 挑战内容 - 当activeTab为challenges时显示 -->
+    <block wx:if="{{activeTab === 'challenges'}}">
+      <view class="challenges-grid">
+        <view class="challenge-item" 
+              wx:for="{{challenges}}" 
+              wx:key="id" 
+              bindtap="viewChallengeDetail"
+              data-id="{{item.id}}">
+          <image class="challenge-image" src="{{item.image}}" mode="aspectFill"></image>
+          <view class="challenge-overlay"></view>
+          <view class="challenge-info">
+            <text class="challenge-title">{{item.title}}</text>
+            <text class="challenge-participants">{{item.participants}}人参与</text>
+          </view>
+          <view class="challenge-join {{item.isJoined ? 'joined' : ''}}" 
+                catchtap="joinChallenge" 
+                data-id="{{item.id}}"
+                data-index="{{index}}">
+            <text class="iconfont {{item.isJoined ? 'icon-check' : 'icon-plus'}}"></text>
+          </view>
+        </view>
+      </view>
+
+      <!-- 空状态展示 -->
+      <empty-state 
+        wx:if="{{challenges.length === 0}}"
+        title="暂无挑战"
+        description="该标签下还没有创建任何挑战活动"
+        icon="/assets/images/challenge.png"
+        actionText="创建挑战"
+        showAction="{{hasLogin}}"
+        hasLogin="{{hasLogin}}"
+        bind:action="createChallenge"
+        bind:login="login">
+      </empty-state>
+    </block>
+    
+    <!-- 小组内容 - 当activeTab为groups时显示 -->
+    <block wx:if="{{activeTab === 'groups'}}">
+      <view class="groups-grid">
+        <view class="group-item" 
+              wx:for="{{groups}}" 
+              wx:key="id" 
+              bindtap="viewGroupDetail"
+              data-id="{{item.id}}">
+          <image class="group-avatar" src="{{item.avatar}}" mode="aspectFill"></image>
+          <view class="group-info">
+            <text class="group-name">{{item.name}}</text>
+            <text class="group-members">{{item.membersCount}}人</text>
+          </view>
+        </view>
+      </view>
+
+      <!-- 空状态展示 -->
+      <empty-state 
+        wx:if="{{groups.length === 0}}"
+        title="暂无小组"
+        description="该标签下还没有创建任何小组"
+        icon="/assets/images/groups.png"
+        actionText="创建小组"
+        showAction="{{hasLogin}}"
+        hasLogin="{{hasLogin}}"
+        bind:action="createGroup"
+        bind:login="login">
+      </empty-state>
+    </block>
+    
+    <!-- 加载更多 -->
+    <view class="loading-more" wx:if="{{loading && hasMore}}">
+      <view class="loading-spinner small"></view>
+      <text class="loading-text">加载更多...</text>
+    </view>
+    
+    <!-- 没有更多数据 -->
+    <view class="no-more" wx:if="{{!loading && !hasMore && (posts.length > 0 || challenges.length > 0 || groups.length > 0)}}">
+      <text>没有更多数据了</text>
+    </view>
+  </view>
+  
+  <!-- 发布按钮 -->
+  <view class="create-post-btn" bindtap="showCreatePost" wx:if="{{activeTab === 'posts' && hasLogin}}">
+    <text class="iconfont icon-edit"></text>
+  </view>
+  
+  <!-- 未登录提示 -->
+  <view class="login-tip" wx:if="{{!hasLogin}}">
+    <text>登录后查看更多内容</text>
+    <button class="login-btn" bindtap="login">登录/注册</button>
+  </view>
+</view> 

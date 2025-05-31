@@ -5,7 +5,10 @@ import { getCurrentDate, formatDate } from '../../utils/date';
 import { shouldDoHabitOnDate } from '../../utils/habit';
 import { habitAPI, checkinAPI } from '../../services/api';
 import { dashboardAPI } from '../../services/api/dashboard';
-import { IHabit, ICheckin, IHabitStats, IUserInfo } from '../../utils/types';
+import { IHabit, ICheckin, IHabitStats, IUserInfo, IAppOption } from '../../utils/types';
+import { login } from '../../utils/auth';
+import { checkLogin, setupLoginCheck, IPageWithLoginCheck } from '../../utils/auth-check';
+import { useAuth } from '../../utils/use-auth';
 
 // 修改默认习惯数据以符合新的类型定义
 const DEFAULT_HABITS: IHabit[] = [
@@ -38,7 +41,71 @@ const DEFAULT_HABITS: IHabit[] = [
 // 默认打卡记录（当API不可用时使用）
 const DEFAULT_CHECKINS: ICheckin[] = [];
 
-Page({
+interface ExtendedApp extends IAppOption {
+  onAchievementUnlock?: (callback: (achievement: any) => void) => void;
+  apiAvailable?: boolean;
+}
+
+interface IPageData {
+  todayHabits: IHabit[];
+  habitStats: Record<string, IHabitStats>;
+  todayCheckins: ICheckin[];
+  loading: {
+    habits: boolean;
+    checkins: boolean;
+    stats: boolean;
+  };
+  error: {
+    habits: string;
+    checkins: string;
+    stats: string;
+  };
+  userInfo: IUserInfo | null;
+  hasLogin: boolean;
+  today: string;
+  weekday: string;
+  completedCount: number;
+  totalCount: number;
+  completionRate: number;
+  completionRateDisplay: string;
+  currentStreak: number;
+  motto: string;
+  showAchievementUnlock: boolean;
+  unlockedAchievement: any | null;
+  apiAvailable: boolean;
+  loginModal: {
+    show: boolean;
+    message: string;
+  };
+}
+
+interface IPageMethods {
+  onAchievementUnlock: (achievement: any) => void;
+  hideAchievementUnlock: () => void;
+  viewAchievementDetail: (e: any) => void;
+  login: () => void;
+  onLoginStateChange: (loginState: {
+    userInfo: IUserInfo | null;
+    hasLogin: boolean;
+  }) => void;
+  onPullDownRefresh: () => void;
+  onLoginModalClose: () => void;
+  onLoginSuccess: () => void;
+  onLoginFail: () => void;
+  loadData: () => void;
+  processDashboardData: (dashboardData: any, errorMessage?: string) => void;
+  getRandomMotto: () => string;
+  onCheckin: (e: any) => void;
+  onRetry: () => void;
+  goToHabits: () => void;
+  goToCreateHabit: () => void;
+  goToAnalytics: () => void;
+  onShareAppMessage: () => any;
+  // 用于保存登录成功回调的属性
+  loginSuccess?: (() => void) | undefined;
+}
+
+Page<IPageData, IPageMethods>({
   /**
    * 页面的初始数据
    */
@@ -69,28 +136,37 @@ Page({
     showAchievementUnlock: false,
     unlockedAchievement: null,
     apiAvailable: true,
+    loginModal: {
+      show: false,
+      message: '请先登录以使用此功能'
+    },
   },
 
   /**
    * 生命周期函数--监听页面加载
    */
   onLoad() {
+    const app = getApp<ExtendedApp>();
+    
+    // 获取当前日期和星期
     const today = getCurrentDate();
     const weekdayNames = ['日', '一', '二', '三', '四', '五', '六'];
     const weekday = weekdayNames[new Date(today).getDay()];
-
-    const app = getApp<IAppOption>();
-
+    
+    // 获取随机格言
+    const motto = this.getRandomMotto();
+    
+    // 设置基础数据
     this.setData({
       today,
       weekday,
       userInfo: app.globalData.userInfo,
       hasLogin: app.globalData.hasLogin,
-      apiAvailable: app.globalData.apiAvailable,
+      apiAvailable: app.apiAvailable || true
     });
-
-    // 获取激励语
-    this.getRandomMotto();
+    
+    // 使用useAuth工具获取全局登录状态
+    useAuth(this);
 
     // 监听成就解锁事件
     if (typeof app.onAchievementUnlock === 'function') {
@@ -105,6 +181,9 @@ Page({
     } else {
       console.error('App.onLoginStateChange 方法不存在');
     }
+
+    // 设置登录检查功能
+    setupLoginCheck(this as IPageWithLoginCheck);
   },
 
   /**
@@ -119,7 +198,6 @@ Page({
    */
   loadData() {
     const today = getCurrentDate();
-
     // 重置加载状态
     this.setData({
       'loading.habits': true,
@@ -129,18 +207,43 @@ Page({
       'error.checkins': '',
       'error.stats': '',
     });
-
-    // 使用聚合API加载数据 - 设置days=30可以获取足够的历史数据用于展示
+    // 如果未登录，则显示默认内容或空状态，不发起API请求
+    if (!this.data.hasLogin) {
+      // 处理未登录状态，显示默认数据或欢迎信息
+      this.setData({
+        todayHabits: [],
+        todayCheckins: [],
+        habitStats: {},
+        completedCount: 0,
+        totalCount: 0,
+        completionRate: 0,
+        completionRateDisplay: '0',
+        currentStreak: 0,
+        'loading.habits': false,
+        'loading.checkins': false,
+        'loading.stats': false,
+      });
+      return;
+    }
+    // 已登录，使用聚合API加载数据
     dashboardAPI
       .getDashboard(today, { days: 30 })
       .then((dashboardData) => {
         console.log('获取仪表盘数据成功:', dashboardData);
-
         // 处理数据并更新UI
         this.processDashboardData(dashboardData);
       })
-      .catch((error: Error) => {
+      .catch((error) => {
         console.error('加载数据失败:', error);
+        // 设置加载失败状态，确保loading被重置
+        this.setData({
+          'loading.habits': false,
+          'loading.checkins': false,
+          'loading.stats': false,
+          'error.habits': '加载数据失败，请重试',
+          'error.checkins': '加载数据失败，请重试',
+          'error.stats': '加载数据失败，请重试',
+        });
       });
   },
 
@@ -211,8 +314,9 @@ Page({
 
   /**
    * 获取随机激励语
+   * @returns 随机选择的激励语
    */
-  getRandomMotto() {
+  getRandomMotto(): string {
     const mottos = [
       '坚持的第一天，是迈向成功的第一步。',
       '每一个习惯，都是未来更好的自己。',
@@ -227,9 +331,13 @@ Page({
     ];
 
     const randomIndex = Math.floor(Math.random() * mottos.length);
+    const motto = mottos[randomIndex];
+    
     this.setData({
-      motto: mottos[randomIndex],
+      motto: motto,
     });
+    
+    return motto;
   },
 
   /**
@@ -238,14 +346,32 @@ Page({
   onCheckin(e: any) {
     const { habitId } = e.detail;
     if (!habitId) return;
-
-    // 获取习惯信息，用于传递到打卡页面
+    
+    // 检查用户是否已登录
+    if (!checkLogin(this as IPageWithLoginCheck, '请先登录后再打卡', () => {
+      // 登录成功后的回调，继续打卡操作
+      const habit = this.data.todayHabits.find(
+        (h) => h.id === habitId || (h as any)._id === habitId
+      );
+      if (!habit) return;
+      
+      // 跳转到打卡页面
+      wx.navigateTo({
+        url: `/pages/checkin/checkin?habitId=${habitId}&habitName=${encodeURIComponent(
+          habit.name
+        )}`,
+      });
+    })) {
+      return; // 未登录，函数终止
+    }
+    
+    // 已登录，直接执行打卡操作
     const habit = this.data.todayHabits.find(
       (h) => h.id === habitId || (h as any)._id === habitId
     );
     if (!habit) return;
-
-    // 跳转到打卡页面，传递更多信息减少再次请求
+    
+    // 跳转到打卡页面
     wx.navigateTo({
       url: `/pages/checkin/checkin?habitId=${habitId}&habitName=${encodeURIComponent(
         habit.name
@@ -273,6 +399,17 @@ Page({
    * 跳转到创建习惯页
    */
   goToCreateHabit() {
+    // 检查用户是否已登录
+    if (!checkLogin(this as IPageWithLoginCheck, '请先登录后再创建习惯', () => {
+      // 登录成功后的回调，继续创建习惯
+      wx.navigateTo({
+        url: '/pages/habits/create/create',
+      });
+    })) {
+      return; // 未登录，函数终止
+    }
+    
+    // 已登录，直接跳转
     wx.navigateTo({
       url: '/pages/habits/create/create',
     });
@@ -341,6 +478,26 @@ Page({
   },
 
   /**
+   * 用户登录
+   */
+  login() {
+    // 使用公共登录方法
+    login((success) => {
+      if (success) {
+        // 登录成功后，获取最新的用户信息
+        const app = getApp<ExtendedApp>();
+        this.setData({
+          userInfo: app.globalData.userInfo,
+          hasLogin: true,
+        });
+        
+        // 重新加载数据
+        this.loadData();
+      }
+    });
+  },
+
+  /**
    * 处理登录状态变化
    */
   onLoginStateChange(loginState: {
@@ -355,7 +512,21 @@ Page({
     });
 
     // 重新加载数据
-    this.loadData();
+    if (loginState.hasLogin) {
+      this.loadData();
+    } else {
+      // 用户退出登录时，清空数据
+      this.setData({
+        todayHabits: [],
+        todayCheckins: [],
+        habitStats: {},
+        completedCount: 0,
+        totalCount: 0,
+        completionRate: 0,
+        completionRateDisplay: '0',
+        currentStreak: 0
+      });
+    }
   },
 
   /**
@@ -367,5 +538,31 @@ Page({
 
     // 完成刷新
     wx.stopPullDownRefresh();
+  },
+
+  /**
+   * 登录模态框关闭事件
+   */
+  onLoginModalClose() {
+    this.setData({
+      'loginModal.show': false,
+    });
+  },
+  
+  /**
+   * 登录成功事件
+   */
+  onLoginSuccess() {
+    // 登录成功后执行回调
+    if (typeof this.loginSuccess === 'function') {
+      this.loginSuccess();
+    }
+  },
+  
+  /**
+   * 登录失败事件
+   */
+  onLoginFail() {
+    console.log('用户登录失败或取消');
   },
 });

@@ -1,0 +1,18 @@
+<!--空状态组件-->
+<view class="empty-state">
+  <view class="empty-state-icon">
+    <image src="{{icon || '/assets/images/empty.png'}}" mode="aspectFit"></image>
+  </view>
+  <view class="empty-state-title">{{title || '暂无数据'}}</view>
+  <view class="empty-state-description">{{description || '暂时没有任何内容可以显示'}}</view>
+  <view class="empty-state-actions" wx:if="{{showAction}}">
+    <!-- 已登录且显示操作按钮 -->
+    <button class="empty-state-button primary" bindtap="onActionTap" wx:if="{{localHasLogin || hasLogin}}">
+      {{actionText || '添加内容'}}
+    </button>
+    <!-- 未登录且显示登录按钮 -->
+    <button class="empty-state-button primary" bindtap="onLoginTap" wx:else>
+      登录/注册
+    </button>
+  </view>
+</view> 

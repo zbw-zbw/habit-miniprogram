@@ -4,6 +4,8 @@ Object.defineProperty(exports, "__esModule", { value: true });
  * 习惯列表页面
  */
 const api_1 = require("../../services/api");
+const dashboard_1 = require("../../services/api/dashboard");
+const use_auth_1 = require("../../utils/use-auth");
 Page({
     /**
      * 页面的初始数据
@@ -19,24 +21,27 @@ Page({
         categoryLabels: [],
         // 分类英文到中文的映射
         categoryMap: {
-            'all': '全部',
-            'learning': '学习',
-            'health': '健康',
-            'work': '工作',
-            'life': '生活',
-            'other': '其他',
-            'reading': '阅读',
-            'exercise': '运动',
-            'diet': '饮食',
-            'sleep': '睡眠',
-            'meditation': '冥想'
+            all: '全部',
+            learning: '学习',
+            health: '健康',
+            work: '工作',
+            life: '生活',
+            other: '其他',
+            reading: '阅读',
+            exercise: '运动',
+            diet: '饮食',
+            sleep: '睡眠',
+            meditation: '冥想',
         },
         showCategoryModal: false,
         showSortModal: false,
         sortType: 'default',
         sortOrder: 'asc',
         error: '',
-        apiAvailable: true
+        apiAvailable: true,
+        forceRefresh: false,
+        showArchived: false,
+        hasLogin: false, // 添加登录状态
     },
     /**
      * 生命周期函数--监听页面加载
@@ -45,63 +50,122 @@ Page({
         // 页面加载时执行
         const app = getApp();
         // 将英文分类名转为中文展示
-        const categoryLabels = this.data.categories.map(category => this.data.categoryMap[category] || category);
+        const categoryLabels = this.data.categories.map((category) => this.data.categoryMap[category] || category);
         console.log('初始化categoryLabels:', categoryLabels);
+        // 确保默认选中"全部"标签
         this.setData({
             apiAvailable: app.globalData.apiAvailable,
-            categoryLabels
+            categoryLabels,
+            activeTab: 0,
+            hasLogin: app.globalData.hasLogin,
+        });
+        // 使用useAuth工具获取全局登录状态
+        (0, use_auth_1.useAuth)(this, {
+            onChange: (authState) => {
+                // 当登录状态变化时更新本地状态
+                this.setData({ hasLogin: authState.hasLogin });
+            }
         });
     },
     /**
      * 生命周期函数--监听页面显示
      */
     onShow() {
-        this.loadHabits();
-        // 延迟执行诊断
-        setTimeout(() => {
-            this.debug();
-        }, 2000);
+        console.log('习惯页面onShow');
+        const app = getApp();
+        // 更新登录状态
+        this.setData({
+            hasLogin: app.globalData.hasLogin
+        });
+        // 检查是否已登录，未登录则不请求数据
+        if (!app.globalData.hasLogin) {
+            console.log('用户未登录，不加载习惯数据');
+            this.setData({
+                habits: [],
+                loading: false,
+                error: '请先登录以查看您的习惯'
+            });
+            return;
+        }
+        // 强制刷新习惯数据
+        this.forceRefreshHabits();
     },
     /**
-     * 加载习惯数据
+     * 登录方法
      */
-    loadHabits() {
+    login() {
+        // 跳转到登录页面
+        wx.navigateTo({
+            url: '/pages/login/login'
+        });
+    },
+    /**
+     * 强制刷新习惯数据，不使用缓存
+     */
+    forceRefreshHabits() {
+        console.log('强制刷新习惯数据');
         // 设置加载状态
         this.setData({
             loading: true,
-            error: ''
+            error: '',
         });
-        const app = getApp();
-        // 使用habitAPI获取习惯数据
-        api_1.habitAPI.getHabits()
-            .then(habits => {
-            console.log('获取到所有习惯数据:', habits);
-            // 获取每个习惯的统计数据
-            const statsPromises = habits.map(habit => api_1.habitAPI.getHabitStats(habit.id || habit._id || '')
-                .catch(error => {
-                console.error(`获取习惯${habit.id || habit._id}的统计数据失败:`, error);
-                // 返回默认统计数据
-                return {
-                    totalCompletions: 0,
-                    totalDays: 0,
-                    completionRate: 0,
-                    currentStreak: 0,
-                    longestStreak: 0,
-                    lastCompletedDate: null
-                };
-            }));
-            // 等待所有统计数据获取完成
-            return Promise.all([Promise.resolve(habits), Promise.all(statsPromises)]);
-        })
-            .then(([habits, statsArray]) => {
-            // 创建习惯ID到统计数据的映射
-            const habitStats = {};
-            habits.forEach((habit, index) => {
-                const habitId = habit.id || habit._id || '';
-                if (habitId) {
-                    habitStats[habitId] = statsArray[index];
+        // 使用新的专用API获取所有习惯，添加时间戳参数避免缓存
+        dashboard_1.dashboardAPI
+            .getAllHabits({
+            includeArchived: true,
+            includeStats: true,
+            includeCheckins: false,
+            timestamp: Date.now(), // 添加时间戳避免缓存
+        }) // 使用类型断言处理timestamp属性
+            .then((response) => {
+            console.log('强制刷新获取习惯数据成功:', response);
+            // 从响应中提取所需数据，确保数据存在
+            let habits = [];
+            let habitStats = {};
+            // 处理不同格式的API响应
+            if (response && typeof response === 'object') {
+                // 标准API返回格式
+                if ('habits' in response && Array.isArray(response.habits)) {
+                    habits = response.habits;
+                    habitStats = response.habitStats || {};
                 }
+                // 处理直接返回的数组
+                else if (Array.isArray(response)) {
+                    habits = response;
+                }
+                // 处理通用API响应格式
+                else if ('success' in response && 'data' in response) {
+                    const apiResponse = response;
+                    if (Array.isArray(apiResponse.data)) {
+                        habits = apiResponse.data;
+                    }
+                    else if (apiResponse.data &&
+                        typeof apiResponse.data === 'object' &&
+                        'habits' in apiResponse.data) {
+                        habits = apiResponse.data.habits;
+                    }
+                }
+            }
+            console.log('解析后的习惯数据:', habits);
+            // 确保每个习惯都有分类属性
+            habits = habits.map((habit) => {
+                // 如果没有分类，则默认为"other"
+                if (!habit.category) {
+                    console.log(`习惯[${habit.name}]没有分类，设置为默认分类"other"`);
+                    return { ...habit, category: 'other' };
+                }
+                return habit;
             });
+            // 更新分类列表（如果后端提供了）
+            if (response.categories && Array.isArray(response.categories)) {
+                // 始终添加"all"类别
+                const categories = ['all', ...response.categories];
+                const categoryLabels = categories.map((category) => this.data.categoryMap[category] || category);
+                this.setData({
+                    categories,
+                    categoryLabels,
+                });
+            }
             // 根据当前标签筛选习惯
             const filteredHabits = this.filterHabits(habits);
             console.log('筛选后的习惯列表:', filteredHabits);
@@ -112,20 +176,119 @@ Page({
                 habits: sortedHabits,
                 habitStats,
                 loading: false,
-                apiAvailable: true
+                apiAvailable: true,
+                error: habits.length === 0 ? '暂无习惯数据' : '',
             });
             console.log('更新后的habitStats:', habitStats);
         })
-            .catch(error => {
-            console.error('获取习惯数据失败:', error);
+            .catch((error) => {
+            console.error('强制刷新习惯数据失败:', error);
+            // 设置加载失败状态，确保loading被重置
             this.setData({
                 loading: false,
-                error: '获取数据失败，请稍后重试',
-                apiAvailable: app.globalData.apiAvailable
+                error: '加载习惯数据失败，请重试',
+                apiAvailable: false
             });
-            wx.showToast({
-                title: '获取数据失败',
-                icon: 'none'
+        });
+    },
+    /**
+     * 加载习惯数据
+     */
+    loadHabits() {
+        // 设置加载状态
+        this.setData({
+            loading: true,
+            error: '',
+        });
+        const app = getApp();
+        // 检查是否已登录，未登录则不请求数据
+        if (!app.globalData.hasLogin) {
+            console.log('用户未登录，不加载习惯数据');
+            this.setData({
+                habits: [],
+                loading: false,
+                error: '请先登录以查看您的习惯'
+            });
+            return;
+        }
+        // 使用新的专用API获取所有习惯
+        dashboard_1.dashboardAPI
+            .getAllHabits({
+            includeArchived: true,
+            includeStats: true,
+            includeCheckins: false,
+        })
+            .then((response) => {
+            console.log('获取所有习惯数据成功:', response);
+            // 从响应中提取所需数据，确保数据存在
+            let habits = [];
+            let habitStats = {};
+            // 处理不同格式的API响应
+            if (response && typeof response === 'object') {
+                // 标准API返回格式
+                if ('habits' in response && Array.isArray(response.habits)) {
+                    habits = response.habits;
+                    habitStats = response.habitStats || {};
+                }
+                // 处理直接返回的数组
+                else if (Array.isArray(response)) {
+                    habits = response;
+                }
+                // 处理通用API响应格式
+                else if ('success' in response && 'data' in response) {
+                    const apiResponse = response;
+                    if (Array.isArray(apiResponse.data)) {
+                        habits = apiResponse.data;
+                    }
+                    else if (apiResponse.data &&
+                        typeof apiResponse.data === 'object' &&
+                        'habits' in apiResponse.data) {
+                        habits = apiResponse.data.habits;
+                    }
+                }
+            }
+            console.log('解析后的习惯数据:', habits);
+            // 确保每个习惯都有分类属性
+            habits = habits.map((habit) => {
+                // 如果没有分类，则默认为"other"
+                if (!habit.category) {
+                    console.log(`习惯[${habit.name}]没有分类，设置为默认分类"other"`);
+                    return { ...habit, category: 'other' };
+                }
+                return habit;
+            });
+            // 更新分类列表（如果后端提供了）
+            if (response.categories && Array.isArray(response.categories)) {
+                // 始终添加"all"类别
+                const categories = ['all', ...response.categories];
+                const categoryLabels = categories.map((category) => this.data.categoryMap[category] || category);
+                this.setData({
+                    categories,
+                    categoryLabels,
+                });
+            }
+            // 根据当前标签筛选习惯
+            const filteredHabits = this.filterHabits(habits);
+            console.log('筛选后的习惯列表:', filteredHabits);
+            // 根据当前排序方式排序习惯
+            const sortedHabits = this.sortHabits(filteredHabits, habitStats);
+            // 更新数据
+            this.setData({
+                habits: sortedHabits,
+                habitStats,
+                loading: false,
+                apiAvailable: true,
+                error: habits.length === 0 ? '暂无习惯数据' : '',
+            });
+            console.log('更新后的habitStats:', habitStats);
+        })
+            .catch((error) => {
+            console.error('获取习惯数据失败:', error);
+            // 设置加载失败状态，确保loading被重置
+            this.setData({
+                loading: false,
+                error: '加载习惯数据失败，请重试',
+                apiAvailable: false
             });
         });
     },
@@ -133,22 +296,40 @@ Page({
      * 根据类别筛选习惯
      */
     filterHabits(habits) {
-        const { activeTab, categories } = this.data;
+        if (!Array.isArray(habits)) {
+            console.error('habits不是数组:', habits);
+            return [];
+        }
+        const { activeTab, categories, showArchived } = this.data;
         // 获取当前选中的分类
         const selectedCategory = categories[activeTab];
-        // 如果是"全部"标签，则不进行筛选
-        if (selectedCategory === 'all') {
-            return habits.filter(habit => !habit.isArchived);
-        }
-        // 根据类别筛选
-        return habits.filter(habit => {
-            // 过滤掉已归档的习惯
-            if (habit.isArchived)
-                return false;
+        console.log('当前选择的分类:', selectedCategory, '活动标签索引:', activeTab, '是否显示已归档习惯:', showArchived);
+        // 筛选出符合条件的习惯
+        return habits.filter((habit) => {
+            // 处理归档状态筛选
+            if (showArchived) {
+                // 如果显示已归档习惯，则只显示已归档的
+                if (!habit.isArchived)
+                    return false;
+            }
+            else {
+                // 否则只显示未归档的
+                if (habit.isArchived)
+                    return false;
+            }
+            // 如果是"全部"标签，则不进行分类筛选
+            if (selectedCategory === 'all')
+                return true;
             // 获取习惯分类，默认为'other'
             const habitCategory = habit.category || 'other';
-            // 匹配分类
-            return habitCategory === selectedCategory;
+            // 输出日志帮助调试
+            console.log(`习惯[${habit.name}]的分类:`, habitCategory, '当前选中分类:', selectedCategory);
+            // 匹配分类 - 增加日志
+            const match = habitCategory === selectedCategory;
+            if (!match) {
+                console.log(`习惯[${habit.name}]分类不匹配，被过滤掉`);
+            }
+            return match;
         });
     },
     /**
@@ -172,12 +353,16 @@ Page({
                 break;
             case 'completionRate':
                 sortedHabits.sort((a, b) => {
-                    // 获取习惯ID (只使用_id)
-                    const habitIdA = a._id || '';
-                    const habitIdB = b._id || '';
+                    // 获取习惯ID (可能是id或_id)
+                    const habitIdA = a.id || a._id || '';
+                    const habitIdB = b.id || b._id || '';
                     // 获取完成率
-                    const rateA = habitIdA ? (habitStats[habitIdA]?.completionRate || 0) : 0;
-                    const rateB = habitIdB ? (habitStats[habitIdB]?.completionRate || 0) : 0;
+                    const rateA = habitIdA && habitStats[habitIdA]
+                        ? habitStats[habitIdA].completionRate || 0
+                        : 0;
+                    const rateB = habitIdB && habitStats[habitIdB]
+                        ? habitStats[habitIdB].completionRate || 0
+                        : 0;
                     const result = rateA - rateB;
                     return sortOrder === 'asc' ? result : -result;
                 });
@@ -241,7 +426,7 @@ Page({
         this.setData({
             sortType: type,
             sortOrder: order,
-            showSortModal: false
+            showSortModal: false,
         }, () => {
             this.loadHabits();
         });
@@ -251,7 +436,7 @@ Page({
      */
     createHabit() {
         wx.navigateTo({
-            url: '/pages/habits/create/create'
+            url: '/pages/habits/create/create',
         });
     },
     /**
@@ -262,12 +447,22 @@ Page({
         if (!habitId)
             return;
         // 获取习惯信息，用于传递到打卡页面
-        const habit = this.data.habits.find(h => h.id === habitId || h._id === habitId);
+        const habit = this.data.habits.find((h) => h.id === habitId || h._id === habitId);
         if (!habit)
             return;
         // 跳转到打卡页面
         wx.navigateTo({
-            url: `/pages/checkin/checkin?habitId=${habitId}&habitName=${encodeURIComponent(habit.name)}`
+            url: `/pages/checkin/checkin?habitId=${habitId}&habitName=${encodeURIComponent(habit.name)}`,
+            events: {
+                // 监听打卡完成事件，然后刷新数据
+                checkinCompleted: () => {
+                    console.log('接收到打卡完成事件，刷新习惯列表');
+                    // 延迟一点执行，确保后端数据已更新
+                    setTimeout(() => {
+                        this.forceRefreshHabits();
+                    }, 500);
+                },
+            },
         });
     },
     /**
@@ -285,29 +480,30 @@ Page({
                     // 设置加载状态
                     wx.showLoading({
                         title: '删除中...',
-                        mask: true
+                        mask: true,
                     });
                     // 调用API删除习惯
-                    api_1.habitAPI.deleteHabit(habitId)
+                    api_1.habitAPI
+                        .deleteHabit(habitId)
                         .then(() => {
                         wx.hideLoading();
                         // 重新加载数据
                         this.loadHabits();
                         wx.showToast({
                             title: '删除成功',
-                            icon: 'success'
+                            icon: 'success',
                         });
                     })
-                        .catch(error => {
+                        .catch((error) => {
                         wx.hideLoading();
                         console.error('删除习惯失败:', error);
                         wx.showToast({
                             title: '删除失败',
-                            icon: 'none'
+                            icon: 'none',
                         });
                     });
                 }
-            }
+            },
         });
     },
     /**
@@ -322,40 +518,17 @@ Page({
     onShareAppMessage() {
         return {
             title: '我的习惯养成计划',
-            path: '/pages/index/index'
+            path: '/pages/index/index',
         };
     },
     /**
-     * 诊断习惯卡片问题
+     * 切换显示已归档习惯
      */
-    debug() {
-        console.log('==== 习惯卡片诊断开始 ====');
-        const { habits, habitStats } = this.data;
-        console.log('当前标签页索引:', this.data.activeTab);
-        console.log('当前选中分类:', this.data.categories[this.data.activeTab]);
-        console.log('习惯总数:', habits.length);
-        console.log('统计数据对象:', habitStats);
-        habits.forEach(habit => {
-            const habitId = habit._id || habit.id;
-            const stats = habitStats[habitId];
-            console.log(`习惯: ${habit.name}`);
-            console.log(`- ID: ${habitId}`);
-            console.log(`- _id: ${habit._id}`);
-            console.log(`- id: ${habit.id}`);
-            console.log(`- 分类: ${habit.category}`);
-            console.log(`- 中文分类: ${this.data.categoryMap[habit.category] || habit.category}`);
-            console.log(`- 统计数据:`, stats);
-            if (stats) {
-                console.log(`  - 完成率: ${stats.completionRate}%`);
-                console.log(`  - 连续天数: ${stats.currentStreak}`);
-                console.log(`  - 总完成次数: ${stats.totalCompletions}`);
-                console.log(`  - 最后完成日期: ${stats.lastCompletedDate}`);
-            }
-            else {
-                console.log(`  - 无统计数据`);
-            }
-            console.log(`--------------------------`);
+    toggleArchived(e) {
+        const showArchived = e.detail.value;
+        console.log('切换已归档习惯显示状态:', showArchived);
+        this.setData({ showArchived }, () => {
+            this.loadHabits();
         });
-        console.log('==== 习惯卡片诊断结束 ====');
-    }
+    },
 });

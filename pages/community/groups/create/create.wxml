@@ -1,0 +1,106 @@
+<!--pages/community/groups/create/create.wxml-->
+<view class="container">
+  <view class="navbar">
+    <view class="navbar-left" bindtap="goBack">
+      <text class="iconfont icon-back"></text>
+    </view>
+    <view class="navbar-title">创建小组</view>
+    <view class="navbar-right"></view>
+  </view>
+
+  <view class="form-container">
+    <form bindsubmit="submitForm">
+      <!-- 小组头像 -->
+      <view class="form-item avatar-item">
+        <view class="avatar-upload" bindtap="chooseAvatar">
+          <image class="avatar-preview" src="{{formData.avatar || '/assets/images/default-group-avatar.png'}}" mode="aspectFill"></image>
+          <view class="avatar-upload-mask">
+            <text class="iconfont icon-camera"></text>
+            <text class="upload-text">上传头像</text>
+          </view>
+        </view>
+      </view>
+
+      <!-- 小组名称 -->
+      <view class="form-item">
+        <view class="form-label">小组名称<text class="required">*</text></view>
+        <input class="form-input" name="name" value="{{formData.name}}" placeholder="请输入小组名称（2-50字）" maxlength="50" bindinput="inputName" />
+        <view class="input-counter">{{formData.name.length}}/50</view>
+      </view>
+
+      <!-- 小组类型 -->
+      <view class="form-item">
+        <view class="form-label">小组类型<text class="required">*</text></view>
+        <picker mode="selector" range="{{typeOptions}}" range-key="label" value="{{typeIndex}}" bindchange="typeChange">
+          <view class="form-picker">
+            <text>{{typeOptions[typeIndex].label}}</text>
+            <text class="iconfont icon-arrow-right"></text>
+          </view>
+        </picker>
+      </view>
+
+      <!-- 小组描述 -->
+      <view class="form-item">
+        <view class="form-label">小组描述<text class="required">*</text></view>
+        <textarea class="form-textarea" name="description" value="{{formData.description}}" placeholder="请输入小组描述（10-1000字）" maxlength="1000" bindinput="inputDescription"></textarea>
+        <view class="input-counter">{{formData.description.length}}/1000</view>
+      </view>
+
+      <!-- 小组标签 -->
+      <view class="form-item">
+        <view class="form-label">小组标签</view>
+        <view class="tags-container">
+          <view class="tag-item" wx:for="{{formData.tags}}" wx:key="index">
+            <text>{{item}}</text>
+            <text class="tag-remove" data-index="{{index}}" bindtap="removeTag">×</text>
+          </view>
+          <view class="tag-add" bindtap="showTagSelector" wx:if="{{formData.tags.length < 5}}">
+            <text class="iconfont icon-plus"></text>
+            <text>添加标签</text>
+          </view>
+        </view>
+        <view class="form-tips">最多添加5个标签</view>
+      </view>
+
+      <!-- 是否私密 -->
+      <view class="form-item">
+        <view class="form-label">私密小组</view>
+        <switch name="isPrivate" checked="{{formData.isPrivate}}" bindchange="switchPrivate" color="#4F7CFF" />
+        <view class="form-tips">私密小组仅对成员可见</view>
+      </view>
+
+      <!-- 提交按钮 -->
+      <view class="form-button-area">
+        <button class="form-button" form-type="submit" disabled="{{!formValid}}">创建小组</button>
+      </view>
+    </form>
+  </view>
+
+  <!-- 标签选择器弹窗 -->
+  <view class="tag-selector-mask" wx:if="{{showTagSelector}}" bindtap="hideTagSelector">
+    <view class="tag-selector" catchtap="preventBubble">
+      <view class="tag-selector-header">
+        <text>选择标签</text>
+        <text class="tag-selector-close" bindtap="hideTagSelector">×</text>
+      </view>
+      <view class="tag-selector-body">
+        <view class="tag-selector-input">
+          <input placeholder="输入自定义标签" value="{{newTag}}" bindinput="inputNewTag" confirm-type="done" bindconfirm="addCustomTag" />
+          <button class="tag-add-btn" bindtap="addCustomTag" disabled="{{!newTag}}">添加</button>
+        </view>
+        <view class="tag-selector-list">
+          <view class="tag-selector-item {{formData.tags.includes(item) ? 'selected' : ''}}" 
+                wx:for="{{suggestedTags}}" 
+                wx:key="index"
+                data-tag="{{item}}"
+                bindtap="toggleTag">
+            {{item}}
+          </view>
+        </view>
+      </view>
+      <view class="tag-selector-footer">
+        <button class="tag-selector-confirm" bindtap="confirmTags">确定</button>
+      </view>
+    </view>
+  </view>
+</view> 

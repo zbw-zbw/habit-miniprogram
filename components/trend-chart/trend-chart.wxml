@@ -1,0 +1,63 @@
+<!-- 习惯完成趋势图表 -->
+<view class="trend-chart">
+  <view wx:if="{{!hasData}}" class="no-data">
+    <text>过去3个月的完成率变化</text>
+    <text class="subtitle">暂无足够数据</text>
+  </view>
+  
+  <view wx:else class="chart-container">
+    <!-- 折线图 -->
+    <view class="line-chart">
+      <!-- Y轴标签 -->
+      <view class="y-axis">
+        <text>100%</text>
+        <text>50%</text>
+        <text>0%</text>
+      </view>
+      
+      <!-- 图表内容 -->
+      <view class="chart-content">
+        <!-- 网格线 -->
+        <view class="grid-lines">
+          <view class="grid-line"></view>
+          <view class="grid-line"></view>
+          <view class="grid-line"></view>
+        </view>
+        
+        <!-- 折线和点 -->
+        <view class="line-container">
+          <!-- 连接线 -->
+          <block wx:for="{{connectorLines}}" wx:key="index">
+            <view 
+              class="connector-line"
+              style="left: {{item.left}}%; width: {{item.width}}%; bottom: {{item.bottom}}%; transform: rotate({{item.angle}}deg); transform-origin: left bottom; background-color: {{themeColor}};"
+            ></view>
+          </block>
+          
+          <!-- 数据点 -->
+          <block wx:for="{{trendData}}" wx:key="month">
+            <view 
+              class="data-point-container" 
+              style="left: {{index * (100 / trendData.length) + (100 / trendData.length / 2)}}%;"
+            >
+              <view 
+                class="data-point" 
+                style="bottom: {{item.rate * (100 / maxRate)}}%; background-color: {{themeColor}};"
+              ></view>
+              <view class="point-value">{{item.rate}}%</view>
+            </view>
+          </block>
+        </view>
+      </view>
+    </view>
+    
+    <!-- X轴标签 -->
+    <view class="x-axis">
+      <block wx:for="{{monthLabels}}" wx:key="*this">
+        <text 
+          style="left: {{index * (100 / monthLabels.length) + (100 / monthLabels.length / 2)}}%;"
+        >{{item}}</text>
+      </block>
+    </view>
+  </view>
+</view> 

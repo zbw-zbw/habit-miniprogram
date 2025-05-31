@@ -19,6 +19,7 @@ const notificationRoutes = require('./routes/notification.routes');
 const settingsRoutes = require('./routes/settings.routes');
 const friendsRoutes = require('./routes/friends.routes');
 const dashboardRoutes = require('./routes/dashboard.routes');
+const groupRoutes = require('./routes/group.routes');
 
 // 导入控制器
 const postController = require('./controllers/post.controller');
@@ -48,6 +49,7 @@ app.use('/api/community', communityRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/settings', settingsRoutes);
 app.use('/api/friends', friendsRoutes);
+app.use('/api/groups', groupRoutes);
 
 // 聚合API路由
 app.use('/api', dashboardRoutes);

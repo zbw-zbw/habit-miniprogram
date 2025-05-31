@@ -10,7 +10,7 @@
   </achievement-unlock>
   
   <!-- 顶部用户信息 -->
-  <view class="header">
+  <view class="header" bindtap="{{!hasLogin ? 'login' : ''}}">
     <view class="user-info">
       <view class="avatar-wrapper">
         <image class="avatar" src="{{userInfo.avatarUrl || '/assets/images/default-avatar.png'}}" mode="aspectFill"></image>
@@ -52,11 +52,16 @@
         </view>
       </block>
       <block wx:elif="{{todayHabits.length === 0}}">
-        <view class="empty">
-          <view class="empty-icon">📝</view>
-          <view class="empty-text">今日暂无需要完成的习惯</view>
-          <button class="btn btn-primary" bindtap="goToCreateHabit">创建习惯</button>
-        </view>
+        <empty-state
+          title="今日暂无习惯"
+          description="今日没有需要完成的习惯"
+          icon="/assets/images/habits.png"
+          actionText="创建习惯"
+          showAction="{{hasLogin}}"
+          hasLogin="{{hasLogin}}"
+          bind:action="goToCreateHabit"
+          bind:login="login">
+        </empty-state>
       </block>
       <block wx:else>
         <habit-card 
@@ -93,8 +98,15 @@
     </view>
   </view>
   
-
+  <!-- 登录提示模态框 -->
+  <login-modal show="{{loginModal.show}}" message="{{loginModal.message}}" 
+               bind:close="onLoginModalClose" 
+               bind:success="onLoginSuccess" 
+               bind:fail="onLoginFail"></login-modal>
   
   <!-- 浮动操作按钮 -->
   <fab-button icon="add" bindclick="goToCreateHabit"></fab-button>
+  
+  <!-- 未登录提示 -->
+  <login-tip wx:if="{{!hasLogin}}" bind:login="login"></login-tip>
 </view>

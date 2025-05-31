@@ -1,0 +1,115 @@
+<!--pages/community/friends/add-friend.wxml-->
+<view class="container">
+  <view class="navbar">
+    <view class="navbar-left" bindtap="goBack">
+      <text class="iconfont icon-back"></text>
+    </view>
+    <view class="navbar-title">添加好友</view>
+    <view class="navbar-right"></view>
+  </view>
+
+  <!-- 搜索框 -->
+  <view class="search-bar">
+    <view class="search-input-wrapper">
+      <text class="iconfont icon-search"></text>
+      <input class="search-input" 
+             placeholder="搜索用户名或ID" 
+             value="{{searchKeyword}}" 
+             bindinput="inputKeyword"
+             bindconfirm="searchUsers"
+             confirm-type="search" />
+      <text class="iconfont icon-close" bindtap="clearKeyword" wx:if="{{searchKeyword}}"></text>
+    </view>
+    <view class="search-btn" bindtap="searchUsers">搜索</view>
+  </view>
+
+  <!-- 搜索结果 -->
+  <view class="search-results" wx:if="{{hasSearched}}">
+    <view class="section-header">
+      <text class="section-title">搜索结果</text>
+    </view>
+    
+    <!-- 加载中 -->
+    <view class="loading" wx:if="{{loading}}">
+      <view class="loading-spinner"></view>
+      <text class="loading-text">搜索中...</text>
+    </view>
+    
+    <!-- 结果列表 -->
+    <view class="user-list" wx:if="{{!loading && users.length > 0}}">
+      <view class="user-item" wx:for="{{users}}" wx:key="id">
+        <view class="user-info" bindtap="viewUserProfile" data-id="{{item.id}}">
+          <image class="user-avatar" src="{{item.avatar}}" mode="aspectFill"></image>
+          <view class="user-detail">
+            <view class="user-name">{{item.name}}</view>
+            <view class="user-bio">{{item.bio || '这个人很懒，什么都没留下'}}</view>
+          </view>
+        </view>
+        <view class="user-action">
+          <button class="add-btn {{item.isFriend ? 'added' : ''}}" 
+                  bindtap="addFriend" 
+                  data-id="{{item.id}}"
+                  data-index="{{index}}"
+                  disabled="{{item.isFriend}}">
+            {{item.isFriend ? '已添加' : '添加'}}
+          </button>
+        </view>
+      </view>
+    </view>
+    
+    <!-- 无结果 -->
+    <view class="no-result" wx:if="{{!loading && users.length === 0}}">
+      <image class="no-result-image" src="/assets/images/no-results.png" mode="aspectFit"></image>
+      <text class="no-result-text">未找到相关用户</text>
+    </view>
+  </view>
+
+  <!-- 推荐好友 -->
+  <view class="recommend-section">
+    <view class="section-header">
+      <text class="section-title">推荐好友</text>
+    </view>
+    
+    <!-- 加载中 -->
+    <view class="loading" wx:if="{{loadingRecommend}}">
+      <view class="loading-spinner"></view>
+      <text class="loading-text">加载中...</text>
+    </view>
+    
+    <!-- 推荐列表 -->
+    <view class="user-list" wx:if="{{!loadingRecommend && recommendUsers.length > 0}}">
+      <view class="user-item" wx:for="{{recommendUsers}}" wx:key="id">
+        <view class="user-info" bindtap="viewUserProfile" data-id="{{item.id}}">
+          <image class="user-avatar" src="{{item.avatar}}" mode="aspectFill"></image>
+          <view class="user-detail">
+            <view class="user-name">{{item.name}}</view>
+            <view class="user-bio">{{item.bio || '这个人很懒，什么都没留下'}}</view>
+          </view>
+        </view>
+        <view class="user-action">
+          <button class="add-btn {{item.isFriend ? 'added' : ''}}" 
+                  bindtap="addRecommendFriend" 
+                  data-id="{{item.id}}"
+                  data-index="{{index}}"
+                  disabled="{{item.isFriend}}">
+            {{item.isFriend ? '已添加' : '添加'}}
+          </button>
+        </view>
+      </view>
+    </view>
+    
+    <!-- 无推荐 -->
+    <view class="no-result" wx:if="{{!loadingRecommend && recommendUsers.length === 0}}">
+      <image class="no-result-image" src="/assets/images/no-friends.png" mode="aspectFit"></image>
+      <text class="no-result-text">暂无推荐好友</text>
+    </view>
+  </view>
+
+  <!-- 扫码添加 -->
+  <view class="scan-section">
+    <button class="scan-btn" bindtap="scanQRCode">
+      <text class="iconfont icon-scan"></text>
+      <text>扫码添加好友</text>
+    </button>
+  </view>
+</view> 

@@ -788,7 +788,7 @@ Page<IPageData, IPageMethods>({
     this.setData({ showSuccessPopup: false });
     
     wx.navigateTo({
-      url: `/packageCommunity/pages/post/post?habitId=${this.data.habitId}&action=checkin`
+      url: `/pages/community/post/post?habitId=${this.data.habitId}&action=checkin`
     });
   },
 

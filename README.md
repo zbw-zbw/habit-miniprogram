@@ -26,8 +26,6 @@
 miniprogram/
 ├── components/        # 可复用组件
 ├── pages/             # 小程序页面
-├── packageAnalytics/  # 数据分析分包
-├── packageCommunity/  # 社区功能分包
 ├── styles/            # 全局样式
 ├── typings/           # TypeScript 类型定义
 ├── utils/             # 工具函数
@@ -82,22 +80,4 @@ server/
 
 ## 许可证
 
-MIT 
-
-## 前后端数据对接
-
-### 已完成工作
-
-1. 修改了`utils/request.ts`，强制使用API服务而不是本地数据
-2. 对接了以下页面的数据加载功能，从静态数据改为API调用：
-   - 习惯列表页面 (pages/habits/habits.ts)
-   - 社区动态详情页面 (packageCommunity/pages/post-detail/post-detail.js)
-   - 数据分析报告页面 (packageAnalytics/pages/report/report.ts)
-   - 社区搜索页面 (packageCommunity/pages/search/search.js)
-
-3. 在API服务中添加了新的方法：
-   - analyticsAPI.getMonthlyReport
-   - analyticsAPI.getWeeklyReport
-   - communityAPI.search
-   - communityAPI.getHotSearches
-   - communityAPI.getHotTopics
+MIT

@@ -157,4 +157,7 @@
       </view>
     </view>
   </block>
+  
+  <!-- 未登录提示 -->
+  <login-tip wx:if="{{!hasLogin}}" bind:login="login"></login-tip>
 </view>

@@ -6,6 +6,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.achievementService = void 0;
 const storage_1 = require("./storage");
+const api_1 = require("../services/api");
 class AchievementService {
     constructor() {
         this.achievements = [];
@@ -27,15 +28,9 @@ class AchievementService {
             if (achievements && achievements.length > 0) {
                 this.achievements = achievements;
             }
-            else {
-                // 初始化默认成就
-                this.achievements = this.getDefaultAchievements();
-                await this.saveAchievements();
-            }
         }
         catch (error) {
             console.error('加载成就数据失败:', error);
-            this.achievements = this.getDefaultAchievements();
         }
     }
     /**
@@ -50,74 +45,61 @@ class AchievementService {
         }
     }
     /**
-     * 获取默认成就列表
-     */
-    getDefaultAchievements() {
-        return [
-            {
-                id: 'achievement-1',
-                title: '习惯养成者',
-                description: '连续完成一个习惯30天',
-                icon: 'medal',
-                progress: 0,
-                isCompleted: false
-            },
-            {
-                id: 'achievement-2',
-                title: '早起达人',
-                description: '连续7天在7点前打卡"早起"习惯',
-                icon: 'sun',
-                progress: 0,
-                isCompleted: false
-            },
-            {
-                id: 'achievement-3',
-                title: '阅读专家',
-                description: '累计阅读时间达到100小时',
-                icon: 'book',
-                progress: 0,
-                isCompleted: false
-            },
-            {
-                id: 'achievement-4',
-                title: '运动健将',
-                description: '累计运动时间达到50小时',
-                icon: 'run',
-                progress: 0,
-                isCompleted: false
-            },
-            {
-                id: 'achievement-5',
-                title: '社交达人',
-                description: '在社区获得100个点赞',
-                icon: 'like',
-                progress: 0,
-                isCompleted: false
-            }
-        ];
-    }
-    /**
      * 获取所有成就
      */
     async getAllAchievements() {
-        if (this.achievements.length === 0) {
-            await this.loadAchievements();
+        try {
+            // 尝试从服务器获取成就数据
+            const achievements = await api_1.userAPI
+                .getAchievements()
+                .catch((error) => {
+                console.error('从API获取成就失败，使用本地数据:', error);
+                return null;
+            });
+            // 如果成功获取到服务器数据，使用服务器数据
+            if (achievements && Array.isArray(achievements)) {
+                console.log('从API获取成就成功:', achievements.length);
+                // 转换成标准格式
+                this.achievements = achievements.map(achievement => ({
+                    id: achievement.id || `achievement-${Date.now()}`,
+                    title: achievement.title,
+                    description: achievement.description,
+                    icon: achievement.icon || 'trophy',
+                    progress: achievement.progress || 0,
+                    isCompleted: achievement.isCompleted || false
+                }));
+                // 保存到本地
+                this.saveAchievements();
+                return [...this.achievements];
+            }
+            // 如果服务器获取失败，使用本地数据
+            if (this.achievements.length === 0) {
+                await this.loadAchievements();
+            }
+            return [...this.achievements];
         }
-        return [...this.achievements];
+        catch (error) {
+            console.error('获取成就数据失败:', error);
+            // 出错时使用本地数据
+            if (this.achievements.length === 0) {
+                await this.loadAchievements();
+            }
+            return [...this.achievements];
+        }
     }
     /**
      * 获取已完成的成就
      */
     async getCompletedAchievements() {
         const achievements = await this.getAllAchievements();
-        return achievements.filter(a => a.isCompleted);
+        return achievements.filter((a) => a.isCompleted);
     }
     /**
      * 获取进行中的成就
      */
     async getInProgressAchievements() {
         const achievements = await this.getAllAchievements();
-        return achievements.filter(a => !a.isCompleted);
+        return achievements.filter((a) => !a.isCompleted);
     }
     /**
      * 获取成就详情
@@ -125,7 +107,7 @@ class AchievementService {
      */
     async getAchievementById(achievementId) {
         const achievements = await this.getAllAchievements();
-        return achievements.find(a => a.id === achievementId) || null;
+        return achievements.find((a) => a.id === achievementId) || null;
     }
     /**
      * 获取成就里程碑
@@ -141,20 +123,60 @@ class AchievementService {
         switch (achievementId) {
             case 'achievement-1': // 习惯养成者
                 return [
-                    { title: '第一步', description: '连续完成习惯7天', value: 7, isCompleted: achievement.progress >= 23 },
-                    { title: '坚持不懈', description: '连续完成习惯15天', value: 15, isCompleted: achievement.progress >= 50 },
-                    { title: '习惯养成', description: '连续完成习惯30天', value: 30, isCompleted: achievement.progress >= 100 }
+                    {
+                        title: '第一步',
+                        description: '连续完成习惯7天',
+                        value: 7,
+                        isCompleted: achievement.progress >= 23,
+                    },
+                    {
+                        title: '坚持不懈',
+                        description: '连续完成习惯15天',
+                        value: 15,
+                        isCompleted: achievement.progress >= 50,
+                    },
+                    {
+                        title: '习惯养成',
+                        description: '连续完成习惯30天',
+                        value: 30,
+                        isCompleted: achievement.progress >= 100,
+                    },
                 ];
             case 'achievement-2': // 早起达人
                 return [
-                    { title: '起步', description: '连续3天早起', value: 3, isCompleted: achievement.progress >= 43 },
-                    { title: '习惯养成', description: '连续7天早起', value: 7, isCompleted: achievement.progress >= 100 }
+                    {
+                        title: '起步',
+                        description: '连续3天早起',
+                        value: 3,
+                        isCompleted: achievement.progress >= 43,
+                    },
+                    {
+                        title: '习惯养成',
+                        description: '连续7天早起',
+                        value: 7,
+                        isCompleted: achievement.progress >= 100,
+                    },
                 ];
             case 'achievement-3': // 阅读专家
                 return [
-                    { title: '阅读入门', description: '累计阅读25小时', value: 25, isCompleted: achievement.progress >= 25 },
-                    { title: '阅读进阶', description: '累计阅读50小时', value: 50, isCompleted: achievement.progress >= 50 },
-                    { title: '阅读专家', description: '累计阅读100小时', value: 100, isCompleted: achievement.progress >= 100 }
+                    {
+                        title: '阅读入门',
+                        description: '累计阅读25小时',
+                        value: 25,
+                        isCompleted: achievement.progress >= 25,
+                    },
+                    {
+                        title: '阅读进阶',
+                        description: '累计阅读50小时',
+                        value: 50,
+                        isCompleted: achievement.progress >= 50,
+                    },
+                    {
+                        title: '阅读专家',
+                        description: '累计阅读100小时',
+                        value: 100,
+                        isCompleted: achievement.progress >= 100,
+                    },
                 ];
             default:
                 return [];
@@ -170,20 +192,50 @@ class AchievementService {
         switch (achievementId) {
             case 'achievement-1': // 习惯养成者
                 return [
-                    { id: 'habit-1', name: '每日冥想', category: '心理健康', icon: 'meditation', color: '#4F7CFF' }
+                    {
+                        id: 'habit-1',
+                        name: '每日冥想',
+                        category: '心理健康',
+                        icon: 'meditation',
+                        color: '#4F7CFF',
+                    },
                 ];
             case 'achievement-2': // 早起达人
                 return [
-                    { id: 'habit-2', name: '早起', category: '作息', icon: 'sun', color: '#E6A23C' }
+                    {
+                        id: 'habit-2',
+                        name: '早起',
+                        category: '作息',
+                        icon: 'sun',
+                        color: '#E6A23C',
+                    },
                 ];
             case 'achievement-3': // 阅读专家
                 return [
-                    { id: 'habit-3', name: '阅读', category: '学习', icon: 'book', color: '#67C23A' }
+                    {
+                        id: 'habit-3',
+                        name: '阅读',
+                        category: '学习',
+                        icon: 'book',
+                        color: '#67C23A',
+                    },
                 ];
             case 'achievement-4': // 运动健将
                 return [
-                    { id: 'habit-4', name: '跑步', category: '运动', icon: 'run', color: '#F56C6C' },
-                    { id: 'habit-5', name: '健身', category: '运动', icon: 'dumbbell', color: '#909399' }
+                    {
+                        id: 'habit-4',
+                        name: '跑步',
+                        category: '运动',
+                        icon: 'run',
+                        color: '#F56C6C',
+                    },
+                    {
+                        id: 'habit-5',
+                        name: '健身',
+                        category: '运动',
+                        icon: 'dumbbell',
+                        color: '#909399',
+                    },
                 ];
             default:
                 return [];
@@ -215,7 +267,7 @@ class AchievementService {
         if (updatedAchievements.length > 0) {
             await this.saveAchievements();
             // 触发成就解锁回调
-            updatedAchievements.forEach(achievement => {
+            updatedAchievements.forEach((achievement) => {
                 if (achievement.isCompleted) {
                     this.triggerUnlockCallbacks(achievement);
                 }
@@ -231,7 +283,7 @@ class AchievementService {
         // 根据习惯ID或分类更新对应的成就
         if (condition.habitId === 'habit-1') {
             // 习惯养成者成就
-            const achievement = this.achievements.find(a => a.id === 'achievement-1');
+            const achievement = this.achievements.find((a) => a.id === 'achievement-1');
             if (achievement && !achievement.isCompleted) {
                 const progress = Math.min(Math.round((value / 30) * 100), 100);
                 achievement.progress = progress;
@@ -244,7 +296,7 @@ class AchievementService {
         }
         else if (condition.habitId === 'habit-2') {
             // 早起达人成就
-            const achievement = this.achievements.find(a => a.id === 'achievement-2');
+            const achievement = this.achievements.find((a) => a.id === 'achievement-2');
             if (achievement && !achievement.isCompleted) {
                 const progress = Math.min(Math.round((value / 7) * 100), 100);
                 achievement.progress = progress;
@@ -264,7 +316,7 @@ class AchievementService {
         const updatedAchievements = [];
         // 社交达人成就
         if (condition.type === 'count' && condition.category === 'social') {
-            const achievement = this.achievements.find(a => a.id === 'achievement-5');
+            const achievement = this.achievements.find((a) => a.id === 'achievement-5');
             if (achievement && !achievement.isCompleted) {
                 const progress = Math.min(Math.round((value / 100) * 100), 100);
                 achievement.progress = progress;
@@ -284,7 +336,7 @@ class AchievementService {
         const updatedAchievements = [];
         if (condition.habitId === 'habit-3') {
             // 阅读专家成就
-            const achievement = this.achievements.find(a => a.id === 'achievement-3');
+            const achievement = this.achievements.find((a) => a.id === 'achievement-3');
             if (achievement && !achievement.isCompleted) {
                 const progress = Math.min(Math.round((value / 100) * 100), 100);
                 achievement.progress = progress;
@@ -297,7 +349,7 @@ class AchievementService {
         }
         else if (condition.category === 'exercise') {
             // 运动健将成就
-            const achievement = this.achievements.find(a => a.id === 'achievement-4');
+            const achievement = this.achievements.find((a) => a.id === 'achievement-4');
             if (achievement && !achievement.isCompleted) {
                 const progress = Math.min(Math.round((value / 50) * 100), 100);
                 achievement.progress = progress;
@@ -344,7 +396,7 @@ class AchievementService {
                 console.error('App实例不存在或没有onAchievementUnlocked方法');
             }
         }
-        this.unlockCallbacks.forEach(callback => {
+        this.unlockCallbacks.forEach((callback) => {
             try {
                 console.log('执行成就解锁回调');
                 callback(achievement);
@@ -361,7 +413,7 @@ class AchievementService {
     async updateAchievement(achievement) {
         try {
             // 查找成就
-            const index = this.achievements.findIndex(a => a.id === achievement.id);
+            const index = this.achievements.findIndex((a) => a.id === achievement.id);
             if (index === -1) {
                 return false;
             }

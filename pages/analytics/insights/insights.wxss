@@ -1,0 +1,375 @@
+/* pages/analytics/insights/insights.wxss */
+
+/* 数据分析-洞察页面样式 */
+.insights-container {
+  padding: 32rpx;
+  background-color: var(--background-color, #F5F7FA);
+  min-height: 100vh;
+}
+
+/* 加载状态 */
+.loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 100rpx 0;
+}
+
+.loading-icon {
+  width: 60rpx;
+  height: 60rpx;
+  border: 4rpx solid #DCDFE6;
+  border-top-color: #4F7CFF;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* 内容区域 */
+.content {
+  display: flex;
+  flex-direction: column;
+  gap: 24rpx;
+}
+
+/* 通用部分样式 */
+.section {
+  background-color: #FFFFFF;
+  border-radius: 12rpx;
+  padding: 24rpx;
+  box-shadow: 0 2rpx 10rpx rgba(0, 0, 0, 0.05);
+}
+
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16rpx;
+}
+
+.section-title {
+  font-size: 32rpx;
+  font-weight: 600;
+  color: #303133;
+}
+
+/* 洞察卡片样式 */
+.insights-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16rpx;
+}
+
+.insight-card {
+  display: flex;
+  padding: 16rpx;
+  border-radius: 8rpx;
+  background-color: #F5F7FA;
+  align-items: center;
+}
+
+.insight-card.success {
+  background-color: #F0F9EB;
+}
+
+.insight-card.warning {
+  background-color: #FDF6EC;
+}
+
+.insight-card.info {
+  background-color: #EDF2FC;
+}
+
+.insight-card.error {
+  background-color: #FEF0F0;
+}
+
+.insight-icon {
+  width: 64rpx;
+  height: 64rpx;
+  border-radius: 32rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 16rpx;
+  flex-shrink: 0;
+}
+
+.icon-success {
+  width: 40rpx;
+  height: 40rpx;
+  background-color: #67C23A;
+  border-radius: 50%;
+  position: relative;
+}
+
+.icon-success::before {
+  content: '';
+  position: absolute;
+  width: 20rpx;
+  height: 10rpx;
+  border-left: 3rpx solid #FFFFFF;
+  border-bottom: 3rpx solid #FFFFFF;
+  transform: rotate(-45deg);
+  top: 12rpx;
+  left: 10rpx;
+}
+
+.icon-warning {
+  width: 40rpx;
+  height: 40rpx;
+  background-color: #E6A23C;
+  border-radius: 50%;
+  position: relative;
+}
+
+.icon-warning::before {
+  content: '';
+  position: absolute;
+  width: 4rpx;
+  height: 16rpx;
+  background-color: #FFFFFF;
+  top: 8rpx;
+  left: 18rpx;
+}
+
+.icon-warning::after {
+  content: '';
+  position: absolute;
+  width: 4rpx;
+  height: 4rpx;
+  background-color: #FFFFFF;
+  border-radius: 50%;
+  top: 26rpx;
+  left: 18rpx;
+}
+
+.icon-info {
+  width: 40rpx;
+  height: 40rpx;
+  background-color: #909399;
+  border-radius: 50%;
+  position: relative;
+}
+
+.icon-info::before {
+  content: '';
+  position: absolute;
+  width: 4rpx;
+  height: 16rpx;
+  background-color: #FFFFFF;
+  top: 12rpx;
+  left: 18rpx;
+}
+
+.icon-info::after {
+  content: '';
+  position: absolute;
+  width: 4rpx;
+  height: 4rpx;
+  background-color: #FFFFFF;
+  border-radius: 50%;
+  top: 8rpx;
+  left: 18rpx;
+}
+
+.icon-error {
+  width: 40rpx;
+  height: 40rpx;
+  background-color: #F56C6C;
+  border-radius: 50%;
+  position: relative;
+}
+
+.icon-error::before,
+.icon-error::after {
+  content: '';
+  position: absolute;
+  width: 20rpx;
+  height: 3rpx;
+  background-color: #FFFFFF;
+  top: 18rpx;
+  left: 10rpx;
+}
+
+.icon-error::before {
+  transform: rotate(45deg);
+}
+
+.icon-error::after {
+  transform: rotate(-45deg);
+}
+
+.insight-content {
+  flex: 1;
+}
+
+.insight-title {
+  font-size: 28rpx;
+  font-weight: 500;
+  color: #303133;
+  margin-bottom: 4rpx;
+}
+
+.insight-description {
+  font-size: 24rpx;
+  color: #606266;
+  line-height: 1.5;
+}
+
+.insight-arrow {
+  width: 40rpx;
+  height: 40rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.icon-arrow {
+  width: 16rpx;
+  height: 16rpx;
+  border-top: 2rpx solid #909399;
+  border-right: 2rpx solid #909399;
+  transform: rotate(45deg);
+}
+
+.empty-insights {
+  padding: 40rpx 0;
+  text-align: center;
+  color: #909399;
+  font-size: 28rpx;
+}
+
+/* 最佳习惯样式 */
+.best-habit-card {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16rpx;
+  background-color: #EFF5FF;
+  border-radius: 8rpx;
+}
+
+.best-habit-info {
+  flex: 1;
+}
+
+.best-habit-name {
+  font-size: 32rpx;
+  font-weight: 500;
+  color: #303133;
+  margin-bottom: 8rpx;
+}
+
+.best-habit-stats {
+  font-size: 24rpx;
+  color: #606266;
+}
+
+.best-habit-badge {
+  background-color: #4F7CFF;
+  color: #FFFFFF;
+  padding: 4rpx 16rpx;
+  border-radius: 16rpx;
+  font-size: 24rpx;
+}
+
+/* 需要改进的习惯样式 */
+.improve-habit-card {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16rpx;
+  background-color: #FDF6EC;
+  border-radius: 8rpx;
+}
+
+.improve-habit-info {
+  flex: 1;
+}
+
+.improve-habit-name {
+  font-size: 32rpx;
+  font-weight: 500;
+  color: #303133;
+  margin-bottom: 8rpx;
+}
+
+.improve-habit-stats {
+  font-size: 24rpx;
+  color: #606266;
+}
+
+.improve-habit-badge {
+  background-color: #E6A23C;
+  color: #FFFFFF;
+  padding: 4rpx 16rpx;
+  border-radius: 16rpx;
+  font-size: 24rpx;
+}
+
+/* 习惯模式分析样式 */
+.patterns-card {
+  padding: 16rpx;
+}
+
+.pattern-item {
+  display: flex;
+  justify-content: space-between;
+  padding: 16rpx 0;
+  border-bottom: 1px solid #EBEEF5;
+}
+
+.pattern-item:last-child {
+  border-bottom: none;
+}
+
+.pattern-label {
+  font-size: 28rpx;
+  color: #606266;
+}
+
+.pattern-value {
+  font-size: 28rpx;
+  font-weight: 500;
+  color: #303133;
+}
+
+/* 个性化建议样式 */
+.recommendations-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16rpx;
+}
+
+.recommendation-card {
+  padding: 16rpx;
+  background-color: #F5F7FA;
+  border-radius: 8rpx;
+}
+
+.recommendation-title {
+  font-size: 28rpx;
+  font-weight: 500;
+  color: #303133;
+  margin-bottom: 8rpx;
+  display: block;
+}
+
+.recommendation-description {
+  font-size: 24rpx;
+  color: #606266;
+  line-height: 1.5;
+  display: block;
+}
+
+.empty-recommendations {
+  padding: 40rpx 0;
+  text-align: center;
+  color: #909399;
+  font-size: 28rpx;
+}

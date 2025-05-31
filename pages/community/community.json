@@ -1,7 +1,7 @@
 {
-  "navigationBarTitleText": "社区",
-  "navigationStyle": "custom",
+  "navigationBarTitleText": "精彩社区",
   "enablePullDownRefresh": true,
-  "backgroundColor": "#F5F7FA",
-  "usingComponents": {}
+  "usingComponents": {
+    "empty-state": "/components/empty-state/empty-state"
+  }
 } 

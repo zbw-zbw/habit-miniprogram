@@ -18,7 +18,6 @@
         </view>
         <view class="user-meta">
           <view class="login-tip">未登录</view>
-          <button class="login-btn" bindtap="login">点击登录</button>
         </view>
       </view>
     </block>
@@ -80,7 +79,12 @@
       </view>
     </block>
     <block wx:else>
-      <empty-achievement />
+      <empty-state 
+        title="暂无成就" 
+        description="继续坚持打卡，解锁更多成就" 
+        icon="/assets/images/achievement.png"
+        showAction="{{false}}">
+      </empty-state>
     </block>
   </view>
   
@@ -91,4 +95,7 @@
   <view class="version-info">
     <text>版本 1.0.0</text>
   </view>
+
+  <!-- 未登录提示 -->
+  <login-tip wx:if="{{!hasLogin}}" bind:login="login"></login-tip>
 </view>

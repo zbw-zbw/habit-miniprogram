@@ -67,11 +67,7 @@ const requestQueue: string[] = [];
 let isRefreshingToken = false;
 
 // 等待令牌刷新的请求队列
-const refreshQueue: Array<{
-  resolve: (value: any) => void;
-  reject: (reason?: any) => void;
-  options: RequestOptions;
-}> = [];
+const refreshQueue: { options: RequestOptions }[] = [];
 
 // 显示加载提示
 const showLoadingToast = (text = '加载中...') => {
@@ -96,6 +92,13 @@ const showErrorToast = (message: string) => {
     duration: 2000
   });
 };
+
+/**
+ * 应用全局选项接口扩展，包含mockLogin方法
+ */
+interface ExtendedAppOption extends IAppOption {
+  mockLogin?: (userInfo: any, callback: () => void) => void;
+}
 
 /**
  * 请求拦截器
@@ -157,7 +160,7 @@ const responseInterceptor = <T>(response: RequestResponse<ApiResponse<T>>, optio
  * @returns Promise
  */
 const handleUnauthorized = <T>(options: RequestOptions): Promise<T> => {
-  const app = getApp<IAppOption>();
+  const app = getApp<ExtendedAppOption>();
   
   // 检查API服务是否可用
   if (app && app.globalData && !app.globalData.apiAvailable) {
@@ -168,40 +171,32 @@ const handleUnauthorized = <T>(options: RequestOptions): Promise<T> => {
       app.clearAuthData();
     }
     
-    // 如果有用户信息，尝试使用本地模式登录
-    if (app && app.globalData && app.globalData.userInfo && typeof app.mockLogin === 'function') {
-      app.mockLogin(app.globalData.userInfo, () => {
-        console.log('已自动切换到本地模式登录');
-      });
-    } else {
-      // 没有用户信息，跳转到个人中心页面进行登录
-      wx.switchTab({
-        url: '/pages/profile/profile'
-      });
+    // 不再自动跳转，而是通知应用状态已变更
+    if (app && typeof app.notifyLoginStateChanged === 'function') {
+      app.notifyLoginStateChanged();
     }
     
-    return Promise.reject(new Error('登录已过期，请重新登录'));
+    return Promise.reject(new Error('登录已过期，请重新登录')) as Promise<T>;
   }
   
-  // 如果没有刷新令牌，则清除登录状态并跳转到登录页
+  // 如果没有刷新令牌，则清除登录状态，但不再自动跳转
   if (!app || !app.globalData || !app.globalData.refreshToken) {
     if (app && typeof app.clearAuthData === 'function') {
       app.clearAuthData();
     }
-    wx.navigateTo({
-      url: '/pages/login/login'
-    });
-    return Promise.reject(new Error('登录已过期，请重新登录'));
+    
+    // 通知应用登录状态已变更
+    if (app && typeof app.notifyLoginStateChanged === 'function') {
+      app.notifyLoginStateChanged();
+    }
+    
+    return Promise.reject(new Error('登录已过期，请重新登录')) as Promise<T>;
   }
   
-  // 创建一个新的Promise，加入刷新队列
-  return new Promise<T>((resolve, reject) => {
-    refreshQueue.push({ resolve, reject, options });
-    
-    // 如果已经在刷新令牌，则等待刷新完成
-    if (isRefreshingToken) {
-      return;
-    }
+  // 如果当前没有刷新令牌操作，则启动刷新
+  if (!isRefreshingToken) {
+    // 添加请求到队列
+    refreshQueue.push({ options });
     
     // 标记正在刷新令牌
     isRefreshingToken = true;
@@ -238,8 +233,16 @@ const handleUnauthorized = <T>(options: RequestOptions): Promise<T> => {
           }
           
           // 重新发送所有等待的请求
-          refreshQueue.forEach(({ resolve, reject, options }) => {
-            request(options).then(resolve).catch(reject);
+          const requestsToRetry = [...refreshQueue];
+          
+          // 清空队列
+          refreshQueue.length = 0;
+          
+          // 重试所有请求
+          requestsToRetry.forEach(item => {
+            request(item.options).catch(() => {
+              // 忽略错误，已经在原始Promise中处理
+            });
           });
         } else {
           // 刷新令牌失败，清除登录状态
@@ -247,15 +250,13 @@ const handleUnauthorized = <T>(options: RequestOptions): Promise<T> => {
             app.clearAuthData();
           }
           
-          // 拒绝所有等待的请求
-          refreshQueue.forEach(({ reject }) => {
-            reject(new Error('刷新令牌失败，请重新登录'));
-          });
+          // 清空队列
+          refreshQueue.length = 0;
           
-          // 跳转到登录页
-          wx.navigateTo({
-            url: '/pages/login/login'
-          });
+          // 通知应用登录状态已变更
+          if (app && typeof app.notifyLoginStateChanged === 'function') {
+            app.notifyLoginStateChanged();
+          }
         }
       },
       fail: () => {
@@ -276,25 +277,26 @@ const handleUnauthorized = <T>(options: RequestOptions): Promise<T> => {
           }
         }
         
-        // 拒绝所有等待的请求
-        refreshQueue.forEach(({ reject }) => {
-          reject(new Error('刷新令牌请求失败，请重新登录'));
-        });
-        
-        // 跳转到个人中心页面
-        wx.switchTab({
-          url: '/pages/profile/profile'
-        });
-      },
-      complete: () => {
-        // 清空刷新队列
+        // 清空队列
         refreshQueue.length = 0;
         
+        // 通知应用登录状态已变更
+        if (app && typeof app.notifyLoginStateChanged === 'function') {
+          app.notifyLoginStateChanged();
+        }
+      },
+      complete: () => {
         // 重置刷新标记
         isRefreshingToken = false;
       }
     });
-  });
+  } else {
+    // 已经在刷新中，只添加请求到队列
+    refreshQueue.push({ options });
+  }
+  
+  // 无论如何，当前请求都返回错误
+  return Promise.reject(new Error('登录已过期，请重新登录')) as Promise<T>;
 };
 
 /**
@@ -342,7 +344,7 @@ export const request = <T>(options: RequestOptions): Promise<T> => {
         
         // 请求成功，应用响应拦截器
         responseInterceptor(res, options)
-          .then(resolve)
+          .then((data: any) => resolve(data as T))
           .catch(error => {
             console.error(`[API错误] ${options.method || 'GET'} ${url}`, error);
             reject(error);
@@ -361,7 +363,7 @@ export const request = <T>(options: RequestOptions): Promise<T> => {
           // 如果支持本地数据回退，则使用本地数据
           if (options.localDataFallback) {
             handleLocalRequest(options)
-              .then(resolve)
+              .then((data: any) => resolve(data as T))
               .catch(reject);
             return;
           }

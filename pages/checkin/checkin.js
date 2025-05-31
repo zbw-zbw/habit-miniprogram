@@ -452,8 +452,6 @@ Page({
             let errorMsg = '打卡失败，请稍后再试';
             if (error.message && error.message.includes('网络')) {
                 errorMsg = '网络连接失败，请检查网络后重试';
-                // 尝试保存到本地，等网络恢复后再同步
-                this.saveCheckinToLocal();
             }
             else if (error.message && error.message.includes('习惯ID')) {
                 errorMsg = '习惯信息有误，请返回重试';
@@ -464,43 +462,6 @@ Page({
                 duration: 2000
             });
             this.setData({ submitting: false });
-        }
-    },
-    /**
-     * 保存打卡记录到本地
-     */
-    saveCheckinToLocal() {
-        try {
-            // 准备打卡数据
-            const checkinData = {
-                habitId: this.data.habitId,
-                date: this.data.date,
-                time: this.data.time,
-                isCompleted: this.data.isCompleted,
-                note: this.data.formData.note,
-                mood: this.data.formData.mood,
-                content: this.data.formData.content,
-                duration: this.data.timer.isRunning
-                    ? Math.floor(this.data.timer.elapsedTime / 1000)
-                    : this.data.formData.duration ? this.parseTimeStringToSeconds(this.data.formData.duration) : 0,
-                photos: this.data.formData.photos,
-                pendingSync: true,
-                createdAt: new Date().toISOString()
-            };
-            // 获取已有的待同步打卡记录
-            const pendingCheckins = wx.getStorageSync('pendingCheckins') || [];
-            // 添加新记录
-            pendingCheckins.push(checkinData);
-            // 保存回本地存储
-            wx.setStorageSync('pendingCheckins', pendingCheckins);
-            wx.showToast({
-                title: '已保存到本地，将在网络恢复后同步',
-                icon: 'none',
-                duration: 2000
-            });
-        }
-        catch (error) {
-            console.error('保存到本地失败:', error);
         }
     },
     /**
@@ -591,38 +552,66 @@ Page({
      * 创建打卡记录
      */
     createCheckin(checkinData) {
-        api_1.checkinAPI.createCheckin(checkinData)
+        const { date, time, duration, note, mood, difficulty } = checkinData;
+        this.setData({ submitting: true });
+        console.log('开始创建打卡记录:', checkinData);
+        api_1.checkinAPI.createCheckin({
+            habit: this.data.habitId,
+            date,
+            time,
+            isCompleted: true,
+            value: 1,
+            duration,
+            note,
+            mood: mood || undefined,
+            difficulty: difficulty || undefined,
+            isPublic: false
+        })
             .then(result => {
             console.log('打卡成功:', result);
-            this.setData({ submitting: false });
-            // 获取习惯统计，用于展示打卡成功信息
-            return api_1.habitAPI.getHabitStats(this.data.habitId).catch(err => {
-                // 如果获取统计失败，使用默认值
-                console.error('获取习惯统计失败:', err);
-                return { currentStreak: 1 };
-            });
-        })
-            .then(stats => {
-            console.log('获取习惯统计:', stats);
-            // 显示打卡成功弹窗
             this.setData({
+                submitting: false,
                 showSuccessPopup: true,
                 successMessage: {
                     title: '打卡成功',
-                    subtitle: '继续坚持，习惯成自然',
-                    streak: stats.currentStreak || 1,
-                    points: 5 + (stats.currentStreak > 7 ? 5 : 0) // 根据连续天数加分
+                    subtitle: '坚持的力量不可小觑',
+                    streak: this.data.habit?.stats?.currentStreak ? this.data.habit.stats.currentStreak + 1 : 1,
+                    points: 5
                 }
             });
+            // 触发全局事件通知首页刷新
+            const app = getApp();
+            if (app.globalData.habitService && typeof app.globalData.habitService.refreshData === 'function') {
+                console.log('触发全局习惯刷新');
+                app.globalData.habitService.refreshData();
+            }
+            // 通知打卡完成，用于返回上一页时刷新数据
+            const eventChannel = this.getOpenerEventChannel();
+            if (eventChannel && eventChannel.emit) {
+                console.log('发送打卡完成事件');
+                eventChannel.emit('checkinCompleted', { habitId: this.data.habitId });
+            }
+            // 清空本地存储
+            wx.removeStorage({
+                key: `checkin_draft_${this.data.habitId}`,
+            });
+            // 在首页展示成就解锁弹窗
+            if (app.globalData.achievementService && typeof app.globalData.achievementService.checkAchievements === 'function') {
+                app.globalData.achievementService.checkAchievements();
+            }
+            // 延迟关闭加载提示，确保成功弹窗显示
+            setTimeout(() => {
+                wx.hideLoading();
+            }, 500);
         })
             .catch(error => {
             console.error('打卡失败:', error);
             this.setData({ submitting: false });
             wx.showToast({
                 title: '打卡失败，请重试',
-                icon: 'none',
-                duration: 2000
+                icon: 'none'
             });
+            wx.hideLoading();
         });
     },
     /**
@@ -643,7 +632,7 @@ Page({
     shareCheckin() {
         this.setData({ showSuccessPopup: false });
         wx.navigateTo({
-            url: `/packageCommunity/pages/post/post?habitId=${this.data.habitId}&action=checkin`
+            url: `/pages/community/post/post?habitId=${this.data.habitId}&action=checkin`
         });
     },
     /**

@@ -53,9 +53,7 @@ Page({
    * 生命周期函数--监听页面加载
    */
   onLoad(options) {
-    // 加载分类列表
-    this.loadCategories();
-    
+    // 检查是否为编辑模式并立即设置页面标题
     if (options.id) {
       // 编辑模式
       this.setData({
@@ -63,13 +61,22 @@ Page({
         isEdit: true
       });
       
+      // 立即设置导航栏标题
       wx.setNavigationBarTitle({
         title: '编辑习惯'
       });
       
       // 加载习惯详情
       this.loadHabitDetail(options.id);
+    } else {
+      // 创建模式 - 确保标题是正确的
+      wx.setNavigationBarTitle({
+        title: '创建习惯'
+      });
     }
+    
+    // 加载分类列表
+    this.loadCategories();
   },
   
   /**

@@ -1,0 +1,20 @@
+<!--登录提示模态框-->
+<view class="login-modal {{show ? 'show' : ''}}" catchtouchmove="preventTouchMove">
+  <view class="login-modal-mask" bindtap="onClickMask"></view>
+  <view class="login-modal-content">
+    <view class="login-modal-header">
+      <view class="login-modal-title">登录提示</view>
+      <view class="login-modal-close" bindtap="onClose">×</view>
+    </view>
+    <view class="login-modal-body">
+      <view class="login-modal-icon">
+        <image src="/assets/images/lock.png" mode="aspectFit" />
+      </view>
+      <view class="login-modal-message">{{message || '请先登录以使用此功能'}}</view>
+    </view>
+    <view class="login-modal-footer">
+      <button class="login-modal-btn login-modal-btn-cancel" bindtap="onClose">取消</button>
+      <button class="login-modal-btn login-modal-btn-confirm" bindtap="onLogin">立即登录</button>
+    </view>
+  </view>
+</view> 

@@ -17,22 +17,15 @@ class HabitChainService {
             if (wx.getStorageSync(storage_keys_1.StorageKeys.TOKEN)) {
                 const res = await (0, request_1.request)({
                     url: '/api/habit-chains',
-                    method: 'GET'
+                    method: 'GET',
                 });
-                // 保存到本地存储
-                wx.setStorageSync(storage_keys_1.StorageKeys.HABIT_CHAINS, res.data);
                 return res.data;
             }
-            // 从本地存储获取
-            const chains = wx.getStorageSync(storage_keys_1.StorageKeys.HABIT_CHAINS) || [];
-            return chains;
         }
         catch (error) {
             console.error('获取习惯链失败', error);
-            // 从本地存储获取
-            const chains = wx.getStorageSync(storage_keys_1.StorageKeys.HABIT_CHAINS) || [];
-            return chains;
         }
+        return [];
     }
     /**
      * 根据ID获取习惯链
@@ -44,20 +37,15 @@ class HabitChainService {
             if (wx.getStorageSync(storage_keys_1.StorageKeys.TOKEN)) {
                 const res = await (0, request_1.request)({
                     url: `/api/habit-chains/${id}`,
-                    method: 'GET'
+                    method: 'GET',
                 });
                 return res.data;
             }
-            // 从本地存储获取
-            const chains = wx.getStorageSync(storage_keys_1.StorageKeys.HABIT_CHAINS) || [];
-            return chains.find((chain) => chain.id === id) || null;
         }
         catch (error) {
             console.error('获取习惯链详情失败', error);
-            // 从本地存储获取
-            const chains = wx.getStorageSync(storage_keys_1.StorageKeys.HABIT_CHAINS) || [];
-            return chains.find((chain) => chain.id === id) || null;
         }
+        return null;
     }
     /**
      * 保存习惯链
@@ -71,49 +59,14 @@ class HabitChainService {
                 const res = await (0, request_1.request)({
                     url: isNew ? '/api/habit-chains' : `/api/habit-chains/${chain.id}`,
                     method: isNew ? 'POST' : 'PUT',
-                    data: chain
+                    data: chain,
                 });
-                // 更新本地存储
-                const chains = wx.getStorageSync(storage_keys_1.StorageKeys.HABIT_CHAINS) || [];
-                const index = chains.findIndex((c) => c.id === chain.id);
-                if (index > -1) {
-                    chains[index] = res.data;
-                }
-                else {
-                    chains.push(res.data);
-                }
-                wx.setStorageSync(storage_keys_1.StorageKeys.HABIT_CHAINS, chains);
                 return res.data;
             }
-            // 保存到本地存储
-            const chains = wx.getStorageSync(storage_keys_1.StorageKeys.HABIT_CHAINS) || [];
-            const index = chains.findIndex((c) => c.id === chain.id);
-            // 更新时间
-            chain.updatedAt = new Date().toISOString();
-            if (index > -1) {
-                chains[index] = chain;
-            }
-            else {
-                chains.push(chain);
-            }
-            wx.setStorageSync(storage_keys_1.StorageKeys.HABIT_CHAINS, chains);
-            return chain;
         }
         catch (error) {
             console.error('保存习惯链失败', error);
-            // 保存到本地存储
-            const chains = wx.getStorageSync(storage_keys_1.StorageKeys.HABIT_CHAINS) || [];
-            const index = chains.findIndex((c) => c.id === chain.id);
-            // 更新时间
-            chain.updatedAt = new Date().toISOString();
-            if (index > -1) {
-                chains[index] = chain;
-            }
-            else {
-                chains.push(chain);
-            }
-            wx.setStorageSync(storage_keys_1.StorageKeys.HABIT_CHAINS, chains);
-            return chain;
+            return null;
         }
     }
     /**
@@ -126,23 +79,15 @@ class HabitChainService {
             if (wx.getStorageSync(storage_keys_1.StorageKeys.TOKEN)) {
                 await (0, request_1.request)({
                     url: `/api/habit-chains/${id}`,
-                    method: 'DELETE'
+                    method: 'DELETE',
                 });
             }
-            // 从本地存储删除
-            const chains = wx.getStorageSync(storage_keys_1.StorageKeys.HABIT_CHAINS) || [];
-            const newChains = chains.filter((chain) => chain.id !== id);
-            wx.setStorageSync(storage_keys_1.StorageKeys.HABIT_CHAINS, newChains);
             return true;
         }
         catch (error) {
             console.error('删除习惯链失败', error);
-            // 从本地存储删除
-            const chains = wx.getStorageSync(storage_keys_1.StorageKeys.HABIT_CHAINS) || [];
-            const newChains = chains.filter((chain) => chain.id !== id);
-            wx.setStorageSync(storage_keys_1.StorageKeys.HABIT_CHAINS, newChains);
-            return true;
         }
+        return false;
     }
 }
 exports.HabitChainService = HabitChainService;

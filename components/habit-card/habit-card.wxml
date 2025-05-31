@@ -7,7 +7,10 @@
   
   <!-- 中间内容 -->
   <view class="habit-content">
-    <view class="habit-name">{{habit.name}}</view>
+    <view class="habit-name">
+      {{habit.name}}
+      <text wx:if="{{habit.isArchived}}" class="archive-badge">已归档</text>
+    </view>
     
     <view class="habit-info">
       <view class="habit-category" style="background-color: {{habit.color || '#4F7CFF'}}CC;">{{categoryName || habit.category}}</view>

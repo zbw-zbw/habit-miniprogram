@@ -1,0 +1,9 @@
+{
+  "usingComponents": {
+    "empty-state": "/components/empty-state/empty-state"
+  },
+  "navigationBarTitleText": "标签",
+  "navigationStyle": "custom",
+  "enablePullDownRefresh": true,
+  "backgroundTextStyle": "dark"
+} 

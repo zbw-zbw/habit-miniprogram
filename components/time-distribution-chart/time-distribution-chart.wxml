@@ -1,0 +1,28 @@
+<!-- 打卡时间分布图表 -->
+<view class="time-distribution-chart">
+  <view wx:if="{{!hasData}}" class="no-data">
+    <text>你最常在哪个时间段打卡</text>
+    <text class="subtitle">暂无足够数据</text>
+  </view>
+  
+  <view wx:else class="chart-container">
+    <view class="chart-bars">
+      <view 
+        class="chart-bar-item" 
+        wx:for="{{timeSlots}}" 
+        wx:key="name"
+      >
+        <view class="bar-label">{{item.name}}</view>
+        <view 
+          class="bar-wrapper"
+        >
+          <view 
+            class="bar" 
+            style="height: {{item.count / maxCount * 100}}%; background-color: {{themeColor}};"
+          ></view>
+        </view>
+        <view class="bar-value">{{item.count}}</view>
+      </view>
+    </view>
+  </view>
+</view> 

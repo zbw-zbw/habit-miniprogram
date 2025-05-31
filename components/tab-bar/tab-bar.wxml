@@ -1,10 +1,6 @@
 <view class="tabs">
   <scroll-view class="tabs-scroll" scroll-x="{{scrollable}}" scroll-with-animation>
     <view class="tabs-content">
-      <!-- 调试信息 -->
-      <view wx:if="{{!tabs || tabs.length === 0}}" style="color:red;">
-        没有传入tabs数据: {{tabs}}
-      </view>
       <view 
         wx:for="{{tabs}}" 
         wx:key="index" 

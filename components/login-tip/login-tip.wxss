@@ -1,0 +1,37 @@
+/* components/login-tip/login-tip.wxss */
+
+.login-tip-container {
+  width: 100%;
+  background-color: rgba(255, 255, 255, 0.95);
+  z-index: 100;
+}
+
+.login-tip-container.fixed {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  box-shadow: 0 -2rpx 10rpx rgba(0, 0, 0, 0.05);
+}
+
+.login-tip {
+  padding: 30rpx;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.login-tip text {
+  font-size: 28rpx;
+  color: #606266;
+  margin-bottom: 20rpx;
+}
+
+.login-btn {
+  background-color: #4F7CFF;
+  color: #FFFFFF;
+  font-size: 28rpx;
+  padding: 16rpx 60rpx;
+  border-radius: 40rpx;
+  border: none;
+} 

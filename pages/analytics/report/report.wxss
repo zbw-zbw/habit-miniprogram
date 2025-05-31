@@ -1,0 +1,260 @@
+/* page/analytics/report/report.wxss */
+
+/* 引入图标字体 */
+@import "/styles/iconfont.wxss";
+
+/* 报告容器 */
+.report-container {
+  min-height: 100vh;
+  background-color: #F5F7FA;
+  padding: 16px;
+}
+
+/* 加载状态 */
+.loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 200px;
+}
+
+.loading-icon {
+  width: 40px;
+  height: 40px;
+  border: 3px solid #E4E7ED;
+  border-top: 3px solid #4F7CFF;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: 16px;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* 内容区域 */
+.content {
+  padding-bottom: 24px;
+}
+
+/* 报告标题 */
+.report-header {
+  margin-bottom: 16px;
+  text-align: center;
+}
+
+.report-title {
+  font-size: 20px;
+  font-weight: 600;
+  color: #303133;
+  margin-bottom: 4px;
+}
+
+.report-date {
+  font-size: 14px;
+  color: #909399;
+}
+
+/* 通用部分样式 */
+.section {
+  margin-bottom: 16px;
+  border-radius: 12px;
+  background-color: #FFFFFF;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.section-header {
+  padding: 16px;
+  border-bottom: 1px solid #E4E7ED;
+}
+
+.section-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: #303133;
+}
+
+/* 概览网格 */
+.overview-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  padding: 16px;
+  gap: 16px;
+}
+
+.overview-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  background-color: #F5F7FA;
+  border-radius: 8px;
+}
+
+.overview-value {
+  font-size: 24px;
+  font-weight: 600;
+  color: #4F7CFF;
+  margin-bottom: 8px;
+}
+
+.overview-label {
+  font-size: 12px;
+  color: #606266;
+}
+
+/* 习惯列表 */
+.habits-list {
+  padding: 16px;
+}
+
+.habit-card {
+  display: flex;
+  align-items: center;
+  padding: 16px;
+  margin-bottom: 16px;
+  background-color: #F5F7FA;
+  border-radius: 8px;
+}
+
+.habit-card:last-child {
+  margin-bottom: 0;
+}
+
+.habit-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 16px;
+  flex-shrink: 0;
+}
+
+.habit-icon .iconfont {
+  font-size: 24px;
+}
+
+.habit-info {
+  flex: 1;
+}
+
+.habit-name {
+  font-size: 16px;
+  font-weight: 500;
+  color: #303133;
+  margin-bottom: 8px;
+}
+
+.habit-stats {
+  display: flex;
+  margin-bottom: 8px;
+}
+
+.habit-stat {
+  margin-right: 16px;
+  display: flex;
+  flex-direction: column;
+}
+
+.stat-value {
+  font-size: 14px;
+  font-weight: 500;
+  color: #4F7CFF;
+}
+
+.stat-label {
+  font-size: 12px;
+  color: #909399;
+}
+
+.habit-best {
+  font-size: 12px;
+  color: #909399;
+}
+
+.best-value {
+  color: #606266;
+}
+
+.habit-arrow {
+  color: #C0C4CC;
+}
+
+/* 趋势卡片 */
+.trend-card {
+  padding: 16px;
+  margin-bottom: 16px;
+}
+
+.trend-card:last-child {
+  margin-bottom: 0;
+}
+
+.trend-title {
+  font-size: 14px;
+  font-weight: 500;
+  color: #303133;
+  margin-bottom: 16px;
+}
+
+.chart-container {
+  height: 200px;
+}
+
+.chart-bars {
+  display: flex;
+  justify-content: space-around;
+  align-items: flex-end;
+  height: 150px;
+}
+
+.chart-bar {
+  width: 30px;
+  background-color: #4F7CFF;
+  border-radius: 4px 4px 0 0;
+}
+
+.chart-labels {
+  display: flex;
+  justify-content: space-around;
+  margin-top: 8px;
+}
+
+.chart-label {
+  font-size: 12px;
+  color: #909399;
+  text-align: center;
+}
+
+/* 操作按钮 */
+.action-buttons {
+  display: flex;
+  margin-top: 24px;
+}
+
+.action-btn {
+  flex: 1;
+  height: 40px;
+  text-align: center;
+  border-radius: 20px;
+  font-size: 16px;
+}
+
+.save-btn {
+  background-color: #4F7CFF;
+  color: #FFFFFF;
+  margin-right: 8px;
+}
+
+.share-btn {
+  background-color: #FFFFFF;
+  color: #4F7CFF;
+  border: 1px solid #4F7CFF;
+  margin-left: 8px;
+}

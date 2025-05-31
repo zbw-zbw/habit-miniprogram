@@ -1,8 +1,7 @@
 {
   "navigationBarTitleText": "个人中心",
   "enablePullDownRefresh": true,
-  "backgroundColor": "#F5F7FA",
   "usingComponents": {
-    "empty-achievement": "/components/empty-achievement/empty-achievement"
+    "empty-state": "/components/empty-state/empty-state"
   }
 } 

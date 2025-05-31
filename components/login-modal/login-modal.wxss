@@ -1,0 +1,110 @@
+/* 登录提示模态框样式 */
+.login-modal {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 999;
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.3s ease;
+}
+
+.login-modal.show {
+  opacity: 1;
+  visibility: visible;
+}
+
+.login-modal-mask {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+}
+
+.login-modal-content {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 80%;
+  max-width: 600rpx;
+  background-color: #fff;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+}
+
+.login-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px;
+  border-bottom: 1px solid #E4E7ED;
+}
+
+.login-modal-title {
+  font-size: 18px;
+  font-weight: 500;
+  color: #303133;
+}
+
+.login-modal-close {
+  font-size: 24px;
+  color: #909399;
+  padding: 4px 8px;
+}
+
+.login-modal-body {
+  padding: 24px 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.login-modal-icon {
+  width: 64px;
+  height: 64px;
+  margin-bottom: 16px;
+}
+
+.login-modal-icon image {
+  width: 100%;
+  height: 100%;
+}
+
+.login-modal-message {
+  font-size: 16px;
+  color: #606266;
+  text-align: center;
+  line-height: 1.5;
+}
+
+.login-modal-footer {
+  display: flex;
+  justify-content: space-between;
+  padding: 16px;
+  border-top: 1px solid #E4E7ED;
+}
+
+.login-modal-btn {
+  flex: 1;
+  height: 40px;
+  text-align: center;
+  border-radius: 8px;
+  font-size: 16px;
+}
+
+.login-modal-btn-cancel {
+  margin-right: 16px;
+  background-color: #F5F7FA;
+  color: #606266;
+}
+
+.login-modal-btn-confirm {
+  background-color: #4F7CFF;
+  color: white;
+} 

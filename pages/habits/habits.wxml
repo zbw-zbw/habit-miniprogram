@@ -14,6 +14,14 @@
     </scroll-view>
   </view>
 
+  <!-- 添加已归档习惯的开关 -->
+  <view class="filter-bar">
+    <view class="filter-item">
+      <text>查看已归档习惯</text>
+      <switch checked="{{showArchived}}" bindchange="toggleArchived" color="#4F7CFF" />
+    </view>
+  </view>
+
   
   <!-- 习惯列表 -->
   <view class="habits-list">
@@ -24,11 +32,15 @@
       </view>
     </block>
     <block wx:elif="{{habits.length === 0}}">
-      <view class="empty">
-        <view class="empty-icon">📝</view>
-        <view class="empty-text">暂无习惯，点击下方按钮创建</view>
-        <button class="btn btn-primary" bindtap="createHabit">创建习惯</button>
-      </view>
+      <empty-state
+        title="暂无习惯"
+        description="快创建你的第一个习惯吧"
+        icon="/assets/images/habits.png"
+        actionText="创建习惯"
+        showAction="{{hasLogin}}"
+        hasLogin="{{hasLogin}}"
+        bind:action="createHabit">
+      </empty-state>
     </block>
     <block wx:else>
       <habit-card 
@@ -138,4 +150,7 @@
       </view>
     </view>
   </view>
+  
+  <!-- 未登录提示 -->
+  <login-tip wx:if="{{!hasLogin}}" bind:login="login"></login-tip>
 </view>

@@ -1,6 +1,0 @@
-<!--空成就状态组件-->
-<view class="empty-achievement">
-  <image class="empty-image" src="/assets/images/empty-achievement.png" mode="aspectFit"></image>
-  <view class="empty-text">{{title || '暂无成就'}}</view>
-  <view class="empty-tips">{{tips || '持续坚持习惯，解锁更多成就'}}</view>
-</view> 

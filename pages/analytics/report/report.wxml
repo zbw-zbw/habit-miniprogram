@@ -1,0 +1,145 @@
+<!--pages/analytics/report/report.wxml-->
+<view class="report-container">
+  <!-- 加载状态 -->
+  <view class="loading" wx:if="{{loading}}">
+    <view class="loading-icon"></view>
+    <text>正在生成报告...</text>
+  </view>
+
+  <!-- 内容区域 -->
+  <view class="content" wx:if="{{!loading}}">
+    <!-- 报告标题 -->
+    <view class="report-header">
+      <view class="report-title">习惯数据报告</view>
+      <view class="report-date">{{reportData.overview.startDate}} 至今</view>
+    </view>
+    
+    <!-- 概览卡片 -->
+    <view class="section overview-section">
+      <view class="section-header">
+        <text class="section-title">总体概览</text>
+      </view>
+      <view class="overview-grid">
+        <view class="overview-item">
+          <text class="overview-value">{{reportData.overview.totalHabits}}</text>
+          <text class="overview-label">总习惯数</text>
+        </view>
+        <view class="overview-item">
+          <text class="overview-value">{{reportData.overview.activeHabits}}</text>
+          <text class="overview-label">活跃习惯</text>
+        </view>
+        <view class="overview-item">
+          <text class="overview-value">{{reportData.overview.totalCheckins}}</text>
+          <text class="overview-label">总打卡数</text>
+        </view>
+        <view class="overview-item">
+          <text class="overview-value">{{reportData.overview.completionRate}}%</text>
+          <text class="overview-label">总完成率</text>
+        </view>
+        <view class="overview-item">
+          <text class="overview-value">{{reportData.overview.currentStreak}}</text>
+          <text class="overview-label">当前连续</text>
+        </view>
+        <view class="overview-item">
+          <text class="overview-value">{{reportData.overview.longestStreak}}</text>
+          <text class="overview-label">最长连续</text>
+        </view>
+        <view class="overview-item">
+          <text class="overview-value">{{reportData.overview.totalDays}}</text>
+          <text class="overview-label">使用天数</text>
+        </view>
+        <view class="overview-item">
+          <text class="overview-value">{{reportData.overview.completedToday}}</text>
+          <text class="overview-label">今日完成</text>
+        </view>
+      </view>
+    </view>
+    
+    <!-- 习惯详情 -->
+    <view class="section habits-section">
+      <view class="section-header">
+        <text class="section-title">习惯详情</text>
+      </view>
+      <view class="habits-list">
+        <view class="habit-card" wx:for="{{reportData.habitDetails}}" wx:key="id" bindtap="navigateToHabit" data-habit-id="{{item.id}}">
+          <view class="habit-icon" style="background-color: {{item.color}}30; color: {{item.color}}">
+            <text class="iconfont icon-{{item.icon}}"></text>
+          </view>
+          <view class="habit-info">
+            <view class="habit-name">{{item.name}}</view>
+            <view class="habit-stats">
+              <view class="habit-stat">
+                <text class="stat-value">{{item.completionRate}}%</text>
+                <text class="stat-label">完成率</text>
+              </view>
+              <view class="habit-stat">
+                <text class="stat-value">{{item.streak}}</text>
+                <text class="stat-label">连续天数</text>
+              </view>
+              <view class="habit-stat">
+                <text class="stat-value">{{item.totalCheckins}}</text>
+                <text class="stat-label">总打卡</text>
+              </view>
+            </view>
+            <view class="habit-best">
+              <text class="best-label">最佳表现: </text>
+              <text class="best-value">{{item.bestDay}} {{item.bestTime}}</text>
+            </view>
+          </view>
+          <view class="habit-arrow">
+            <text class="iconfont icon-right"></text>
+          </view>
+        </view>
+      </view>
+    </view>
+    
+    <!-- 趋势分析 -->
+    <view class="section trends-section">
+      <view class="section-header">
+        <text class="section-title">趋势分析</text>
+      </view>
+      
+      <!-- 周趋势 -->
+      <view class="trend-card">
+        <view class="trend-title">周趋势</view>
+        <view class="chart-container">
+          <view class="chart-bars">
+            <view 
+              class="chart-bar" 
+              wx:for="{{reportData.trends.weeklyCompletion}}" 
+              wx:key="index"
+              style="height: {{item}}rpx;"
+            ></view>
+          </view>
+          <view class="chart-labels">
+            <view class="chart-label" wx:for="{{reportData.trends.weekLabels}}" wx:key="index">{{item}}</view>
+          </view>
+        </view>
+      </view>
+      
+      <!-- 月趋势 -->
+      <view class="trend-card">
+        <view class="trend-title">月趋势</view>
+        <view class="chart-container">
+          <view class="chart-bars">
+            <view 
+              class="chart-bar" 
+              wx:for="{{reportData.trends.monthlyCompletion}}" 
+              wx:key="index"
+              style="height: {{item}}rpx;"
+            ></view>
+          </view>
+          <view class="chart-labels">
+            <view class="chart-label" wx:for="{{reportData.trends.monthLabels}}" wx:key="index">{{item}}</view>
+          </view>
+        </view>
+      </view>
+    </view>
+    
+    <!-- 操作按钮 -->
+    <view class="action-buttons">
+      <button class="action-btn save-btn" bindtap="saveReport">保存报告</button>
+      <button class="action-btn share-btn" open-type="share">分享报告</button>
+    </view>
+  </view>
+</view>

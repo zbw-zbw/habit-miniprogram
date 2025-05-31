@@ -189,7 +189,7 @@ exports.communityAPI = {
      * @returns Promise<{groups: IGroup[], pagination: any}>
      */
     getGroups: (params) => {
-        return (0, request_1.get)('/api/community/groups', params);
+        return (0, request_1.get)('/api/groups', params);
     },
     /**
      * 获取小组详情
@@ -197,7 +197,7 @@ exports.communityAPI = {
      * @returns Promise<IGroup>
      */
     getGroup: (id) => {
-        return (0, request_1.get)(`/api/community/groups/${id}`);
+        return (0, request_1.get)(`/api/groups/${id}`);
     },
     /**
      * 加入小组
@@ -205,7 +205,7 @@ exports.communityAPI = {
      * @returns Promise<{success: boolean}>
      */
     joinGroup: (id) => {
-        return (0, request_1.post)(`/api/community/groups/${id}/join`, {});
+        return (0, request_1.post)(`/api/groups/${id}/join`, {});
     },
     /**
      * 退出小组
@@ -213,7 +213,7 @@ exports.communityAPI = {
      * @returns Promise<{success: boolean}>
      */
     leaveGroup: (id) => {
-        return (0, request_1.post)(`/api/community/groups/${id}/leave`, {});
+        return (0, request_1.post)(`/api/groups/${id}/leave`, {});
     },
     /**
      * 创建小组
@@ -221,7 +221,7 @@ exports.communityAPI = {
      * @returns Promise<IGroup>
      */
     createGroup: (data) => {
-        return (0, request_1.post)('/api/community/groups', data);
+        return (0, request_1.post)('/api/groups', data);
     },
     /**
      * 搜索社区内容

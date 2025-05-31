@@ -1,0 +1,135 @@
+<!--pages/community/challenge/create/create.wxml-->
+<view class="container">
+  <view class="navbar">
+    <view class="navbar-left" bindtap="goBack">
+      <text class="iconfont icon-back"></text>
+    </view>
+    <view class="navbar-title">创建挑战</view>
+    <view class="navbar-right"></view>
+  </view>
+
+  <view class="form-container">
+    <form bindsubmit="submitForm">
+      <!-- 挑战封面 -->
+      <view class="form-item cover-item">
+        <view class="cover-upload" bindtap="chooseCover">
+          <image class="cover-preview" src="{{formData.image || '/assets/images/default-challenge-cover.png'}}" mode="aspectFill"></image>
+          <view class="cover-upload-mask">
+            <text class="iconfont icon-camera"></text>
+            <text class="upload-text">上传封面</text>
+          </view>
+        </view>
+      </view>
+
+      <!-- 挑战标题 -->
+      <view class="form-item">
+        <view class="form-label">挑战标题<text class="required">*</text></view>
+        <input class="form-input" name="title" value="{{formData.title}}" placeholder="请输入挑战标题（5-30字）" maxlength="30" bindinput="inputTitle" />
+        <view class="input-counter">{{formData.title.length}}/30</view>
+      </view>
+
+      <!-- 挑战类型 -->
+      <view class="form-item">
+        <view class="form-label">挑战类型<text class="required">*</text></view>
+        <picker mode="selector" range="{{typeOptions}}" range-key="label" value="{{typeIndex}}" bindchange="typeChange">
+          <view class="form-picker">
+            <text>{{typeOptions[typeIndex].label}}</text>
+            <text class="iconfont icon-arrow-right"></text>
+          </view>
+        </picker>
+      </view>
+
+      <!-- 挑战时长 -->
+      <view class="form-item">
+        <view class="form-label">挑战时长<text class="required">*</text></view>
+        <picker mode="selector" range="{{durationOptions}}" range-key="label" value="{{durationIndex}}" bindchange="durationChange">
+          <view class="form-picker">
+            <text>{{durationOptions[durationIndex].label}}</text>
+            <text class="iconfont icon-arrow-right"></text>
+          </view>
+        </picker>
+      </view>
+
+      <!-- 开始时间 -->
+      <view class="form-item">
+        <view class="form-label">开始时间<text class="required">*</text></view>
+        <picker mode="date" value="{{formData.startDate}}" start="{{minDate}}" bindchange="startDateChange">
+          <view class="form-picker">
+            <text>{{formData.startDate}}</text>
+            <text class="iconfont icon-calendar"></text>
+          </view>
+        </picker>
+      </view>
+
+      <!-- 挑战描述 -->
+      <view class="form-item">
+        <view class="form-label">挑战描述<text class="required">*</text></view>
+        <textarea class="form-textarea" name="description" value="{{formData.description}}" placeholder="请输入挑战描述（20-1000字）" maxlength="1000" bindinput="inputDescription"></textarea>
+        <view class="input-counter">{{formData.description.length}}/1000</view>
+      </view>
+
+      <!-- 挑战规则 -->
+      <view class="form-item">
+        <view class="form-label">挑战规则<text class="required">*</text></view>
+        <textarea class="form-textarea" name="rules" value="{{formData.rules}}" placeholder="请输入挑战规则（20-500字）" maxlength="500" bindinput="inputRules"></textarea>
+        <view class="input-counter">{{formData.rules.length}}/500</view>
+      </view>
+
+      <!-- 挑战标签 -->
+      <view class="form-item">
+        <view class="form-label">挑战标签</view>
+        <view class="tags-container">
+          <view class="tag-item" wx:for="{{formData.tags}}" wx:key="index">
+            <text>{{item}}</text>
+            <text class="tag-remove" data-index="{{index}}" bindtap="removeTag">×</text>
+          </view>
+          <view class="tag-add" bindtap="showTagSelector" wx:if="{{formData.tags.length < 5}}">
+            <text class="iconfont icon-plus"></text>
+            <text>添加标签</text>
+          </view>
+        </view>
+        <view class="form-tips">最多添加5个标签</view>
+      </view>
+
+      <!-- 是否需要审核 -->
+      <view class="form-item">
+        <view class="form-label">参与审核</view>
+        <switch name="needsApproval" checked="{{formData.needsApproval}}" bindchange="switchApproval" color="#4F7CFF" />
+        <view class="form-tips">开启后，用户参与挑战需要审核</view>
+      </view>
+
+      <!-- 提交按钮 -->
+      <view class="form-button-area">
+        <button class="form-button" form-type="submit" disabled="{{!formValid}}">创建挑战</button>
+      </view>
+    </form>
+  </view>
+
+  <!-- 标签选择器弹窗 -->
+  <view class="tag-selector-mask" wx:if="{{showTagSelector}}" bindtap="hideTagSelector">
+    <view class="tag-selector" catchtap="preventBubble">
+      <view class="tag-selector-header">
+        <text>选择标签</text>
+        <text class="tag-selector-close" bindtap="hideTagSelector">×</text>
+      </view>
+      <view class="tag-selector-body">
+        <view class="tag-selector-input">
+          <input placeholder="输入自定义标签" value="{{newTag}}" bindinput="inputNewTag" confirm-type="done" bindconfirm="addCustomTag" />
+          <button class="tag-add-btn" bindtap="addCustomTag" disabled="{{!newTag}}">添加</button>
+        </view>
+        <view class="tag-selector-list">
+          <view class="tag-selector-item {{formData.tags.includes(item) ? 'selected' : ''}}" 
+                wx:for="{{suggestedTags}}" 
+                wx:key="index"
+                data-tag="{{item}}"
+                bindtap="toggleTag">
+            {{item}}
+          </view>
+        </view>
+      </view>
+      <view class="tag-selector-footer">
+        <button class="tag-selector-confirm" bindtap="confirmTags">确定</button>
+      </view>
+    </view>
+  </view>
+</view> 

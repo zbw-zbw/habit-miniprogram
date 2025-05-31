@@ -179,7 +179,6 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 20rpx;
 }
 
 .card-title {
@@ -250,6 +249,15 @@
   border: 2rpx solid #4F7CFF;
   color: #4F7CFF;
   font-weight: bold;
+}
+
+/* 今日且已完成的特殊样式 */
+.calendar-day.today.completed {
+  background-color: #4F7CFF;
+  color: #FFFFFF;
+  border: 2rpx solid #FFD700;
+  font-weight: bold;
+  box-shadow: 0 0 8rpx rgba(255, 215, 0, 0.5);
 }
 
 .calendar-footer {
@@ -386,7 +394,6 @@
 /* 图表容器 */
 .chart-container {
   height: 300rpx;
-  margin: 20rpx 0;
 }
 
 .chart-placeholder {
@@ -431,13 +438,24 @@
 .setting-list {
   display: flex;
   flex-direction: column;
+  overflow: hidden;
+  background-color: #FFFFFF;
+  border-radius: 12rpx;
+  box-shadow: 0 1rpx 6rpx rgba(0, 0, 0, 0.03);
 }
 
 .setting-item {
   display: flex;
   align-items: center;
-  padding: 30rpx 0;
-  border-bottom: 1rpx solid #DCDFE6;
+  padding: 0 30rpx;
+  height: 100rpx;
+  background-color: #FFFFFF;
+  position: relative;
+  border-bottom: 1rpx solid #EBEBEB;
+}
+
+.setting-item:active {
+  background-color: #F9F9F9;
 }
 
 .setting-item:last-child {
@@ -445,34 +463,50 @@
 }
 
 .setting-item .iconfont {
-  width: 60rpx;
-  font-size: 40rpx;
-  margin-right: 20rpx;
+  width: 40rpx;
+  font-size: 32rpx;
   color: #606266;
-  text-align: center;
+  margin-right: 20rpx;
 }
 
 .setting-item text {
-  flex: 1;
-  font-size: 30rpx;
+  font-size: 28rpx;
   color: #303133;
+  font-weight: 400;
 }
 
 .setting-arrow {
-  margin-right: 0;
+  margin-left: auto;
   color: #C0C4CC !important;
+  font-size: 24rpx !important;
 }
 
+/* 开关样式 */
+.setting-item switch {
+  transform: scale(0.8);
+  margin-left: auto;
+}
+
+/* 危险操作项 */
 .setting-item.danger {
-  color: #F56C6C;
+  border-radius: 12rpx;
+  justify-content: center;
+  height: 44rpx;
 }
 
 .setting-item.danger .iconfont {
   color: #F56C6C;
+  margin-right: 10rpx;
 }
 
-.setting-item.danger text {
-  color: #F56C6C;
+.delete-text {
+  color: #F56C6C !important;
+  margin-left: 0;
+  font-weight: 400;
+}
+
+.setting-item.danger:active {
+  background-color: rgba(245, 108, 108, 0.05);
 }
 
 /* 空状态 */
@@ -492,4 +526,48 @@
 
 .empty-text {
   font-size: 28rpx;
+}
+
+.habit-action {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.habit-checkin-btn {
+  background-color: rgba(255, 255, 255, 0.2);
+  color: #FFFFFF;
+  padding: 10rpx 24rpx;
+  border-radius: 30rpx;
+  font-size: 28rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.habit-checkin-btn .iconfont {
+  margin-right: 8rpx;
+  font-size: 32rpx;
+}
+
+.habit-completed {
+  background-color: rgba(255, 255, 255, 0.3);
+  color: #FFFFFF;
+  padding: 10rpx 24rpx;
+  border-radius: 30rpx;
+  font-size: 28rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.habit-completed .iconfont {
+  margin-right: 8rpx;
+  font-size: 32rpx;
+}
+
+/* 为单独的分析按钮添加样式 */
+.full-width {
+  width: 100%;
 }

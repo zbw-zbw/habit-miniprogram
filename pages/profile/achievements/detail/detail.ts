@@ -55,7 +55,7 @@ Page<IPageData, IPageMethods>({
     return {
       title: `我解锁了「${achievement.title}」成就！`,
       path: `/pages/profile/achievements/detail/detail?id=${achievement.id}`,
-      imageUrl: '/images/share-achievement.png' // 分享图片，需要自行准备
+      imageUrl: 'assets/images/achievement.png' // 分享图片，需要自行准备
     };
   },
 

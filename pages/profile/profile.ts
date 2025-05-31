@@ -4,6 +4,7 @@
 import { formatDate } from '../../utils/date';
 import { habitAPI, checkinAPI, userAPI } from '../../services/api';
 import { IUserProfileAll } from '../../utils/types';
+import { login, logout } from '../../utils/auth';
 
 interface IPageData {
   userInfo: IUserInfo | null;
@@ -96,6 +97,23 @@ Page<IPageData, IPageMethods>({
   loadProfileData() {
     this.setData({ loading: true });
 
+    // 检查是否已登录，未登录则不请求数据
+    if (!this.data.hasLogin) {
+      console.log('用户未登录，不加载个人资料数据');
+      this.setData({
+        loading: false,
+        stats: {
+          totalHabits: 0,
+          completedToday: 0,
+          totalCheckins: 0,
+          currentStreak: 0,
+          longestStreak: 0,
+        },
+        achievements: [],
+      });
+      return;
+    }
+
     // 使用新的聚合API获取所有数据
     userAPI
       .getProfileAll()
@@ -121,61 +139,22 @@ Page<IPageData, IPageMethods>({
   },
 
   /**
-   * 旧的成就数据加载方法（仅在聚合API失败时使用）
-
-  /**
    * 用户登录
    */
   login() {
-    wx.showLoading({
-      title: '登录中',
-    });
-
-    // 获取用户信息
-    wx.getUserProfile({
-      desc: '用于完善用户资料',
-      success: (res) => {
+    // 使用公共登录方法
+    login((success) => {
+      if (success) {
+        // 登录成功后，获取最新的用户信息
         const app = getApp<IAppOption>();
-        // 添加ID属性以满足IUserInfo接口要求
-        const userInfo = {
-          ...res.userInfo,
-          id: 'temp_' + Date.now(),
-        } as IUserInfo;
-
-        app.login(userInfo, (success) => {
-          if (success) {
-            this.setData({
-              userInfo: app.globalData.userInfo,
-              hasLogin: true,
-            });
-
-            // 登录成功后重新加载数据
-            this.loadProfileData();
-
-            // 注意：登录状态变化会通过app.notifyLoginStateChanged()通知所有页面，
-            // 包括首页，无需手动更新其他页面
-
-            wx.showToast({
-              title: '登录成功',
-              icon: 'success',
-            });
-          } else {
-            wx.showToast({
-              title: '登录失败',
-              icon: 'error',
-            });
-          }
+        this.setData({
+          userInfo: app.globalData.userInfo,
+          hasLogin: true,
         });
-      },
-      fail: () => {
-        wx.showToast({
-          title: '已取消',
-          icon: 'none',
-        });
-      },
-      complete: () => {
-        wx.hideLoading();
-      },
+        
+        // 登录成功后重新加载数据
+        this.loadProfileData();
+      }
     });
   },
 
@@ -183,33 +162,20 @@ Page<IPageData, IPageMethods>({
    * 用户登出
    */
   logout() {
-    wx.showModal({
-      title: '确认退出',
-      content: '确定要退出登录吗？',
-      success: (res) => {
-        if (res.confirm) {
-          const app = getApp<IAppOption>();
-          app.logout(() => {
-            this.setData({
-              userInfo: null,
-              hasLogin: false,
-              stats: {
-                totalHabits: 0,
-                completedToday: 0,
-                totalCheckins: 0,
-                currentStreak: 0,
-                longestStreak: 0,
-              },
-              achievements: [],
-            });
-
-            wx.showToast({
-              title: '已退出登录',
-              icon: 'success',
-            });
-          });
-        }
-      },
+    // 使用公共登出方法
+    logout(() => {
+      this.setData({
+        userInfo: null,
+        hasLogin: false,
+        stats: {
+          totalHabits: 0,
+          completedToday: 0,
+          totalCheckins: 0,
+          currentStreak: 0,
+          longestStreak: 0,
+        },
+        achievements: [],
+      });
     });
   },
 

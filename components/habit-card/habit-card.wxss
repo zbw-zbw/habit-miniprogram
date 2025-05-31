@@ -257,4 +257,15 @@
   border-radius: 8rpx;
   padding: 8rpx 16rpx;
   margin-right: 16rpx;
+}
+
+.archive-badge {
+  display: inline-block;
+  font-size: 20rpx;
+  color: #fff;
+  background-color: #909399;
+  padding: 2rpx 10rpx;
+  border-radius: 8rpx;
+  margin-left: 10rpx;
+  vertical-align: middle;
 } 

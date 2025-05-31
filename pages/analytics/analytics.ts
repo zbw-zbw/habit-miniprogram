@@ -10,6 +10,7 @@ import { IHabit, ICheckin, IHabitStats } from '../../utils/types';
 /* eslint-disable @typescript-eslint/no-var-requires */
 /* eslint-disable @typescript-eslint/no-require-imports */
 const wxCharts = require('../../utils/wxcharts');
+import { useAuth } from '../../utils/use-auth';
 
 /**
  * 格式化日期为指定格式
@@ -109,6 +110,7 @@ interface IPageMethods {
   viewHabitDetail(e: WechatMiniprogram.TouchEvent): void;
   generateReport(): void;
   navigateToInsights(): void;
+  login(): void; // 添加登录方法
   // 日历相关方法
   updateCalendar(): void;
   isDateCompleted(date: string): boolean;
@@ -178,6 +180,8 @@ Page<IPageData, IPageMethods>({
     // 页面加载时执行
     console.log('初始化analytics页面tabList:', this.data.tabList);
 
+    // 使用useAuth工具获取全局登录状态
+    useAuth(this);
   },
 
   /**
@@ -185,6 +189,20 @@ Page<IPageData, IPageMethods>({
    */
   onShow() {
     console.log('统计页面显示 - onShow被触发');
+    const app = getApp<IAppOption>();
+
+    // 检查是否已登录，未登录则不请求数据
+    if (!app.globalData.hasLogin) {
+      console.log('用户未登录，不加载统计数据');
+      this.setData({
+        loading: false,
+        chartLoading: false,
+        error: '请先登录以查看数据统计',
+      });
+      // 绘制空图表
+      this.drawEmptyCharts();
+      return;
+    }
 
     this.loadData();
     this.updateCalendar();
@@ -246,7 +264,6 @@ Page<IPageData, IPageMethods>({
 
         // 处理数据
         this.processAnalyticsData(data);
-       
       })
       .catch((error) => {
         console.error('获取分析数据失败:', error);
@@ -763,18 +780,18 @@ Page<IPageData, IPageMethods>({
    * 生成报告
    */
   generateReport() {
-    wx.showLoading({
-      title: '生成报告中',
+    wx.navigateTo({
+      url: `/pages/analytics/report/report`,
     });
+  },
 
-    setTimeout(() => {
-      wx.hideLoading();
-      wx.showModal({
-        title: '报告已生成',
-        content: '您的习惯分析报告已生成，可以在"我的-报告"中查看',
-        showCancel: false,
-      });
-    }, 1500);
+  /**
+   * 跳转到习惯洞察页面
+   */
+  navigateToInsights() {
+    wx.navigateTo({
+      url: '/pages/analytics/insights/insights',
+    });
   },
 
   /**
@@ -786,15 +803,6 @@ Page<IPageData, IPageMethods>({
       path: '/pages/analytics/analytics',
       imageUrl: '/images/share-analytics.png',
     };
-  },
-
-  /**
-   * 跳转到习惯洞察页面
-   */
-  navigateToInsights() {
-    wx.navigateTo({
-      url: '/packageAnalytics/pages/insights/insights',
-    });
   },
 
   /**
@@ -1330,5 +1338,15 @@ Page<IPageData, IPageMethods>({
     const { currentStreak, longestStreak } = this.data.stats;
     if (longestStreak <= 0) return '0%'; // 避免除以零
     return Math.min(100, (currentStreak / longestStreak) * 100) + '%';
+  },
+
+  /**
+   * 登录方法
+   */
+  login() {
+    // 跳转到登录页面
+    wx.navigateTo({
+      url: '/pages/login/login'
+    });
   },
 });

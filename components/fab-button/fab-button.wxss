@@ -1,7 +1,10 @@
+/* 引入图标字体 */
+@import "/styles/iconfont.wxss";
+
 .fab-button {
   position: fixed;
-  width: 56px;
-  height: 56px;
+  width: 100rpx;
+  height: 100rpx;
   border-radius: 28px;
   display: flex;
   align-items: center;

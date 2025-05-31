@@ -7,10 +7,12 @@
     "compile": "tsc",
     "watch": "tsc -w",
     "lint": "eslint --ext .js,.ts .",
+    "lint:fix": "eslint --ext .js,.ts . --fix",
     "test": "jest",
     "test:frontend": "jest --testPathIgnorePatterns=server/",
     "test:backend": "cd server && npm test",
-    "build": "tsc && miniprogram-ci build"
+    "build": "tsc && miniprogram-ci build",
+    "update-iconfont": "node update-iconfont.mjs"
   },
   "keywords": [
     "微信小程序",
@@ -64,6 +66,9 @@
     ]
   },
   "dependencies": {
+    "fs-extra": "11.3.0",
+    "node-fetch": "3.3.2",
+    "unzipper": "0.12.3",
     "weui-miniprogram": "1.5.6"
   }
 }

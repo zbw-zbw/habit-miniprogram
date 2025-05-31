@@ -134,7 +134,7 @@ Page({
   viewGroupDetail(e) {
     const { id } = e.currentTarget.dataset;
     wx.navigateTo({
-      url: `/packageCommunity/pages/group/group?id=${id}`
+      url: `/pages/community/group/group?id=${id}`
     });
   },
 
@@ -192,7 +192,7 @@ Page({
    */
   createGroup() {
     wx.navigateTo({
-      url: '/packageCommunity/pages/group/create/create'
+      url: '/pages/community/group/create/create'
     });
   },
 

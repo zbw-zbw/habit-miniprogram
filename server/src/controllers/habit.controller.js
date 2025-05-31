@@ -272,6 +272,11 @@ exports.updateHabit = async (req, res) => {
       if (advanced.reminderEnabled !== undefined) habit.advanced.reminderEnabled = advanced.reminderEnabled;
     }
     
+    // 处理归档状态
+    if (req.body.isArchived !== undefined) {
+      habit.isArchived = req.body.isArchived;
+    }
+    
     await habit.save();
     
     res.status(200).json({

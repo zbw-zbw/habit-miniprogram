@@ -94,7 +94,7 @@ Component({
           colors = ['#ebedf0', '#d8b9ff', '#b76eff', '#8f3bff', '#6200ea'];
           break;
         default: // blue
-          colors = ['#ebedf0', '#c8e1ff', '#79b8ff', '#2188ff', '#0366d6'];
+          colors = ['#ebedf0', '#C8E1FF', '#79B8FF', '#2188FF', '#0366D6'];
       }
       
       this.setData({
@@ -167,6 +167,10 @@ Component({
       
       // 记录上个月
       let lastMonth = -1;
+      
+      // 计算总周数以适应不同的时间范围
+      const totalDays = Math.ceil((end.getTime() - adjustedStart.getTime()) / (24 * 60 * 60 * 1000)) + 1;
+      const totalWeeks = Math.ceil(totalDays / 7);
       
       // 生成数据直到结束日期
       while (currentDate <= end) {

@@ -1,10 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-/**
- * 个人中心页面
- */
-const date_1 = require("../../utils/date");
 const api_1 = require("../../services/api");
+const auth_1 = require("../../utils/auth");
 Page({
     /**
      * 页面的初始数据
@@ -18,7 +15,7 @@ Page({
             completedToday: 0,
             totalCheckins: 0,
             currentStreak: 0,
-            longestStreak: 0
+            longestStreak: 0,
         },
         achievements: [],
     },
@@ -26,17 +23,14 @@ Page({
      * 生命周期函数--监听页面加载
      */
     onLoad() {
-        this.loadUserInfo();
-        this.loadStats();
-        this.loadAchievements();
+        console.log('个人中心页面初始加载');
     },
     /**
      * 生命周期函数--监听页面显示
      */
     onShow() {
-        // 每次显示页面时加载最新数据
         this.loadUserInfo();
-        this.loadStats();
+        this.loadProfileData();
     },
     /**
      * 加载用户信息
@@ -46,153 +40,75 @@ Page({
         this.setData({
             userInfo: app.globalData.userInfo,
             hasLogin: app.globalData.hasLogin,
-            'settings.theme': app.globalData.theme || 'light'
+            'settings.theme': app.globalData.theme || 'light',
         });
         // 监听主题变化
         if (typeof app.onThemeChange === 'function') {
             app.onThemeChange((theme) => {
                 this.setData({
-                    'settings.theme': theme
+                    'settings.theme': theme,
                 });
             });
         }
     },
     /**
-     * 加载统计数据
+     * 加载个人资料数据
      */
-    loadStats() {
+    loadProfileData() {
         this.setData({ loading: true });
-        // 获取习惯和打卡数据
-        Promise.all([
-            api_1.habitAPI.getHabits(),
-            api_1.checkinAPI.getCheckins()
-        ])
-            .then(([habits, checkins]) => {
-            const today = (0, date_1.formatDate)(new Date());
-            // 计算总习惯数
-            const totalHabits = habits.length;
-            // 计算今日完成数
-            const completedToday = checkins.filter(c => c.date === today && c.isCompleted).length;
-            // 计算总打卡次数
-            const totalCheckins = checkins.filter(c => c.isCompleted).length;
-            // 获取所有习惯的统计数据
-            const activeHabits = habits.filter(h => !h.isArchived);
-            const statsPromises = activeHabits.map(habit => {
-                // 确保习惯ID不为undefined
-                const habitId = habit.id || habit._id;
-                if (!habitId) {
-                    console.error('习惯ID不存在:', habit);
-                    return Promise.resolve({
-                        totalCompletions: 0,
-                        totalDays: 0,
-                        completionRate: 0,
-                        currentStreak: 0,
-                        longestStreak: 0,
-                        lastCompletedDate: null
-                    });
-                }
-                return api_1.habitAPI.getHabitStats(habitId);
-            });
-            return Promise.all([
-                Promise.resolve(totalHabits),
-                Promise.resolve(completedToday),
-                Promise.resolve(totalCheckins),
-                Promise.all(statsPromises)
-            ]);
-        })
-            .then(([totalHabits, completedToday, totalCheckins, statsArray]) => {
-            // 计算最大连续天数和当前连续天数
-            let maxCurrentStreak = 0;
-            let maxLongestStreak = 0;
-            statsArray.forEach(stats => {
-                maxCurrentStreak = Math.max(maxCurrentStreak, stats.currentStreak || 0);
-                maxLongestStreak = Math.max(maxLongestStreak, stats.longestStreak || 0);
-            });
+        // 检查是否已登录，未登录则不请求数据
+        if (!this.data.hasLogin) {
+            console.log('用户未登录，不加载个人资料数据');
             this.setData({
-                'stats.totalHabits': totalHabits,
-                'stats.completedToday': completedToday,
-                'stats.totalCheckins': totalCheckins,
-                'stats.currentStreak': maxCurrentStreak,
-                'stats.longestStreak': maxLongestStreak,
-                loading: false
+                loading: false,
+                stats: {
+                    totalHabits: 0,
+                    completedToday: 0,
+                    totalCheckins: 0,
+                    currentStreak: 0,
+                    longestStreak: 0,
+                },
+                achievements: [],
+            });
+            return;
+        }
+        // 使用新的聚合API获取所有数据
+        api_1.userAPI
+            .getProfileAll()
+            .then((data) => {
+            console.log('获取用户聚合数据成功:', data);
+            // 更新统计数据
+            this.setData({
+                'stats.totalHabits': data.stats.totalHabits,
+                'stats.completedToday': data.stats.completedToday,
+                'stats.totalCheckins': data.stats.totalCheckins,
+                'stats.currentStreak': data.stats.currentStreak,
+                'stats.longestStreak': data.stats.longestStreak,
+                // 更新成就数据
+                achievements: data.achievements,
+                loading: false,
             });
         })
-            .catch(error => {
-            console.error('加载统计数据失败:', error);
+            .catch((error) => {
+            console.error('获取用户聚合数据失败:', error);
             this.setData({ loading: false });
         });
-    },
-    /**
-     * 加载成就数据
-     */
-    async loadAchievements() {
-        try {
-            // 获取用户成就
-            const achievements = await api_1.userAPI.getAchievements();
-            // 只显示前3个成就
-            const topAchievements = achievements.slice(0, 3);
-            this.setData({ achievements: topAchievements });
-        }
-        catch (error) {
-            console.error('加载成就数据失败:', error);
-            // 错误处理，不显示默认成就
-            this.setData({ achievements: [] });
-            // 显示错误提示
-            wx.showToast({
-                title: '获取成就失败',
-                icon: 'none'
-            });
-        }
     },
     /**
      * 用户登录
      */
     login() {
-        wx.showLoading({
-            title: '登录中'
-        });
-        // 获取用户信息
-        wx.getUserProfile({
-            desc: '用于完善用户资料',
-            success: (res) => {
+        // 使用公共登录方法
+        (0, auth_1.login)((success) => {
+            if (success) {
+                // 登录成功后，获取最新的用户信息
                 const app = getApp();
-                // 添加ID属性以满足IUserInfo接口要求
-                const userInfo = {
-                    ...res.userInfo,
-                    id: 'temp_' + Date.now()
-                };
-                app.login(userInfo, (success) => {
-                    if (success) {
-                        this.setData({
-                            userInfo: app.globalData.userInfo,
-                            hasLogin: true
-                        });
-                        // 登录成功后重新加载数据
-                        this.loadStats();
-                        this.loadAchievements();
-                        // 注意：登录状态变化会通过app.notifyLoginStateChanged()通知所有页面，
-                        // 包括首页，无需手动更新其他页面
-                        wx.showToast({
-                            title: '登录成功',
-                            icon: 'success'
-                        });
-                    }
-                    else {
-                        wx.showToast({
-                            title: '登录失败',
-                            icon: 'error'
-                        });
-                    }
+                this.setData({
+                    userInfo: app.globalData.userInfo,
+                    hasLogin: true,
                 });
-            },
-            fail: () => {
-                wx.showToast({
-                    title: '已取消',
-                    icon: 'none'
-                });
-            },
-            complete: () => {
-                wx.hideLoading();
+                // 登录成功后重新加载数据
+                this.loadProfileData();
             }
         });
     },
@@ -200,40 +116,36 @@ Page({
      * 用户登出
      */
     logout() {
-        wx.showModal({
-            title: '确认退出',
-            content: '确定要退出登录吗？',
-            success: (res) => {
-                if (res.confirm) {
-                    const app = getApp();
-                    app.logout(() => {
-                        this.setData({
-                            userInfo: null,
-                            hasLogin: false
-                        });
-                        wx.showToast({
-                            title: '已退出登录',
-                            icon: 'success'
-                        });
-                    });
-                }
-            }
+        // 使用公共登出方法
+        (0, auth_1.logout)(() => {
+            this.setData({
+                userInfo: null,
+                hasLogin: false,
+                stats: {
+                    totalHabits: 0,
+                    completedToday: 0,
+                    totalCheckins: 0,
+                    currentStreak: 0,
+                    longestStreak: 0,
+                },
+                achievements: [],
+            });
         });
     },
     /**
-     * 页面导航
+     * 导航到指定页面
      */
     navigateTo(e) {
-        const { url } = e.currentTarget.dataset;
+        const url = e.currentTarget.dataset.url;
         wx.navigateTo({ url });
     },
     /**
-     * 成就详情导航
+     * 导航到成就详情页
      */
     navigateToAchievement(e) {
-        const { id } = e.currentTarget.dataset;
+        const id = e.currentTarget.dataset.id;
         wx.navigateTo({
-            url: `/pages/profile/achievements/detail/detail?id=${id}`
+            url: `/pages/profile/achievements/detail/detail?id=${id}`,
         });
     },
     /**
@@ -241,8 +153,9 @@ Page({
      */
     onShareAppMessage() {
         return {
-            title: '习惯打卡小程序',
-            path: '/pages/index/index'
+            title: '我的习惯养成进度',
+            path: '/pages/index/index',
+            imageUrl: '/assets/images/share-profile.png',
         };
-    }
+    },
 });

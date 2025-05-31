@@ -1,0 +1,7 @@
+<!--components/login-tip/login-tip.wxml-->
+<view class="login-tip-container {{fixed ? 'fixed' : ''}}">
+  <view class="login-tip">
+    <text>{{tipText || '登录后查看更多内容'}}</text>
+    <button class="login-btn" bindtap="onLoginTap">{{buttonText || '登录/注册'}}</button>
+  </view>
+</view> 

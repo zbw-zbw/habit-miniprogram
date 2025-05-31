@@ -2,14 +2,17 @@
  * 社区页面
  */
 import { communityAPI } from '../../services/api';
+import { useAuth } from '../../utils/use-auth';
+import { login as authLogin } from '../../utils/auth';
 
 interface IPageData {
-  activeTab: 'follow' | 'discover' | 'nearby' | 'rank';
+  activeTab: 'groups' | 'challenges' | 'posts' | 'friends';
   loading: boolean;
   hasLogin: boolean;
   userInfo: IUserInfo | null;
   posts: IPost[];
   challenges: IChallenge[];
+  groups: IGroup[];
   friends: IFriend[];
   hasMore: boolean;
   showPostModal: boolean;
@@ -28,6 +31,7 @@ interface IPageMethods {
   switchTab(e: WechatMiniprogram.TouchEvent): void;
   loadPosts(): Promise<{posts: IPost[], hasMore: boolean}>;
   loadChallenges(): Promise<IChallenge[]>;
+  loadGroups(): Promise<IGroup[]>;
   loadFriends(): Promise<IFriend[]>;
   refreshData(): void;
   loadMorePosts(): void;
@@ -51,6 +55,12 @@ interface IPageMethods {
   uploadImages(images: string[]): Promise<string[]>;
   navigateToNotifications(): void;
   navigateToSearch(): void;
+  createGroup(): void;
+  addFriend(): void;
+  chooseHabit(): void;
+  login(): void;
+  viewAllPosts(): void;
+  viewAllFriends(): void;
 }
 
 Page<IPageData, IPageMethods>({
@@ -58,12 +68,13 @@ Page<IPageData, IPageMethods>({
    * 页面的初始数据
    */
   data: {
-    activeTab: 'follow',
+    activeTab: 'groups',
     loading: true,
     hasLogin: false,
     userInfo: null,
     posts: [],
     challenges: [],
+    groups: [],
     friends: [],
     hasMore: true,
     showPostModal: false,
@@ -80,38 +91,84 @@ Page<IPageData, IPageMethods>({
    * 生命周期函数--监听页面加载
    */
   onLoad() {
-    // 检查登录状态
-    const app = getApp<IAppOption>();
-    this.setData({
-      userInfo: app.globalData.userInfo,
-      hasLogin: app.globalData.hasLogin
-    });
+    // 使用useAuth工具获取全局登录状态
+    useAuth(this);
     
-    this.loadData();
+    // 只有登录后才加载数据
+    if (this.data.hasLogin) {
+      this.loadData();
+    } else {
+      this.setData({ 
+        loading: false 
+      });
+    }
   },
 
   /**
    * 生命周期函数--监听页面显示
    */
   onShow() {
-    // 每次显示页面时刷新数据
-    this.refreshData();
+    // 检查登录状态，可能在其他页面已经登录/登出
+    const app = getApp<IAppOption>();
+    const isLoggedIn = app.globalData.hasLogin;
+    
+    // 更新登录状态
+    this.setData({
+      userInfo: app.globalData.userInfo,
+      hasLogin: isLoggedIn
+    });
+    
+    // 只有登录后才刷新数据
+    if (isLoggedIn) {
+      // 每次显示页面时刷新数据
+      this.refreshData();
+    } else {
+      this.setData({ 
+        loading: false,
+        posts: [],
+        challenges: [],
+        groups: [],
+        friends: []
+      });
+    }
   },
 
   /**
    * 加载数据
    */
   loadData() {
+    // 检查登录状态
+    if (!this.data.hasLogin) {
+      this.setData({ loading: false });
+      return;
+    }
+    
     this.setData({ loading: true });
     
-    // 并行加载数据
-    Promise.all([
-      this.loadPosts(),
-      this.loadChallenges(),
-      this.loadFriends()
-    ])
+    // 根据当前选中的标签加载对应数据
+    const { activeTab } = this.data;
+    let dataPromise;
+    
+    switch (activeTab) {
+      case 'groups':
+        dataPromise = this.loadGroups();
+        break;
+      case 'challenges':
+        dataPromise = this.loadChallenges();
+        break;
+      case 'posts':
+        dataPromise = this.loadPosts();
+        break;
+      case 'friends':
+        dataPromise = this.loadFriends();
+        break;
+      default:
+        dataPromise = Promise.resolve();
+    }
+    
+    dataPromise
       .catch(error => {
-        console.error('加载社区数据失败:', error);
+        console.error(`加载${activeTab}数据失败:`, error);
       })
       .finally(() => {
         this.setData({ loading: false });
@@ -122,13 +179,19 @@ Page<IPageData, IPageMethods>({
    * 切换标签
    */
   switchTab(e: WechatMiniprogram.TouchEvent) {
-    const tab = e.currentTarget.dataset.tab as 'follow' | 'discover' | 'nearby' | 'rank';
+    const tab = e.currentTarget.dataset.tab as 'groups' | 'challenges' | 'posts' | 'friends';
+    
+    // 如果点击的是当前标签，不做任何操作
+    if (tab === this.data.activeTab) {
+      return;
+    }
+    
     this.setData({ 
       activeTab: tab,
-      page: 1,
-      posts: []
+      page: 1
     }, () => {
-      this.refreshData();
+      // 重新加载数据
+      this.loadData();
     });
   },
 
@@ -136,10 +199,9 @@ Page<IPageData, IPageMethods>({
    * 加载社区动态
    */
   loadPosts() {
-    const { activeTab, page, pageSize } = this.data;
+    const { page, pageSize } = this.data;
     
     return communityAPI.getPosts({
-      type: activeTab,
       page,
       pageSize
     })
@@ -165,12 +227,65 @@ Page<IPageData, IPageMethods>({
    */
   loadChallenges() {
     return communityAPI.getChallenges({ limit: 3 })
-      .then(challenges => {
+      .then((response: any) => {
+        // 处理API返回的不同格式
+        let challenges: IChallenge[] = [];
+        if (Array.isArray(response)) {
+          // 直接返回数组
+          challenges = response;
+        } else if (response && typeof response === 'object') {
+          // 处理包含data的响应
+          if ('data' in response && response.data && typeof response.data === 'object') {
+            if ('challenges' in response.data && Array.isArray(response.data.challenges)) {
+              challenges = response.data.challenges;
+            }
+          } else if ('challenges' in response && Array.isArray(response.challenges)) {
+            // 直接包含challenges的对象
+            challenges = response.challenges;
+          }
+        }
+        
+        console.log('处理后的挑战数据:', challenges);
         this.setData({ challenges });
         return challenges;
       })
       .catch(error => {
         console.error('加载热门挑战失败:', error);
+        this.setData({ challenges: [] });
+        return Promise.reject(error);
+      });
+  },
+
+  /**
+   * 加载小组列表
+   */
+  loadGroups() {
+    return communityAPI.getGroups()
+      .then((response: any) => {
+        // 处理API返回的不同格式
+        let groups: IGroup[] = [];
+        if (Array.isArray(response)) {
+          // 直接返回数组
+          groups = response;
+        } else if (response && typeof response === 'object') {
+          // 处理包含data的响应
+          if ('data' in response && response.data && typeof response.data === 'object') {
+            if ('groups' in response.data && Array.isArray(response.data.groups)) {
+              groups = response.data.groups;
+            }
+          } else if ('groups' in response && Array.isArray(response.groups)) {
+            // 直接包含groups的对象
+            groups = response.groups;
+          }
+        }
+        
+        console.log('处理后的小组数据:', groups);
+        this.setData({ groups });
+        return groups;
+      })
+      .catch(error => {
+        console.error('加载小组列表失败:', error);
+        this.setData({ groups: [] });
         return Promise.reject(error);
       });
   },
@@ -194,27 +309,31 @@ Page<IPageData, IPageMethods>({
    * 刷新数据
    */
   refreshData() {
+    // 检查登录状态
+    if (!this.data.hasLogin) {
+      wx.hideNavigationBarLoading();
+      wx.stopPullDownRefresh();
+      return;
+    }
+    
     // 重置页码
     this.setData({
       page: 1,
       hasMore: true
     });
-    
     // 根据当前标签加载不同数据
     const { activeTab } = this.data;
-    
     wx.showNavigationBarLoading();
-    
     this.loadPosts()
       .then(() => {
         // 如果是关注标签，还需要刷新好友列表
-        if (activeTab === 'follow') {
+        if (activeTab === 'friends') {
           return this.loadFriends();
         }
         // 明确返回类型，避免Promise<void>和Promise<IFriend[]>类型不匹配问题
-        return Promise.resolve([]) as Promise<IFriend[]>;
+        return Promise.resolve([]);
       })
-      .catch((error: Error) => {
+      .catch((error) => {
         console.error('刷新数据失败:', error);
       })
       .finally(() => {
@@ -621,6 +740,100 @@ Page<IPageData, IPageMethods>({
   viewAllGroups() {
     wx.navigateTo({
       url: '/pages/community/groups/groups'
+    });
+  },
+
+  /**
+   * 创建小组
+   */
+  createGroup() {
+    // 检查是否已登录
+    if (!this.data.hasLogin) {
+      wx.showToast({
+        title: '请先登录',
+        icon: 'none'
+      });
+      return;
+    }
+    
+    wx.navigateTo({
+      url: '/pages/community/groups/create/create'
+    });
+  },
+
+  /**
+   * 登录
+   */
+  login() {
+    // 使用公共登录方法
+    authLogin((success: boolean) => {
+      if (success) {
+        // 登录成功后，获取最新的用户信息
+        const app = getApp<IAppOption>();
+        this.setData({
+          userInfo: app.globalData.userInfo,
+          hasLogin: true,
+        });
+        
+        // 登录成功后重新加载数据
+        this.loadData();
+      }
+    });
+  },
+
+  /**
+   * 添加好友
+   */
+  addFriend() {
+    if (!this.data.hasLogin) {
+      wx.showToast({
+        title: '请先登录',
+        icon: 'none'
+      });
+      return;
+    }
+    
+    wx.navigateTo({
+      url: '/pages/community/friends/add-friend'
+    });
+  },
+
+  /**
+   * 选择习惯
+   */
+  chooseHabit() {
+    wx.navigateTo({
+      url: '/pages/habits/select/select',
+      events: {
+        // 监听选择习惯页面返回的数据
+        selectHabit: (habit: IHabit) => {
+          console.log('选择的习惯:', habit);
+          if (habit) {
+            this.setData({
+              'newPost.habitId': habit.id,
+              'newPost.tags': [...this.data.newPost.tags, habit.name]
+            });
+          }
+        }
+      }
+    });
+  },
+
+  /**
+   * 查看所有动态
+   */
+  viewAllPosts() {
+    wx.navigateTo({
+      url: '/pages/community/posts/posts'
+    });
+  },
+
+  /**
+   * 查看所有好友
+   */
+  viewAllFriends() {
+    wx.navigateTo({
+      url: '/pages/community/friends/friends'
     });
   }
 }); 

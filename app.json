@@ -4,17 +4,22 @@
     "pages/habits/habits",
     "pages/habits/create/create",
     "pages/habits/detail/detail",
+    "pages/checkin/checkin",
     "pages/analytics/analytics",
+    "pages/analytics/detail/detail",
+    "pages/analytics/insights/insights",
+    "pages/analytics/report/report",
     "pages/community/community",
+    "pages/community/groups/groups",
+    "pages/community/groups/create/create",
+    "pages/community/challenges/challenges",
+    "pages/community/challenges/create/create",
+    "pages/community/tag/tag",
     "pages/community/post-detail/post-detail",
     "pages/profile/profile",
     "pages/profile/settings/settings",
-    "pages/checkin/checkin",
     "pages/profile/achievements/achievements",
-    "pages/community/groups/groups",
-    "pages/test/api-test",
-    "pages/habit-chain/habit-chain",
-    "pages/habit-chain/detail/detail"
+    "pages/test/api-test"
   ],
   "window": {
     "backgroundTextStyle": "light",
@@ -61,7 +66,8 @@
     ]
   },
   "usingComponents": {
-    "achievement-unlock": "/components/achievement-unlock/achievement-unlock"
+    "achievement-unlock": "/components/achievement-unlock/achievement-unlock",
+    "login-tip": "/components/login-tip/login-tip"
   },
   "style": "v2",
   "sitemapLocation": "sitemap.json",
@@ -71,27 +77,5 @@
       "desc": "您的位置信息将用于记录打卡地点"
     }
   },
-  "requiredBackgroundModes": ["audio"],
-  "subpackages": [
-    {
-      "root": "packageAnalytics",
-      "pages": [
-        "pages/detail/detail",
-        "pages/report/report",
-        "pages/insights/insights"
-      ]
-    },
-    {
-      "root": "packageCommunity",
-      "pages": [
-        "pages/challenge/challenge",
-        "pages/post-detail/post-detail",
-        "pages/notifications/notifications",
-        "pages/search/search",
-        "pages/user-profile/user-profile",
-        "pages/post/post",
-        "pages/group/group"
-      ]
-    }
-  ]
+  "requiredBackgroundModes": ["audio"]
 } 

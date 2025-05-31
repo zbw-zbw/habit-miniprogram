@@ -1,7 +1,9 @@
 {
   "usingComponents": {
     "habit-analysis-assistant": "/components/habit-analysis-assistant/habit-analysis-assistant",
-    "calendar-heatmap": "/components/calendar-heatmap/calendar-heatmap"
+    "calendar-heatmap": "/components/calendar-heatmap/calendar-heatmap",
+    "time-distribution-chart": "/components/time-distribution-chart/time-distribution-chart",
+    "trend-chart": "/components/trend-chart/trend-chart"
   },
   "navigationBarTitleText": "习惯详情",
   "navigationStyle": "default",

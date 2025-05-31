@@ -49,8 +49,11 @@ interface IPageData {
   heatmapData: Array<{ date: string; count: number }>;
   heatmapStartDate: string;
   heatmapEndDate: string;
-  // 是否显示分析助手
-  showAnalysisAssistant: boolean;
+  // 今日是否已完成打卡
+  isTodayCompleted: boolean;
+  // 日历当前显示的年月
+  displayYear: number;
+  displayMonth: number;
 }
 
 interface IPageMethods {
@@ -71,9 +74,9 @@ interface IPageMethods {
   calculateDetailedStats(): void;
   generateHeatmapData(): void;
   setRandomInsight(): void;
-  showAnalysisAssistant(): void;
-  hideAnalysisAssistant(): void;
+  navigateToAnalysis(): void;
   handleApplySuggestion(e: any): void;
+  onHeatmapCellTap(e: any): void;
 }
 
 Page<IPageData, IPageMethods>({
@@ -117,8 +120,11 @@ Page<IPageData, IPageMethods>({
     heatmapData: [],
     heatmapStartDate: '',
     heatmapEndDate: '',
-    // 是否显示分析助手
-    showAnalysisAssistant: false,
+    // 今日是否已完成打卡
+    isTodayCompleted: false,
+    // 日历当前显示的年月
+    displayYear: new Date().getFullYear(),
+    displayMonth: new Date().getMonth(),
   },
 
   onLoad(options) {
@@ -141,7 +147,7 @@ Page<IPageData, IPageMethods>({
       },
       // 设置热图日期范围
       heatmapStartDate: formatDate(
-        new Date(new Date().setMonth(new Date().getMonth() - 6))
+        new Date(new Date().setMonth(new Date().getMonth() - 3))
       ),
       heatmapEndDate: formatDate(new Date()),
     });
@@ -153,9 +159,6 @@ Page<IPageData, IPageMethods>({
       this.setData({
         habitId: options.id,
       });
-
-      // 使用聚合API加载所有数据
-      this.loadHabitDetailWithDashboard();
     } else {
       wx.showToast({
         title: '参数错误',
@@ -185,6 +188,9 @@ Page<IPageData, IPageMethods>({
       'error.habit': '',
       'error.checkins': '',
       'error.stats': '',
+      // 重置日历显示为当前月份
+      displayYear: new Date().getFullYear(),
+      displayMonth: new Date().getMonth()
     });
 
     try {
@@ -222,23 +228,52 @@ Page<IPageData, IPageMethods>({
 
       // 处理打卡记录
       const processedCheckins = habitCheckins.map((c) => {
+        // 根据API返回的数据格式调整时间处理逻辑
+        let formattedTime = '00:00';
+        if (c.time) {
+          // 处理新版API返回的time对象格式
+          if (typeof c.time === 'object' && c.time !== null && 'start' in c.time) {
+            const startTime = new Date((c.time as any).start);
+            const hours = startTime.getHours().toString().padStart(2, '0');
+            const minutes = startTime.getMinutes().toString().padStart(2, '0');
+            formattedTime = `${hours}:${minutes}`;
+          } else if (typeof c.time === 'string') {
+            // 处理旧版API返回的time字符串格式
+            formattedTime = c.time;
+          }
+        }
+
         return {
           ...c,
-          formattedTime: c.time || '00:00',
+          formattedTime,
           duration: c.value || 0,
         };
       });
 
       // 按日期排序（最新的在前）
       processedCheckins.sort(
-        (a, b) =>
-          new Date(b.date + 'T' + (b.time || '00:00')).getTime() -
-          new Date(a.date + 'T' + (a.time || '00:00')).getTime()
+        (a, b) => {
+          // 获取日期对象 (优先使用time.start，其次使用date+time字符串)
+          const dateA = a.time && typeof a.time === 'object' && a.time !== null && 'start' in a.time 
+                        ? new Date((a.time as any).start) 
+                        : new Date(a.date + 'T' + (a.formattedTime || '00:00'));
+          const dateB = b.time && typeof b.time === 'object' && b.time !== null && 'start' in b.time
+                        ? new Date((b.time as any).start)
+                        : new Date(b.date + 'T' + (b.formattedTime || '00:00'));
+          return dateB.getTime() - dateA.getTime();
+        }
+      );
+
+      // 检查今天是否已完成打卡
+      const todayFormatted = formatDate(new Date());
+      const isTodayCompleted = processedCheckins.some(
+        checkin => checkin.date === todayFormatted && checkin.isCompleted
       );
 
       this.setData({
         checkins: processedCheckins,
         'loading.checkins': false,
+        isTodayCompleted
       });
 
       // 获取习惯统计数据
@@ -275,8 +310,14 @@ Page<IPageData, IPageMethods>({
 
     try {
       const habit = await habitAPI.getHabit(this.data.habitId);
+      // 确保habit对象有id属性
+      const habitWithId = {
+        ...habit,
+        id: habit.id || this.data.habitId
+      };
+      
       this.setData({
-        habit,
+        habit: habitWithId,
         'loading.habit': false,
       });
 
@@ -302,9 +343,9 @@ Page<IPageData, IPageMethods>({
       // 获取习惯的所有打卡记录
       const params = {
         habitId: this.data.habitId,
-        // 获取最近半年的数据
+        // 获取最近3个月的数据
         startDate: formatDate(
-          new Date(new Date().setMonth(new Date().getMonth() - 6))
+          new Date(new Date().setMonth(new Date().getMonth() - 3))
         ),
         endDate: formatDate(new Date()),
         limit: 100, // 增加限制，获取更多数据用于分析
@@ -479,10 +520,10 @@ Page<IPageData, IPageMethods>({
 
   // 生成热图数据
   generateHeatmapData() {
-    // 生成过去6个月的热图数据
+    // 生成过去3个月的热图数据
     const endDate = new Date();
     const startDate = new Date(endDate);
-    startDate.setMonth(startDate.getMonth() - 6);
+    startDate.setMonth(startDate.getMonth() - 3);
 
     const heatmapData: Array<{ date: string; count: number }> = [];
 
@@ -522,17 +563,12 @@ Page<IPageData, IPageMethods>({
     });
   },
 
-  // 显示分析助手
-  showAnalysisAssistant() {
-    this.setData({
-      showAnalysisAssistant: true,
-    });
-  },
-
-  // 隐藏分析助手
-  hideAnalysisAssistant() {
-    this.setData({
-      showAnalysisAssistant: false,
+  // 跳转到习惯分析页面
+  navigateToAnalysis() {
+    if (!this.data.habit) return;
+    
+    wx.navigateTo({
+      url: `/pages/analytics/detail/detail?id=${this.data.habitId}&habitName=${encodeURIComponent(this.data.habit.name)}`,
     });
   },
 
@@ -545,15 +581,13 @@ Page<IPageData, IPageMethods>({
       title: '已应用建议',
       icon: 'success',
     });
-
-    this.hideAnalysisAssistant();
   },
 
   // 更新日历
   updateCalendar() {
+    const year = this.data.displayYear;
+    const month = this.data.displayMonth;
     const now = new Date();
-    const year = now.getFullYear();
-    const month = now.getMonth();
 
     const currentMonth = `${year}年${month + 1}月`;
 
@@ -581,7 +615,6 @@ Page<IPageData, IPageMethods>({
     }
 
     // 当月的日期
-    const today = now.getDate();
     for (let i = 1; i <= daysInMonth; i++) {
       const date = formatDate(new Date(year, month, i));
       calendarDays.push({
@@ -657,10 +690,32 @@ Page<IPageData, IPageMethods>({
   // 切换月份
   changeMonth(e: WechatMiniprogram.TouchEvent) {
     const { direction } = e.currentTarget.dataset;
-    // 暂时在前端未实现月份切换功能，可以在这里添加
-    wx.showToast({
-      title: `切换到${direction === 'prev' ? '上' : '下'}个月`,
-      icon: 'none',
+    let { displayYear, displayMonth } = this.data;
+    
+    if (direction === 'prev') {
+      // 上个月
+      if (displayMonth === 0) {
+        displayYear--;
+        displayMonth = 11;
+      } else {
+        displayMonth--;
+      }
+    } else {
+      // 下个月
+      if (displayMonth === 11) {
+        displayYear++;
+        displayMonth = 0;
+      } else {
+        displayMonth++;
+      }
+    }
+    
+    this.setData({
+      displayYear,
+      displayMonth
+    }, () => {
+      // 更新日历视图
+      this.updateCalendar();
     });
   },
 
@@ -757,4 +812,32 @@ Page<IPageData, IPageMethods>({
       },
     });
   },
+
+  // 处理热图单元格点击
+  onHeatmapCellTap(e: any) {
+    const { date } = e.detail;
+    if (!date) return;
+
+    // 获取当天的打卡记录
+    const dayCheckins = this.data.checkins.filter(c => c.date === date);
+    
+    if (dayCheckins.length === 0) {
+      wx.showToast({
+        title: `${date} 没有打卡记录`,
+        icon: 'none'
+      });
+      return;
+    }
+
+    // 显示当天的打卡情况
+    const isCompleted = dayCheckins.some(c => c.isCompleted);
+    const message = isCompleted 
+      ? `${date} 已完成打卡` 
+      : `${date} 未完成打卡`;
+
+    wx.showToast({
+      title: message,
+      icon: 'none'
+    });
+  }
 });

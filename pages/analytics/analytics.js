@@ -4,9 +4,28 @@ Object.defineProperty(exports, "__esModule", { value: true });
  * 数据分析页面
  */
 const date_1 = require("../../utils/date");
-const api_1 = require("../../services/api");
+// 导入仪表盘API
+const dashboard_1 = require("../../services/api/dashboard");
 // 导入微信图表库
+/* eslint-disable @typescript-eslint/no-var-requires */
+/* eslint-disable @typescript-eslint/no-require-imports */
 const wxCharts = require('../../utils/wxcharts');
+const use_auth_1 = require("../../utils/use-auth");
+/**
+ * 格式化日期为指定格式
+ * @param date 日期对象
+ * @param format 格式字符串，支持'YYYY-MM-DD'或'MM-dd'
+ * @returns 格式化后的日期字符串
+ */
+function formatDateCustom(date, format = 'YYYY-MM-DD') {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    if (format === 'MM-dd') {
+        return `${month}-${day}`;
+    }
+    return `${year}-${month}-${day}`;
+}
 Page({
     /**
      * 页面的初始数据
@@ -17,6 +36,7 @@ Page({
         tabIndex: 0,
         timeRange: 'week',
         loading: true,
+        chartLoading: false,
         stats: {
             totalHabits: 0,
             activeHabits: 0,
@@ -24,14 +44,14 @@ Page({
             completionRate: 0,
             totalCheckins: 0,
             currentStreak: 0,
-            longestStreak: 0
+            longestStreak: 0,
         },
         habitStats: [],
         habitsMap: {},
         chartData: {
             dates: [],
             values: [],
-            completionRates: []
+            completionRates: [],
         },
         // 日历相关数据
         calendarTitle: '',
@@ -40,7 +60,13 @@ Page({
         calendarDays: [],
         // 存储打卡数据
         checkins: [],
-        error: ''
+        error: '',
+        // 分析数据
+        categoryData: [],
+        heatmapData: [],
+        weeklyTrend: 0,
+        bestCategory: '',
+        timelineData: [],
     },
     /**
      * 生命周期函数--监听页面加载
@@ -48,12 +74,27 @@ Page({
     onLoad() {
         // 页面加载时执行
         console.log('初始化analytics页面tabList:', this.data.tabList);
-        this.updateCalendar();
+        // 使用useAuth工具获取全局登录状态
+        (0, use_auth_1.useAuth)(this);
     },
     /**
      * 生命周期函数--监听页面显示
      */
     onShow() {
+        console.log('统计页面显示 - onShow被触发');
+        const app = getApp();
+        // 检查是否已登录，未登录则不请求数据
+        if (!app.globalData.hasLogin) {
+            console.log('用户未登录，不加载统计数据');
+            this.setData({
+                loading: false,
+                chartLoading: false,
+                error: '请先登录以查看数据统计',
+            });
+            // 绘制空图表
+            this.drawEmptyCharts();
+            return;
+        }
         this.loadData();
         this.updateCalendar();
     },
@@ -63,447 +104,376 @@ Page({
     loadData() {
         this.setData({
             loading: true,
-            error: ''
+            chartLoading: true,
+            error: '',
         });
-        // 创建默认数据，作为API不可用时的备选
-        const defaultHabits = [
-            {
-                id: 'sample1',
-                name: '阅读',
-                description: '每天阅读30分钟',
-                category: 'learning',
-                icon: 'book',
-                color: '#4F7CFF',
-                frequency: { type: 'daily' },
-                startDate: '2023-01-01',
-                reminder: { enabled: true, time: '20:00' },
-                isArchived: false,
-                createdAt: '2023-01-01'
-            },
-            {
-                id: 'sample2',
-                name: '锻炼',
-                description: '每天锻炼30分钟',
-                category: 'health',
-                icon: 'run',
-                color: '#67C23A',
-                frequency: { type: 'daily' },
-                startDate: '2023-01-01',
-                reminder: { enabled: true, time: '18:00' },
-                isArchived: false,
-                createdAt: '2023-01-01'
-            }
-        ];
+        // 确定时间范围
+        let startDate, endDate;
         const today = (0, date_1.formatDate)(new Date());
-        const last30Days = (0, date_1.getPastDates)(30);
-        // 生成默认打卡数据
-        const defaultCheckins = [];
-        defaultHabits.forEach(habit => {
-            // 为每个习惯生成随机打卡记录
-            last30Days.forEach(date => {
-                // 70%的概率完成
-                const isCompleted = Math.random() > 0.3;
-                if (isCompleted && habit.id) {
-                    defaultCheckins.push({
-                        id: `${habit.id}-${date}`,
-                        habitId: habit.id,
-                        date,
-                        isCompleted: true,
-                        createdAt: date + 'T08:00:00.000Z'
-                    });
-                }
-            });
-        });
-        // 检查是否有本地缓存数据
-        const cachedHabits = wx.getStorageSync('cachedHabits');
-        const cachedCheckins = wx.getStorageSync('cachedCheckins');
-        const cacheTime = wx.getStorageSync('analyticsCacheTime');
-        const now = Date.now();
-        // 如果缓存时间超过1小时，则视为无效
-        const cacheExpired = !cacheTime || (now - cacheTime) > 3600000;
-        // 如果有有效缓存，先使用缓存数据快速显示
-        if (cachedHabits && cachedCheckins && !cacheExpired) {
-            // 使用缓存数据先显示
-            this.calculateOverallStats(cachedHabits, cachedCheckins);
-            this.calculateHabitStats(cachedHabits, cachedCheckins);
-            this.generateChartData(cachedHabits, cachedCheckins);
-            this.setData({
-                checkins: cachedCheckins,
-                loading: false
-            });
-            // 更新日历数据
-            this.updateCalendar();
+        switch (this.data.timeRange) {
+            case 'week':
+                // 过去一周
+                startDate = (0, date_1.formatDate)(new Date(new Date().setDate(new Date().getDate() - 7)));
+                endDate = today;
+                break;
+            case 'month':
+                // 过去一个月
+                startDate = (0, date_1.formatDate)(new Date(new Date().setMonth(new Date().getMonth() - 1)));
+                endDate = today;
+                break;
+            case 'year':
+                // 过去一年
+                startDate = (0, date_1.formatDate)(new Date(new Date().setFullYear(new Date().getFullYear() - 1)));
+                endDate = today;
+                break;
+            default:
+                // 默认过去一周
+                startDate = (0, date_1.formatDate)(new Date(new Date().setDate(new Date().getDate() - 7)));
+                endDate = today;
         }
-        // 无论是否有缓存，都尝试从API获取最新数据
-        Promise.all([
-            api_1.habitAPI.getHabits().catch((error) => {
-                console.error('获取习惯数据失败:', error);
-                // 如果有缓存则使用缓存，否则使用默认数据
-                return cachedHabits || defaultHabits;
-            }),
-            api_1.checkinAPI.getCheckins().catch((error) => {
-                console.error('获取打卡数据失败:', error);
-                // 如果有缓存则使用缓存，否则使用默认数据
-                return cachedCheckins || defaultCheckins;
-            })
-        ])
-            .then(([habitsResponse, checkinsResponse]) => {
-            // 处理API响应格式 (有些API会返回 {success, data} 格式)
-            const habits = habitsResponse.data ? habitsResponse.data : habitsResponse;
-            const checkins = checkinsResponse.data ? checkinsResponse.data : checkinsResponse;
-            // 标准化习惯数据格式，确保有id字段
-            const normalizedHabits = habits.map((habit) => ({
-                ...habit,
-                id: habit.id || habit._id
-            }));
-            // 标准化打卡数据格式
-            const normalizedCheckins = checkins.map((checkin) => {
-                // 确保habitId字段存在
-                if (!checkin.habitId && checkin.habit) {
-                    if (typeof checkin.habit === 'string') {
-                        checkin.habitId = checkin.habit;
-                    }
-                    else if (typeof checkin.habit === 'object' && checkin.habit._id) {
-                        checkin.habitId = checkin.habit._id;
-                    }
-                }
-                return checkin;
-            });
-           
-            // 保存打卡数据到页面数据中
-            this.setData({ checkins: normalizedCheckins });
-            // 计算总体统计数据
-            this.calculateOverallStats(normalizedHabits, normalizedCheckins);
-            // 计算各习惯统计数据
-            this.calculateHabitStats(normalizedHabits, normalizedCheckins);
-            // 生成图表数据
-            this.generateChartData(normalizedHabits, normalizedCheckins);
-            this.setData({ loading: false });
-            // 更新日历数据
-            this.updateCalendar();
+        // 使用新的聚合API获取分析数据
+        dashboard_1.dashboardAPI
+            .getAnalytics({
+            startDate,
+            endDate,
+            timeRange: this.data.timeRange,
+        })
+            .then((data) => {
+            console.log('获取分析数据成功:', data);
+            // 处理数据
+            this.processAnalyticsData(data);
         })
             .catch((error) => {
-            console.error('加载数据失败:', error);
-            // 如果之前没有使用过缓存数据，则现在使用
-            if (!cachedHabits || !cachedCheckins || cacheExpired) {
-                // 使用默认数据
-                this.calculateOverallStats(defaultHabits, defaultCheckins);
-                this.calculateHabitStats(defaultHabits, defaultCheckins);
-                this.generateChartData(defaultHabits, defaultCheckins);
-                this.setData({
-                    checkins: defaultCheckins,
-                    loading: false,
-                    error: '加载数据失败，显示示例数据'
-                });
-                // 更新日历数据
-                this.updateCalendar();
-            }
-            else {
-                this.setData({
-                    error: '无法获取最新数据，显示缓存数据'
-                });
-            }
-        });
-    },
-    /**
-     * 计算总体统计数据
-     */
-    calculateOverallStats(habits, checkins) {
-        const today = (0, date_1.formatDate)(new Date());
-        const activeHabits = habits.filter(h => !h.isArchived);
-        const completedToday = checkins.filter(c => c.date === today && c.isCompleted).length;
-        // 直接计算完成率，不再依赖异步API调用
-        this.calculateDirectCompletionRate(activeHabits, checkins);
-        // 获取所有习惯的统计数据
-        const statsPromises = activeHabits
-            .filter(habit => !!habit.id) // 过滤掉没有有效ID的习惯
-            .map(habit => api_1.habitAPI.getHabitStats(habit.id)
-            .catch(error => {
-            console.error(`获取习惯 ${habit.name || habit.id} 的统计数据失败:`, error);
-            // 返回默认统计数据
-            return {
-                totalCompletions: 0,
-                totalDays: 0,
-                currentStreak: 0,
-                longestStreak: 0,
-                completionRate: 0,
-                lastCompletedDate: null
-            };
-        }));
-        Promise.all(statsPromises)
-            .then(statsArray => {
-            // 计算最大连续天数
-            let maxCurrentStreak = 0;
-            let maxLongestStreak = 0;
-            statsArray.forEach(stats => {
-                maxCurrentStreak = Math.max(maxCurrentStreak, stats.currentStreak);
-                maxLongestStreak = Math.max(maxLongestStreak, stats.longestStreak);
-            });
+            console.error('获取分析数据失败:', error);
+            // 加载失败
             this.setData({
-                'stats.currentStreak': maxCurrentStreak,
-                'stats.longestStreak': maxLongestStreak || 1 // 确保不为0，避免进度条计算错误
+                loading: false,
+                chartLoading: false,
+                error: '加载数据失败，请稍后重试',
             });
-        })
-            .catch(error => {
-            console.error('计算总体统计数据失败:', error);
+            // 绘制空图表
+            this.drawEmptyCharts();
         });
     },
     /**
-     * 直接计算完成率，不依赖API调用
+     * 处理分析数据
      */
-    calculateDirectCompletionRate(habits, checkins) {
-        try {
-            // 获取今天的日期
-            const today = (0, date_1.formatDate)(new Date());
-            // 过滤出活跃习惯
-            const activeHabits = habits.filter(h => !h.isArchived);
-            // 对象保护，确保处理空数组
-            if (!activeHabits.length || !checkins.length) {
-                this.setData({
-                    'stats.totalHabits': habits.length,
-                    'stats.activeHabits': 0,
-                    'stats.completedToday': 0,
-                    'stats.completionRate': 0,
-                    'stats.totalCheckins': 0
-                });
-                return;
+    processAnalyticsData(data) {
+        // 确保data是有效对象
+        if (!data || typeof data !== 'object') {
+            console.error('分析数据无效:', data);
+            this.setData({
+                loading: false,
+                chartLoading: false,
+                error: '数据格式错误',
+            });
+            return;
+        }
+        console.log('处理分析数据:', data);
+        // 从聚合API的响应中提取数据
+        let summary = data.summary || {};
+        // 确保API响应可能包含在data字段中
+        if (data.data && typeof data.data === 'object') {
+            // 尝试从嵌套的data字段中获取数据
+            const nestedData = data.data;
+            summary = nestedData.summary || summary;
+            // 如果外层没有habitStats但嵌套数据有，则使用嵌套数据的
+            if (!data.habitStats && nestedData.habitStats) {
+                data.habitStats = nestedData.habitStats;
             }
-            // 统计今日完成的习惯
-            let completedToday = 0;
-            // 总共应该打卡的次数
-            let totalRequiredCheckins = 0;
-            // 总共完成的次数
-            let totalCompletedCheckins = 0;
-            // 遍历每个习惯
-            activeHabits.forEach(habit => {
-                // 处理ID，支持_id和id两种形式
-                const habitId = habit._id || habit.id;
-                if (!habitId)
-                    return;
-                // 获取该习惯的所有打卡记录
-                const habitCheckins = checkins.filter(checkin => {
-                    const checkinHabitId = checkin.habitId ||
-                        (checkin.habit && typeof checkin.habit === 'object' ? checkin.habit._id : checkin.habit);
-                    return checkinHabitId === habitId;
-                });
-                // 获取该习惯的已完成打卡记录
-                const completedCheckins = habitCheckins.filter(checkin => checkin.isCompleted);
-                // 累加已完成打卡次数
-                totalCompletedCheckins += completedCheckins.length;
-                // 累加应该打卡的次数
-                // 如果习惯是每日习惯，则简单计算天数
-                // 如果习惯有特定频率，需要考虑频率
-                if (habit.frequency.type === 'daily') {
-                    // 每日习惯，计算从习惯开始日期到今天的总天数
-                    const startDate = new Date(habit.startDate);
-                    const today = new Date();
-                    const daysDiff = Math.floor((today.getTime() - startDate.getTime()) / (24 * 60 * 60 * 1000)) + 1;
-                    totalRequiredCheckins += Math.max(0, daysDiff);
-                }
-                else if (habit.frequency.type === 'weekly' && habit.frequency.days) {
-                    // 每周特定日期习惯，计算从习惯开始日期到今天应该打卡的总次数
-                    const startDate = new Date(habit.startDate);
-                    const today = new Date();
-                    const date = new Date(startDate);
-                    let count = 0;
-                    while (date <= today) {
-                        const dayOfWeek = date.getDay(); // 0是周日，1-6是周一到周六
-                        if (habit.frequency.days.includes(dayOfWeek)) {
-                            count++;
-                        }
-                        date.setDate(date.getDate() + 1);
+            // 同样处理其他字段
+            if (!data.timelineData && nestedData.timelineData) {
+                data.timelineData = nestedData.timelineData;
+            }
+            if (!data.categoryData && nestedData.categoryData) {
+                data.categoryData = nestedData.categoryData;
+            }
+            if (!data.heatmapData && nestedData.heatmapData) {
+                data.heatmapData = nestedData.heatmapData;
+            }
+        }
+        // 从聚合API的响应中提取数据
+        const { habitStats, categoryData, timelineData, heatmapData } = data;
+        // 将习惯统计转换为habitStats数组格式，用于展示
+        const habits = [];
+        const habitsMap = {};
+        // 构建习惯Map - 类型安全的方式
+        if (habitStats && typeof habitStats === 'object') {
+            Object.keys(habitStats).forEach((key) => {
+                const statData = habitStats[key];
+                if (statData && statData.habit) {
+                    const habit = statData.habit;
+                    habits.push(habit);
+                    // 使用一致的ID字段
+                    const habitId = habit.id || habit._id;
+                    if (habitId) {
+                        habitsMap[habitId] = habit;
                     }
-                    totalRequiredCheckins += count;
                 }
-                else {
-                    // 其他类型习惯，目前简单处理为与打卡记录数相同
-                    totalRequiredCheckins += habitCheckins.length;
-                }
-                // 检查今天是否已完成
-                if (completedCheckins.some(checkin => checkin.date === today)) {
-                    completedToday++;
-                }
-            });
-            // 计算完成率 - 基于打卡记录计算：已完成的打卡 / 应该打卡的总次数
-            const completionRate = totalRequiredCheckins > 0 ?
-                Math.round((totalCompletedCheckins / totalRequiredCheckins) * 100) : 0;
-            console.log('完成率计算:', {
-                totalCompletedCheckins,
-                totalRequiredCheckins,
-                completionRate
-            });
-            this.setData({
-                'stats.totalHabits': habits.length,
-                'stats.activeHabits': activeHabits.length,
-                'stats.completedToday': completedToday,
-                'stats.completionRate': Math.min(100, completionRate),
-                'stats.totalCheckins': totalCompletedCheckins
             });
         }
-        catch (error) {
-            console.error('计算完成率失败:', error);
-            // 错误时设为0%而不是默认的100%
-            this.setData({
-                'stats.completionRate': 0
-            });
+        console.log('提取的习惯数量:', habits.length);
+        console.log('习惯Map:', habitsMap);
+        // 检查今天的日期
+        const today = (0, date_1.formatDate)(new Date());
+        console.log('今天日期:', today);
+        // 检查timelineData中今天的数据
+        let completedToday = Number(summary.completedToday || 0);
+        let todayCompletionRate = 0;
+        if (Array.isArray(timelineData)) {
+            // 查找今天的数据
+            const todayData = timelineData.find((item) => item.date === today);
+            console.log('今天的时间线数据:', todayData);
+            if (todayData) {
+                // 如果API返回的completedToday为0但时间线数据显示今天有完成的习惯，则使用时间线数据
+                if (completedToday === 0 && todayData.totalCompleted > 0) {
+                    completedToday = todayData.totalCompleted;
+                    console.log('从时间线数据更新今日完成数:', completedToday);
+                }
+                todayCompletionRate = todayData.completionRate || 0;
+            }
         }
+        // 尝试从heatmapData获取今日完成的习惯数
+        if (completedToday === 0 && Array.isArray(heatmapData)) {
+            const todayHeatmap = heatmapData.find((item) => item.date === today);
+            if (todayHeatmap && todayHeatmap.count > 0) {
+                completedToday = todayHeatmap.count;
+                console.log('从热图数据更新今日完成数:', completedToday);
+            }
+        }
+        // 尝试计算最长连续打卡天数和当前连续天数
+        let currentStreak = Number(summary.currentStreak || 0);
+        let longestStreak = Number(summary.bestStreak || 0);
+        // 从习惯统计数据中提取连续打卡天数
+        if (habits.length > 0 && currentStreak === 0) {
+            // 累加所有习惯的连续打卡天数
+            habits.forEach((habit) => {
+                // 使用类型断言和可选链处理stats属性
+                const habitStats = habit.stats;
+                if (habitStats?.currentStreak) {
+                    currentStreak = Math.max(currentStreak, habitStats.currentStreak);
+                }
+            });
+            // 同样计算最长连续打卡天数
+            if (longestStreak === 0) {
+                habits.forEach((habit) => {
+                    // 使用类型断言和可选链处理stats属性
+                    const habitStats = habit.stats;
+                    if (habitStats?.longestStreak) {
+                        longestStreak = Math.max(longestStreak, habitStats.longestStreak);
+                    }
+                });
+            }
+            console.log('从习惯统计数据更新连续打卡天数:', currentStreak, longestStreak);
+        }
+        // 处理统计数据，确保数字类型
+        const totalHabits = Number(summary.totalHabits || 0);
+        const activeHabits = Number(summary.activeHabits || 0);
+        const completionRate = Number(summary.averageCompletionRate || todayCompletionRate || 0);
+        const totalCheckins = Number(summary.totalCheckins || 0);
+        console.log('处理后的统计数据:', {
+            totalHabits,
+            activeHabits,
+            completedToday,
+            completionRate,
+            totalCheckins,
+            currentStreak,
+            longestStreak,
+        });
+        // 更新数据
+        this.setData({
+            stats: {
+                totalHabits,
+                activeHabits,
+                completedToday,
+                completionRate,
+                totalCheckins,
+                currentStreak,
+                longestStreak,
+            },
+            categoryData: categoryData || [],
+            timelineData: timelineData || [],
+            heatmapData: heatmapData || [],
+            weeklyTrend: Number(summary.weeklyTrend || 0),
+            bestCategory: summary.bestCategory || '',
+            habitsMap,
+            loading: false,
+            chartLoading: false,
+            error: '',
+        });
+        // 生成图表数据
+        if (Array.isArray(timelineData) && timelineData.length > 0) {
+            this.generateChartData(timelineData);
+        }
+        else {
+            console.warn('无时间线数据，无法生成图表');
+            this.setData({ chartLoading: false });
+            this.drawEmptyCharts();
+        }
+        // 更新日历数据
+        this.updateCalendar();
+        // 绘制图表
+        setTimeout(() => {
+            try {
+                this.drawCharts();
+            }
+            catch (error) {
+                console.error('绘制图表失败:', error);
+                this.drawEmptyCharts();
+            }
+        }, 300);
+        // 计算习惯统计数据 - 用于展示
+        this.calculateHabitStats(habits, []);
     },
     /**
-     * 判断某个习惯在某日是否应该打卡
-     */
-    shouldDoHabitOnDate(habit, date) {
-        if (!habit.frequency)
-            return false;
-        const targetDate = new Date(date);
-        const dayOfWeek = targetDate.getDay(); // 0是周日，1-6是周一到周六
-        switch (habit.frequency.type) {
-            case 'daily':
-                return true;
-            case 'weekly':
-                // 检查是否匹配当前星期几
-                if ('days' in habit.frequency && Array.isArray(habit.frequency.days)) {
-                    return habit.frequency.days.includes(dayOfWeek);
-                }
-                return false;
-            case 'custom':
-                // 如果是自定义日期，检查是否包含该日期
-                if ('customDates' in habit.frequency && Array.isArray(habit.frequency.customDates)) {
-                    return habit.frequency.customDates.includes(date);
-                }
-                return false;
-            default:
-                return false;
-        }
-    },
-    /**
-     * 计算各习惯统计数据
+     * 计算习惯统计数据
      */
     calculateHabitStats(habits, checkins) {
-        console.log('开始计算habitStats，习惯数量:', habits.length);
-        const activeHabits = habits.filter(h => !h.isArchived);
-        console.log('活跃习惯数量:', activeHabits.length);
-        const habitStatsList = [];
-        const habitsMap = {};
-        // 为每个习惯计算统计数据
-        activeHabits.forEach(habit => {
-            console.log('处理习惯:', habit.name, habit.id || habit._id);
-            const habitId = habit.id || habit._id;
-            if (!habitId)
-                return;
-            // 添加到habitsMap
-            habitsMap[habitId] = habit;
-            // 获取该习惯的所有打卡记录
-            const habitCheckins = checkins.filter(c => {
-                const checkinHabitId = c.habitId ||
-                    (c.habit && typeof c.habit === 'object' ? c.habit._id : c.habit);
-                return checkinHabitId === habitId;
-            });
-            // 计算打卡次数
-            const totalCheckins = habitCheckins.filter(c => c.isCompleted).length;
-            // 计算完成率
-            let completionRate = 0;
-            // 如果习惯有内置统计数据，使用它
-            if (habit.stats &&
-                typeof habit.stats.completedDays === 'number' &&
-                typeof habit.stats.totalDays === 'number') {
-                const { completedDays, totalDays } = habit.stats;
-                completionRate = totalDays > 0 ? Math.round((completedDays / totalDays) * 100) : 0;
-            }
-            else {
-                // 简单计算完成率
-                completionRate = habitCheckins.length > 0 ?
-                    Math.round((totalCheckins / habitCheckins.length) * 100) : 0;
-            }
-            // 计算连续打卡天数
-            let streak = 0;
-            if (habit.stats && typeof habit.stats.currentStreak === 'number') {
-                streak = habit.stats.currentStreak;
-            }
-            habitStatsList.push({
+        // 使用habitStats数据构建UI需要的习惯统计数组
+        const habitStatsData = [];
+        // 遍历习惯Map，获取每个习惯的统计数据
+        Object.entries(this.data.habitsMap).forEach(([habitId, habit]) => {
+            // 尝试从页面数据中获取统计信息
+            const stats = this.data.habitStats
+                ? this.data.habitStats[habitId]
+                : null;
+            habitStatsData.push({
                 id: habitId,
-                name: habit.name || '未命名习惯',
+                name: habit.name,
                 color: habit.color || '#4F7CFF',
-                icon: habit.icon || 'star',
-                completionRate: completionRate,
-                streak: streak,
-                totalCheckins: totalCheckins
+                icon: habit.icon || 'unknown',
+                completionRate: stats ? stats.completionRate : 0,
+                streak: stats ? stats.currentStreak : 0,
+                totalCheckins: stats ? stats.totalCompletions : 0,
             });
         });
-        console.log('生成的habitStatsList:', habitStatsList);
-        // 按完成率排序
-        habitStatsList.sort((a, b) => b.completionRate - a.completionRate);
-        this.setData({ habitStats: habitStatsList, habitsMap });
-        console.log('设置完成后的habitStats:', this.data.habitStats);
+        // 按完成率降序排序
+        habitStatsData.sort((a, b) => b.completionRate - a.completionRate);
+        this.setData({ habitStats: habitStatsData });
     },
     /**
      * 生成图表数据
      */
-    generateChartData(habits, checkins) {
-        const { timeRange } = this.data;
-        let days = 7;
-        switch (timeRange) {
-            case 'week':
-                days = 7;
-                break;
-            case 'month':
-                days = 30;
-                break;
-            case 'year':
-                days = 365;
-                break;
-        }
-        // 获取过去几天的日期
-        const dates = (0, date_1.getPastDates)(days);
-        const activeHabits = habits.filter(h => !h.isArchived);
-        // 计算每天的完成情况
-        const values = [];
-        const completionRates = [];
-        for (const date of dates) {
-            let completedCount = 0;
-            let habitCount = 0;
-            // 处理API返回的不同数据结构
-            activeHabits.forEach(habit => {
-                const habitId = habit.id || habit._id;
-                if (!habitId)
-                    return;
-                // 对每个习惯检查该日期是否需要打卡
-                // 简化处理，假设所有习惯每天都需要打卡
-                habitCount++;
-                // 检查是否完成打卡
-                const isCompleted = checkins.some(c => {
-                    const checkinHabitId = c.habitId ||
-                        (c.habit && typeof c.habit === 'object' ? c.habit._id : c.habit);
-                    return checkinHabitId === habitId && c.date === date && c.isCompleted;
-                });
-                if (isCompleted) {
-                    completedCount++;
-                }
+    generateChartData(timelineData) {
+        if (!Array.isArray(timelineData)) {
+            console.error('时间线数据不是数组:', timelineData);
+            this.setData({
+                chartData: {
+                    dates: [],
+                    values: [],
+                    completionRates: [],
+                },
+                chartLoading: false,
             });
-            values.push(completedCount);
-            // 计算完成率，避免除以零
-            const rate = habitCount > 0 ? Math.round((completedCount / habitCount) * 100) : 0;
-            completionRates.push(rate);
+            return;
         }
-        // 格式化日期为短格式
-        const formattedDates = dates.map(date => {
-            const parts = date.split('-');
-            return `${parts[1]}/${parts[2]}`;
+        // 对于年视图，需要按月份重新整理数据
+        if (this.data.timeRange === 'year') {
+            this.generateYearChartData(timelineData);
+        }
+        else {
+            // 处理周和月视图
+            const dates = timelineData.map((item) => formatDateCustom(new Date(item.date), 'MM-dd'));
+            const completionRates = timelineData.map((item) => item.completionRate);
+            const values = timelineData.map((item) => item.totalCompleted);
+            this.setData({
+                chartData: {
+                    dates,
+                    values,
+                    completionRates,
+                },
+                chartLoading: false,
+            });
+            // 绘制图表
+            setTimeout(() => {
+                this.drawCharts();
+            }, 300);
+        }
+    },
+    /**
+     * 为年视图生成图表数据
+     */
+    generateYearChartData(timelineData) {
+        // 按月份分组数据
+        const monthlyData = {};
+        // 遍历时间线数据，按月份分组
+        timelineData.forEach((item) => {
+            const date = new Date(item.date);
+            const month = date.getMonth() + 1; // 获取月份（1-12）
+            const monthKey = month.toString().padStart(2, '0');
+            // 初始化该月份的数据
+            if (!monthlyData[monthKey]) {
+                monthlyData[monthKey] = {
+                    totalCompleted: 0,
+                    completionRate: 0,
+                    count: 0,
+                };
+            }
+            // 累加该月份的数据
+            monthlyData[monthKey].totalCompleted += item.totalCompleted || 0;
+            monthlyData[monthKey].completionRate += item.completionRate || 0;
+            monthlyData[monthKey].count += 1;
         });
+        // 创建1-12月的数据数组
+        const allMonths = [
+            '01',
+            '02',
+            '03',
+            '04',
+            '05',
+            '06',
+            '07',
+            '08',
+            '09',
+            '10',
+            '11',
+            '12',
+        ];
+        // 构建图表数据
+        const dates = allMonths.map((month) => month + '月');
+        const values = allMonths.map((month) => {
+            if (monthlyData[month]) {
+                // 如果有该月的数据，则计算平均值
+                return monthlyData[month].totalCompleted;
+            }
+            return 0; // 没有数据则返回0
+        });
+        const completionRates = allMonths.map((month) => {
+            if (monthlyData[month] && monthlyData[month].count > 0) {
+                // 计算该月的平均完成率
+                return Math.round(monthlyData[month].completionRate / monthlyData[month].count);
+            }
+            return 0; // 没有数据则返回0
+        });
+        console.log('年视图处理后的数据:', { dates, values, completionRates });
+        // 更新图表数据
         this.setData({
-            'chartData.dates': formattedDates,
-            'chartData.values': values,
-            'chartData.completionRates': completionRates
-        }, () => {
-            // 数据设置完成后绘制图表
-            this.drawCharts();
+            chartData: {
+                dates,
+                values,
+                completionRates,
+            },
+            chartLoading: false,
         });
+        // 绘制图表
+        setTimeout(() => {
+            this.drawCharts();
+        }, 300);
     },
     /**
      * 切换标签
      */
     switchTab(e) {
         const tab = e.currentTarget.dataset.tab;
-        this.setData({ activeTab: tab });
+        this.setData({ activeTab: tab }, () => {
+            // 当切换到总览标签时，重新绘制图表
+            if (tab === 'overview') {
+                this.setData({ chartLoading: true }); // 显示图表加载状态
+                setTimeout(() => {
+                    this.drawCharts(); // 延迟执行以确保视图已更新
+                }, 100);
+            }
+        });
     },
     /**
      * 处理Tab组件的标签变化
@@ -525,21 +495,62 @@ Page({
                 activeTab = 'overview';
         }
         console.log('Tab切换到:', activeTab, '索引:', index);
+        // 先设置标签，再处理图表
         this.setData({
             tabIndex: index,
-            activeTab: activeTab
+            activeTab: activeTab,
+            // 只有在切换到总览时才设置图表加载状态
+            chartLoading: activeTab === 'overview',
+        }, () => {
+            // 使用setTimeout避免在当前事件循环中更新状态和绘制图表
+            setTimeout(() => {
+                // 当切换到总览标签时，重新绘制图表
+                if (activeTab === 'overview') {
+                    try {
+                        console.log('切换到总览标签，重新绘制图表');
+                        // 检查图表数据是否有效
+                        if (this.data.chartData &&
+                            Array.isArray(this.data.chartData.dates) &&
+                            this.data.chartData.dates.length > 0) {
+                            this.drawCharts();
+                        }
+                        else {
+                            console.log('无图表数据，绘制空图表');
+                            // 如果没有数据，绘制空图表
+                            this.drawEmptyCharts();
+                        }
+                    }
+                    catch (error) {
+                        console.error('绘制图表失败:', error);
+                        this.drawEmptyCharts();
+                    }
+                    finally {
+                        // 确保关闭加载状态
+                        setTimeout(() => {
+                            this.setData({ chartLoading: false });
+                        }, 300);
+                    }
+                }
+                // 切换到日历标签时更新日历
+                if (activeTab === 'calendar') {
+                    this.updateCalendar();
+                }
+            }, 200);
         });
-        // 切换到日历标签时更新日历
-        if (activeTab === 'calendar') {
-            this.updateCalendar();
-        }
     },
     /**
      * 切换时间范围
      */
     switchTimeRange(e) {
         const range = e.currentTarget.dataset.range;
-        this.setData({ timeRange: range }, () => {
+        // 避免重复加载相同时间范围
+        if (this.data.timeRange === range) {
+            return;
+        }
+        this.setData({
+            timeRange: range,
+            chartLoading: true, // 显示图表加载状态
+        }, () => {
             // 重新加载数据
             this.loadData();
         });
@@ -550,24 +561,24 @@ Page({
     viewHabitDetail(e) {
         const habitId = e.currentTarget.dataset.id;
         wx.navigateTo({
-            url: `/pages/habits/detail/detail?id=${habitId}`
+            url: `/pages/habits/detail/detail?id=${habitId}`,
         });
     },
     /**
      * 生成报告
      */
     generateReport() {
-        wx.showLoading({
-            title: '生成报告中'
+        wx.navigateTo({
+            url: `/pages/analytics/report/report`,
         });
-        setTimeout(() => {
-            wx.hideLoading();
-            wx.showModal({
-                title: '报告已生成',
-                content: '您的习惯分析报告已生成，可以在"我的-报告"中查看',
-                showCancel: false
-            });
-        }, 1500);
+    },
+    /**
+     * 跳转到习惯洞察页面
+     */
+    navigateToInsights() {
+        wx.navigateTo({
+            url: '/pages/analytics/insights/insights',
+        });
     },
     /**
      * 用户点击右上角分享
@@ -576,16 +587,8 @@ Page({
         return {
             title: '我的习惯分析报告',
             path: '/pages/analytics/analytics',
-            imageUrl: '/images/share-analytics.png'
+            imageUrl: '/images/share-analytics.png',
         };
-    },
-    /**
-     * 跳转到习惯洞察页面
-     */
-    navigateToInsights() {
-        wx.navigateTo({
-            url: '/packageAnalytics/pages/insights/insights'
-        });
     },
     /**
      * 更新日历
@@ -611,7 +614,7 @@ Page({
                 day,
                 isCurrentMonth: false,
                 isCompleted: this.isDateCompleted(date),
-                isToday: this.isToday(date)
+                isToday: this.isToday(date),
             });
         }
         // 当月的日期
@@ -622,7 +625,7 @@ Page({
                 day: i,
                 isCurrentMonth: true,
                 isCompleted: this.isDateCompleted(date),
-                isToday: this.isToday(date)
+                isToday: this.isToday(date),
             });
         }
         // 下个月的日期
@@ -634,20 +637,70 @@ Page({
                 day: i,
                 isCurrentMonth: false,
                 isCompleted: this.isDateCompleted(date),
-                isToday: this.isToday(date)
+                isToday: this.isToday(date),
             });
         }
         this.setData({
             calendarTitle,
-            calendarDays
+            calendarDays,
         });
     },
     /**
      * 检查日期是否已完成打卡
      */
     isDateCompleted(date) {
-        // 使用页面中存储的打卡记录来判断日期是否已完成
-        return this.data.checkins.some(checkin => checkin.date === date && checkin.isCompleted);
+        // 使用页面中存储的打卡记录和习惯数据来判断日期是否已完成
+        const habitsMap = this.data.habitsMap;
+        const habits = Object.values(habitsMap);
+        return this.isDateFullyCompleted(date, habits, this.data.checkins);
+    },
+    /**
+     * 检查特定日期是否所有习惯都已完成
+     * @param date 日期字符串
+     * @param habits 习惯列表
+     * @param checkins 打卡记录列表
+     */
+    isDateFullyCompleted(date, habits, checkins) {
+        // 如果没有习惯或打卡记录，直接返回false
+        if (!habits || habits.length === 0)
+            return false;
+        if (!checkins || checkins.length === 0)
+            return false;
+        // 筛选出指定日期应该执行的习惯
+        const habitsForDate = habits.filter((habit) => {
+            // 检查习惯是否在指定日期应该执行
+            // 需要确保习惯在日期之前创建
+            const habitCreatedAt = new Date(habit.createdAt);
+            const targetDate = new Date(date);
+            if (habitCreatedAt > targetDate)
+                return false;
+            // 已归档的习惯不计入
+            if (habit.isArchived)
+                return false;
+            // 根据习惯频率判断是否应该在该日期执行
+            // 这里简化处理，假设所有习惯都是每天执行
+            return true;
+        });
+        // 如果没有应该执行的习惯，直接返回false
+        if (habitsForDate.length === 0)
+            return false;
+        // 筛选出指定日期的打卡记录
+        const checkinsForDate = checkins.filter((checkin) => checkin.date === date);
+        // 检查每个习惯是否都有完成的打卡记录
+        const completedHabits = habitsForDate.filter((habit) => {
+            // 获取习惯ID，支持多种属性名
+            const habitId = typeof habit === 'object' ? habit.id || habit._id || '' : '';
+            // 检查是否有该习惯的完成打卡记录
+            return checkinsForDate.some((checkin) => {
+                const checkinHabitId = checkin.habitId ||
+                    (checkin.habit && typeof checkin.habit === 'object'
+                        ? checkin.habit.id || checkin.habit._id || ''
+                        : '');
+                return checkinHabitId === habitId && checkin.isCompleted;
+            });
+        });
+        // 所有习惯都有完成的打卡记录才算完成
+        return completedHabits.length === habitsForDate.length;
     },
     /**
      * 检查是否是今天
@@ -677,7 +730,7 @@ Page({
         }
         this.setData({
             calendarYear,
-            calendarMonth
+            calendarMonth,
         }, () => {
             this.updateCalendar();
         });
@@ -689,7 +742,7 @@ Page({
         const { date } = e.currentTarget.dataset;
         wx.showToast({
             title: `查看${date}的记录`,
-            icon: 'none'
+            icon: 'none',
         });
         // 实际项目中可以跳转到日期详情页
         // wx.navigateTo({
@@ -701,8 +754,7 @@ Page({
      */
     drawCharts() {
         try {
-            const { chartData } = this.data;
-            
+            const { chartData, timeRange } = this.data;
             // 确保有数据可以绘制
             if (!chartData.dates || chartData.dates.length === 0) {
                 console.log('没有图表数据可绘制');
@@ -710,153 +762,317 @@ Page({
                 this.drawEmptyCharts();
                 return;
             }
-            
             console.log('开始绘制图表，数据:', chartData);
-            
+            // 设置图表的公共配置
+            const chartConfig = {
+                width: 320,
+                height: 200,
+                color: '#4F7CFF',
+                xAxisRotate: 0,
+                pointShape: true,
+                displayDates: [...chartData.dates],
+            };
+            // 根据时间范围调整配置
+            if (timeRange === 'month') {
+                // 月视图每4天显示一个标签
+                chartConfig.displayDates = chartData.dates.map((date, index) => {
+                    return index % 4 === 0 ? date : '';
+                });
+                chartConfig.xAxisRotate = 45; // 月视图旋转X轴标签
+                chartConfig.pointShape = false; // 不显示点
+            }
+            else if (timeRange === 'year') {
+                // 年视图下，displayDates已经在generateYearChartData中正确设置为月份标签
+                chartConfig.xAxisRotate = 0; // 年视图不需要旋转标签
+                chartConfig.pointShape = false; // 不显示点
+            }
+            try {
+                // 先清除可能存在的旧图表，避免内存泄漏
+                wx.createCanvasContext('completionChart').draw();
+                wx.createCanvasContext('checkinsChart').draw();
+            }
+            catch (e) {
+                console.log('清除旧图表失败:', e);
+            }
             // 绘制完成率趋势图表
             new wxCharts({
                 canvasId: 'completionChart',
                 type: 'line',
-                categories: chartData.dates,
-                series: [{
-                    name: '完成率',
-                    data: chartData.completionRates,
-                    format: function(val) {
-                        return val.toFixed(0) + '%';
-                    }
-                }],
+                categories: chartConfig.displayDates,
+                series: [
+                    {
+                        name: '完成率',
+                        data: chartData.completionRates,
+                        format: function (val) {
+                            return val.toFixed(0) + '%';
+                        },
+                        color: chartConfig.color, // 确保颜色是蓝色
+                    },
+                ],
                 yAxis: {
-                    title: '完成率(%)',
+                    title: '',
                     min: 0,
                     max: 100,
-                    format: function(val) {
+                    format: function (val) {
                         return val.toFixed(0) + '%';
-                    }
-                },
-                width: 320,
-                height: 200,
-                dataLabel: false, // 关闭数据标签避免重叠
-                legend: false,
-                extra: {
-                    lineStyle: 'curve', // 使用曲线而非折线
-                    pointShape: true    // 显示数据点
-                }
-            });
-            
-            // 绘制打卡次数图表
-            new wxCharts({
-                canvasId: 'checkinsChart',
-                type: 'column',
-                categories: chartData.dates,
-                series: [{
-                    name: '打卡次数',
-                    data: chartData.values,
-                    format: function(val) {
-                        // 确保只显示整数
-                        return Math.round(val);
-                    }
-                }],
-                yAxis: {
-                    title: '次数',
-                    min: 0,
-                    // 设置步长为1，确保只显示整数
-                    format: function(val) {
-                        return Math.round(val);
                     },
-                    // 只显示整数刻度
-                    splitNumber: Math.max(1, Math.ceil(Math.max(...chartData.values))),
-                    disableGrid: false
+                    fontColor: '#909399',
+                    titleFontColor: '#909399',
+                    disabled: false,
+                    gridColor: '#E4E7ED',
+                    titleFontSize: 10,
+                    fontWeight: 'normal',
+                    padding: 30,
+                    splitNumber: 5, // 将Y轴分为5个等分
                 },
-                width: 320,
-                height: 200,
-                dataLabel: true,
+                xAxis: {
+                    fontColor: '#909399',
+                    rotate: chartConfig.xAxisRotate,
+                    itemCount: timeRange === 'year' ? 12 : timeRange === 'month' ? 8 : 7,
+                    boundaryGap: true,
+                    disableGrid: true, // 禁用X轴网格线以减少视觉干扰
+                },
+                width: chartConfig.width,
+                height: chartConfig.height,
+                dataLabel: timeRange === 'week',
                 legend: false,
                 extra: {
-                    column: {
-                        width: 20 // 设置柱状图宽度，避免过宽
-                    }
-                }
+                    lineStyle: 'curve',
+                    yAxis: {
+                        gridType: 'dash',
+                        dashLength: 4, // 虚线长度
+                    },
+                    point: {
+                        display: chartConfig.pointShape, // 控制是否显示数据点
+                    },
+                },
             });
-            
+            // 计算打卡次数图表的最大值，确保至少为1
+            const maxValue = Math.max(...chartData.values, 1);
+            console.log('打卡次数最大值:', maxValue);
+            // 创建Y轴刻度数组
+            const yAxisMax = maxValue < 5 ? 5 : Math.ceil(maxValue * 1.2); // 为数据留出一些空间
+            const yAxisItems = [];
+            // 如果最大值小于5，使用0-5的固定刻度
+            if (maxValue < 5) {
+                for (let i = 0; i <= 5; i++) {
+                    yAxisItems.push(i);
+                }
+            }
+            else {
+                // 计算合适的步长
+                const step = this.calculateYAxisStep(maxValue);
+                for (let i = 0; i <= yAxisMax; i += step) {
+                    yAxisItems.push(i);
+                }
+            }
+            console.log('打卡次数Y轴刻度:', yAxisItems);
+            // 绘制打卡次数图表
+            setTimeout(() => {
+                try {
+                    new wxCharts({
+                        canvasId: 'checkinsChart',
+                        type: 'column',
+                        categories: chartConfig.displayDates,
+                        series: [
+                            {
+                                name: '打卡次数',
+                                data: chartData.values,
+                                format: function (val) {
+                                    return Math.round(val); // 确保打卡次数显示为整数
+                                },
+                                color: chartConfig.color, // 使用蓝色，与完成率图表保持一致
+                            },
+                        ],
+                        yAxis: {
+                            title: '',
+                            min: 0,
+                            max: yAxisMax,
+                            format: function (val) {
+                                return Math.round(val); // 确保Y轴刻度显示为整数
+                            },
+                            fontColor: '#909399',
+                            titleFontColor: '#909399',
+                            disabled: false,
+                            gridColor: '#E4E7ED',
+                            fontWeight: 'normal',
+                            padding: 30,
+                            items: yAxisItems, // 自定义Y轴刻度值
+                        },
+                        xAxis: {
+                            fontColor: '#909399',
+                            rotate: chartConfig.xAxisRotate,
+                            itemCount: timeRange === 'year' ? 12 : timeRange === 'month' ? 8 : 7,
+                            boundaryGap: true,
+                            disableGrid: true, // 禁用X轴网格线以减少视觉干扰
+                        },
+                        width: chartConfig.width,
+                        height: chartConfig.height,
+                        dataLabel: timeRange === 'week',
+                        legend: false,
+                        extra: {
+                            column: {
+                                width: timeRange === 'year' ? 20 : timeRange === 'month' ? 10 : 15, // 根据时间范围调整柱形宽度
+                            },
+                            yAxis: {
+                                gridType: 'dash',
+                                dashLength: 4, // 虚线长度
+                            },
+                        },
+                    });
+                }
+                catch (error) {
+                    console.error('绘制打卡次数图表失败:', error);
+                }
+                // 图表绘制完成后，设置加载状态为false
+                setTimeout(() => {
+                    this.setData({ chartLoading: false });
+                }, 100); // 给一点延迟，让用户能够看到加载动画
+            }, 50); // 稍微延迟绘制第二个图表，避免冲突
             console.log('图表绘制完成');
-        } catch (error) {
-            console.error('绘制图表失败:', error);
         }
+        catch (error) {
+            console.error('绘制图表失败:', error);
+            this.drawEmptyCharts(); // 出错时绘制空图表
+            this.setData({ chartLoading: false }); // 出错时也要关闭加载状态
+        }
+    },
+    /**
+     * 计算合适的Y轴步长
+     */
+    calculateYAxisStep(maxValue) {
+        if (maxValue <= 5)
+            return 1; // 如果最大值小于等于5，步长为1
+        if (maxValue <= 10)
+            return 2; // 如果最大值小于等于10，步长为2
+        if (maxValue <= 20)
+            return 4; // 如果最大值小于等于20，步长为4
+        if (maxValue <= 50)
+            return 10; // 如果最大值小于等于50，步长为10
+        return Math.ceil(maxValue / 5); // 其他情况下，大致分5个刻度
     },
     /**
      * 绘制空图表（无数据时）
      */
     drawEmptyCharts() {
         try {
-            const wxCharts = require('../../utils/wxcharts');
             // 创建默认日期和数据
             const dates = ['周一', '周二', '周三', '周四', '周五', '周六', '周日'];
             const values = [0, 0, 0, 0, 0, 0, 0];
-            
+            const chartColor = '#4F7CFF';
+            try {
+                // 先清除可能存在的旧图表
+                wx.createCanvasContext('completionChart').draw();
+                wx.createCanvasContext('checkinsChart').draw();
+            }
+            catch (e) {
+                console.log('清除旧图表失败:', e);
+            }
             // 绘制完成率趋势图表
             new wxCharts({
                 canvasId: 'completionChart',
                 type: 'line',
                 categories: dates,
-                series: [{
-                    name: '完成率',
-                    data: values,
-                    format: function(val) {
-                        return val.toFixed(0) + '%';
-                    }
-                }],
+                series: [
+                    {
+                        name: '完成率',
+                        data: values,
+                        format: function (val) {
+                            return val.toFixed(0) + '%';
+                        },
+                        color: chartColor, // 确保颜色是蓝色
+                    },
+                ],
                 yAxis: {
-                    title: '完成率(%)',
+                    title: '',
                     min: 0,
                     max: 100,
-                    format: function(val) {
+                    format: function (val) {
                         return val.toFixed(0) + '%';
-                    }
-                },
-                width: 320,
-                height: 200,
-                dataLabel: false,
-                legend: false,
-                extra: {
-                    lineStyle: 'curve'
-                }
-            });
-            
-            // 绘制打卡次数图表
-            new wxCharts({
-                canvasId: 'checkinsChart',
-                type: 'column',
-                categories: dates,
-                series: [{
-                    name: '打卡次数',
-                    data: values,
-                    format: function(val) {
-                        return Math.round(val);
-                    }
-                }],
-                yAxis: {
-                    title: '次数',
-                    min: 0,
-                    max: 5,
-                    format: function(val) {
-                        return Math.round(val);
                     },
-                    splitNumber: 5
+                    fontColor: '#909399',
+                    titleFontColor: '#909399',
+                    disabled: false,
+                    gridColor: '#E4E7ED',
+                    titleFontSize: 10,
+                    fontWeight: 'normal',
+                    padding: 30,
+                    splitNumber: 5, // 将Y轴分为5个等分
                 },
                 width: 320,
                 height: 200,
                 dataLabel: false,
                 legend: false,
                 extra: {
-                    column: {
-                        width: 20
-                    }
-                }
+                    lineStyle: 'curve',
+                    yAxis: {
+                        gridType: 'dash',
+                        dashLength: 4, // 虚线长度
+                    },
+                },
             });
-            
+            // 稍微延迟绘制第二个图表
+            setTimeout(() => {
+                try {
+                    // 绘制打卡次数图表
+                    new wxCharts({
+                        canvasId: 'checkinsChart',
+                        type: 'column',
+                        categories: dates,
+                        series: [
+                            {
+                                name: '打卡次数',
+                                data: values,
+                                format: function (val) {
+                                    return Math.round(val); // 确保打卡次数显示为整数
+                                },
+                                color: chartColor, // 使用蓝色，与完成率图表保持一致
+                            },
+                        ],
+                        yAxis: {
+                            title: '',
+                            min: 0,
+                            max: 5,
+                            format: function (val) {
+                                return Math.round(val); // 确保Y轴刻度显示为整数
+                            },
+                            fontColor: '#909399',
+                            titleFontColor: '#909399',
+                            disabled: false,
+                            gridColor: '#E4E7ED',
+                            titleFontSize: 10,
+                            fontWeight: 'normal',
+                            padding: 30,
+                            items: [0, 1, 2, 3, 4, 5], // 自定义Y轴刻度值，明确指定值
+                        },
+                        width: 320,
+                        height: 200,
+                        dataLabel: false,
+                        legend: false,
+                        extra: {
+                            column: {
+                                width: 15, // 调整柱形宽度
+                            },
+                            yAxis: {
+                                gridType: 'dash',
+                                dashLength: 4, // 虚线长度
+                            },
+                        },
+                    });
+                }
+                catch (error) {
+                    console.error('绘制空打卡次数图表失败:', error);
+                }
+            }, 50);
             console.log('空图表绘制完成');
-        } catch (error) {
+            // 图表绘制完成后，设置加载状态为false
+            setTimeout(() => {
+                this.setData({ chartLoading: false });
+            }, 300); // 给一点延迟，让用户能够看到加载动画
+        }
+        catch (error) {
             console.error('绘制空图表失败:', error);
+            this.setData({ chartLoading: false }); // 出错时也要关闭加载状态
         }
     },
     /**
@@ -868,5 +1084,14 @@ Page({
         if (longestStreak <= 0)
             return '0%'; // 避免除以零
         return Math.min(100, (currentStreak / longestStreak) * 100) + '%';
-    }
+    },
+    /**
+     * 登录方法
+     */
+    login() {
+        // 跳转到登录页面
+        wx.navigateTo({
+            url: '/pages/login/login'
+        });
+    },
 });

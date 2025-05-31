@@ -482,7 +482,6 @@
   flex: 1;
   margin: 0 20rpx;
   height: 80rpx;
-  line-height: 80rpx;
   border-radius: 40rpx;
   font-size: 28rpx;
   border: none;

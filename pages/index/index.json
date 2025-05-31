@@ -1,7 +1,9 @@
 {
-  "navigationBarTitleText": "习惯打卡",
+  "navigationBarTitleText": "首页",
   "usingComponents": {
     "habit-card": "/components/habit-card/habit-card",
+    "empty-state": "/components/empty-state/empty-state",
+    "login-modal": "/components/login-modal/login-modal",
     "achievement-unlock": "/components/achievement-unlock/achievement-unlock",
     "fab-button": "/components/fab-button/fab-button"
   }

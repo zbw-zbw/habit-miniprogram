@@ -203,7 +203,7 @@ export const communityAPI = {
    * @returns Promise<{groups: IGroup[], pagination: any}>
    */
   getGroups: (params?: { page?: number; limit?: number; type?: string; keyword?: string }): Promise<{groups: any[], pagination: any}> => {
-    return get('/api/community/groups', params);
+    return get('/api/groups', params);
   },
 
   /**
@@ -212,7 +212,7 @@ export const communityAPI = {
    * @returns Promise<IGroup>
    */
   getGroup: (id: string): Promise<any> => {
-    return get(`/api/community/groups/${id}`);
+    return get(`/api/groups/${id}`);
   },
 
   /**
@@ -221,7 +221,7 @@ export const communityAPI = {
    * @returns Promise<{success: boolean}>
    */
   joinGroup: (id: string): Promise<{success: boolean}> => {
-    return post(`/api/community/groups/${id}/join`, {});
+    return post(`/api/groups/${id}/join`, {});
   },
 
   /**
@@ -230,7 +230,7 @@ export const communityAPI = {
    * @returns Promise<{success: boolean}>
    */
   leaveGroup: (id: string): Promise<{success: boolean}> => {
-    return post(`/api/community/groups/${id}/leave`, {});
+    return post(`/api/groups/${id}/leave`, {});
   },
 
   /**
@@ -246,7 +246,7 @@ export const communityAPI = {
     avatar?: string;
     coverImage?: string;
   }): Promise<any> => {
-    return post('/api/community/groups', data);
+    return post('/api/groups', data);
   },
 
   /**
