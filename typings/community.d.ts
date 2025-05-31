@@ -69,4 +69,31 @@ interface INotification {
   targetType: 'post' | 'challenge' | 'user' | 'system';
   createdAt: string;
   isRead: boolean;
+}
+
+/**
+ * 小组
+ */
+interface IGroup {
+  id: string;
+  name: string;
+  avatar: string;
+  coverImage: string;
+  description: string;
+  membersCount: number;
+  isJoined: boolean;
+  createdAt: string;
+  createdBy: string;
+  tags?: string[];
+  isPrivate?: boolean;
+}
+
+/**
+ * 分页信息
+ */
+interface IPagination {
+  total: number;
+  page: number;
+  limit: number;
+  pages: number;
 } 

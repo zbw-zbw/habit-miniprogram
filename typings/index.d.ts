@@ -1,4 +1,8 @@
 /// <reference path="../node_modules/miniprogram-api-typings/index.d.ts" />
+/// <reference path="./user.d.ts" />
+/// <reference path="./habit.d.ts" />
+/// <reference path="./checkin.d.ts" />
+/// <reference path="./community.d.ts" />
 
 /**
  * 全局类型定义
@@ -27,6 +31,8 @@ interface IAppOption {
   onAchievementUnlocked(achievement: IAchievement): void;
   showAchievementUnlockNotification(achievement: IAchievement): void;
   onThemeChange?(callback: (theme: 'light' | 'dark' | 'system') => void): void;
+  onLoginStateChange?(callback: (loginState: { userInfo: IUserInfo | null, hasLogin: boolean }) => void): void; // 登录状态变化监听
+  notifyLoginStateChanged?(): void; // 通知登录状态变化
   checkApiAvailability?(): void; // 检查API服务可用性
   showApiUnavailableMessage?(): void; // 显示API服务不可用提示
   clearAuthData?(): void; // 清除认证数据
