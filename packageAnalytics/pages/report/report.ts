@@ -92,44 +92,32 @@ Page<IPageData, IPageMethods>({
   loadData() {
     this.setData({ loading: true });
     
-    // 使用API获取月度报告数据
-    const today = new Date();
-    const month = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}`;
-    
-    analyticsAPI.getMonthlyReport({ month })
-      .then(report => {
-        console.log('获取到月度报告数据:', report);
-        
-        // 直接使用API返回的报告数据
+    // 使用API获取报告数据
+    analyticsAPI.getReport()
+      .then(reportData => {
         this.setData({
-          reportData: report,
+          reportData,
           loading: false
         });
       })
       .catch(error => {
-        console.error('获取月度报告数据失败:', error);
+        console.error('获取报告数据失败:', error);
         
-        // API获取失败，回退到本地数据生成
+        // 如果API失败，回退到本地数据生成
         Promise.all([
           habitAPI.getHabits(),
           checkinAPI.getCheckins()
         ])
           .then(([habits, checkins]) => {
-            console.log('回退到本地数据生成报告');
-            // 生成报告
             this.generateReport(habits, checkins);
             this.setData({ loading: false });
           })
           .catch(err => {
-            console.error('回退到本地数据也失败:', err);
-            // 完全失败，尝试使用本地存储
-            const habits = getHabits();
-            const checkins = getCheckins();
-            this.generateReport(habits, checkins);
+            console.error('加载本地数据失败:', err);
             this.setData({ loading: false });
             
             wx.showToast({
-              title: '获取数据失败，使用本地数据',
+              title: '加载数据失败',
               icon: 'none'
             });
           });

@@ -1,521 +1,521 @@
-// packageAnalytics/pages/detail/detail.js
-
-const { getHabit, getCheckinsByHabitId, formatDate, getPastDates } = require('../../../utils/storage');
-const { shouldDoHabitOnDate, generateHabitStats } = require('../../../utils/habit');
-const { formatDate: formatDateUtil } = require('../../../utils/date');
-
-// 引入图表绘制工具
-let wxCharts;
-// 判断是否引入成功
-try {
-  wxCharts = require('../../../utils/wxcharts.js');
-} catch (e) {
-  console.error('wxcharts.js 未找到，图表功能将不可用');
-}
-
+"use strict";
+/**
+ * 习惯分析详情页面
+ * 提供单个习惯的详细分析报告
+ */
+Object.defineProperty(exports, "__esModule", { value: true });
+const api_1 = require("../../../services/api");
+const habit_1 = require("../../../utils/habit");
+const date_1 = require("../../../utils/date");
 Page({
-
-  /**
-   * 页面的初始数据
-   */
-  data: {
-    habitId: '',
-    loading: true,
-    timeRange: 'week', // 'week', 'month', 'year'
-    habitData: {
-      id: '',
-      name: '',
-      category: '',
-      color: '#4F7CFF',
-      icon: 'habit',
-      createdAt: '',
-      stats: {
-        completionRate: 0,
-        currentStreak: 0,
-        longestStreak: 0,
-        totalCheckins: 0
-      },
-      patterns: {
-        bestTime: '',
-        bestDay: '',
-        longestStreakDate: ''
-      },
-      suggestions: []
-    },
-    calendarData: {
-      year: 2023,
-      month: 10,
-      days: []
-    }
-  },
-
-  /**
-   * 生命周期函数--监听页面加载
-   */
-  onLoad(options) {
-    if (options.id) {
-      this.setData({ habitId: options.id });
-      this.loadHabitData(options.id);
-    } else {
-      wx.showToast({
-        title: '未找到习惯信息',
-        icon: 'none'
-      });
-      setTimeout(() => {
-        wx.navigateBack();
-      }, 1500);
-    }
-  },
-
-  /**
-   * 加载习惯数据
-   */
-  loadHabitData(habitId) {
-    this.setData({ loading: true });
-
-    // 获取习惯信息
-    const habit = getHabit(habitId);
-    if (!habit) {
-      wx.showToast({
-        title: '未找到习惯信息',
-        icon: 'none'
-      });
-      setTimeout(() => {
-        wx.navigateBack();
-      }, 1500);
-      return;
-    }
-
-    // 获取习惯打卡记录
-    const checkins = getCheckinsByHabitId(habitId);
-    
-    // 计算习惯统计数据
-    const stats = generateHabitStats(habit, checkins);
-    
-    // 分析习惯模式
-    const patterns = this.analyzeHabitPatterns(habit, checkins);
-    
-    // 生成个性化建议
-    const suggestions = this.generateSuggestions(habit, stats, patterns);
-    
-    // 更新习惯数据
-    this.setData({
-      'habitData.id': habit.id,
-      'habitData.name': habit.name,
-      'habitData.category': habit.category,
-      'habitData.color': habit.color || '#4F7CFF',
-      'habitData.icon': habit.icon || 'habit',
-      'habitData.createdAt': formatDateUtil(new Date(habit.createdAt)),
-      'habitData.stats': stats,
-      'habitData.patterns': patterns,
-      'habitData.suggestions': suggestions,
-      loading: false
-    });
-    
-    // 初始化日历
-    this.initCalendar();
-    
-    // 生成图表
-    this.generateChart();
-  },
-
-  /**
-   * 分析习惯模式
-   */
-  analyzeHabitPatterns(habit, checkins) {
-    // 初始化模式数据
-    const patterns = {
-      bestTime: '',
-      bestDay: '',
-      longestStreakDate: ''
-    };
-    
-    if (checkins.length === 0) {
-      return patterns;
-    }
-    
-    // 分析最佳时段
-    const timeDistribution = {};
-    checkins.forEach(checkin => {
-      if (!checkin.isCompleted || !checkin.time) return;
-      
-      // 简化时段划分，按小时
-      const hour = new Date(checkin.time).getHours();
-      let timeSlot = '';
-      
-      if (hour >= 5 && hour < 9) {
-        timeSlot = '早晨 (5:00-9:00)';
-      } else if (hour >= 9 && hour < 12) {
-        timeSlot = '上午 (9:00-12:00)';
-      } else if (hour >= 12 && hour < 14) {
-        timeSlot = '中午 (12:00-14:00)';
-      } else if (hour >= 14 && hour < 18) {
-        timeSlot = '下午 (14:00-18:00)';
-      } else if (hour >= 18 && hour < 22) {
-        timeSlot = '晚上 (18:00-22:00)';
-      } else {
-        timeSlot = '深夜 (22:00-5:00)';
-      }
-      
-      timeDistribution[timeSlot] = (timeDistribution[timeSlot] || 0) + 1;
-    });
-    
-    // 找出最佳时段
-    let bestTime = '';
-    let maxCount = 0;
-    
-    for (const time in timeDistribution) {
-      if (timeDistribution[time] > maxCount) {
-        bestTime = time;
-        maxCount = timeDistribution[time];
-      }
-    }
-    
-    patterns.bestTime = bestTime || '暂无数据';
-    
-    // 分析最佳日期
-    const dayDistribution = {
-      '周一': 0, '周二': 0, '周三': 0, '周四': 0, '周五': 0, '周六': 0, '周日': 0
-    };
-    
-    const dayNames = ['周日', '周一', '周二', '周三', '周四', '周五', '周六'];
-    
-    checkins.forEach(checkin => {
-      if (!checkin.isCompleted || !checkin.date) return;
-      
-      const date = new Date(checkin.date.replace(/-/g, '/'));
-      const day = dayNames[date.getDay()];
-      
-      dayDistribution[day] = (dayDistribution[day] || 0) + 1;
-    });
-    
-    // 找出最佳日期
-    let bestDay = '';
-    maxCount = 0;
-    
-    for (const day in dayDistribution) {
-      if (dayDistribution[day] > maxCount) {
-        bestDay = day;
-        maxCount = dayDistribution[day];
-      }
-    }
-    
-    patterns.bestDay = bestDay || '暂无数据';
-    
-    // 最长连续日期
-    if (habit.stats && habit.stats.longestStreakStart) {
-      patterns.longestStreakDate = formatDateUtil(new Date(habit.stats.longestStreakStart));
-    } else {
-      patterns.longestStreakDate = '暂无数据';
-    }
-    
-    return patterns;
-  },
-
-  /**
-   * 生成个性化建议
-   */
-  generateSuggestions(habit, stats, patterns) {
-    const suggestions = [];
-    
-    // 根据完成率生成建议
-    if (stats.completionRate < 30) {
-      suggestions.push('完成率较低，建议降低难度或调整目标，让习惯更容易坚持。');
-    } else if (stats.completionRate < 70) {
-      suggestions.push('完成率一般，可以尝试设置提醒或与朋友一起打卡，增加坚持动力。');
-    } else {
-      suggestions.push('完成率很高，可以考虑适当提高难度或设置新的挑战。');
-    }
-    
-    // 根据连续天数生成建议
-    if (stats.currentStreak === 0) {
-      suggestions.push('当前连续打卡中断，不要气馁，重新开始并记录感受，找到中断原因。');
-    } else if (stats.currentStreak < 7) {
-      suggestions.push(`已连续打卡${stats.currentStreak}天，坚持到7天是形成习惯的第一步。`);
-    } else if (stats.currentStreak < 21) {
-      suggestions.push(`已连续打卡${stats.currentStreak}天，坚持到21天习惯将更加稳固。`);
-    } else if (stats.currentStreak < 66) {
-      suggestions.push(`已连续打卡${stats.currentStreak}天，坚持到66天习惯将成为自然行为。`);
-    } else {
-      suggestions.push(`已连续打卡${stats.currentStreak}天，太棒了！习惯已经成为你生活的一部分。`);
-    }
-    
-    // 根据最佳时段生成建议
-    if (patterns.bestTime && patterns.bestTime !== '暂无数据') {
-      suggestions.push(`你在${patterns.bestTime}完成习惯的频率最高，建议固定在这个时段执行，提高成功率。`);
-    }
-    
-    return suggestions;
-  },
-
-  /**
-   * 初始化日历
-   */
-  initCalendar() {
-    const now = new Date();
-    const year = now.getFullYear();
-    const month = now.getMonth() + 1;
-    
-    this.generateCalendarDays(year, month);
-  },
-
-  /**
-   * 生成日历数据
-   */
-  generateCalendarDays(year, month) {
-    // 获取当月第一天是周几（0-6，0是周日）
-    const firstDay = new Date(year, month - 1, 1).getDay();
-    // 调整为周一为一周的第一天（0-6，0是周一）
-    const firstDayAdjusted = firstDay === 0 ? 6 : firstDay - 1;
-    
-    // 获取当月天数
-    const daysInMonth = new Date(year, month, 0).getDate();
-    
-    // 获取上个月的天数
-    const daysInPrevMonth = new Date(year, month - 1, 0).getDate();
-    
-    // 获取习惯打卡记录
-    const checkins = getCheckinsByHabitId(this.data.habitId);
-    
-    // 生成日历数据
-    const days = [];
-    
-    // 上个月的日期
-    for (let i = 0; i < firstDayAdjusted; i++) {
-      const day = daysInPrevMonth - firstDayAdjusted + i + 1;
-      const date = `${year}-${month > 1 ? month - 1 : 12}-${day < 10 ? '0' + day : day}`;
-      
-      days.push({
-        date,
-        day,
-        isCurrentMonth: false,
-        isToday: formatDateUtil(new Date()) === date,
-        isCompleted: this.checkIsCompleted(date, checkins)
-      });
-    }
-    
-    // 当月的日期
-    for (let i = 1; i <= daysInMonth; i++) {
-      const date = `${year}-${month < 10 ? '0' + month : month}-${i < 10 ? '0' + i : i}`;
-      
-      days.push({
-        date,
-        day: i,
-        isCurrentMonth: true,
-        isToday: formatDateUtil(new Date()) === date,
-        isCompleted: this.checkIsCompleted(date, checkins)
-      });
-    }
-    
-    // 下个月的日期
-    const nextMonthDays = 42 - days.length; // 6行7列
-    for (let i = 1; i <= nextMonthDays; i++) {
-      const date = `${year}-${month < 12 ? month + 1 : 1}-${i < 10 ? '0' + i : i}`;
-      
-      days.push({
-        date,
-        day: i,
-        isCurrentMonth: false,
-        isToday: formatDateUtil(new Date()) === date,
-        isCompleted: this.checkIsCompleted(date, checkins)
-      });
-    }
-    
-    this.setData({
-      'calendarData.year': year,
-      'calendarData.month': month,
-      'calendarData.days': days
-    });
-  },
-
-  /**
-   * 检查某日是否完成打卡
-   */
-  checkIsCompleted(date, checkins) {
-    return checkins.some(checkin => checkin.date === date && checkin.isCompleted);
-  },
-
-  /**
-   * 切换月份
-   */
-  changeMonth(e) {
-    const direction = e.currentTarget.dataset.direction;
-    let { year, month } = this.data.calendarData;
-    
-    if (direction === 'prev') {
-      if (month === 1) {
-        year--;
-        month = 12;
-      } else {
-        month--;
-      }
-    } else {
-      if (month === 12) {
-        year++;
-        month = 1;
-      } else {
-        month++;
-      }
-    }
-    
-    this.generateCalendarDays(year, month);
-  },
-
-  /**
-   * 切换时间范围
-   */
-  switchTimeRange(e) {
-    const range = e.currentTarget.dataset.range;
-    this.setData({ timeRange: range }, () => {
-      this.generateChart();
-    });
-  },
-
-  /**
-   * 生成图表
-   */
-  generateChart() {
-    if (!wxCharts) {
-      console.error('wxCharts未加载，无法绘制图表');
-      return;
-    }
-    
-    const { timeRange, habitId } = this.data;
-    const checkins = getCheckinsByHabitId(habitId);
-    
-    // 根据时间范围确定数据点数量
-    let days = 7;
-    switch (timeRange) {
-      case 'week':
-        days = 7;
-        break;
-      case 'month':
-        days = 30;
-        break;
-      case 'year':
-        days = 365;
-        break;
-    }
-    
-    // 获取过去n天的日期
-    const dates = getPastDates(days);
-    
-    // 计算每天的完成情况
-    const completionData = dates.map(date => {
-      const checkin = checkins.find(c => c.date === date);
-      return checkin && checkin.isCompleted ? 1 : 0;
-    });
-    
-    // 计算7天移动平均完成率
-    const movingAverage = [];
-    for (let i = 0; i < completionData.length; i++) {
-      if (i < 6) {
-        // 不足7天的数据点，使用当前所有数据的平均值
-        const sum = completionData.slice(0, i + 1).reduce((a, b) => a + b, 0);
-        movingAverage.push((sum / (i + 1)) * 100);
-      } else {
-        // 7天移动平均
-        const sum = completionData.slice(i - 6, i + 1).reduce((a, b) => a + b, 0);
-        movingAverage.push((sum / 7) * 100);
-      }
-    }
-    
-    // 准备图表数据
-    const categories = dates.map(date => {
-      // 简化日期显示
-      if (timeRange === 'week') {
-        return date.substring(5); // 只显示月-日
-      } else if (timeRange === 'month') {
-        return date.substring(8); // 只显示日
-      } else {
-        return date.substring(5, 10); // 显示月-日
-      }
-    });
-    
-    // 绘制图表
-    try {
-      new wxCharts({
-        canvasId: 'completionChart',
-        type: 'line',
-        categories: categories,
-        series: [{
-          name: '完成率',
-          data: movingAverage,
-          format: function (val) {
-            return val.toFixed(0) + '%';
-          }
-        }],
-        yAxis: {
-          title: '完成率 (%)',
-          format: function (val) {
-            return val.toFixed(0);
-          },
-          min: 0,
-          max: 100
+    /**
+     * 页面的初始数据
+     */
+    data: {
+        habitId: '',
+        habit: null,
+        checkins: [],
+        loading: true,
+        error: '',
+        dateRanges: [
+            { name: '最近7天', value: 7 },
+            { name: '最近30天', value: 30 },
+            { name: '最近90天', value: 90 },
+            { name: '全部', value: 0 }
+        ],
+        selectedRange: 30,
+        stats: {
+            completionRate: 0,
+            totalCompletions: 0,
+            totalDays: 0,
+            currentStreak: 0,
+            longestStreak: 0,
+            averageStreak: 0
         },
-        width: wx.getSystemInfoSync().windowWidth - 64,
-        height: 200,
-        dataLabel: false,
-        dataPointShape: true,
-        extra: {
-          lineStyle: 'curve'
+        chartData: {
+            completion: [],
+            trend: [],
+            weekdays: []
+        },
+        detailedInsights: [],
+        recommendationCategories: [
+            { id: 'timing', name: '时间建议', icon: 'clock', tips: [] },
+            { id: 'consistency', name: '一致性建议', icon: 'calendar', tips: [] },
+            { id: 'motivation', name: '动机建议', icon: 'bulb', tips: [] },
+            { id: 'environment', name: '环境建议', icon: 'location', tips: [] }
+        ],
+        activeCategoryIndex: 0,
+        habitMilestones: []
+    },
+    /**
+     * 生命周期函数--监听页面加载
+     */
+    onLoad(options) {
+        if (options.id) {
+            this.setData({
+                habitId: options.id
+            });
+            this.loadHabitData();
         }
-      });
-    } catch (e) {
-      console.error('绘制图表失败', e);
+        else {
+            wx.showToast({
+                title: '参数错误',
+                icon: 'none'
+            });
+            setTimeout(() => {
+                wx.navigateBack();
+            }, 1500);
+        }
+    },
+    /**
+     * 加载习惯数据
+     */
+    async loadHabitData() {
+        this.setData({ loading: true, error: '' });
+        try {
+            // 获取习惯详情
+            const habit = await api_1.habitAPI.getHabit(this.data.habitId);
+            // 设置页面标题
+            wx.setNavigationBarTitle({
+                title: `${habit.name} · 分析`
+            });
+            // 获取打卡记录
+            await this.loadCheckins(habit);
+            // 更新页面数据
+            this.setData({
+                habit,
+                loading: false
+            });
+        }
+        catch (error) {
+            console.error('加载习惯数据失败:', error);
+            this.setData({
+                loading: false,
+                error: '加载数据失败，请稍后重试'
+            });
+        }
+    },
+    /**
+     * 加载打卡记录
+     */
+    async loadCheckins(habit) {
+        try {
+            // 计算日期范围
+            const endDate = (0, date_1.formatDate)(new Date());
+            let startDate = endDate;
+            if (this.data.selectedRange > 0) {
+                const startDateObj = new Date();
+                startDateObj.setDate(startDateObj.getDate() - this.data.selectedRange);
+                startDate = (0, date_1.formatDate)(startDateObj);
+            }
+            else if (habit.startDate) {
+                startDate = habit.startDate;
+            }
+            // 获取指定日期范围内的打卡记录
+            const checkins = await api_1.checkinAPI.getCheckins({
+                habitId: this.data.habitId,
+                startDate,
+                endDate
+            });
+            // 计算统计数据
+            this.calculateStats(habit, checkins, startDate, endDate);
+            // 生成图表数据
+            this.generateChartData(habit, checkins, startDate, endDate);
+            // 生成详细洞察
+            this.generateDetailedInsights(habit, checkins);
+            // 生成建议
+            this.generateRecommendations(habit, checkins);
+            // 生成里程碑
+            this.generateMilestones(habit, checkins);
+            // 更新页面数据
+            this.setData({
+                checkins,
+                loading: false
+            });
+        }
+        catch (error) {
+            console.error('加载打卡记录失败:', error);
+            this.setData({
+                loading: false,
+                error: '加载数据失败，请稍后重试'
+            });
+        }
+    },
+    /**
+     * 计算统计数据
+     */
+    calculateStats(habit, checkins, startDate, endDate) {
+        // 获取基础统计数据
+        const stats = (0, habit_1.generateHabitStats)(habit, checkins);
+        // 计算时间范围内的总天数
+        const startDateObj = new Date(startDate);
+        const endDateObj = new Date(endDate);
+        const totalDays = (0, date_1.daysBetween)(startDateObj, endDateObj) + 1;
+        // 计算平均连续天数
+        const streaks = this.calculateStreaks(habit, checkins);
+        const averageStreak = streaks.length > 0
+            ? streaks.reduce((sum, streak) => sum + streak, 0) / streaks.length
+            : 0;
+        // 更新统计数据
+        this.setData({
+            'stats.completionRate': stats.completionRate,
+            'stats.totalCompletions': stats.totalCompletions,
+            'stats.totalDays': totalDays,
+            'stats.currentStreak': stats.currentStreak,
+            'stats.longestStreak': stats.longestStreak,
+            'stats.averageStreak': averageStreak.toFixed(1)
+        });
+    },
+    /**
+     * 计算所有连续天数记录
+     */
+    calculateStreaks(habit, checkins) {
+        // 按日期排序
+        const sortedCheckins = [...checkins].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+        const streaks = [];
+        let currentStreak = 0;
+        // 遍历打卡记录，计算每个连续记录段
+        for (let i = 0; i < sortedCheckins.length; i++) {
+            if (sortedCheckins[i].isCompleted) {
+                currentStreak++;
+            }
+            else if (currentStreak > 0) {
+                streaks.push(currentStreak);
+                currentStreak = 0;
+            }
+        }
+        // 添加最后一个连续段
+        if (currentStreak > 0) {
+            streaks.push(currentStreak);
+        }
+        return streaks;
+    },
+    /**
+     * 生成图表数据
+     */
+    generateChartData(habit, checkins, startDate, endDate) {
+        // 按日期排序
+        const sortedCheckins = [...checkins].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+        // 生成完成率图表数据
+        const completion = [];
+        const trend = [];
+        // 计算每个日期的完成情况
+        const startDateObj = new Date(startDate);
+        const endDateObj = new Date(endDate);
+        let currentDate = new Date(startDateObj);
+        while (currentDate <= endDateObj) {
+            const dateStr = (0, date_1.formatDate)(currentDate);
+            const checkin = sortedCheckins.find(c => c.date === dateStr);
+            completion.push({
+                date: dateStr,
+                completed: checkin ? checkin.isCompleted : false
+            });
+            currentDate = (0, date_1.addDays)(currentDate, 1);
+        }
+        // 计算7天滚动平均完成率
+        if (completion.length >= 7) {
+            for (let i = 6; i < completion.length; i++) {
+                const weekData = completion.slice(i - 6, i + 1);
+                const completedCount = weekData.filter(d => d.completed).length;
+                const rate = (completedCount / 7) * 100;
+                trend.push({
+                    date: completion[i].date,
+                    rate: parseFloat(rate.toFixed(1))
+                });
+            }
+        }
+        // 计算每周日完成率
+        const weekdays = [0, 0, 0, 0, 0, 0, 0]; // 周一到周日的完成次数
+        const weekdayCounts = [0, 0, 0, 0, 0, 0, 0]; // 周一到周日的总次数
+        for (const item of completion) {
+            const date = new Date(item.date);
+            const dayOfWeek = date.getDay(); // 0是周日，1-6是周一到周六
+            const index = dayOfWeek === 0 ? 6 : dayOfWeek - 1; // 转换为0-6表示周一到周日
+            weekdayCounts[index]++;
+            if (item.completed) {
+                weekdays[index]++;
+            }
+        }
+        // 计算每天的完成率
+        const weekdayRates = weekdays.map((count, index) => {
+            return weekdayCounts[index] > 0
+                ? parseFloat(((count / weekdayCounts[index]) * 100).toFixed(1))
+                : 0;
+        });
+        // 更新图表数据
+        this.setData({
+            'chartData.completion': completion,
+            'chartData.trend': trend,
+            'chartData.weekdays': weekdayRates
+        });
+    },
+    /**
+     * 生成详细洞察
+     */
+    generateDetailedInsights(habit, checkins) {
+        // 按日期排序
+        const sortedCheckins = [...checkins].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+        const insights = [];
+        // 添加基础洞察
+        if (this.data.stats.completionRate >= 80) {
+            insights.push({
+                type: 'achievement',
+                title: '优秀的坚持',
+                content: `你的完成率达到了${this.data.stats.completionRate.toFixed(1)}%，这是非常出色的表现！坚持是成功的关键。`,
+                icon: 'trophy'
+            });
+        }
+        else if (this.data.stats.completionRate >= 50) {
+            insights.push({
+                type: 'progress',
+                title: '良好的进展',
+                content: `你的完成率为${this.data.stats.completionRate.toFixed(1)}%，继续保持并尝试提高。`,
+                icon: 'thumbs-up'
+            });
+        }
+        else if (sortedCheckins.length > 0) {
+            insights.push({
+                type: 'encouragement',
+                title: '继续努力',
+                content: `你的完成率为${this.data.stats.completionRate.toFixed(1)}%，养成习惯需要时间，不要放弃！`,
+                icon: 'heart'
+            });
+        }
+        // 分析时间模式
+        if (this.data.chartData.weekdays.length > 0) {
+            const maxRate = Math.max(...this.data.chartData.weekdays);
+            const maxIndex = this.data.chartData.weekdays.indexOf(maxRate);
+            const minRate = Math.min(...this.data.chartData.weekdays.filter(r => r > 0));
+            const minIndex = this.data.chartData.weekdays.indexOf(minRate);
+            if (maxRate > 0) {
+                const weekdayNames = ['周一', '周二', '周三', '周四', '周五', '周六', '周日'];
+                insights.push({
+                    type: 'pattern',
+                    title: '时间模式',
+                    content: `你在${weekdayNames[maxIndex]}的完成率最高(${maxRate}%)，而在${weekdayNames[minIndex]}的完成率最低(${minRate}%)。考虑分析这些差异的原因。`,
+                    icon: 'calendar'
+                });
+            }
+        }
+        // 分析连续性
+        if (this.data.stats.longestStreak > 7) {
+            insights.push({
+                type: 'streak',
+                title: '出色的连续性',
+                content: `你的最长连续记录达到了${this.data.stats.longestStreak}天，这表明你有能力保持长期坚持。`,
+                icon: 'fire'
+            });
+        }
+        // 分析趋势
+        if (this.data.chartData.trend.length >= 2) {
+            const firstRate = this.data.chartData.trend[0].rate;
+            const lastRate = this.data.chartData.trend[this.data.chartData.trend.length - 1].rate;
+            const difference = lastRate - firstRate;
+            if (Math.abs(difference) >= 10) {
+                insights.push({
+                    type: difference > 0 ? 'improvement' : 'decline',
+                    title: difference > 0 ? '积极改善' : '需要注意',
+                    content: difference > 0
+                        ? `你的习惯完成率比开始时提高了${difference.toFixed(1)}%，继续保持这种进步！`
+                        : `你的习惯完成率比开始时下降了${Math.abs(difference).toFixed(1)}%，可能需要重新审视你的策略。`,
+                    icon: difference > 0 ? 'trending-up' : 'trending-down'
+                });
+            }
+        }
+        // 检查笔记内容
+        const notesCheckins = sortedCheckins.filter(c => c.note && c.note.trim() !== '');
+        if (notesCheckins.length > 0) {
+            const noteRate = (notesCheckins.length / sortedCheckins.length) * 100;
+            if (noteRate >= 50) {
+                insights.push({
+                    type: 'reflection',
+                    title: '良好的反思习惯',
+                    content: `你有${noteRate.toFixed(0)}%的打卡记录包含笔记，这种记录和反思有助于更好地理解你的习惯。`,
+                    icon: 'pencil'
+                });
+            }
+        }
+        this.setData({
+            detailedInsights: insights
+        });
+    },
+    /**
+     * 生成建议
+     */
+    generateRecommendations(habit, checkins) {
+        // 时间建议
+        const timingTips = [];
+        // 检查是否有明显的最佳时间
+        if (this.data.chartData.weekdays.length > 0) {
+            const maxRate = Math.max(...this.data.chartData.weekdays);
+            const maxIndex = this.data.chartData.weekdays.indexOf(maxRate);
+            if (maxRate >= 70) {
+                const weekdayNames = ['周一', '周二', '周三', '周四', '周五', '周六', '周日'];
+                timingTips.push({
+                    title: '利用最佳时间',
+                    content: `你在${weekdayNames[maxIndex]}的完成率最高，尝试将更多重要习惯安排在这一天。`
+                });
+            }
+        }
+        timingTips.push({
+            title: '固定时间',
+            content: '在固定的时间执行习惯可以降低决策疲劳，提高完成率。'
+        });
+        // 一致性建议
+        const consistencyTips = [];
+        if (this.data.stats.currentStreak > 0) {
+            consistencyTips.push({
+                title: '不要打破链条',
+                content: `你当前已连续${this.data.stats.currentStreak}天，继续保持这个链条不要中断。`
+            });
+        }
+        consistencyTips.push({
+            title: '两日原则',
+            content: '避免连续两天不执行习惯，这会大大降低习惯中断的风险。'
+        });
+        if (this.data.stats.completionRate < 50) {
+            consistencyTips.push({
+                title: '降低难度',
+                content: '你的完成率较低，考虑降低习惯难度，先培养持续性再提高标准。'
+            });
+        }
+        // 动机建议
+        const motivationTips = [];
+        motivationTips.push({
+            title: '习惯叠加',
+            content: '将新习惯与已有的稳定习惯绑定，利用现有习惯的惯性。'
+        });
+        motivationTips.push({
+            title: '习惯追踪',
+            content: '每天记录习惯本身就能提高动机，确保坚持打卡记录。'
+        });
+        if (this.data.stats.longestStreak > 0) {
+            motivationTips.push({
+                title: '挑战自己',
+                content: `尝试打破你的最长连续记录${this.data.stats.longestStreak}天，将其作为挑战目标。`
+            });
+        }
+        // 环境建议
+        const environmentTips = [];
+        environmentTips.push({
+            title: '环境设计',
+            content: '设计支持习惯的环境，减少摩擦，增加提示。'
+        });
+        environmentTips.push({
+            title: '社交支持',
+            content: '与朋友分享你的习惯目标，利用社交压力提高坚持度。'
+        });
+        environmentTips.push({
+            title: '习惯可视化',
+            content: '在显眼位置放置习惯提醒或进度表，增强环境提示。'
+        });
+        // 更新建议分类
+        this.setData({
+            'recommendationCategories[0].tips': timingTips,
+            'recommendationCategories[1].tips': consistencyTips,
+            'recommendationCategories[2].tips': motivationTips,
+            'recommendationCategories[3].tips': environmentTips
+        });
+    },
+    /**
+     * 生成里程碑
+     */
+    generateMilestones(habit, checkins) {
+        const completedCheckins = checkins.filter(c => c.isCompleted);
+        const milestones = [];
+        // 计算里程碑
+        const totalCompletions = completedCheckins.length;
+        // 第一次完成
+        if (totalCompletions > 0) {
+            const firstCheckin = completedCheckins.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())[0];
+            milestones.push({
+                title: '第一次完成',
+                date: firstCheckin.date,
+                description: '开始是最重要的一步，你已经迈出了这一步！',
+                achieved: true,
+                icon: 'flag'
+            });
+        }
+        // 累计次数里程碑
+        const countMilestones = [7, 21, 50, 100, 365];
+        for (const count of countMilestones) {
+            if (totalCompletions >= count) {
+                milestones.push({
+                    title: `完成${count}次`,
+                    date: completedCheckins.length >= count ? completedCheckins[count - 1].date : '',
+                    description: `你已累计完成${count}次，继续坚持！`,
+                    achieved: true,
+                    icon: 'trophy'
+                });
+            }
+            else {
+                milestones.push({
+                    title: `完成${count}次`,
+                    date: '',
+                    description: `再完成${count - totalCompletions}次即可达成`,
+                    achieved: false,
+                    icon: 'trophy'
+                });
+                break; // 只显示下一个未达成的里程碑
+            }
+        }
+        // 连续天数里程碑
+        const streakMilestones = [7, 21, 30, 60, 100, 365];
+        let streakMilestoneAdded = false;
+        for (const days of streakMilestones) {
+            if (this.data.stats.longestStreak >= days) {
+                milestones.push({
+                    title: `连续${days}天`,
+                    date: '',
+                    description: `你曾连续完成${days}天，这是习惯养成的重要里程碑！`,
+                    achieved: true,
+                    icon: 'fire'
+                });
+            }
+            else if (!streakMilestoneAdded) {
+                milestones.push({
+                    title: `连续${days}天`,
+                    date: '',
+                    description: this.data.stats.currentStreak > 0
+                        ? `当前连续${this.data.stats.currentStreak}天，再坚持${days - this.data.stats.currentStreak}天即可达成`
+                        : `连续完成${days}天是习惯养成的重要里程碑`,
+                    achieved: false,
+                    icon: 'fire'
+                });
+                streakMilestoneAdded = true;
+            }
+        }
+        this.setData({
+            habitMilestones: milestones.sort((a, b) => b.achieved - a.achieved)
+        });
+    },
+    /**
+     * 切换日期范围
+     */
+    changeDateRange(e) {
+        const selectedRange = parseInt(e.detail.value);
+        this.setData({ selectedRange });
+        if (this.data.habit) {
+            this.loadCheckins(this.data.habit);
+        }
+    },
+    /**
+     * 切换建议分类
+     */
+    switchRecommendationCategory(e) {
+        const index = e.currentTarget.dataset.index;
+        this.setData({
+            activeCategoryIndex: index
+        });
+    },
+    /**
+     * 分享页面
+     */
+    onShareAppMessage() {
+        const habitName = this.data.habit ? this.data.habit.name : '习惯';
+        return {
+            title: `我正在培养「${habitName}」习惯，一起来养成好习惯吧！`,
+            path: `/pages/habits/detail/detail?id=${this.data.habitId}`
+        };
     }
-  },
-
-  /**
-   * 生命周期函数--监听页面初次渲染完成
-   */
-  onReady() {
-
-  },
-
-  /**
-   * 生命周期函数--监听页面显示
-   */
-  onShow() {
-
-  },
-
-  /**
-   * 生命周期函数--监听页面隐藏
-   */
-  onHide() {
-
-  },
-
-  /**
-   * 生命周期函数--监听页面卸载
-   */
-  onUnload() {
-
-  },
-
-  /**
-   * 页面相关事件处理函数--监听用户下拉动作
-   */
-  onPullDownRefresh() {
-    this.loadHabitData(this.data.habitId);
-    wx.stopPullDownRefresh();
-  },
-
-  /**
-   * 页面上拉触底事件的处理函数
-   */
-  onReachBottom() {
-
-  },
-
-  /**
-   * 用户点击右上角分享
-   */
-  onShareAppMessage() {
-    return {
-      title: `${this.data.habitData.name}的习惯分析`,
-      path: `/packageAnalytics/pages/detail/detail?id=${this.data.habitId}`
-    };
-  }
-})
+});

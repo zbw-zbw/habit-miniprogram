@@ -1,11 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-/**
- * 数据分析-报告页面
- * 提供详细的数据分析报告
- */
-const storage_1 = require("../../../utils/storage");
 const date_1 = require("../../../utils/date");
+const api_1 = require("../../../services/api");
 Page({
     /**
      * 页面的初始数据
@@ -44,12 +40,34 @@ Page({
      */
     loadData() {
         this.setData({ loading: true });
-        // 获取习惯和打卡数据
-        const habits = (0, storage_1.getHabits)();
-        const checkins = (0, storage_1.getCheckins)();
-        // 生成报告
-        this.generateReport(habits, checkins);
-        this.setData({ loading: false });
+        // 使用API获取报告数据
+        api_1.analyticsAPI.getReport()
+            .then(reportData => {
+            this.setData({
+                reportData,
+                loading: false
+            });
+        })
+            .catch(error => {
+            console.error('获取报告数据失败:', error);
+            // 如果API失败，回退到本地数据生成
+            Promise.all([
+                api_1.habitAPI.getHabits(),
+                api_1.checkinAPI.getCheckins()
+            ])
+                .then(([habits, checkins]) => {
+                this.generateReport(habits, checkins);
+                this.setData({ loading: false });
+            })
+                .catch(err => {
+                console.error('加载本地数据失败:', err);
+                this.setData({ loading: false });
+                wx.showToast({
+                    title: '加载数据失败',
+                    icon: 'none'
+                });
+            });
+        });
     },
     /**
      * 生成报告
@@ -91,8 +109,8 @@ Page({
         const completionRate = totalDays > 0 ? Math.round((completedDays / totalDays) * 100) : 0;
         // 计算当前连续天数和最长连续天数
         // 简化实现，实际应考虑更复杂的逻辑
-        let currentStreak = 5; // 模拟数据
-        let longestStreak = 12; // 模拟数据
+        const currentStreak = 5; // 模拟数据
+        const longestStreak = 12; // 模拟数据
         // 找出最早的习惯创建日期
         let earliestDate = today;
         habits.forEach(habit => {

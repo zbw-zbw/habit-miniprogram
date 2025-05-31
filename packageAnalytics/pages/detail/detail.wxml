@@ -1,162 +1,186 @@
 <!--packageAnalytics/pages/detail/detail.wxml-->
-<view class="detail-container">
+<view class="habit-analysis-detail">
   <!-- 加载状态 -->
-  <view class="loading" wx:if="{{loading}}">
+  <view class="loading-container" wx:if="{{loading}}">
     <view class="loading-spinner"></view>
-    <text class="loading-text">加载中...</text>
+    <text class="loading-text">正在分析习惯数据...</text>
   </view>
 
-  <!-- 内容区域 -->
-  <view class="content" wx:if="{{!loading}}">
-    <!-- 习惯基本信息 -->
-    <view class="habit-header">
-      <view class="habit-icon" style="background-color: {{habitData.color}}30; color: {{habitData.color}}">
-        <text class="iconfont icon-{{habitData.icon}}"></text>
+  <!-- 错误提示 -->
+  <view class="error-container" wx:elif="{{error}}">
+    <icon type="warn" size="64" color="#F56C6C"></icon>
+    <text class="error-text">{{error}}</text>
+    <button class="retry-button" bindtap="loadHabitData">重试</button>
+  </view>
+
+  <!-- 分析内容 -->
+  <block wx:else>
+    <!-- 习惯信息 -->
+    <view class="habit-info-card">
+      <view class="habit-info-header" style="background-color: {{habit.color}}">
+        <view class="habit-icon">
+          <text class="icon icon-{{habit.icon}}"></text>
+        </view>
+        <view class="habit-name">{{habit.name}}</view>
       </view>
-      <view class="habit-info">
-        <text class="habit-name">{{habitData.name}}</text>
-        <text class="habit-category">{{habitData.category}}</text>
-        <text class="habit-since">开始于 {{habitData.createdAt}}</text>
+      <view class="habit-info-body">
+        <view class="date-range-selector">
+          <picker mode="selector" range="{{dateRanges}}" range-key="name" value="{{selectedRange}}" bindchange="changeDateRange">
+            <view class="picker-content">
+              <text class="date-range-label">数据范围</text>
+              <text class="date-range-value">{{dateRanges[selectedRange].name}}</text>
+              <text class="icon icon-arrow-down"></text>
+            </view>
+          </picker>
+        </view>
       </view>
     </view>
 
-    <!-- 统计卡片 -->
-    <view class="stats-grid">
-      <view class="stat-card">
-        <view class="stat-value">{{habitData.stats.completionRate}}%</view>
-        <view class="stat-label">完成率</view>
+    <!-- 数据统计卡片 -->
+    <view class="stats-card">
+      <view class="stats-row">
+        <view class="stats-item">
+          <text class="stats-value">{{stats.completionRate.toFixed(1)}}%</text>
+          <text class="stats-label">完成率</text>
+        </view>
+        <view class="stats-item">
+          <text class="stats-value">{{stats.totalCompletions}}</text>
+          <text class="stats-label">总完成次数</text>
+        </view>
+        <view class="stats-item">
+          <text class="stats-value">{{stats.totalDays}}</text>
+          <text class="stats-label">总天数</text>
+        </view>
       </view>
-      <view class="stat-card">
-        <view class="stat-value">{{habitData.stats.currentStreak}}</view>
-        <view class="stat-label">连续天数</view>
-      </view>
-      <view class="stat-card">
-        <view class="stat-value">{{habitData.stats.longestStreak}}</view>
-        <view class="stat-label">最长连续</view>
-      </view>
-      <view class="stat-card">
-        <view class="stat-value">{{habitData.stats.totalCheckins}}</view>
-        <view class="stat-label">总打卡</view>
+      
+      <view class="stats-row">
+        <view class="stats-item">
+          <text class="stats-value">{{stats.currentStreak}}</text>
+          <text class="stats-label">当前连续</text>
+        </view>
+        <view class="stats-item">
+          <text class="stats-value">{{stats.longestStreak}}</text>
+          <text class="stats-label">最长连续</text>
+        </view>
+        <view class="stats-item">
+          <text class="stats-value">{{stats.averageStreak}}</text>
+          <text class="stats-label">平均连续</text>
+        </view>
       </view>
     </view>
 
-    <!-- 时间范围选择 -->
-    <view class="time-range">
-      <view class="range-title">完成情况</view>
-      <view class="range-options">
-        <view class="range-option {{timeRange === 'week' ? 'active' : ''}}" bindtap="switchTimeRange" data-range="week">周</view>
-        <view class="range-option {{timeRange === 'month' ? 'active' : ''}}" bindtap="switchTimeRange" data-range="month">月</view>
-        <view class="range-option {{timeRange === 'year' ? 'active' : ''}}" bindtap="switchTimeRange" data-range="year">年</view>
-      </view>
-    </view>
-
-    <!-- 完成率图表 -->
+    <!-- 趋势图表 -->
     <view class="chart-card">
-      <view class="chart-title">完成率趋势</view>
-      <view class="chart-container">
-        <canvas canvas-id="completionChart" class="chart-canvas"></canvas>
-      </view>
-    </view>
-
-    <!-- 打卡日历 -->
-    <view class="calendar-card">
-      <view class="card-title">打卡日历</view>
-      <view class="calendar-header">
-        <view class="calendar-title">{{calendarData.year}}年{{calendarData.month}}月</view>
-        <view class="calendar-actions">
-          <view class="action-btn" bindtap="changeMonth" data-direction="prev">
-            <text class="iconfont icon-left"></text>
+      <view class="section-title">完成趋势</view>
+      <view class="trend-chart">
+        <view class="chart-placeholder">
+          <text>7天滚动平均完成率</text>
+          <!-- 这里需要使用自定义组件或Canvas绘制趋势图 -->
+          <view class="chart-line">
+            <view class="chart-point" wx:for="{{chartData.trend}}" wx:key="index" style="height: {{item.rate}}%;">
+              <view class="tooltip">{{item.date}}: {{item.rate}}%</view>
+            </view>
           </view>
-          <view class="action-btn" bindtap="changeMonth" data-direction="next">
-            <text class="iconfont icon-right"></text>
-          </view>
-        </view>
-      </view>
-      
-      <view class="calendar-weekdays">
-        <view class="weekday">一</view>
-        <view class="weekday">二</view>
-        <view class="weekday">三</view>
-        <view class="weekday">四</view>
-        <view class="weekday">五</view>
-        <view class="weekday">六</view>
-        <view class="weekday">日</view>
-      </view>
-      
-      <view class="calendar-grid">
-        <view 
-          wx:for="{{calendarData.days}}" 
-          wx:key="date" 
-          class="calendar-day {{item.isCurrentMonth ? '' : 'other-month'}} {{item.isCompleted ? 'completed' : ''}} {{item.isToday ? 'today' : ''}}"
-        >
-          {{item.day}}
-        </view>
-      </view>
-      
-      <view class="calendar-legend">
-        <view class="legend-item">
-          <view class="legend-color completed"></view>
-          <view class="legend-text">已完成</view>
-        </view>
-        <view class="legend-item">
-          <view class="legend-color today"></view>
-          <view class="legend-text">今天</view>
         </view>
       </view>
     </view>
 
-    <!-- 习惯模式分析 -->
-    <view class="patterns-card">
-      <view class="card-title">习惯模式分析</view>
-      <view class="pattern-items">
-        <view class="pattern-item">
-          <view class="pattern-icon">
-            <text class="iconfont icon-time"></text>
-          </view>
-          <view class="pattern-info">
-            <text class="pattern-title">最佳时段</text>
-            <text class="pattern-value">{{habitData.patterns.bestTime || '暂无数据'}}</text>
+    <!-- 每周表现图表 -->
+    <view class="chart-card">
+      <view class="section-title">每周表现</view>
+      <view class="weekday-chart">
+        <view class="weekday-bar-container">
+          <view class="weekday-bar-item" wx:for="{{chartData.weekdays}}" wx:key="index">
+            <view class="weekday-bar" style="height: {{item}}%;"></view>
+            <text class="weekday-label">周{{index === 6 ? '日' : index + 1}}</text>
+            <text class="weekday-value">{{item}}%</text>
           </view>
         </view>
-        
-        <view class="pattern-item">
-          <view class="pattern-icon">
-            <text class="iconfont icon-calendar"></text>
+      </view>
+    </view>
+
+    <!-- 详细洞察 -->
+    <view class="insights-card">
+      <view class="section-title">数据洞察</view>
+      <view class="insights-list">
+        <view class="insight-item" wx:for="{{detailedInsights}}" wx:key="index">
+          <view class="insight-icon" style="background-color: {{
+            item.type === 'achievement' ? '#67C23A' : 
+            item.type === 'progress' ? '#409EFF' : 
+            item.type === 'encouragement' ? '#E6A23C' :
+            item.type === 'pattern' ? '#9370DB' :
+            item.type === 'streak' ? '#FF7F50' :
+            item.type === 'improvement' ? '#67C23A' :
+            item.type === 'decline' ? '#F56C6C' :
+            item.type === 'reflection' ? '#409EFF' : '#909399'
+          }}">
+            <text class="icon icon-{{item.icon}}"></text>
           </view>
-          <view class="pattern-info">
-            <text class="pattern-title">最佳日期</text>
-            <text class="pattern-value">{{habitData.patterns.bestDay || '暂无数据'}}</text>
+          <view class="insight-content">
+            <text class="insight-title">{{item.title}}</text>
+            <text class="insight-text">{{item.content}}</text>
           </view>
         </view>
-        
-        <view class="pattern-item">
-          <view class="pattern-icon">
-            <text class="iconfont icon-streak"></text>
-          </view>
-          <view class="pattern-info">
-            <text class="pattern-title">最长连续</text>
-            <text class="pattern-value">{{habitData.stats.longestStreak}}天 ({{habitData.patterns.longestStreakDate || '暂无数据'}})</text>
-          </view>
+
+        <!-- 没有洞察时的提示 -->
+        <view class="no-insights" wx:if="{{detailedInsights.length === 0}}">
+          <text>暂无足够数据提供洞察，请继续坚持打卡记录</text>
         </view>
       </view>
     </view>
 
     <!-- 个性化建议 -->
-    <view class="suggestions-card">
-      <view class="card-title">个性化建议</view>
-      <view class="suggestion-items">
-        <view class="suggestion-item" wx:for="{{habitData.suggestions}}" wx:key="index">
-          <view class="suggestion-icon">
-            <text class="iconfont icon-suggestion"></text>
-          </view>
-          <view class="suggestion-content">
-            <text class="suggestion-text">{{item}}</text>
-          </view>
+    <view class="recommendations-card">
+      <view class="section-title">个性化建议</view>
+      
+      <!-- 建议分类标签 -->
+      <view class="recommendation-tabs">
+        <view 
+          class="tab-item {{activeCategoryIndex === index ? 'active' : ''}}" 
+          wx:for="{{recommendationCategories}}" 
+          wx:key="index"
+          bindtap="switchRecommendationCategory"
+          data-index="{{index}}"
+        >
+          <text class="icon icon-{{item.icon}}"></text>
+          <text class="tab-text">{{item.name}}</text>
         </view>
-        <view class="empty-suggestions" wx:if="{{habitData.suggestions.length === 0}}">
-          <text>暂无建议，继续坚持打卡会产生更多分析</text>
+      </view>
+      
+      <!-- 建议内容 -->
+      <view class="recommendation-content">
+        <block wx:if="{{recommendationCategories[activeCategoryIndex].tips.length > 0}}">
+          <view class="tip-item" wx:for="{{recommendationCategories[activeCategoryIndex].tips}}" wx:key="index">
+            <view class="tip-title">{{item.title}}</view>
+            <view class="tip-content">{{item.content}}</view>
+          </view>
+        </block>
+        <view class="no-tips" wx:else>
+          <text>暂无{{recommendationCategories[activeCategoryIndex].name}}，请继续坚持打卡记录</text>
         </view>
       </view>
     </view>
-  </view>
+
+    <!-- 习惯里程碑 -->
+    <view class="milestones-card">
+      <view class="section-title">习惯里程碑</view>
+      <view class="milestones-timeline">
+        <view class="milestone-item {{item.achieved ? 'achieved' : ''}}" wx:for="{{habitMilestones}}" wx:key="index">
+          <view class="milestone-dot">
+            <text class="icon icon-{{item.icon}}" wx:if="{{item.achieved}}"></text>
+          </view>
+          <view class="milestone-content">
+            <text class="milestone-title">{{item.title}}</text>
+            <text class="milestone-date" wx:if="{{item.date}}">{{item.date}}</text>
+            <text class="milestone-description">{{item.description}}</text>
+          </view>
+        </view>
+        
+        <!-- 没有里程碑时的提示 -->
+        <view class="no-milestones" wx:if="{{habitMilestones.length === 0}}">
+          <text>开始你的习惯之旅，解锁更多里程碑！</text>
+        </view>
+      </view>
+    </view>
+  </block>
 </view>

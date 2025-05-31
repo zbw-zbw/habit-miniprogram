@@ -1,3 +1,11 @@
 {
-  "usingComponents": {}
+  "navigationBarTitleText": "习惯分析详情",
+  "navigationBarBackgroundColor": "#4F7CFF",
+  "navigationBarTextStyle": "white",
+  "usingComponents": {
+    "calendar-heatmap": "/components/calendar-heatmap/calendar-heatmap",
+    "habit-analysis-assistant": "/components/habit-analysis-assistant/habit-analysis-assistant"
+  },
+  "enablePullDownRefresh": false,
+  "disableScroll": false
 }

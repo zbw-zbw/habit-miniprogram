@@ -406,3 +406,510 @@
   color: #909399;
   font-size: 28rpx;
 }
+
+/* 习惯分析详情页面样式 */
+.habit-analysis-detail {
+  padding: 16px;
+  background-color: #F5F7FA;
+  min-height: 100vh;
+}
+
+/* 加载状态 */
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  margin-top: 120rpx;
+}
+
+.loading-spinner {
+  width: 80rpx;
+  height: 80rpx;
+  border: 8rpx solid #E4E7ED;
+  border-top-color: #4F7CFF;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.loading-text {
+  margin-top: 20rpx;
+  font-size: 28rpx;
+  color: #909399;
+}
+
+/* 错误提示 */
+.error-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  margin-top: 120rpx;
+}
+
+.error-text {
+  margin: 30rpx 0;
+  font-size: 28rpx;
+  color: #F56C6C;
+  text-align: center;
+}
+
+.retry-button {
+  margin-top: 20rpx;
+  width: 200rpx;
+  height: 80rpx;
+  line-height: 80rpx;
+  background-color: #4F7CFF;
+  color: #fff;
+  font-size: 28rpx;
+  border-radius: 40rpx;
+}
+
+/* 习惯信息卡片 */
+.habit-info-card {
+  background-color: #FFFFFF;
+  border-radius: 12px;
+  overflow: hidden;
+  margin-bottom: 16px;
+  box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.05);
+}
+
+.habit-info-header {
+  padding: 20rpx 30rpx;
+  display: flex;
+  align-items: center;
+  color: #FFFFFF;
+}
+
+.habit-icon {
+  width: 80rpx;
+  height: 80rpx;
+  border-radius: 50%;
+  background-color: rgba(255, 255, 255, 0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 20rpx;
+}
+
+.habit-name {
+  font-size: 36rpx;
+  font-weight: 500;
+}
+
+.habit-info-body {
+  padding: 20rpx 30rpx;
+}
+
+.date-range-selector {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.picker-content {
+  display: flex;
+  align-items: center;
+  background-color: #F5F7FA;
+  border-radius: 8px;
+  padding: 8rpx 20rpx;
+}
+
+.date-range-label {
+  font-size: 24rpx;
+  color: #909399;
+  margin-right: 10rpx;
+}
+
+.date-range-value {
+  font-size: 28rpx;
+  color: #303133;
+  margin-right: 10rpx;
+}
+
+/* 数据统计卡片 */
+.stats-card {
+  background-color: #FFFFFF;
+  border-radius: 12px;
+  padding: 20rpx 30rpx;
+  margin-bottom: 16px;
+  box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.05);
+}
+
+.stats-row {
+  display: flex;
+  justify-content: space-around;
+  margin-bottom: 20rpx;
+}
+
+.stats-row:last-child {
+  margin-bottom: 0;
+}
+
+.stats-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex: 1;
+}
+
+.stats-value {
+  font-size: 40rpx;
+  font-weight: 500;
+  color: #303133;
+  margin-bottom: 8rpx;
+}
+
+.stats-label {
+  font-size: 24rpx;
+  color: #909399;
+}
+
+/* 图表卡片 */
+.chart-card {
+  background-color: #FFFFFF;
+  border-radius: 12px;
+  padding: 20rpx 30rpx;
+  margin-bottom: 16px;
+  box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.05);
+}
+
+.section-title {
+  font-size: 32rpx;
+  font-weight: 500;
+  color: #303133;
+  margin-bottom: 20rpx;
+  padding-left: 16rpx;
+  border-left: 6rpx solid #4F7CFF;
+}
+
+.trend-chart {
+  height: 400rpx;
+  padding: 20rpx 0;
+}
+
+.chart-placeholder {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  color: #909399;
+  font-size: 28rpx;
+}
+
+.chart-line {
+  width: 100%;
+  height: 300rpx;
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-around;
+  margin-top: 20rpx;
+}
+
+.chart-point {
+  width: 16rpx;
+  background-color: #4F7CFF;
+  border-radius: 4rpx 4rpx 0 0;
+  position: relative;
+  margin: 0 4rpx;
+  transition: height 0.3s ease;
+}
+
+.tooltip {
+  position: absolute;
+  top: -60rpx;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: rgba(0, 0, 0, 0.7);
+  color: #fff;
+  padding: 6rpx 12rpx;
+  border-radius: 4px;
+  font-size: 20rpx;
+  white-space: nowrap;
+  display: none;
+}
+
+.chart-point:hover .tooltip {
+  display: block;
+}
+
+/* 每周表现图表 */
+.weekday-chart {
+  height: 400rpx;
+  padding: 20rpx 0;
+}
+
+.weekday-bar-container {
+  height: 100%;
+  display: flex;
+  justify-content: space-around;
+  align-items: flex-end;
+}
+
+.weekday-bar-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+}
+
+.weekday-bar {
+  width: 40rpx;
+  background-color: #4F7CFF;
+  border-radius: 4rpx 4rpx 0 0;
+  margin-bottom: 10rpx;
+  transition: height 0.3s ease;
+}
+
+.weekday-label {
+  font-size: 24rpx;
+  color: #909399;
+  margin-bottom: 6rpx;
+}
+
+.weekday-value {
+  font-size: 20rpx;
+  color: #303133;
+}
+
+/* 洞察卡片 */
+.insights-card {
+  background-color: #FFFFFF;
+  border-radius: 12px;
+  padding: 20rpx 30rpx;
+  margin-bottom: 16px;
+  box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.05);
+}
+
+.insights-list {
+  padding: 10rpx 0;
+}
+
+.insight-item {
+  display: flex;
+  margin-bottom: 30rpx;
+}
+
+.insight-item:last-child {
+  margin-bottom: 0;
+}
+
+.insight-icon {
+  width: 80rpx;
+  height: 80rpx;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 20rpx;
+  flex-shrink: 0;
+}
+
+.icon {
+  font-size: 40rpx;
+  color: #FFFFFF;
+}
+
+.insight-content {
+  flex: 1;
+}
+
+.insight-title {
+  font-size: 30rpx;
+  font-weight: 500;
+  color: #303133;
+  margin-bottom: 8rpx;
+  display: block;
+}
+
+.insight-text {
+  font-size: 28rpx;
+  color: #606266;
+  line-height: 1.5;
+  display: block;
+}
+
+.no-insights {
+  padding: 40rpx 0;
+  text-align: center;
+  color: #909399;
+  font-size: 28rpx;
+}
+
+/* 建议卡片 */
+.recommendations-card {
+  background-color: #FFFFFF;
+  border-radius: 12px;
+  padding: 20rpx 30rpx;
+  margin-bottom: 16px;
+  box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.05);
+}
+
+.recommendation-tabs {
+  display: flex;
+  border-bottom: 1px solid #E4E7ED;
+  margin-bottom: 20rpx;
+  overflow-x: auto;
+  white-space: nowrap;
+}
+
+.tab-item {
+  padding: 16rpx 24rpx;
+  font-size: 28rpx;
+  color: #606266;
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+}
+
+.tab-item.active {
+  color: #4F7CFF;
+  font-weight: 500;
+}
+
+.tab-item.active:after {
+  content: '';
+  position: absolute;
+  bottom: -1px;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background-color: #4F7CFF;
+}
+
+.tab-text {
+  margin-left: 8rpx;
+}
+
+.recommendation-content {
+  padding: 10rpx 0;
+}
+
+.tip-item {
+  margin-bottom: 30rpx;
+  padding: 20rpx;
+  background-color: #F5F7FA;
+  border-radius: 8px;
+}
+
+.tip-item:last-child {
+  margin-bottom: 0;
+}
+
+.tip-title {
+  font-size: 30rpx;
+  font-weight: 500;
+  color: #303133;
+  margin-bottom: 10rpx;
+  display: block;
+}
+
+.tip-content {
+  font-size: 28rpx;
+  color: #606266;
+  line-height: 1.5;
+}
+
+.no-tips {
+  padding: 40rpx 0;
+  text-align: center;
+  color: #909399;
+  font-size: 28rpx;
+}
+
+/* 里程碑卡片 */
+.milestones-card {
+  background-color: #FFFFFF;
+  border-radius: 12px;
+  padding: 20rpx 30rpx;
+  margin-bottom: 16px;
+  box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.05);
+}
+
+.milestones-timeline {
+  padding: 10rpx 0 10rpx 30rpx;
+  position: relative;
+}
+
+.milestones-timeline:before {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 10rpx;
+  width: 2px;
+  background-color: #E4E7ED;
+}
+
+.milestone-item {
+  position: relative;
+  padding-bottom: 40rpx;
+  display: flex;
+}
+
+.milestone-item:last-child {
+  padding-bottom: 0;
+}
+
+.milestone-dot {
+  position: absolute;
+  left: -30rpx;
+  top: 6rpx;
+  width: 20rpx;
+  height: 20rpx;
+  border-radius: 50%;
+  background-color: #E4E7ED;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1;
+}
+
+.milestone-item.achieved .milestone-dot {
+  width: 40rpx;
+  height: 40rpx;
+  left: -40rpx;
+  top: 0;
+  background-color: #67C23A;
+}
+
+.milestone-content {
+  padding-left: 20rpx;
+}
+
+.milestone-title {
+  font-size: 30rpx;
+  font-weight: 500;
+  color: #303133;
+  margin-bottom: 6rpx;
+  display: block;
+}
+
+.milestone-item.achieved .milestone-title {
+  color: #67C23A;
+}
+
+.milestone-date {
+  font-size: 24rpx;
+  color: #909399;
+  margin-bottom: 6rpx;
+  display: block;
+}
+
+.milestone-description {
+  font-size: 28rpx;
+  color: #606266;
+  line-height: 1.5;
+}
+
+.no-milestones {
+  padding: 40rpx 0;
+  text-align: center;
+  color: #909399;
+  font-size: 28rpx;
+}
