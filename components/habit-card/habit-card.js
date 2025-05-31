@@ -1,7 +1,10 @@
 "use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
 /**
  * 习惯卡片组件
  */
+const date_1 = require("../../utils/date");
+const habit_1 = require("../../utils/habit");
 Component({
     /**
      * 组件的属性列表
@@ -18,6 +21,14 @@ Component({
         showActions: {
             type: Boolean,
             value: false
+        },
+        showCheckinButton: {
+            type: Boolean,
+            value: true
+        },
+        mode: {
+            type: String,
+            value: 'normal' // 可选值：normal, compact, simple
         }
     },
     /**
@@ -28,6 +39,7 @@ Component({
         shouldDoToday: false,
         isCompleted: false,
         categoryName: '',
+        completionRateFormatted: '0',
         // 分类中英文映射
         categoryMap: {
             'learning': '学习',
@@ -49,25 +61,19 @@ Component({
     lifetimes: {
         attached() {
             this.checkTodayStatus();
-            
-            // 确保stats对象有默认值
-            if (!this.properties.stats || typeof this.properties.stats !== 'object') {
-                this.setData({
-                    'stats': {
-                        completionRate: 0,
-                        currentStreak: 0,
-                        totalCompletions: 0
-                    }
-                });
-            }
         }
     },
     /**
      * 数据监听器
      */
     observers: {
-        'habit,stats': function(habit, stats) {
+        'habit': function (habit) {
+            // 当habit属性变化时重新检查状态
             this.checkTodayStatus();
+        },
+        'stats': function (stats) {
+            // 当stats属性变化时重新格式化完成率
+            this.formatCompletionRate();
         }
     },
     /**
@@ -75,80 +81,86 @@ Component({
      */
     methods: {
         /**
+         * 格式化完成率
+         */
+        formatCompletionRate() {
+            const stats = this.properties.stats || {};
+            let completionRate = stats.completionRate || 0;
+            // 规范化完成率值
+            if (completionRate > 1 && completionRate <= 100) {
+                // 已经是百分比形式，保持不变
+                completionRate = Math.min(completionRate, 100); // 限制最大值为100%
+            }
+            else if (completionRate > 0 && completionRate <= 1) {
+                // 小数形式，转换为百分比
+                completionRate = completionRate * 100;
+            }
+            else if (completionRate > 100) {
+                // 异常值，限制为100%
+                completionRate = 100;
+            }
+            // 格式化为整数字符串
+            const completionRateFormatted = Math.round(completionRate).toString();
+            this.setData({
+                completionRateFormatted
+            });
+        },
+        /**
          * 检查今日状态
          */
         checkTodayStatus() {
             const habit = this.properties.habit;
-            if (!habit) return;
-            
-            // 确保习惯有id字段
-            const habitId = habit.id || habit._id;
-            if (!habitId) {
-                console.error('习惯对象缺少ID:', habit);
+            if (!habit)
                 return;
-            }
-            
-            // 导入日期工具函数
-            const { getCurrentDate } = require('../../utils/date');
-            const { shouldDoHabitOnDate } = require('../../utils/habit');
-            
-            const today = getCurrentDate();
-            const shouldDoToday = shouldDoHabitOnDate(habit, today);
-            
-            // 使用stats判断是否已完成
-            const stats = this.properties.stats || {};
+            // 获取习惯ID
+            const habitId = habit._id || habit.id;
+            if (!habitId)
+                return;
+            const today = (0, date_1.getCurrentDate)();
+            const shouldDoToday = (0, habit_1.shouldDoHabitOnDate)(habit, today);
+            // 检查习惯是否已完成
             let isCompleted = false;
-            
-            // 如果有lastCompletedDate且与今天相同，则认为已完成
+            // 如果有stats属性中的lastCompletedDate与今天相同，则表示已完成
+            const stats = this.properties.stats || {};
             if (stats.lastCompletedDate) {
                 const lastCompletedDate = stats.lastCompletedDate.split('T')[0]; // 处理可能的ISO格式日期
                 isCompleted = lastCompletedDate === today;
             }
-            
-            // 如果完成率是100%，也认为已完成
-            if (stats.completionRate === 100) {
-                isCompleted = true;
-            }
-            
-            // 设置分类名称
+            // 获取分类的中文名称
             const category = habit.category || 'other';
             const categoryName = this.data.categoryMap[category] || category;
-            
             this.setData({
                 isToday: true,
                 shouldDoToday,
                 isCompleted,
                 categoryName
             });
+            // 格式化完成率
+            this.formatCompletionRate();
         },
         /**
          * 点击打卡
          */
         onCheckin() {
             const habit = this.properties.habit;
-            if (!habit) return;
-            
-            // 确保习惯有id字段
-            const habitId = habit.id || habit._id;
-            if (!habitId) {
-                console.error('习惯对象缺少ID:', habit);
+            if (!habit)
                 return;
-            }
-            
+            // 获取习惯ID
+            const habitId = habit._id || habit.id;
+            if (!habitId)
+                return;
             // 检查是否已经完成
-            if (this.data.isCompleted) {
+            const isCompleted = this.data.isCompleted;
+            // 如果已完成，则不允许再次打卡
+            if (isCompleted) {
                 wx.showToast({
                     title: '今日已完成',
                     icon: 'none'
                 });
                 return;
             }
-            
-            // 跳转到打卡页面
-            wx.navigateTo({
-                url: `/pages/checkin/checkin?habitId=${habitId}&habitName=${encodeURIComponent(habit.name)}`
-            });
-            // 不再直接触发打卡事件，改为在打卡页面中完成
+            // 触发打卡事件
+            this.triggerEvent('checkin', { habitId });
         },
         /**
          * 点击查看详情
@@ -160,14 +172,12 @@ Component({
                 console.error('习惯对象不存在', habit);
                 return;
             }
-            
-            // 确保习惯有id字段
-            const habitId = habit.id || habit._id;
+            // 获取习惯ID
+            const habitId = habit._id || habit.id;
             if (!habitId) {
-                console.error('习惯对象缺少ID:', habit);
+                console.error('习惯对象缺少ID', habit);
                 return;
             }
-            
             wx.navigateTo({
                 url: `/pages/habits/detail/detail?id=${habitId}`
             });
@@ -199,15 +209,12 @@ Component({
          */
         onEdit() {
             const habit = this.properties.habit;
-            if (!habit) return;
-            
-            // 确保习惯有id字段
-            const habitId = habit.id || habit._id;
-            if (!habitId) {
-                console.error('习惯对象缺少ID:', habit);
+            if (!habit)
                 return;
-            }
-            
+            // 获取习惯ID
+            const habitId = habit._id || habit.id;
+            if (!habitId)
+                return;
             wx.navigateTo({
                 url: `/pages/habits/create/create?id=${habitId}`
             });
@@ -219,15 +226,12 @@ Component({
          */
         onDelete() {
             const habit = this.properties.habit;
-            if (!habit) return;
-            
-            // 确保习惯有id字段
-            const habitId = habit.id || habit._id;
-            if (!habitId) {
-                console.error('习惯对象缺少ID:', habit);
+            if (!habit)
                 return;
-            }
-            
+            // 获取习惯ID
+            const habitId = habit._id || habit.id;
+            if (!habitId)
+                return;
             wx.showModal({
                 title: '确认删除',
                 content: `确定要删除习惯"${habit.name}"吗？`,
@@ -235,7 +239,7 @@ Component({
                 confirmColor: '#F56C6C',
                 success: (res) => {
                     if (res.confirm) {
-                        this.triggerEvent('delete', { habitId: habitId });
+                        this.triggerEvent('delete', { habitId });
                     }
                 }
             });

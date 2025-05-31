@@ -1,7 +1,7 @@
-<view class="habit-card-wrapper">
+<view class="habit-card-wrapper {{mode}}">
 <view class="habit-card" bindtap="onViewDetail">
   <!-- 左侧图标 -->
-  <view class="habit-icon" style="background-color: {{habit.color}}">
+  <view class="habit-icon" style="background-color: {{habit.color}}30; color: {{habit.color}}">
     <text class="iconfont icon-{{habit.icon}}"></text>
   </view>
   
@@ -38,7 +38,7 @@
   
   <!-- 右侧操作 -->
   <view class="habit-actions">
-    <view class="checkin-btn {{isCompleted ? 'completed' : ''}}" catchtap="onCheckin">
+    <view wx:if="{{showCheckinButton}}" class="checkin-btn {{isCompleted ? 'completed' : ''}}" catchtap="onCheckin">
       <text>{{isCompleted ? '已完成' : '打卡'}}</text>
     </view>
     

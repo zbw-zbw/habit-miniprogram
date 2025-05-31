@@ -20,6 +20,14 @@ Component({
     showActions: {
       type: Boolean,
       value: false
+    },
+    showCheckinButton: {
+      type: Boolean,
+      value: true
+    },
+    mode: {
+      type: String,
+      value: 'normal' // 可选值：normal, compact, simple
     }
   },
 
@@ -125,11 +133,6 @@ Component({
       if (stats.lastCompletedDate) {
         const lastCompletedDate = stats.lastCompletedDate.split('T')[0]; // 处理可能的ISO格式日期
         isCompleted = lastCompletedDate === today;
-      }
-      
-      // 强制检查completionRate是否为100%，如果是则也认为是已完成
-      if (stats.completionRate === 100) {
-        isCompleted = true;
       }
       
       // 获取分类的中文名称

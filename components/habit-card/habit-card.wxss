@@ -8,9 +8,9 @@
 .habit-card {
   display: flex;
   background-color: #FFFFFF;
-  border-radius: var(--radius-medium);
+  border-radius: 16rpx;
   padding: 24rpx;
-  box-shadow: var(--shadow-light);
+  box-shadow: 0 2rpx 10rpx rgba(0, 0, 0, 0.05);
   position: relative;
 }
 
@@ -27,7 +27,6 @@
 }
 
 .habit-icon .iconfont {
-  color: #FFFFFF;
   font-size: 40rpx;
 }
 
@@ -40,7 +39,7 @@
 .habit-name {
   font-size: 32rpx;
   font-weight: 600;
-  color: var(--title-color);
+  color: #32325D;
   margin-bottom: 8rpx;
   white-space: nowrap;
   text-overflow: ellipsis;
@@ -56,17 +55,15 @@
 .habit-category {
   font-size: 24rpx;
   color: #FFFFFF;
-  background-color: rgba(255, 255, 255, 0.3);
   padding: 6rpx 14rpx;
   border-radius: 20rpx;
   margin-right: 16rpx;
   font-weight: 500;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
 }
 
 .habit-frequency {
   font-size: 24rpx;
-  color: var(--text-color-secondary);
+  color: #606266;
 }
 
 .habit-stats {
@@ -109,11 +106,11 @@
 }
 
 .checkin-btn {
-  background-color: var(--primary-color);
+  background-color: #5E72E4;
   color: #FFFFFF;
   font-size: 28rpx;
   padding: 8rpx 24rpx;
-  border-radius: var(--radius-small);
+  border-radius: 8rpx;
   margin-bottom: 16rpx;
   transition: all 0.3s ease;
 }
@@ -123,26 +120,9 @@
   color: #8898AA;
 }
 
-.detail-btn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 24rpx;
-  color: var(--primary-color);
-  padding: 6rpx 16rpx;
-  border: 1px solid var(--primary-color);
-  border-radius: var(--radius-small);
-  margin-bottom: 16rpx;
-}
-
-.detail-btn .iconfont {
-  font-size: 24rpx;
-  margin-right: 4rpx;
-}
-
 .more-btn {
   font-size: 40rpx;
-  color: var(--text-color-secondary);
+  color: #909399;
   padding: 8rpx;
 }
 
@@ -171,7 +151,7 @@
 .action-menu-content {
   width: 80%;
   background-color: #FFFFFF;
-  border-radius: var(--radius-medium);
+  border-radius: 16rpx;
   overflow: hidden;
 }
 
@@ -179,7 +159,7 @@
   display: flex;
   align-items: center;
   padding: 32rpx;
-  border-bottom: 1px solid var(--divider-color);
+  border-bottom: 1px solid #E4E7ED;
 }
 
 .action-item:last-child {
@@ -189,18 +169,92 @@
 .action-item .iconfont {
   font-size: 40rpx;
   margin-right: 16rpx;
-  color: var(--primary-color);
+  color: #4F7CFF;
 }
 
 .action-item text {
   font-size: 32rpx;
-  color: var(--text-color);
+  color: #303133;
 }
 
 .action-item.delete .iconfont {
-  color: var(--error-color);
+  color: #F56C6C;
 }
 
 .action-item.delete text {
-  color: var(--error-color);
+  color: #F56C6C;
+}
+
+/* 紧凑模式 */
+.compact .habit-card {
+  padding: 16rpx;
+}
+
+.compact .habit-icon {
+  width: 64rpx;
+  height: 64rpx;
+}
+
+.compact .habit-icon .iconfont {
+  font-size: 32rpx;
+}
+
+.compact .habit-name {
+  font-size: 28rpx;
+}
+
+.compact .habit-info {
+  margin-bottom: 8rpx;
+}
+
+.compact .habit-category {
+  font-size: 22rpx;
+  padding: 4rpx 10rpx;
+}
+
+.compact .habit-frequency {
+  font-size: 22rpx;
+}
+
+.compact .habit-stats {
+  padding: 6rpx 12rpx;
+}
+
+.compact .stat-item {
+  margin-right: 24rpx;
+  padding: 4rpx 0;
+}
+
+.compact .stat-value {
+  font-size: 24rpx;
+}
+
+.compact .stat-label {
+  font-size: 20rpx;
+}
+
+.compact .checkin-btn {
+  font-size: 24rpx;
+  padding: 6rpx 16rpx;
+}
+
+/* 简单模式 */
+.simple .habit-card {
+  padding: 20rpx;
+}
+
+.simple .habit-stats {
+  background-color: transparent;
+  padding: 0;
+}
+
+.simple .habit-info {
+  margin-bottom: 10rpx;
+}
+
+.simple .stat-item {
+  background-color: #F8FAFC;
+  border-radius: 8rpx;
+  padding: 8rpx 16rpx;
+  margin-right: 16rpx;
 } 
