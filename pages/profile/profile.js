@@ -3,8 +3,8 @@ Object.defineProperty(exports, "__esModule", { value: true });
 /**
  * 个人中心页面
  */
-const storage_1 = require("../../utils/storage");
-const achievement_1 = require("../../utils/achievement");
+const date_1 = require("../../utils/date");
+const api_1 = require("../../services/api");
 Page({
     /**
      * 页面的初始数据
@@ -63,28 +63,63 @@ Page({
     loadStats() {
         this.setData({ loading: true });
         // 获取习惯和打卡数据
-        const habits = (0, storage_1.getHabits)();
-        const checkins = (0, storage_1.getCheckins)();
-        // 计算总习惯数
-        const totalHabits = habits.length;
-        // 计算今日完成数
-        const today = new Date();
-        const todayStr = today.getFullYear() + '-' +
-            String(today.getMonth() + 1).padStart(2, '0') + '-' +
-            String(today.getDate()).padStart(2, '0');
-        const completedToday = checkins.filter(c => c.date === todayStr && c.isCompleted).length;
-        // 计算总打卡次数
-        const totalCheckins = checkins.filter(c => c.isCompleted).length;
-        // 计算连续天数（简化实现）
-        const currentStreak = 5; // 模拟数据
-        const longestStreak = 12; // 模拟数据
-        this.setData({
-            'stats.totalHabits': totalHabits,
-            'stats.completedToday': completedToday,
-            'stats.totalCheckins': totalCheckins,
-            'stats.currentStreak': currentStreak,
-            'stats.longestStreak': longestStreak,
-            loading: false
+        Promise.all([
+            api_1.habitAPI.getHabits(),
+            api_1.checkinAPI.getCheckins()
+        ])
+            .then(([habits, checkins]) => {
+            const today = (0, date_1.formatDate)(new Date());
+            // 计算总习惯数
+            const totalHabits = habits.length;
+            // 计算今日完成数
+            const completedToday = checkins.filter(c => c.date === today && c.isCompleted).length;
+            // 计算总打卡次数
+            const totalCheckins = checkins.filter(c => c.isCompleted).length;
+            // 获取所有习惯的统计数据
+            const activeHabits = habits.filter(h => !h.isArchived);
+            const statsPromises = activeHabits.map(habit => {
+                // 确保习惯ID不为undefined
+                const habitId = habit.id || habit._id;
+                if (!habitId) {
+                    console.error('习惯ID不存在:', habit);
+                    return Promise.resolve({
+                        totalCompletions: 0,
+                        totalDays: 0,
+                        completionRate: 0,
+                        currentStreak: 0,
+                        longestStreak: 0,
+                        lastCompletedDate: null
+                    });
+                }
+                return api_1.habitAPI.getHabitStats(habitId);
+            });
+            return Promise.all([
+                Promise.resolve(totalHabits),
+                Promise.resolve(completedToday),
+                Promise.resolve(totalCheckins),
+                Promise.all(statsPromises)
+            ]);
+        })
+            .then(([totalHabits, completedToday, totalCheckins, statsArray]) => {
+            // 计算最大连续天数和当前连续天数
+            let maxCurrentStreak = 0;
+            let maxLongestStreak = 0;
+            statsArray.forEach(stats => {
+                maxCurrentStreak = Math.max(maxCurrentStreak, stats.currentStreak || 0);
+                maxLongestStreak = Math.max(maxLongestStreak, stats.longestStreak || 0);
+            });
+            this.setData({
+                'stats.totalHabits': totalHabits,
+                'stats.completedToday': completedToday,
+                'stats.totalCheckins': totalCheckins,
+                'stats.currentStreak': maxCurrentStreak,
+                'stats.longestStreak': maxLongestStreak,
+                loading: false
+            });
+        })
+            .catch(error => {
+            console.error('加载统计数据失败:', error);
+            this.setData({ loading: false });
         });
     },
     /**
@@ -92,15 +127,21 @@ Page({
      */
     async loadAchievements() {
         try {
-            // 获取所有成就
-            const achievements = await achievement_1.achievementService.getAllAchievements();
-            // 只显示前4个成就
-            const topAchievements = achievements.slice(0, 4);
+            // 获取用户成就
+            const achievements = await api_1.userAPI.getAchievements();
+            // 只显示前3个成就
+            const topAchievements = achievements.slice(0, 3);
             this.setData({ achievements: topAchievements });
         }
         catch (error) {
             console.error('加载成就数据失败:', error);
+            // 错误处理，不显示默认成就
             this.setData({ achievements: [] });
+            // 显示错误提示
+            wx.showToast({
+                title: '获取成就失败',
+                icon: 'none'
+            });
         }
     },
     /**
@@ -126,6 +167,11 @@ Page({
                             userInfo: app.globalData.userInfo,
                             hasLogin: true
                         });
+                        // 登录成功后重新加载数据
+                        this.loadStats();
+                        this.loadAchievements();
+                        // 注意：登录状态变化会通过app.notifyLoginStateChanged()通知所有页面，
+                        // 包括首页，无需手动更新其他页面
                         wx.showToast({
                             title: '登录成功',
                             icon: 'success'
