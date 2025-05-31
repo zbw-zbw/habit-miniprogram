@@ -14,6 +14,10 @@
   padding: 16rpx 0;
   border-bottom: 1px solid var(--divider-color);
   margin-bottom: 16rpx;
+  width: 100vw;
+  left: 0;
+  margin-left: -32rpx; /* 抵消container的padding */
+  box-sizing: border-box;
 }
 
 .tabs-scroll {
@@ -22,6 +26,8 @@
   height: 80rpx;
   width: 100%;
   justify-content: center;
+  padding: 0 32rpx; /* 内容与container保持一致的padding */
+  box-sizing: border-box;
 }
 
 .tab-item {

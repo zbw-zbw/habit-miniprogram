@@ -1,3 +1,8 @@
+/**
+ * pages/community/post-detail/post-detail.js
+ * 社区动态详情页面
+ */
+import { communityAPI } from '../../../services/api';
 const utils = require('../../../utils/util.js');
 
 Page({
@@ -10,10 +15,14 @@ Page({
     post: null,
     comments: [],
     loading: true,
+    loadingComments: false,
     commentContent: '',
     focusComment: false,
     showEmojiPanel: false,
-    replyTo: null
+    replyTo: null,
+    commentPage: 1,
+    commentLimit: 10,
+    hasMoreComments: true
   },
 
   /**
@@ -27,6 +36,9 @@ Page({
       
       // 加载动态详情数据
       this.loadPostData(options.id);
+      
+      // 加载评论数据
+      this.loadComments(options.id);
       
       // 如果传入了focus=comment参数，自动聚焦评论框
       if (options.focus === 'comment') {
@@ -51,75 +63,64 @@ Page({
    * 加载动态详情数据
    */
   loadPostData(postId) {
-    // 模拟加载延迟
-    setTimeout(() => {
-      // 模拟动态数据
-      const mockPost = {
-        id: postId,
-        userId: 'user2',
-        userName: '小红',
-        userAvatar: '/images/avatars/avatar2.png',
-        habitName: '每日阅读',
-        content: '今天读完了《原子习惯》这本书，收获颇多！书中提到的"复利效应"让我明白了坚持小习惯的重要性，从今天开始我要更加认真地对待每一个微小的进步。\n\n推荐大家也读一读这本书，对养成习惯很有帮助。',
-        createdAt: '2小时前',
-        images: ['/images/posts/book.jpg'],
-        tags: ['阅读', '自我提升'],
-        likes: 28,
-        comments: 5,
-        isLiked: false
-      };
-      
-      // 模拟评论数据
-      const mockComments = [
-        {
-          id: 'comment1',
-          userId: 'user3',
-          userName: '小华',
-          userAvatar: '/images/avatars/avatar3.png',
-          content: '我也读过这本书，确实很棒！里面的习惯追踪方法我一直在用。',
-          createdAt: '1小时前',
-          likes: 5,
-          isLiked: false
-        },
-        {
-          id: 'comment2',
-          userId: 'user5',
-          userName: '小张',
-          userAvatar: '/images/avatars/avatar5.png',
-          content: '看来我也要读一读这本书了，最近正好想改变一些习惯。',
-          createdAt: '40分钟前',
-          likes: 2,
-          isLiked: false
-        },
-        {
-          id: 'comment3',
-          userId: 'user1',
-          userName: '小明',
-          userAvatar: '/images/avatars/avatar1.png',
-          content: '复利效应确实很神奇，小的改变积累起来就是巨大的变化。',
-          createdAt: '30分钟前',
-          likes: 3,
-          isLiked: true,
-          replies: [
-            {
-              id: 'reply1',
-              userId: 'user2',
-              userName: '小红',
-              userAvatar: '/images/avatars/avatar2.png',
-              content: '没错，这也是我最大的收获！',
-              createdAt: '20分钟前',
-              replyTo: '小明'
-            }
-          ]
-        }
-      ];
-      
-      this.setData({
-        post: mockPost,
-        comments: mockComments,
-        loading: false
+    this.setData({ loading: true });
+    
+    communityAPI.getPost(postId)
+      .then(post => {
+        this.setData({ 
+          post,
+          loading: false
+        });
+      })
+      .catch(error => {
+        console.error('获取动态详情失败:', error);
+        
+        wx.showToast({
+          title: '获取动态详情失败',
+          icon: 'none'
+        });
+        
+        this.setData({ loading: false });
       });
-    }, 1000);
+  },
+  
+  /**
+   * 加载评论数据
+   */
+  loadComments(postId, loadMore = false) {
+    // 如果没有更多评论，直接返回
+    if (!this.data.hasMoreComments && loadMore) {
+      return;
+    }
+    
+    const params = {
+      page: loadMore ? this.data.commentPage + 1 : 1,
+      pageSize: this.data.commentLimit
+    };
+    
+    this.setData({ loadingComments: true });
+    
+    communityAPI.getComments(postId, params)
+      .then(result => {
+        const { comments, pagination } = result;
+        
+        this.setData({
+          comments: loadMore ? [...this.data.comments, ...comments] : comments,
+          commentPage: params.page,
+          hasMoreComments: params.page < pagination.pages,
+          loadingComments: false
+        });
+      })
+      .catch(error => {
+        console.error('获取评论失败:', error);
+        
+        wx.showToast({
+          title: '获取评论失败',
+          icon: 'none'
+        });
+        
+        this.setData({ loadingComments: false });
+      });
   },
   
   /**
@@ -138,19 +139,27 @@ Page({
    */
   likePost() {
     const post = this.data.post;
-    post.isLiked = !post.isLiked;
+    const apiCall = post.isLiked 
+      ? communityAPI.unlikePost(post.id)
+      : communityAPI.likePost(post.id);
     
-    if (post.isLiked) {
-      post.likes += 1;
-    } else {
-      post.likes -= 1;
-    }
-    
-    this.setData({
-      post: post
-    });
-    
-    // 在实际应用中，这里应该调用API更新点赞状态
+    apiCall
+      .then(result => {
+        const { likeCount, isLiked } = result;
+        
+        post.isLiked = isLiked;
+        post.likes = likeCount;
+        
+        this.setData({ post });
+      })
+      .catch(error => {
+        console.error('点赞操作失败:', error);
+        
+        wx.showToast({
+          title: '操作失败',
+          icon: 'none'
+        });
+      });
   },
   
   /**
@@ -158,21 +167,30 @@ Page({
    */
   likeComment(e) {
     const index = e.currentTarget.dataset.index;
-    const comments = this.data.comments;
+    const comment = this.data.comments[index];
     
-    comments[index].isLiked = !comments[index].isLiked;
+    const apiCall = comment.isLiked 
+      ? communityAPI.unlikeComment(this.data.postId, comment.id)
+      : communityAPI.likeComment(this.data.postId, comment.id);
     
-    if (comments[index].isLiked) {
-      comments[index].likes += 1;
-    } else {
-      comments[index].likes -= 1;
-    }
-    
-    this.setData({
-      comments: comments
-    });
-    
-    // 在实际应用中，这里应该调用API更新点赞状态
+    apiCall
+      .then(result => {
+        const { likeCount, isLiked } = result;
+        
+        const comments = this.data.comments;
+        comments[index].isLiked = isLiked;
+        comments[index].likes = likeCount;
+        
+        this.setData({ comments });
+      })
+      .catch(error => {
+        console.error('点赞评论失败:', error);
+        
+        wx.showToast({
+          title: '操作失败',
+          icon: 'none'
+        });
+      });
   },
   
   /**
@@ -235,12 +253,13 @@ Page({
    * 提交评论
    */
   submitComment() {
-    const { commentContent, replyTo } = this.data;
+    // 获取评论内容
+    const content = this.data.commentContent.trim();
     
-    // 验证评论内容不能为空
-    if (!commentContent.trim()) {
+    // 如果评论内容为空，提示用户
+    if (!content) {
       wx.showToast({
-        title: '请输入评论内容',
+        title: '评论内容不能为空',
         icon: 'none'
       });
       return;
@@ -248,75 +267,53 @@ Page({
     
     // 显示加载中
     wx.showLoading({
-      title: '提交中...',
-      mask: true
+      title: '提交中...'
     });
     
-    // 模拟提交过程
-    setTimeout(() => {
-      if (replyTo) {
-        // 添加回复
-        const comments = this.data.comments;
-        const comment = comments[replyTo.index];
+    // 构建评论数据
+    let commentData = { content };
+    
+    // 如果是回复评论，添加回复信息
+    if (this.data.replyTo) {
+      commentData.replyTo = this.data.comments[this.data.replyTo.index].id;
+    }
+    
+    // 调用API提交评论
+    communityAPI.addComment(this.data.postId, commentData)
+      .then(comment => {
+        // 更新评论列表
+        const comments = [comment, ...this.data.comments];
         
-        if (!comment.replies) {
-          comment.replies = [];
-        }
+        // 更新评论数量
+        const post = this.data.post;
+        post.comments += 1;
         
-        // 创建新回复
-        const newReply = {
-          id: `reply${Date.now()}`,
-          userId: 'self',
-          userName: '我',
-          userAvatar: '/images/avatars/self.png',
-          content: commentContent.replace(`回复 @${replyTo.username}: `, ''),
-          createdAt: '刚刚',
-          replyTo: replyTo.username
-        };
-        
-        comment.replies.push(newReply);
-        
+        // 清空评论内容
         this.setData({
-          comments: comments,
+          comments,
+          post,
           commentContent: '',
           replyTo: null,
           showEmojiPanel: false
         });
-      } else {
-        // 创建新评论
-        const newComment = {
-          id: `comment${Date.now()}`,
-          userId: 'self',
-          userName: '我',
-          userAvatar: '/images/avatars/self.png',
-          content: commentContent,
-          createdAt: '刚刚',
-          likes: 0,
-          isLiked: false
-        };
         
-        // 添加到评论列表
-        const comments = [newComment, ...this.data.comments];
-        
-        // 更新动态评论数
-        const post = this.data.post;
-        post.comments += 1;
-        
-        this.setData({
-          comments: comments,
-          post: post,
-          commentContent: '',
-          showEmojiPanel: false
+        // 显示成功提示
+        wx.showToast({
+          title: '评论成功',
+          icon: 'success'
         });
-      }
-      
-      wx.hideLoading();
-      
-      wx.showToast({
-        title: '评论成功',
-        icon: 'success'
+      })
+      .catch(error => {
+        console.error('提交评论失败:', error);
+        
+        wx.showToast({
+          title: '评论失败',
+          icon: 'none'
+        });
+      })
+      .finally(() => {
+        wx.hideLoading();
       });
-    }, 1000);
   },
   
   /**

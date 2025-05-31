@@ -26,7 +26,7 @@
     <block wx:elif="{{habits.length === 0}}">
       <view class="empty">
         <view class="empty-icon">📝</view>
-        <view class="empty-text">暂无习惯，点击右下角"+"创建</view>
+        <view class="empty-text">暂无习惯，点击下方按钮创建</view>
         <button class="btn btn-primary" bindtap="createHabit">创建习惯</button>
       </view>
     </block>
@@ -35,7 +35,7 @@
         wx:for="{{habits}}" 
         wx:key="id" 
         habit="{{item}}" 
-        stats="{{habitStats[item._id || item.id]}}"
+        stats="{{item.stats}}"
         bindcheckin="onCheckin"
         binddelete="onDeleteHabit">
       </habit-card>

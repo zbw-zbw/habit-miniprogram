@@ -11,24 +11,38 @@
 
 /* 标签栏 */
 .tabs {
-  display: flex;
+  position: sticky;
+  top: 0;
+  z-index: 10;
   background-color: #FFFFFF;
   padding: 16rpx 0;
   border-bottom: 1px solid var(--divider-color);
   margin-bottom: 16rpx;
-  position: sticky;
-  top: 0;
-  z-index: 10;
+  width: 100vw;
+  left: 0;
+  margin-left: -32rpx; /* 抵消container的padding */
+  box-sizing: border-box;
+}
+
+.tabs-scroll {
+  white-space: nowrap;
+  display: flex;
+  height: 80rpx;
+  width: 100%;
+  justify-content: center;
+  padding: 0 32rpx; /* 内容与container保持一致的padding */
+  box-sizing: border-box;
 }
 
 .tab-item {
-  flex: 1;
-  text-align: center;
+  display: inline-block;
+  padding: 16rpx 32rpx;
   font-size: 28rpx;
   color: var(--text-color);
-  padding: 16rpx 0;
   position: relative;
   transition: all 0.3s ease;
+  flex: 1;
+  text-align: center;
 }
 
 .tab-item.active {
@@ -82,6 +96,7 @@
   grid-template-columns: repeat(2, 1fr);
   gap: 16rpx;
   margin-bottom: 24rpx;
+  margin-top: 16rpx;
 }
 
 .stat-card {
@@ -159,11 +174,27 @@
 .chart-container {
   height: 400rpx;
   width: 100%;
+  position: relative;
 }
 
 .chart-canvas {
   width: 100%;
   height: 100%;
+}
+
+/* 图表加载状态 */
+.chart-loading {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background-color: rgba(255, 255, 255, 0.9);
+  z-index: 10;
 }
 
 /* 连续打卡卡片 */
@@ -247,66 +278,88 @@
 
 /* 习惯列表 */
 .habits-list {
-  display: flex;
-  flex-direction: column;
-  gap: 16rpx;
+  margin-top: 16rpx;
+}
+
+.habits-list habit-card {
+  margin-bottom: 16rpx;
+  display: block;
 }
 
 .habit-card {
   display: flex;
-  align-items: center;
-  padding: 24rpx;
   background-color: #FFFFFF;
-  border-radius: 12rpx;
+  border-radius: 16rpx;
+  padding: 24rpx;
   box-shadow: 0 2rpx 10rpx rgba(0, 0, 0, 0.05);
+  margin-bottom: 24rpx;
+  position: relative;
 }
 
 .habit-icon {
-  width: 96rpx;
-  height: 96rpx;
-  border-radius: 24rpx;
+  width: 80rpx;
+  height: 80rpx;
+  border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
   margin-right: 24rpx;
+  flex-shrink: 0;
 }
 
 .habit-icon .iconfont {
-  font-size: 48rpx;
+  font-size: 40rpx;
 }
 
 .habit-info {
   flex: 1;
+  overflow: hidden;
 }
 
 .habit-name {
   font-size: 32rpx;
-  font-weight: 500;
-  color: #303133;
-  margin-bottom: 8rpx;
+  font-weight: 600;
+  color: #32325D;
+  margin-bottom: 12rpx;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  overflow: hidden;
 }
 
 .habit-stats {
   display: flex;
+  align-items: center;
+  background-color: #F8FAFC;
+  border-radius: 12rpx;
+  padding: 10rpx 16rpx;
 }
 
 .habit-stat {
-  margin-right: 24rpx;
   display: flex;
   flex-direction: column;
+  align-items: center;
+  margin-right: 32rpx;
+  padding: 6rpx 0;
 }
 
 .habit-stat .stat-value {
   font-size: 28rpx;
-  margin-bottom: 4rpx;
+  font-weight: 600;
+  color: #4F7CFF;
 }
 
 .habit-stat .stat-label {
-  font-size: 24rpx;
+  font-size: 22rpx;
+  color: #606266;
+  margin-top: 4rpx;
 }
 
 .habit-arrow {
+  display: flex;
+  align-items: center;
   color: #C0C4CC;
+  font-size: 32rpx;
+  margin-left: 16rpx;
 }
 
 /* 日历样式 */

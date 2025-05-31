@@ -16,7 +16,7 @@
       </view>
       
       <view class="habit-actions">
-        <view class="streak-text">已连续12天</view>
+        <view class="streak-text">已连续{{habit.stats.currentStreak || 0}}天</view>
         <button class="checkin-btn" bindtap="toggleForm" wx:if="{{!showForm}}">打卡</button>
         <button class="checkin-btn cancel" bindtap="toggleForm" wx:else>取消</button>
       </view>
@@ -110,44 +110,35 @@
     <!-- 今日待打卡 -->
     <view class="section-title">今日待打卡</view>
     <view class="habits-list">
-      <!-- 早睡习惯示例 -->
-      <view class="habit-card" wx:if="{{!showForm}}">
-        <view class="habit-info">
-          <view class="habit-icon" style="background-color: #FB6340; opacity: 0.2; color: #FB6340;">
-            <text class="iconfont icon-sleep"></text>
-          </view>
-          <view class="habit-meta">
-            <view class="habit-name">早睡</view>
-            <view class="habit-desc">23:00前睡觉</view>
-          </view>
+      <!-- 使用真实的今日待打卡习惯数据 -->
+      <block wx:if="{{todayHabits && todayHabits.length > 0}}">
+        <habit-card 
+          wx:for="{{todayHabits}}" 
+          wx:key="id" 
+          habit="{{item}}" 
+          stats="{{item.stats}}"
+          wx:if="{{!showForm}}"
+          bindcheckin="navigateToCheckin"
+          data-id="{{item.id}}">
+        </habit-card>
+      </block>
+      <block wx:else>
+        <view class="empty-habits">
+          <text>今天没有其他需要打卡的习惯</text>
         </view>
-        
-        <view class="habit-actions">
-          <view class="streak-text">已连续3天</view>
-          <button class="checkin-btn" style="background-color: #FB6340;">打卡</button>
-        </view>
-      </view>
+      </block>
     </view>
 
     <!-- 已完成习惯 -->
     <view class="section-title">已完成</view>
     <view class="habits-list">
-      <view class="habit-card" wx:for="{{completedHabits}}" wx:key="id">
-        <view class="habit-info">
-          <view class="habit-icon" style="background-color: {{item.color}}30; color: {{item.color}}">
-            <text class="iconfont icon-{{item.icon}}"></text>
-          </view>
-          <view class="habit-meta">
-            <view class="habit-name">{{item.name}}</view>
-            <view class="habit-desc">{{item.description}}</view>
-          </view>
-        </view>
-        
-        <view class="habit-actions">
-          <view class="streak-text">已连续{{index === 0 ? '8' : '5'}}天</view>
-          <button class="checkin-btn completed">已完成</button>
-        </view>
-      </view>
+      <habit-card 
+        wx:for="{{completedHabits}}" 
+        wx:key="id" 
+        habit="{{item}}" 
+        stats="{{item.stats}}"
+        showCheckinButton="{{false}}">
+      </habit-card>
     </view>
     
     <!-- 本周进度 -->

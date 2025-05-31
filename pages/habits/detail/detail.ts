@@ -1,5 +1,7 @@
 import { formatDate } from '../../../utils/date';
 import { habitAPI, checkinAPI } from '../../../services/api';
+import { dashboardAPI } from '../../../services/api/dashboard';
+import { IHabit, ICheckin, IHabitStats } from '../../../utils/types';
 
 interface IPageData {
   habitId: string;
@@ -55,6 +57,7 @@ interface IPageMethods {
   loadHabitDetail(): Promise<void>;
   loadCheckins(): Promise<void>;
   loadStats(): Promise<void>;
+  loadHabitDetailWithDashboard(): Promise<void>;
   updateCalendar(): void;
   isDateCompleted(date: string): boolean;
   isToday(date: string): boolean;
@@ -87,12 +90,12 @@ Page<IPageData, IPageMethods>({
     loading: {
       habit: true,
       checkins: true,
-      stats: true
+      stats: true,
     },
     error: {
       habit: '',
       checkins: '',
-      stats: ''
+      stats: '',
     },
     apiAvailable: true,
     // 分类中英文映射
@@ -103,19 +106,19 @@ Page<IPageData, IPageMethods>({
     weeklyStats: {
       completionRate: 0,
       trend: 0,
-      averageDuration: 0
+      averageDuration: 0,
     },
     // 详细统计数据
     statsData: {
       averageDuration: 0,
-      maxDuration: 0
+      maxDuration: 0,
     },
     // 热图数据
     heatmapData: [],
     heatmapStartDate: '',
     heatmapEndDate: '',
     // 是否显示分析助手
-    showAnalysisAssistant: false
+    showAnalysisAssistant: false,
   },
 
   onLoad(options) {
@@ -124,37 +127,39 @@ Page<IPageData, IPageMethods>({
       apiAvailable: app.globalData.apiAvailable,
       // 初始化分类映射
       categoryMap: {
-        'learning': '学习',
-        'health': '健康',
-        'work': '工作',
-        'social': '社交',
-        'finance': '财务',
-        'other': '其他',
-        'reading': '阅读',
-        'exercise': '运动',
-        'diet': '饮食',
-        'sleep': '睡眠',
-        'meditation': '冥想'
+        learning: '学习',
+        health: '健康',
+        work: '工作',
+        social: '社交',
+        finance: '财务',
+        other: '其他',
+        reading: '阅读',
+        exercise: '运动',
+        diet: '饮食',
+        sleep: '睡眠',
+        meditation: '冥想',
       },
       // 设置热图日期范围
-      heatmapStartDate: formatDate(new Date(new Date().setMonth(new Date().getMonth() - 6))),
-      heatmapEndDate: formatDate(new Date())
+      heatmapStartDate: formatDate(
+        new Date(new Date().setMonth(new Date().getMonth() - 6))
+      ),
+      heatmapEndDate: formatDate(new Date()),
     });
-    
+
     // 设置随机科学洞察
     this.setRandomInsight();
-    
+
     if (options.id) {
       this.setData({
-        habitId: options.id
+        habitId: options.id,
       });
-      this.loadHabitDetail();
-      this.loadCheckins();
-      this.loadStats();
+
+      // 使用聚合API加载所有数据
+      this.loadHabitDetailWithDashboard();
     } else {
       wx.showToast({
         title: '参数错误',
-        icon: 'error'
+        icon: 'error',
       });
       setTimeout(() => {
         wx.navigateBack();
@@ -165,87 +170,185 @@ Page<IPageData, IPageMethods>({
   // 页面显示时重新加载数据
   onShow() {
     if (this.data.habitId) {
-      this.loadCheckins();
-      this.loadStats();
+      // 使用聚合API重新加载数据
+      this.loadHabitDetailWithDashboard();
     }
   },
 
-  // 加载习惯详情
+  // 使用聚合API加载所有数据
+  async loadHabitDetailWithDashboard() {
+    // 设置所有数据为加载状态
+    this.setData({
+      'loading.habit': true,
+      'loading.checkins': true,
+      'loading.stats': true,
+      'error.habit': '',
+      'error.checkins': '',
+      'error.stats': '',
+    });
+
+    try {
+      // 使用dashboard API获取数据
+      const dashboardData = await dashboardAPI.getDashboard(undefined, {
+        days: 180,
+      }); // 获取半年数据用于热图
+      console.log('获取仪表盘数据成功:', dashboardData);
+
+      // 查找当前习惯
+      const habit = dashboardData.todayHabits.find(
+        (h) =>
+          h.id === this.data.habitId || (h as any)._id === this.data.habitId
+      );
+
+      // 如果找不到习惯，尝试单独获取
+      if (!habit) {
+        await this.loadHabitDetail();
+      } else {
+        this.setData({
+          habit,
+          'loading.habit': false,
+        });
+      }
+
+      // 过滤出当前习惯的打卡记录
+      const habitCheckins = dashboardData.recentCheckins.filter((c) => {
+        const checkinHabitId =
+          c.habitId ||
+          (c.habit && typeof c.habit === 'object'
+            ? (c.habit as any)._id
+            : c.habit);
+        return checkinHabitId === this.data.habitId;
+      });
+
+      // 处理打卡记录
+      const processedCheckins = habitCheckins.map((c) => {
+        return {
+          ...c,
+          formattedTime: c.time || '00:00',
+          duration: c.value || 0,
+        };
+      });
+
+      // 按日期排序（最新的在前）
+      processedCheckins.sort(
+        (a, b) =>
+          new Date(b.date + 'T' + (b.time || '00:00')).getTime() -
+          new Date(a.date + 'T' + (a.time || '00:00')).getTime()
+      );
+
+      this.setData({
+        checkins: processedCheckins,
+        'loading.checkins': false,
+      });
+
+      // 获取习惯统计数据
+      const stats = dashboardData.habitStats[this.data.habitId];
+      if (stats) {
+        this.setData({
+          stats,
+          completionRateFormatted: Math.round(stats.completionRate).toString(),
+          'loading.stats': false,
+        });
+      } else {
+        // 如果没有找到统计数据，单独加载
+        await this.loadStats();
+      }
+
+      // 计算统计数据
+      this.calculateWeeklyStats();
+      this.calculateDetailedStats();
+      this.generateHeatmapData();
+
+      // 初始化日历
+      this.updateCalendar();
+    } catch (error) {
+      console.error('使用仪表盘API加载数据失败:', error);
+    }
+  },
+
+  // 加载习惯详情（作为备选）
   async loadHabitDetail() {
     this.setData({
       'loading.habit': true,
-      'error.habit': ''
+      'error.habit': '',
     });
 
     try {
       const habit = await habitAPI.getHabit(this.data.habitId);
-      this.setData({ 
+      this.setData({
         habit,
-        'loading.habit': false
+        'loading.habit': false,
       });
-      
+
       // 初始化日历（在获取习惯信息后）
       this.updateCalendar();
     } catch (error) {
       console.error('加载习惯详情失败:', error);
       this.setData({
         'loading.habit': false,
-        'error.habit': '加载习惯详情失败'
+        'error.habit': '加载习惯详情失败',
       });
     }
   },
 
-  // 加载打卡记录
+  // 加载打卡记录（作为备选）
   async loadCheckins() {
     this.setData({
       'loading.checkins': true,
-      'error.checkins': ''
+      'error.checkins': '',
     });
-    
-    try {
-      // 获取习惯的打卡记录
-      const baseCheckins = await checkinAPI.getCheckins({ habitId: this.data.habitId });
-      
-      // 处理打卡记录，添加格式化的时间和持续时间
-      const checkins = baseCheckins.map((checkin: ICheckin & { duration?: number }) => ({
-        ...checkin,
-        formattedTime: new Date(checkin.createdAt).toTimeString().substring(0, 5),
-        duration: checkin.duration || Math.floor(Math.random() * 30) + 15 // 模拟持续时间数据，实际应从服务器获取
-      }));
 
-      this.setData({ 
-        checkins,
-        'loading.checkins': false
+    try {
+      // 获取习惯的所有打卡记录
+      const params = {
+        habitId: this.data.habitId,
+        // 获取最近半年的数据
+        startDate: formatDate(
+          new Date(new Date().setMonth(new Date().getMonth() - 6))
+        ),
+        endDate: formatDate(new Date()),
+        limit: 100, // 增加限制，获取更多数据用于分析
+        sort: 'date,desc', // 按日期降序排序
+      };
+
+      const checkins = await checkinAPI.getCheckins(params);
+
+      // 处理每条打卡记录
+      const processedCheckins = checkins.map((checkin: ICheckin) => {
+        return {
+          ...checkin,
+          formattedTime: checkin.time || '00:00',
+          duration: checkin.value || 0,
+        };
       });
-      
-      // 更新日历上的打卡记录
-      this.updateCalendar();
-      
-      // 计算周统计和详细统计
-      this.calculateWeeklyStats();
+
+      this.setData({
+        checkins: processedCheckins,
+        'loading.checkins': false,
+      });
+
+      // 计算详细统计数据
       this.calculateDetailedStats();
-      
-      // 生成热图数据
       this.generateHeatmapData();
     } catch (error) {
       console.error('加载打卡记录失败:', error);
       this.setData({
         'loading.checkins': false,
-        'error.checkins': '加载打卡记录失败'
+        'error.checkins': '加载打卡记录失败',
       });
     }
   },
 
-  // 加载统计数据
+  // 加载统计数据（作为备选）
   async loadStats() {
     this.setData({
       'loading.stats': true,
-      'error.stats': ''
+      'error.stats': '',
     });
-    
+
     try {
       const stats = await habitAPI.getHabitStats(this.data.habitId);
-      
+
       // 确保完成率是正确的百分比值（0-100）
       // 如果 completionRate 已经是百分比形式（0-100），不需要再乘以100
       // 如果 completionRate 是小数形式（0-1），则需要乘以100
@@ -268,19 +371,19 @@ Page<IPageData, IPageMethods>({
       this.setData({
         stats: {
           ...stats,
-          completionRate: completionRate // 更新为标准化的完成率
+          completionRate: completionRate, // 更新为标准化的完成率
         },
         completionRateFormatted,
-        'loading.stats': false
+        'loading.stats': false,
       });
-      
+
       console.log('习惯统计数据：', stats);
       console.log('格式化后的完成率：', completionRateFormatted);
     } catch (error) {
       console.error('加载统计数据失败:', error);
       this.setData({
         'loading.stats': false,
-        'error.stats': '加载统计数据失败'
+        'error.stats': '加载统计数据失败',
       });
     }
   },
@@ -290,64 +393,71 @@ Page<IPageData, IPageMethods>({
     const now = new Date();
     const oneWeekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
     const twoWeeksAgo = new Date(now.getTime() - 14 * 24 * 60 * 60 * 1000);
-    
+
     const oneWeekAgoStr = formatDate(oneWeekAgo);
     const twoWeeksAgoStr = formatDate(twoWeeksAgo);
-    
+
     // 本周打卡记录
-    const thisWeekCheckins = this.data.checkins.filter(c => 
-      new Date(c.date) >= oneWeekAgo && c.isCompleted
+    const thisWeekCheckins = this.data.checkins.filter(
+      (c) => new Date(c.date) >= oneWeekAgo && c.isCompleted
     );
-    
+
     // 上周打卡记录
-    const lastWeekCheckins = this.data.checkins.filter(c => 
-      new Date(c.date) >= twoWeeksAgo && 
-      new Date(c.date) < oneWeekAgo && 
-      c.isCompleted
+    const lastWeekCheckins = this.data.checkins.filter(
+      (c) =>
+        new Date(c.date) >= twoWeeksAgo &&
+        new Date(c.date) < oneWeekAgo &&
+        c.isCompleted
     );
-    
+
     // 计算本周完成率
     const daysInThisWeek = 7;
-    const uniqueDaysThisWeek = new Set(thisWeekCheckins.map(c => c.date)).size;
-    const completionRateThisWeek = Math.round((uniqueDaysThisWeek / daysInThisWeek) * 100);
-    
+    const uniqueDaysThisWeek = new Set(thisWeekCheckins.map((c) => c.date))
+      .size;
+    const completionRateThisWeek = Math.round(
+      (uniqueDaysThisWeek / daysInThisWeek) * 100
+    );
+
     // 计算上周完成率
     const daysInLastWeek = 7;
-    const uniqueDaysLastWeek = new Set(lastWeekCheckins.map(c => c.date)).size;
-    const completionRateLastWeek = Math.round((uniqueDaysLastWeek / daysInLastWeek) * 100);
-    
+    const uniqueDaysLastWeek = new Set(lastWeekCheckins.map((c) => c.date))
+      .size;
+    const completionRateLastWeek = Math.round(
+      (uniqueDaysLastWeek / daysInLastWeek) * 100
+    );
+
     // 计算趋势
     const trend = completionRateThisWeek - completionRateLastWeek;
-    
+
     // 计算平均时长
     let totalDuration = 0;
     let count = 0;
-    
-    thisWeekCheckins.forEach(c => {
+
+    thisWeekCheckins.forEach((c) => {
       if (c.duration) {
         totalDuration += c.duration;
         count++;
       }
     });
-    
+
     const averageDuration = count > 0 ? Math.round(totalDuration / count) : 0;
-    
+
     this.setData({
       weeklyStats: {
         completionRate: completionRateThisWeek,
         trend: trend,
-        averageDuration: averageDuration
-      }
+        averageDuration: averageDuration,
+      },
     });
   },
-  
+
   // 计算详细统计数据
   calculateDetailedStats() {
     let totalDuration = 0;
     let count = 0;
     let maxDuration = 0;
-    
-    this.data.checkins.forEach(c => {
+
+    this.data.checkins.forEach((c) => {
       if (c.duration) {
         totalDuration += c.duration;
         count++;
@@ -356,44 +466,44 @@ Page<IPageData, IPageMethods>({
         }
       }
     });
-    
+
     const averageDuration = count > 0 ? Math.round(totalDuration / count) : 0;
-    
+
     this.setData({
       statsData: {
         averageDuration: averageDuration,
-        maxDuration: maxDuration
-      }
+        maxDuration: maxDuration,
+      },
     });
   },
-  
+
   // 生成热图数据
   generateHeatmapData() {
     // 生成过去6个月的热图数据
     const endDate = new Date();
     const startDate = new Date(endDate);
     startDate.setMonth(startDate.getMonth() - 6);
-    
+
     const heatmapData: Array<{ date: string; count: number }> = [];
-    
+
     // 将打卡记录转换为热图数据格式
-    this.data.checkins.forEach(checkin => {
+    this.data.checkins.forEach((checkin) => {
       if (checkin.isCompleted) {
         const checkDate = new Date(checkin.date);
         if (checkDate >= startDate && checkDate <= endDate) {
           heatmapData.push({
             date: checkin.date,
-            count: 1
+            count: 1,
           });
         }
       }
     });
-    
+
     this.setData({
-      heatmapData
+      heatmapData,
     });
   },
-  
+
   // 设置随机科学洞察
   setRandomInsight() {
     const insights = [
@@ -403,39 +513,39 @@ Page<IPageData, IPageMethods>({
       '小步快走比大幅改变更容易成功。',
       '记录进度可以增加成就感，提高坚持率。',
       '环境提示能有效触发习惯行为。',
-      '奖励自己有助于强化习惯的养成。'
+      '奖励自己有助于强化习惯的养成。',
     ];
-    
+
     const randomIndex = Math.floor(Math.random() * insights.length);
     this.setData({
-      randomInsight: insights[randomIndex]
+      randomInsight: insights[randomIndex],
     });
   },
-  
+
   // 显示分析助手
   showAnalysisAssistant() {
     this.setData({
-      showAnalysisAssistant: true
+      showAnalysisAssistant: true,
     });
   },
-  
+
   // 隐藏分析助手
   hideAnalysisAssistant() {
     this.setData({
-      showAnalysisAssistant: false
+      showAnalysisAssistant: false,
     });
   },
-  
+
   // 处理应用建议
   handleApplySuggestion(e: any) {
     const { suggestion } = e.detail;
     console.log('应用建议:', suggestion);
-    
+
     wx.showToast({
       title: '已应用建议',
-      icon: 'success'
+      icon: 'success',
     });
-    
+
     this.hideAnalysisAssistant();
   },
 
@@ -444,19 +554,19 @@ Page<IPageData, IPageMethods>({
     const now = new Date();
     const year = now.getFullYear();
     const month = now.getMonth();
-    
+
     const currentMonth = `${year}年${month + 1}月`;
-    
+
     // 获取当月第一天是周几
     const firstDay = new Date(year, month, 1).getDay();
     // 获取当月天数
     const daysInMonth = new Date(year, month + 1, 0).getDate();
-    
+
     // 上个月的天数
     const prevMonthDays = new Date(year, month, 0).getDate();
-    
+
     const calendarDays = [];
-    
+
     // 上个月的日期
     for (let i = 0; i < firstDay; i++) {
       const day = prevMonthDays - firstDay + i + 1;
@@ -466,10 +576,10 @@ Page<IPageData, IPageMethods>({
         day,
         isCurrentMonth: false,
         isCompleted: this.isDateCompleted(date),
-        isToday: this.isToday(date)
+        isToday: this.isToday(date),
       });
     }
-    
+
     // 当月的日期
     const today = now.getDate();
     for (let i = 1; i <= daysInMonth; i++) {
@@ -479,10 +589,10 @@ Page<IPageData, IPageMethods>({
         day: i,
         isCurrentMonth: true,
         isCompleted: this.isDateCompleted(date),
-        isToday: this.isToday(date)
+        isToday: this.isToday(date),
       });
     }
-    
+
     // 下个月的日期
     const remainingDays = 42 - calendarDays.length; // 6行7列
     for (let i = 1; i <= remainingDays; i++) {
@@ -492,21 +602,21 @@ Page<IPageData, IPageMethods>({
         day: i,
         isCurrentMonth: false,
         isCompleted: this.isDateCompleted(date),
-        isToday: this.isToday(date)
+        isToday: this.isToday(date),
       });
     }
-    
+
     this.setData({
       currentMonth,
-      calendarDays
+      calendarDays,
     });
   },
-  
+
   // 检查日期是否已完成打卡
   isDateCompleted(date: string): boolean {
-    return this.data.checkins.some(c => c.date === date && c.isCompleted);
+    return this.data.checkins.some((c) => c.date === date && c.isCompleted);
   },
-  
+
   // 检查是否是今天
   isToday(date: string): boolean {
     return date === this.data.todayFormatted;
@@ -514,18 +624,24 @@ Page<IPageData, IPageMethods>({
 
   // 切换标签
   switchTab(e: WechatMiniprogram.TouchEvent) {
-    const tab = e.currentTarget.dataset.tab as 'overview' | 'records' | 'stats' | 'settings';
+    const tab = e.currentTarget.dataset.tab as
+      | 'overview'
+      | 'records'
+      | 'stats'
+      | 'settings';
     this.setData({
-      activeTab: tab
+      activeTab: tab,
     });
   },
 
   // 前往打卡页面
   goToCheckin() {
     if (!this.data.habit) return;
-    
+
     wx.navigateTo({
-      url: `/pages/checkin/checkin?habitId=${this.data.habitId}&habitName=${encodeURIComponent(this.data.habit.name)}`
+      url: `/pages/checkin/checkin?habitId=${
+        this.data.habitId
+      }&habitName=${encodeURIComponent(this.data.habit.name)}`,
     });
   },
 
@@ -534,7 +650,7 @@ Page<IPageData, IPageMethods>({
     const habitName = this.data.habit?.name || '习惯养成';
     return {
       title: `我正在坚持「${habitName}」，一起来打卡吧！`,
-      path: `/pages/index/index?share=habit&id=${this.data.habitId}`
+      path: `/pages/index/index?share=habit&id=${this.data.habitId}`,
     };
   },
 
@@ -544,61 +660,61 @@ Page<IPageData, IPageMethods>({
     // 暂时在前端未实现月份切换功能，可以在这里添加
     wx.showToast({
       title: `切换到${direction === 'prev' ? '上' : '下'}个月`,
-      icon: 'none'
+      icon: 'none',
     });
   },
 
   // 编辑习惯
   editHabit() {
     wx.navigateTo({
-      url: `/pages/habits/create/create?id=${this.data.habitId}`
+      url: `/pages/habits/create/create?id=${this.data.habitId}`,
     });
   },
 
   // 归档习惯
   archiveHabit() {
     if (!this.data.habit) return;
-    
+
     const isArchived = this.data.habit.isArchived;
     const actionText = isArchived ? '取消归档' : '归档';
-    
+
     wx.showModal({
       title: `${actionText}习惯`,
-      content: isArchived ? 
-        '取消归档后，习惯将重新显示在习惯列表中' : 
-        '归档后，习惯将不再显示在主列表中，但不会被删除',
+      content: isArchived
+        ? '取消归档后，习惯将重新显示在习惯列表中'
+        : '归档后，习惯将不再显示在主列表中，但不会被删除',
       confirmColor: '#4F7CFF',
       success: async (res) => {
         if (res.confirm) {
           wx.showLoading({
             title: `${actionText}中...`,
-            mask: true
+            mask: true,
           });
-          
+
           try {
             // 更新习惯状态
             await habitAPI.updateHabit(this.data.habitId, {
-              isArchived: !isArchived
+              isArchived: !isArchived,
             });
-            
+
             // 重新加载习惯数据
-            await this.loadHabitDetail();
-            
+            await this.loadHabitDetailWithDashboard();
+
             wx.hideLoading();
             wx.showToast({
               title: `${actionText}成功`,
-              icon: 'success'
+              icon: 'success',
             });
           } catch (error) {
             console.error(`${actionText}习惯失败:`, error);
             wx.hideLoading();
             wx.showToast({
               title: `${actionText}失败`,
-              icon: 'error'
+              icon: 'error',
             });
           }
         }
-      }
+      },
     });
   },
 
@@ -612,19 +728,19 @@ Page<IPageData, IPageMethods>({
         if (res.confirm) {
           wx.showLoading({
             title: '删除中...',
-            mask: true
+            mask: true,
           });
-          
+
           try {
             // 删除习惯
             await habitAPI.deleteHabit(this.data.habitId);
-            
+
             wx.hideLoading();
             wx.showToast({
               title: '删除成功',
-              icon: 'success'
+              icon: 'success',
             });
-            
+
             // 返回上一页
             setTimeout(() => {
               wx.navigateBack();
@@ -634,11 +750,11 @@ Page<IPageData, IPageMethods>({
             wx.hideLoading();
             wx.showToast({
               title: '删除失败',
-              icon: 'error'
+              icon: 'error',
             });
           }
         }
-      }
+      },
     });
-  }
-}); 
+  },
+});

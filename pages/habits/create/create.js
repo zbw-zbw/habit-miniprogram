@@ -13,7 +13,8 @@ Page({
         isEdit: false,
         name: '',
         description: '',
-        category: '学习',
+        category: 'learning',
+        categoryName: '学习',
         icon: 'habit',
         color: '#4F7CFF',
         frequency: 'daily',
@@ -22,7 +23,15 @@ Page({
         isReminderEnabled: false,
         goalValue: 1,
         goalUnit: '次',
-        categories: ['学习', '健康', '工作', '生活'],
+        // 分类显示用的中文名称
+        categoryOptions: [
+            { id: 'learning', name: '学习', icon: 'book' },
+            { id: 'health', name: '健康', icon: 'heart' },
+            { id: 'work', name: '工作', icon: 'briefcase' },
+            { id: 'social', name: '社交', icon: 'users' },
+            { id: 'finance', name: '财务', icon: 'dollar-sign' },
+            { id: 'other', name: '其他', icon: 'more-horizontal' }
+        ],
         icons: ['habit', 'book', 'run', 'work', 'sleep', 'water', 'food', 'meditation', 'gym'],
         colors: ['#4F7CFF', '#67C23A', '#E6A23C', '#F56C6C', '#909399', '#9C27B0', '#FF9800', '#795548', '#00BCD4'],
         frequencyOptions: [
@@ -43,6 +52,8 @@ Page({
      * 生命周期函数--监听页面加载
      */
     onLoad(options) {
+        // 加载分类列表
+        this.loadCategories();
         if (options.id) {
             // 编辑模式
             this.setData({
@@ -57,6 +68,44 @@ Page({
         }
     },
     /**
+     * 加载分类列表
+     */
+    async loadCategories() {
+        try {
+            // 使用any类型暂时绕过类型检查，因为API响应格式可能与类型定义不一致
+            const response = await api_1.habitAPI.getCategories();
+            // API响应格式为 { success: boolean, data: HabitCategory[] }
+            if (response && response.success && Array.isArray(response.data)) {
+                this.setData({
+                    categoryOptions: response.data
+                });
+                // 如果有分类数据，更新当前选中的分类名称
+                const currentCategory = this.data.category;
+                const categoryOption = response.data.find((item) => item.id === currentCategory);
+                if (categoryOption) {
+                    this.setData({
+                        categoryName: categoryOption.name
+                    });
+                }
+            }
+        }
+        catch (error) {
+            console.error('加载分类列表失败:', error);
+            // 出错时使用默认分类列表
+            const defaultCategories = [
+                { id: 'learning', name: '学习', icon: 'book' },
+                { id: 'health', name: '健康', icon: 'heart' },
+                { id: 'work', name: '工作', icon: 'briefcase' },
+                { id: 'social', name: '社交', icon: 'users' },
+                { id: 'finance', name: '财务', icon: 'dollar-sign' },
+                { id: 'other', name: '其他', icon: 'more-horizontal' }
+            ];
+            this.setData({
+                categoryOptions: defaultCategories
+            });
+        }
+    },
+    /**
      * 加载习惯详情
      */
     async loadHabitDetail(habitId) {
@@ -65,11 +114,15 @@ Page({
         });
         try {
             const habit = await api_1.habitAPI.getHabit(habitId);
+            // 查找分类对应的中文名称
+            const categoryOption = this.data.categoryOptions.find(item => item.id === habit.category);
+            const categoryName = categoryOption ? categoryOption.name : '其他';
             // 设置表单数据
             this.setData({
                 name: habit.name,
                 description: habit.description || '',
                 category: habit.category,
+                categoryName: categoryName,
                 icon: habit.icon,
                 color: habit.color,
                 isReminderEnabled: habit.reminder?.enabled || false,
@@ -291,10 +344,11 @@ Page({
     /**
      * 选择分类
      */
-    selectCategory(e) {
-        const { category } = e.currentTarget.dataset;
+    onSelectCategory(e) {
+        const { id, name } = e.currentTarget.dataset;
         this.setData({
-            category,
+            category: id,
+            categoryName: name,
             showCategoryPicker: false
         });
     },
@@ -302,7 +356,8 @@ Page({
      * 提交表单
      */
     async onSubmit() {
-        const { id, isEdit, name, description, category, icon, color, frequency, customDays, isReminderEnabled, reminderTime, goalValue, goalUnit } = this.data;
+        const { id, isEdit, name, description, category, // 使用英文ID
+        icon, color, frequency, customDays, isReminderEnabled, reminderTime, goalValue, goalUnit } = this.data;
         // 表单验证
         if (!name.trim()) {
             wx.showToast({
@@ -376,5 +431,19 @@ Page({
      */
     onCancel() {
         wx.navigateBack();
+    },
+    /**
+     * 切换分类选择器
+     */
+    toggleCategoryPicker() {
+        this.setData({
+            showCategoryPicker: !this.data.showCategoryPicker
+        });
+    },
+    /**
+     * 阻止事件冒泡
+     */
+    stopPropagation() {
+        // 阻止事件冒泡
     }
 });

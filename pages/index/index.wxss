@@ -139,6 +139,12 @@
   margin-bottom: 16rpx;
 }
 
+/* 确保习惯卡片间距统一 */
+.habits-list habit-card {
+  margin-bottom: 16rpx;
+  display: block;
+}
+
 .empty {
   display: flex;
   flex-direction: column;

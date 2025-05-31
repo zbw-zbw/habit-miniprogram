@@ -1,10 +1,42 @@
 /**
  * 首页
  */
-import { getCurrentDate } from '../../utils/date';
-import { shouldDoHabitOnDate, generateHabitStats } from '../../utils/habit';
+import { getCurrentDate, formatDate } from '../../utils/date';
+import { shouldDoHabitOnDate } from '../../utils/habit';
 import { habitAPI, checkinAPI } from '../../services/api';
-import { generateUUID } from '../../utils/util';
+import { dashboardAPI } from '../../services/api/dashboard';
+import { IHabit, ICheckin, IHabitStats, IUserInfo } from '../../utils/types';
+
+// 修改默认习惯数据以符合新的类型定义
+const DEFAULT_HABITS: IHabit[] = [
+  {
+    id: 'sample1',
+    name: '阅读',
+    description: '每天阅读30分钟',
+    category: 'learning',
+    icon: 'book',
+    color: '#4F7CFF',
+    frequency: { type: 'daily' },
+    isArchived: false,
+    createdAt: '2023-01-01',
+    updatedAt: '2023-01-01',
+  },
+  {
+    id: 'sample2',
+    name: '锻炼',
+    description: '每天锻炼30分钟',
+    category: 'health',
+    icon: 'run',
+    color: '#67C23A',
+    frequency: { type: 'daily' },
+    isArchived: false,
+    createdAt: '2023-01-01',
+    updatedAt: '2023-01-01',
+  },
+];
+
+// 默认打卡记录（当API不可用时使用）
+const DEFAULT_CHECKINS: ICheckin[] = [];
 
 Page({
   /**
@@ -13,16 +45,16 @@ Page({
   data: {
     todayHabits: [] as IHabit[],
     habitStats: {} as Record<string, IHabitStats>,
-    todayCheckins: [] as any[], // 今日所有打卡记录
+    todayCheckins: [] as ICheckin[], // 今日所有打卡记录
     loading: {
       habits: true,
       checkins: true,
-      stats: true
+      stats: true,
     },
     error: {
       habits: '',
       checkins: '',
-      stats: ''
+      stats: '',
     },
     userInfo: null as IUserInfo | null,
     hasLogin: false,
@@ -36,7 +68,7 @@ Page({
     motto: '',
     showAchievementUnlock: false,
     unlockedAchievement: null,
-    apiAvailable: true
+    apiAvailable: true,
   },
 
   /**
@@ -46,25 +78,32 @@ Page({
     const today = getCurrentDate();
     const weekdayNames = ['日', '一', '二', '三', '四', '五', '六'];
     const weekday = weekdayNames[new Date(today).getDay()];
-    
+
     const app = getApp<IAppOption>();
-    
+
     this.setData({
       today,
       weekday,
       userInfo: app.globalData.userInfo,
       hasLogin: app.globalData.hasLogin,
-      apiAvailable: app.globalData.apiAvailable
+      apiAvailable: app.globalData.apiAvailable,
     });
-    
+
     // 获取激励语
     this.getRandomMotto();
-    
+
     // 监听成就解锁事件
     if (typeof app.onAchievementUnlock === 'function') {
       app.onAchievementUnlock(this.onAchievementUnlock.bind(this));
     } else {
       console.error('App.onAchievementUnlock 方法不存在');
+    }
+
+    // 监听登录状态变化
+    if (typeof app.onLoginStateChange === 'function') {
+      app.onLoginStateChange(this.onLoginStateChange.bind(this));
+    } else {
+      console.error('App.onLoginStateChange 方法不存在');
     }
   },
 
@@ -77,11 +116,10 @@ Page({
 
   /**
    * 加载所有数据
-   * 按顺序执行: 习惯 -> 打卡记录 -> 统计数据
    */
-  async loadData() {
+  loadData() {
     const today = getCurrentDate();
-    
+
     // 重置加载状态
     this.setData({
       'loading.habits': true,
@@ -89,120 +127,86 @@ Page({
       'loading.stats': true,
       'error.habits': '',
       'error.checkins': '',
-      'error.stats': ''
+      'error.stats': '',
     });
-    
-    try {
-      // 1. 加载习惯数据
-      const habits = await habitAPI.getHabits();
-      
-      // 过滤出今日需要执行的习惯
-      const todayHabits = habits.filter(habit => 
-        !habit.isArchived && shouldDoHabitOnDate(habit, today)
-      );
-      
-      this.setData({
-        todayHabits,
-        'loading.habits': false,
-        totalCount: todayHabits.length
+
+    // 使用聚合API加载数据 - 设置days=30可以获取足够的历史数据用于展示
+    dashboardAPI
+      .getDashboard(today, { days: 30 })
+      .then((dashboardData) => {
+        console.log('获取仪表盘数据成功:', dashboardData);
+
+        // 处理数据并更新UI
+        this.processDashboardData(dashboardData);
+      })
+      .catch((error: Error) => {
+        console.error('加载数据失败:', error);
       });
-      
-      // 2. 加载今日打卡记录
-      const todayCheckins = await checkinAPI.getCheckins({
-        startDate: today,
-        endDate: today
-      });
-      
-      // 提取已完成习惯的ID (注意: 服务器返回的打卡记录可能使用habit或habitId字段)
-      const completedHabitIds = new Set();
-      
-      todayCheckins.forEach(checkin => {
-        if (checkin.isCompleted) {
-          // 兼容不同格式的打卡记录
-          const habitId = (checkin as any).habit || checkin.habitId;
-          if (habitId) {
-            completedHabitIds.add(habitId);
-          }
+  },
+
+  /**
+   * 处理仪表盘数据
+   */
+  processDashboardData(dashboardData: any, errorMessage = '') {
+    const today = this.data.today;
+
+    // 提取所需数据
+    const { todayHabits, completedHabits, stats, habitStats } = dashboardData;
+
+    // 计算完成率
+    const completedCount = completedHabits.length;
+    const totalCount = todayHabits.length;
+    const completionRate = stats.completionRate;
+    const completionRateDisplay = Math.floor(completionRate).toString();
+
+    // 处理连续打卡天数
+    let currentStreak = stats.currentStreak || 0;
+
+    // 如果API返回的连续打卡天数为0，但是习惯自身的stats中有连续打卡天数，则使用习惯的数据
+    if (currentStreak === 0 && habitStats) {
+      // 遍历所有习惯统计数据
+      Object.values(habitStats).forEach((habitStat: any) => {
+        if (habitStat && habitStat.currentStreak > 0) {
+          // 使用最大的连续打卡天数
+          currentStreak = Math.max(currentStreak, habitStat.currentStreak || 0);
+          console.log(`从习惯统计更新连续打卡天数: ${habitStat.currentStreak}`);
         }
-      });
-      
-      // 计算完成率
-      const completedCount = completedHabitIds.size;
-      const totalCount = todayHabits.length;
-      const completionRate = totalCount > 0 ? (completedCount / totalCount) * 100 : 0;
-      const completionRateDisplay = Math.floor(completionRate).toString();
-      
-      this.setData({
-        todayCheckins,
-        completedCount,
-        completionRate,
-        completionRateDisplay,
-        'loading.checkins': false
-      });
-      
-      // 3. 加载每个习惯的统计数据
-      if (todayHabits.length === 0) {
-        this.setData({
-          'loading.stats': false,
-          habitStats: {},
-          currentStreak: 0
-        });
-        return;
-      }
-      
-      const habitStats: Record<string, IHabitStats> = {};
-      const statsPromises = todayHabits.map(async (habit) => {
-        try {
-          // 获取习惯ID (优先使用_id)
-          const habitId = habit._id || habit.id;
-          if (!habitId) return;
-          
-          // 获取习惯统计数据
-          const stats = await habitAPI.getHabitStats(habitId);
-          
-          // 检查这个习惯今天是否已完成
-          if (completedHabitIds.has(habitId)) {
-            // 强制更新lastCompletedDate为今天
-            stats.lastCompletedDate = today;
-          }
-          
-          // 保存统计数据
-          habitStats[habitId] = stats;
-        } catch (error) {
-          console.error(`获取习惯统计数据失败:`, error);
-        }
-      });
-      
-      // 等待所有统计数据加载完成
-      await Promise.all(statsPromises);
-      
-      // 计算当前连续天数
-      let currentStreak = 0;
-      
-      // 只有当今天所有习惯都完成时，才显示连续天数
-      if (completedCount === totalCount && totalCount > 0) {
-        // 取最小连续天数，确保所有习惯都坚持了
-        currentStreak = Object.values(habitStats).reduce(
-          (max, stats) => Math.max(max, stats?.currentStreak || 0),
-          0
-        );
-      }
-      
-      this.setData({
-        habitStats,
-        currentStreak,
-        'loading.stats': false
-      });
-      
-    } catch (error) {
-      console.error('加载数据失败:', error);
-      this.setData({
-        'loading.habits': false,
-        'loading.checkins': false,
-        'loading.stats': false,
-        'error.habits': '加载数据失败'
       });
     }
+
+    // 如果还是0，尝试从习惯本身的stats获取
+    if (currentStreak === 0 && Array.isArray(todayHabits)) {
+      todayHabits.forEach((habit) => {
+        if (habit.stats && habit.stats.currentStreak > 0) {
+          currentStreak = Math.max(currentStreak, habit.stats.currentStreak);
+          console.log(
+            `从习惯自身更新连续打卡天数: ${habit.stats.currentStreak}`
+          );
+        }
+      });
+    }
+
+    console.log('当前连续打卡天数:', currentStreak);
+
+    // 设置数据
+    this.setData({
+      todayHabits,
+      todayCheckins: dashboardData.recentCheckins.filter(
+        (c: ICheckin) => c.date === today
+      ),
+      habitStats,
+      completedCount,
+      totalCount,
+      completionRate,
+      completionRateDisplay,
+      currentStreak,
+      'loading.habits': false,
+      'loading.checkins': false,
+      'loading.stats': false,
+      'error.habits': errorMessage,
+      'error.checkins': errorMessage,
+      'error.stats': errorMessage,
+    });
   },
 
   /**
@@ -219,12 +223,12 @@ Page({
       '每天进步一点点，离目标就近一点点。',
       '坚持下去，你会感谢今天努力的自己。',
       '不积跬步，无以至千里。',
-      '养成好习惯，成就好人生。'
+      '养成好习惯，成就好人生。',
     ];
-    
+
     const randomIndex = Math.floor(Math.random() * mottos.length);
     this.setData({
-      motto: mottos[randomIndex]
+      motto: mottos[randomIndex],
     });
   },
 
@@ -234,10 +238,18 @@ Page({
   onCheckin(e: any) {
     const { habitId } = e.detail;
     if (!habitId) return;
-    
-    // 直接跳转到打卡页面
+
+    // 获取习惯信息，用于传递到打卡页面
+    const habit = this.data.todayHabits.find(
+      (h) => h.id === habitId || (h as any)._id === habitId
+    );
+    if (!habit) return;
+
+    // 跳转到打卡页面，传递更多信息减少再次请求
     wx.navigateTo({
-      url: `/pages/checkin/checkin?habitId=${habitId}`
+      url: `/pages/checkin/checkin?habitId=${habitId}&habitName=${encodeURIComponent(
+        habit.name
+      )}`,
     });
   },
 
@@ -253,7 +265,7 @@ Page({
    */
   goToHabits() {
     wx.switchTab({
-      url: '/pages/habits/habits'
+      url: '/pages/habits/habits',
     });
   },
 
@@ -262,7 +274,7 @@ Page({
    */
   goToCreateHabit() {
     wx.navigateTo({
-      url: '/pages/habits/create/create'
+      url: '/pages/habits/create/create',
     });
   },
 
@@ -276,9 +288,9 @@ Page({
         console.error('跳转到数据分析页失败:', err);
         wx.showToast({
           title: '跳转失败，请稍后再试',
-          icon: 'none'
+          icon: 'none',
         });
-      }
+      },
     });
   },
 
@@ -288,19 +300,19 @@ Page({
   onShareAppMessage() {
     return {
       title: '养成好习惯，改变好人生',
-      path: '/pages/index/index'
+      path: '/pages/index/index',
     };
   },
 
   /**
    * 成就解锁事件处理
    */
-  onAchievementUnlock(achievement: IAchievement) {
+  onAchievementUnlock(achievement: any) {
     this.setData({
       showAchievementUnlock: true,
-      unlockedAchievement: achievement as any
+      unlockedAchievement: achievement,
     });
-    
+
     // 3秒后自动关闭
     setTimeout(this.hideAchievementUnlock.bind(this), 3000);
   },
@@ -310,7 +322,7 @@ Page({
    */
   hideAchievementUnlock() {
     this.setData({
-      showAchievementUnlock: false
+      showAchievementUnlock: false,
     });
   },
 
@@ -319,12 +331,41 @@ Page({
    */
   viewAchievementDetail(e: any) {
     if (!this.data.unlockedAchievement) return;
-    
+
     wx.navigateTo({
       url: '/pages/profile/achievements/achievements',
       success: () => {
         this.hideAchievementUnlock();
-      }
+      },
     });
-  }
-}); 
+  },
+
+  /**
+   * 处理登录状态变化
+   */
+  onLoginStateChange(loginState: {
+    userInfo: IUserInfo | null;
+    hasLogin: boolean;
+  }) {
+    console.log('首页接收到登录状态变化:', loginState.hasLogin);
+
+    this.setData({
+      userInfo: loginState.userInfo,
+      hasLogin: loginState.hasLogin,
+    });
+
+    // 重新加载数据
+    this.loadData();
+  },
+
+  /**
+   * 用户下拉刷新
+   */
+  onPullDownRefresh() {
+    // 强制刷新数据
+    this.loadData();
+
+    // 完成刷新
+    wx.stopPullDownRefresh();
+  },
+});

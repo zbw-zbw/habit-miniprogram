@@ -2,9 +2,11 @@
 <view class="container">
   <!-- 顶部标签栏 -->
   <view class="tabs">
-    <view class="tab-item {{activeTab === 'overview' ? 'active' : ''}}" bindtap="switchTab" data-tab="overview">总览</view>
-    <view class="tab-item {{activeTab === 'habits' ? 'active' : ''}}" bindtap="switchTab" data-tab="habits">习惯</view>
-    <view class="tab-item {{activeTab === 'calendar' ? 'active' : ''}}" bindtap="switchTab" data-tab="calendar">日历</view>
+    <scroll-view scroll-x class="tabs-scroll" scroll-with-animation enable-flex>
+      <view class="tab-item {{activeTab === 'overview' ? 'active' : ''}}" bindtap="switchTab" data-tab="overview">总览</view>
+      <view class="tab-item {{activeTab === 'habits' ? 'active' : ''}}" bindtap="switchTab" data-tab="habits">习惯</view>
+      <view class="tab-item {{activeTab === 'calendar' ? 'active' : ''}}" bindtap="switchTab" data-tab="calendar">日历</view>
+    </scroll-view>
   </view>
   
   <!-- 加载状态 -->
@@ -49,6 +51,10 @@
     <view class="chart-card">
       <view class="chart-title">完成率趋势</view>
       <view class="chart-container">
+        <view class="chart-loading" wx:if="{{chartLoading}}">
+          <view class="loading-spinner"></view>
+          <view class="loading-text">加载中...</view>
+        </view>
         <canvas canvas-id="completionChart" class="chart-canvas"></canvas>
       </view>
     </view>
@@ -57,6 +63,10 @@
     <view class="chart-card">
       <view class="chart-title">打卡次数</view>
       <view class="chart-container">
+        <view class="chart-loading" wx:if="{{chartLoading}}">
+          <view class="loading-spinner"></view>
+          <view class="loading-text">加载中...</view>
+        </view>
         <canvas canvas-id="checkinsChart" class="chart-canvas"></canvas>
       </view>
     </view>
@@ -68,7 +78,7 @@
         <view class="streak-value">{{stats.currentStreak}}天</view>
       </view>
       <view class="streak-progress">
-        <view class="streak-bar" style="width: {{stats.currentStreak / stats.longestStreak * 100}}%"></view>
+        <view class="streak-bar" style="width: {{stats.longestStreak > 0 ? stats.currentStreak / stats.longestStreak * 100 + '%' : '0%'}}"></view>
       </view>
       <view class="streak-footer">
         <view class="streak-label">历史最长</view>
@@ -86,31 +96,15 @@
   <!-- 习惯标签内容 -->
   <block wx:if="{{activeTab === 'habits' && !loading}}">
     <view class="habits-list">
-      <view class="habit-card" wx:for="{{habitStats}}" wx:key="id" bindtap="viewHabitDetail" data-id="{{item.id}}">
-        <view class="habit-icon" style="background-color: {{item.color}}30; color: {{item.color}}">
-          <text class="iconfont icon-{{item.icon}}"></text>
-        </view>
-        <view class="habit-info">
-          <view class="habit-name">{{item.name}}</view>
-          <view class="habit-stats">
-            <view class="habit-stat">
-              <text class="stat-value">{{item.completionRate}}%</text>
-              <text class="stat-label">完成率</text>
-            </view>
-            <view class="habit-stat">
-              <text class="stat-value">{{item.streak}}</text>
-              <text class="stat-label">连续天数</text>
-            </view>
-            <view class="habit-stat">
-              <text class="stat-value">{{item.totalCheckins}}</text>
-              <text class="stat-label">总打卡</text>
-            </view>
-          </view>
-        </view>
-        <view class="habit-arrow">
-          <text class="iconfont icon-right"></text>
-        </view>
-      </view>
+      <habit-card 
+        wx:for="{{habitStats}}" 
+        wx:key="id" 
+        habit="{{habitsMap[item.id]}}" 
+        stats="{{habitsMap[item.id].stats}}"
+        showCheckinButton="{{false}}"
+        bindtap="viewHabitDetail" 
+        data-id="{{item.id}}">
+      </habit-card>
     </view>
   </block>
   

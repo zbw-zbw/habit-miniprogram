@@ -1,42 +1,41 @@
+/**
+ * pages/community/groups/groups.js
+ * 社区小组页面
+ */
+import { communityAPI } from '../../../services/api';
+
 Page({
 
   /**
    * 页面的初始数据
    */
   data: {
+    activeTab: 'all', // all, joined, recommended
+    groups: [],
     loading: true,
     loadingMore: false,
     hasMore: true,
-    searchKeyword: '',
+    page: 1,
+    limit: 10,
     showSearch: false,
-    activeTab: 'all', // all, joined, recommended
-    groups: [],
-    page: 1
+    searchKeyword: ''
   },
 
   /**
    * 生命周期函数--监听页面加载
    */
   onLoad(options) {
-    this.loadGroups();
+    // 加载小组数据
+    this.loadGroups(true);
   },
 
   /**
-   * 加载小组列表
+   * 加载小组数据
    */
   loadGroups(isRefresh = false) {
     // 如果是刷新，重置页码
     if (isRefresh) {
-      this.setData({
-        page: 1,
-        groups: [],
-        hasMore: true
-      });
-    }
-    
-    // 如果没有更多数据，直接返回
-    if (!this.data.hasMore && !isRefresh) {
-      return;
+      this.setData({ page: 1 });
     }
     
     // 显示加载中
@@ -45,90 +44,42 @@ Page({
       loadingMore: this.data.groups.length > 0
     });
     
-    // 模拟加载延迟
-    setTimeout(() => {
-      // 模拟小组数据
-      const mockGroups = [
-        {
-          id: '1',
-          name: '早起俱乐部',
-          avatar: '/images/avatars/avatar1.png',
-          coverImage: '/images/avatars/avatar1.png',
-          membersCount: 256,
-          description: '每天早起，养成健康生活习惯。分享早起心得，互相监督打卡。',
-          isJoined: true
-        },
-        {
-          id: '2',
-          name: '读书分享会',
-          avatar: '/images/avatars/avatar2.png',
-          coverImage: '/images/avatars/avatar2.png',
-          membersCount: 189,
-          description: '分享读书心得，推荐好书。每周一本书，每天一小时阅读。',
-          isJoined: false
-        },
-        {
-          id: '3',
-          name: '健身达人',
-          avatar: '/images/avatars/avatar3.png',
-          coverImage: '/images/avatars/avatar3.png',
-          membersCount: 324,
-          description: '一起锻炼，分享健身经验。无论你是健身新手还是老手，都能在这里找到志同道合的朋友。',
-          isJoined: true
-        },
-        {
-          id: '4',
-          name: '冥想修行',
-          avatar: '/images/avatars/avatar4.png',
-          coverImage: '/images/avatars/avatar4.png',
-          membersCount: 156,
-          description: '每天冥想，提升专注力和幸福感。分享冥想技巧和心得体会。',
-          isJoined: false
-        },
-        {
-          id: '5',
-          name: '学习打卡',
-          avatar: '/images/avatars/avatar5.png',
-          coverImage: '/images/avatars/avatar5.png',
-          membersCount: 412,
-          description: '互相监督学习，分享学习方法和资源。每天打卡，坚持学习。',
-          isJoined: false
-        }
-      ];
-      
-      // 根据标签筛选
-      let filteredGroups = [...mockGroups];
-      if (this.data.activeTab === 'joined') {
-        filteredGroups = filteredGroups.filter(group => group.isJoined);
-      } else if (this.data.activeTab === 'recommended') {
-        // 模拟推荐逻辑，这里简单地随机排序
-        filteredGroups.sort(() => Math.random() - 0.5);
-      }
-      
-      // 根据搜索关键词筛选
-      if (this.data.searchKeyword) {
-        const keyword = this.data.searchKeyword.toLowerCase();
-        filteredGroups = filteredGroups.filter(group => 
-          group.name.toLowerCase().includes(keyword) || 
-          group.description.toLowerCase().includes(keyword)
-        );
-      }
-      
-      // 模拟分页
-      const currentGroups = this.data.groups;
-      const newGroups = isRefresh ? filteredGroups : [...currentGroups, ...filteredGroups];
-      
-      // 判断是否还有更多数据
-      const hasMore = this.data.page < 3; // 模拟只有3页数据
-      
-      this.setData({
-        groups: newGroups,
-        loading: false,
-        loadingMore: false,
-        hasMore: hasMore,
-        page: this.data.page + 1
+    // 构建请求参数
+    const params = {
+      page: this.data.page,
+      limit: this.data.limit,
+      type: this.data.activeTab,
+      keyword: this.data.searchKeyword || undefined
+    };
+    
+    // 调用API获取小组数据
+    communityAPI.getGroups(params)
+      .then(result => {
+        const { groups, pagination } = result;
+        
+        // 更新数据
+        this.setData({
+          groups: isRefresh ? groups : [...this.data.groups, ...groups],
+          loading: false,
+          loadingMore: false,
+          hasMore: this.data.page < pagination.pages,
+          page: this.data.page + 1
+        });
+      })
+      .catch(error => {
+        console.error('获取小组列表失败:', error);
+        
+        // 显示错误提示
+        wx.showToast({
+          title: '获取小组列表失败',
+          icon: 'none'
+        });
+        
+        this.setData({
+          loading: false,
+          loadingMore: false
+        });
       });
-    }, 1000);
   },
 
   /**
@@ -192,32 +143,56 @@ Page({
    */
   toggleJoinGroup(e) {
     const { id, index } = e.currentTarget.dataset;
-    const groups = this.data.groups;
+    const group = this.data.groups[index];
+    const isJoined = group.isJoined;
     
-    // 切换加入状态
-    groups[index].isJoined = !groups[index].isJoined;
-    groups[index].membersCount = groups[index].isJoined ? 
-      groups[index].membersCount + 1 : 
-      groups[index].membersCount - 1;
-    
-    this.setData({ groups });
-    
-    // 提示用户
-    wx.showToast({
-      title: groups[index].isJoined ? '已加入小组' : '已退出小组',
-      icon: 'success'
+    // 显示加载中
+    wx.showLoading({
+      title: isJoined ? '退出中...' : '加入中...'
     });
     
-    // TODO: 发送请求到服务器更新加入状态
+    // 调用API
+    const apiCall = isJoined 
+      ? communityAPI.leaveGroup(id) 
+      : communityAPI.joinGroup(id);
+    
+    apiCall
+      .then(() => {
+        // 更新本地数据
+        const groups = this.data.groups;
+        groups[index].isJoined = !isJoined;
+        groups[index].membersCount = isJoined 
+          ? Math.max(0, groups[index].membersCount - 1)
+          : groups[index].membersCount + 1;
+        
+        this.setData({ groups });
+        
+        // 显示成功提示
+        wx.showToast({
+          title: isJoined ? '已退出小组' : '已加入小组',
+          icon: 'success'
+        });
+      })
+      .catch(error => {
+        console.error('操作失败:', error);
+        
+        // 显示错误提示
+        wx.showToast({
+          title: '操作失败',
+          icon: 'none'
+        });
+      })
+      .finally(() => {
+        wx.hideLoading();
+      });
   },
 
   /**
    * 创建小组
    */
   createGroup() {
-    wx.showToast({
-      title: '创建小组功能开发中',
-      icon: 'none'
+    wx.navigateTo({
+      url: '/packageCommunity/pages/group/create/create'
     });
   },
 
@@ -243,7 +218,7 @@ Page({
    */
   onShareAppMessage() {
     return {
-      title: '发现有趣的小组',
+      title: '习惯打卡社区 - 小组',
       path: '/pages/community/groups/groups'
     };
   }

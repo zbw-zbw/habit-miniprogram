@@ -2,5 +2,7 @@
   "navigationBarTitleText": "数据分析",
   "enablePullDownRefresh": true,
   "backgroundColor": "#F5F7FA",
-  "usingComponents": {}
+  "usingComponents": {
+    "habit-card": "/components/habit-card/habit-card"
+  }
 } 

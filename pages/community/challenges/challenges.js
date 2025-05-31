@@ -1,4 +1,8 @@
-const utils = require('../../../utils/util.js');
+/**
+ * pages/community/challenges/challenges.js
+ * 社区挑战页面
+ */
+import { communityAPI } from '../../../services/api';
 
 Page({
 
@@ -11,7 +15,7 @@ Page({
     activeTab: 'all', // all, joined, popular, new
     challenges: [],
     page: 1,
-    pageSize: 10,
+    limit: 10,
     searchKeyword: '',
     showSearch: false
   },
@@ -20,15 +24,21 @@ Page({
    * 生命周期函数--监听页面加载
    */
   onLoad(options) {
-    // 如果有传入的标签参数，自动切换到该标签
+    // 如果有标签参数，设置初始标签
     if (options.tab && ['all', 'joined', 'popular', 'new'].includes(options.tab)) {
-      this.setData({
-        activeTab: options.tab
+      this.setData({ activeTab: options.tab });
+    }
+    
+    // 如果有标签参数，直接搜索该标签
+    if (options.tag) {
+      this.setData({ 
+        showSearch: true,
+        searchKeyword: options.tag
       });
     }
     
     // 加载挑战数据
-    this.loadChallenges();
+    this.loadChallenges(true);
   },
   
   /**
@@ -54,107 +64,40 @@ Page({
       loading: true
     });
     
-    // 模拟加载延迟
-    setTimeout(() => {
-      // 模拟挑战数据
-      const mockChallenges = [
-        {
-          id: 'challenge1',
-          title: '21天阅读挑战',
-          description: '每天阅读30分钟，持续21天，培养阅读习惯。',
-          image: '/images/challenges/reading.jpg',
-          totalDays: 21,
-          participantsCount: 1358,
-          isJoined: false,
-          progress: 0,
-          tags: ['阅读', '自我提升']
-        },
-        {
-          id: 'challenge2',
-          title: '早起俱乐部',
-          description: '每天早上6点起床，坚持30天，改变你的生活节奏。',
-          image: '/images/challenges/morning.jpg',
-          totalDays: 30,
-          participantsCount: 2546,
-          isJoined: true,
-          progress: 40,
-          tags: ['早起', '生活习惯']
-        },
-        {
-          id: 'challenge3',
-          title: '每日冥想',
-          description: '每天冥想15分钟，持续14天，提升专注力和心灵平静。',
-          image: '/images/challenges/meditation.jpg',
-          totalDays: 14,
-          participantsCount: 863,
-          isJoined: false,
-          progress: 0,
-          tags: ['冥想', '心灵成长']
-        },
-        {
-          id: 'challenge4',
-          title: '健身打卡',
-          description: '每天进行30分钟的有氧运动，持续28天，塑造健康体魄。',
-          image: '/images/challenges/fitness.jpg',
-          totalDays: 28,
-          participantsCount: 1762,
-          isJoined: false,
-          progress: 0,
-          tags: ['健身', '运动']
-        },
-        {
-          id: 'challenge5',
-          title: '写作练习',
-          description: '每天写作500字，持续30天，提升表达能力和思考深度。',
-          image: '/images/challenges/writing.jpg',
-          totalDays: 30,
-          participantsCount: 743,
-          isJoined: true,
-          progress: 60,
-          tags: ['写作', '创作']
-        }
-      ];
-      
-      // 根据当前标签筛选数据
-      let filteredChallenges = [...mockChallenges];
-      
-      switch (this.data.activeTab) {
-        case 'joined':
-          filteredChallenges = filteredChallenges.filter(item => item.isJoined);
-          break;
-        case 'popular':
-          filteredChallenges.sort((a, b) => b.participantsCount - a.participantsCount);
-          break;
-        case 'new':
-          // 假设有创建时间字段，这里简单模拟
-          filteredChallenges.reverse();
-          break;
-      }
-      
-      // 如果有搜索关键词，进行筛选
-      if (this.data.searchKeyword) {
-        const keyword = this.data.searchKeyword.toLowerCase();
-        filteredChallenges = filteredChallenges.filter(item => 
-          item.title.toLowerCase().includes(keyword) || 
-          item.description.toLowerCase().includes(keyword) ||
-          item.tags.some(tag => tag.toLowerCase().includes(keyword))
-        );
-      }
-      
-      // 模拟分页
-      const currentChallenges = this.data.challenges;
-      const newChallenges = isRefresh ? filteredChallenges : [...currentChallenges, ...filteredChallenges];
-      
-      // 判断是否还有更多数据
-      const hasMore = this.data.page < 3; // 模拟只有3页数据
-      
-      this.setData({
-        challenges: newChallenges,
-        loading: false,
-        hasMore: hasMore,
-        page: this.data.page + 1
+    // 构建请求参数
+    const params = {
+      page: this.data.page,
+      limit: this.data.limit,
+      type: this.data.activeTab,
+      keyword: this.data.searchKeyword || undefined
+    };
+    
+    // 调用API获取挑战数据
+    communityAPI.getChallenges(params)
+      .then(result => {
+        const { challenges, pagination } = result;
+        
+        // 更新数据
+        this.setData({
+          challenges: isRefresh ? challenges : [...this.data.challenges, ...challenges],
+          loading: false,
+          hasMore: this.data.page < pagination.pages,
+          page: this.data.page + 1
+        });
+      })
+      .catch(error => {
+        console.error('获取挑战列表失败:', error);
+        
+        // 显示错误提示
+        wx.showToast({
+          title: '获取挑战列表失败',
+          icon: 'none'
+        });
+        
+        this.setData({
+          loading: false
+        });
       });
-    }, 1000);
   },
   
   /**
@@ -199,56 +142,46 @@ Page({
     // 获取当前挑战
     const challenges = this.data.challenges;
     const challenge = challenges[index];
+    const isJoined = challenge.isJoined;
     
-    // 切换参与状态
-    if (!challenge.isJoined) {
-      // 如果当前未参加，显示确认对话框
-      wx.showModal({
-        title: '参加挑战',
-        content: `确定要参加"${challenge.title}"挑战吗？参加后需要按照挑战规则完成任务。`,
-        confirmText: '参加',
-        success: (res) => {
-          if (res.confirm) {
-            // 更新参与状态
-            challenges[index].isJoined = true;
-            challenges[index].participantsCount += 1;
-            
-            this.setData({
-              challenges: challenges
-            });
-            
-            wx.showToast({
-              title: '成功参加挑战',
-              icon: 'success'
-            });
-          }
-        }
+    // 显示加载中
+    wx.showLoading({
+      title: isJoined ? '退出中...' : '参加中...'
+    });
+    
+    // 调用API
+    const apiCall = isJoined 
+      ? communityAPI.leaveChallenge(id) 
+      : communityAPI.joinChallenge(id);
+    
+    apiCall
+      .then(() => {
+        // 更新本地数据
+        challenges[index].isJoined = !isJoined;
+        challenges[index].participantsCount = isJoined 
+          ? Math.max(0, challenges[index].participantsCount - 1)
+          : challenges[index].participantsCount + 1;
+        
+        this.setData({ challenges });
+        
+        // 显示成功提示
+        wx.showToast({
+          title: isJoined ? '已退出挑战' : '已参加挑战',
+          icon: 'success'
+        });
+      })
+      .catch(error => {
+        console.error('操作失败:', error);
+        
+        // 显示错误提示
+        wx.showToast({
+          title: '操作失败',
+          icon: 'none'
+        });
+      })
+      .finally(() => {
+        wx.hideLoading();
       });
-    } else {
-      // 如果当前已参加，显示确认退出对话框
-      wx.showModal({
-        title: '退出挑战',
-        content: '确定要退出此挑战吗？退出后将失去当前的进度。',
-        confirmText: '退出',
-        confirmColor: '#F56C6C',
-        success: (res) => {
-          if (res.confirm) {
-            // 更新参与状态
-            challenges[index].isJoined = false;
-            challenges[index].participantsCount -= 1;
-            
-            this.setData({
-              challenges: challenges
-            });
-            
-            wx.showToast({
-              title: '已退出挑战',
-              icon: 'success'
-            });
-          }
-        }
-      });
-    }
   },
   
   /**

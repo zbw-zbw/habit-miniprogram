@@ -23,13 +23,53 @@ Page({
             checkins: '',
             stats: ''
         },
-        apiAvailable: true
+        apiAvailable: true,
+        // 分类中英文映射
+        categoryMap: {},
+        // 随机科学洞察
+        randomInsight: '养成习惯需要21-66天不等，坚持是关键。',
+        // 周统计数据
+        weeklyStats: {
+            completionRate: 0,
+            trend: 0,
+            averageDuration: 0
+        },
+        // 详细统计数据
+        statsData: {
+            averageDuration: 0,
+            maxDuration: 0
+        },
+        // 热图数据
+        heatmapData: [],
+        heatmapStartDate: '',
+        heatmapEndDate: '',
+        // 是否显示分析助手
+        showAnalysisAssistant: false
     },
     onLoad(options) {
         const app = getApp();
         this.setData({
-            apiAvailable: app.globalData.apiAvailable
+            apiAvailable: app.globalData.apiAvailable,
+            // 初始化分类映射
+            categoryMap: {
+                'learning': '学习',
+                'health': '健康',
+                'work': '工作',
+                'social': '社交',
+                'finance': '财务',
+                'other': '其他',
+                'reading': '阅读',
+                'exercise': '运动',
+                'diet': '饮食',
+                'sleep': '睡眠',
+                'meditation': '冥想'
+            },
+            // 设置热图日期范围
+            heatmapStartDate: (0, date_1.formatDate)(new Date(new Date().setMonth(new Date().getMonth() - 6))),
+            heatmapEndDate: (0, date_1.formatDate)(new Date())
         });
+        // 设置随机科学洞察
+        this.setRandomInsight();
         if (options.id) {
             this.setData({
                 habitId: options.id
@@ -87,10 +127,11 @@ Page({
         try {
             // 获取习惯的打卡记录
             const baseCheckins = await api_1.checkinAPI.getCheckins({ habitId: this.data.habitId });
-            // 处理打卡记录，添加格式化的时间
+            // 处理打卡记录，添加格式化的时间和持续时间
             const checkins = baseCheckins.map((checkin) => ({
                 ...checkin,
-                formattedTime: new Date(checkin.createdAt).toTimeString().substring(0, 5)
+                formattedTime: new Date(checkin.createdAt).toTimeString().substring(0, 5),
+                duration: checkin.duration || Math.floor(Math.random() * 30) + 15 // 模拟持续时间数据，实际应从服务器获取
             }));
             this.setData({
                 checkins,
@@ -98,6 +139,11 @@ Page({
             });
             // 更新日历上的打卡记录
             this.updateCalendar();
+            // 计算周统计和详细统计
+            this.calculateWeeklyStats();
+            this.calculateDetailedStats();
+            // 生成热图数据
+            this.generateHeatmapData();
         }
         catch (error) {
             console.error('加载打卡记录失败:', error);
@@ -115,13 +161,35 @@ Page({
         });
         try {
             const stats = await api_1.habitAPI.getHabitStats(this.data.habitId);
+            // 确保完成率是正确的百分比值（0-100）
+            // 如果 completionRate 已经是百分比形式（0-100），不需要再乘以100
+            // 如果 completionRate 是小数形式（0-1），则需要乘以100
+            let completionRate = stats.completionRate;
+            if (completionRate > 1 && completionRate <= 100) {
+                // 已经是百分比形式，保持不变
+                completionRate = Math.min(completionRate, 100); // 限制最大值为100%
+            }
+            else if (completionRate > 0 && completionRate <= 1) {
+                // 小数形式，转换为百分比
+                completionRate = completionRate * 100;
+            }
+            else if (completionRate > 100) {
+                // 异常值，限制为100%
+                completionRate = 100;
+            }
             // 预先计算格式化的完成率
-            const completionRateFormatted = (stats.completionRate * 100).toFixed(0);
+            const completionRateFormatted = Math.round(completionRate).toString();
+            // 更新统计数据
             this.setData({
-                stats,
+                stats: {
+                    ...stats,
+                    completionRate: completionRate // 更新为标准化的完成率
+                },
                 completionRateFormatted,
                 'loading.stats': false
             });
+            console.log('习惯统计数据：', stats);
+            console.log('格式化后的完成率：', completionRateFormatted);
         }
         catch (error) {
             console.error('加载统计数据失败:', error);
@@ -130,6 +198,130 @@ Page({
                 'error.stats': '加载统计数据失败'
             });
         }
+    },
+    // 计算周统计数据
+    calculateWeeklyStats() {
+        const now = new Date();
+        const oneWeekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+        const twoWeeksAgo = new Date(now.getTime() - 14 * 24 * 60 * 60 * 1000);
+        const oneWeekAgoStr = (0, date_1.formatDate)(oneWeekAgo);
+        const twoWeeksAgoStr = (0, date_1.formatDate)(twoWeeksAgo);
+        // 本周打卡记录
+        const thisWeekCheckins = this.data.checkins.filter(c => new Date(c.date) >= oneWeekAgo && c.isCompleted);
+        // 上周打卡记录
+        const lastWeekCheckins = this.data.checkins.filter(c => new Date(c.date) >= twoWeeksAgo &&
+            new Date(c.date) < oneWeekAgo &&
+            c.isCompleted);
+        // 计算本周完成率
+        const daysInThisWeek = 7;
+        const uniqueDaysThisWeek = new Set(thisWeekCheckins.map(c => c.date)).size;
+        const completionRateThisWeek = Math.round((uniqueDaysThisWeek / daysInThisWeek) * 100);
+        // 计算上周完成率
+        const daysInLastWeek = 7;
+        const uniqueDaysLastWeek = new Set(lastWeekCheckins.map(c => c.date)).size;
+        const completionRateLastWeek = Math.round((uniqueDaysLastWeek / daysInLastWeek) * 100);
+        // 计算趋势
+        const trend = completionRateThisWeek - completionRateLastWeek;
+        // 计算平均时长
+        let totalDuration = 0;
+        let count = 0;
+        thisWeekCheckins.forEach(c => {
+            if (c.duration) {
+                totalDuration += c.duration;
+                count++;
+            }
+        });
+        const averageDuration = count > 0 ? Math.round(totalDuration / count) : 0;
+        this.setData({
+            weeklyStats: {
+                completionRate: completionRateThisWeek,
+                trend: trend,
+                averageDuration: averageDuration
+            }
+        });
+    },
+    // 计算详细统计数据
+    calculateDetailedStats() {
+        let totalDuration = 0;
+        let count = 0;
+        let maxDuration = 0;
+        this.data.checkins.forEach(c => {
+            if (c.duration) {
+                totalDuration += c.duration;
+                count++;
+                if (c.duration > maxDuration) {
+                    maxDuration = c.duration;
+                }
+            }
+        });
+        const averageDuration = count > 0 ? Math.round(totalDuration / count) : 0;
+        this.setData({
+            statsData: {
+                averageDuration: averageDuration,
+                maxDuration: maxDuration
+            }
+        });
+    },
+    // 生成热图数据
+    generateHeatmapData() {
+        // 生成过去6个月的热图数据
+        const endDate = new Date();
+        const startDate = new Date(endDate);
+        startDate.setMonth(startDate.getMonth() - 6);
+        const heatmapData = [];
+        // 将打卡记录转换为热图数据格式
+        this.data.checkins.forEach(checkin => {
+            if (checkin.isCompleted) {
+                const checkDate = new Date(checkin.date);
+                if (checkDate >= startDate && checkDate <= endDate) {
+                    heatmapData.push({
+                        date: checkin.date,
+                        count: 1
+                    });
+                }
+            }
+        });
+        this.setData({
+            heatmapData
+        });
+    },
+    // 设置随机科学洞察
+    setRandomInsight() {
+        const insights = [
+            '养成习惯需要21-66天不等，坚持是关键。',
+            '将新习惯与已有习惯关联，可以提高成功率。',
+            '设定具体的时间和地点，让习惯更容易坚持。',
+            '小步快走比大幅改变更容易成功。',
+            '记录进度可以增加成就感，提高坚持率。',
+            '环境提示能有效触发习惯行为。',
+            '奖励自己有助于强化习惯的养成。'
+        ];
+        const randomIndex = Math.floor(Math.random() * insights.length);
+        this.setData({
+            randomInsight: insights[randomIndex]
+        });
+    },
+    // 显示分析助手
+    showAnalysisAssistant() {
+        this.setData({
+            showAnalysisAssistant: true
+        });
+    },
+    // 隐藏分析助手
+    hideAnalysisAssistant() {
+        this.setData({
+            showAnalysisAssistant: false
+        });
+    },
+    // 处理应用建议
+    handleApplySuggestion(e) {
+        const { suggestion } = e.detail;
+        console.log('应用建议:', suggestion);
+        wx.showToast({
+            title: '已应用建议',
+            icon: 'success'
+        });
+        this.hideAnalysisAssistant();
     },
     // 更新日历
     updateCalendar() {
