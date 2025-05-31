@@ -31,10 +31,10 @@ export const getHabitCardData = async (habitId: string) => {
     // 检查今日是否已完成
     const isCompletedToday = todayCheckins.some(c => c.isCompleted);
     
-    // 如果今日已完成，强制更新统计数据
+    // 如果今日已完成，更新最后完成日期，但保留原始完成率
     if (isCompletedToday) {
       stats.lastCompletedDate = getCurrentDate();
-      stats.completionRate = 100;
+      // 不再强制设置completionRate为100%
     }
     
     // 返回完整数据
@@ -108,10 +108,10 @@ export const getAllHabitCardsData = async () => {
           // 检查是否今日已完成
           const isCompletedToday = completedHabitIds.has(habitId);
           
-          // 如果今日已完成，强制更新统计数据
+          // 如果今日已完成，更新最后完成日期，但保留原始完成率
           if (isCompletedToday) {
             stats.lastCompletedDate = today;
-            stats.completionRate = 100;
+            // 不再强制设置completionRate为100%
           }
           
           return {

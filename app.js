@@ -13,7 +13,7 @@ App({
     version: '0.1.0',
     unlockedAchievement: null,
     showAchievementUnlock: false,
-    apiBaseUrl: 'http://localhost:3001', // API服务基础URL
+    apiBaseUrl: 'http://localhost:3000', // API服务基础URL
     apiAvailable: false, // API服务是否可用
     token: null, // 用户认证令牌
     refreshToken: null // 刷新令牌
@@ -24,6 +24,9 @@ App({
   
   // 主题变化回调函数
   themeChangeCallbacks: [],
+
+  // 登录状态变化回调函数
+  loginStateChangeCallbacks: [],
 
   /**
    * 当小程序初始化完成时触发
@@ -52,6 +55,9 @@ App({
     
     // 检查API服务是否可用
     this.checkApiAvailability();
+    
+    // 初始化同步管理器
+    this.initSyncManager();
   },
   
   /**
@@ -408,6 +414,9 @@ App({
                   console.error('保存登录状态失败', e);
                 }
                 
+                // 通知所有页面登录状态已变更
+                this.notifyLoginStateChanged();
+                
                 if (callback) {
                   callback(true);
                 }
@@ -457,6 +466,9 @@ App({
           // 无论请求成功或失败，都清除本地认证数据
           this.clearAuthData();
           
+          // 通知所有页面登录状态已变更
+          this.notifyLoginStateChanged();
+          
           if (callback) {
             callback();
           }
@@ -465,6 +477,9 @@ App({
     } else {
       // 如果API不可用或没有令牌，只清除本地数据
       this.clearAuthData();
+      
+      // 通知所有页面登录状态已变更
+      this.notifyLoginStateChanged();
       
       if (callback) {
         callback();
@@ -504,6 +519,41 @@ App({
         callback(theme);
       } catch (error) {
         console.error('主题变化回调执行失败:', error);
+      }
+    });
+  },
+  
+  /**
+   * 初始化同步管理器
+   */
+  initSyncManager() {
+    // 动态导入同步管理器
+    const SyncManager = require('./utils/sync-manager').SyncManager;
+    SyncManager.init();
+  },
+
+  /**
+   * 注册登录状态变化监听
+   */
+  onLoginStateChange(callback) {
+    if (typeof callback === 'function') {
+      this.loginStateChangeCallbacks.push(callback);
+    }
+  },
+
+  /**
+   * 通知所有页面登录状态已变更
+   */
+  notifyLoginStateChanged() {
+    // 通知所有注册的回调
+    this.loginStateChangeCallbacks.forEach(callback => {
+      try {
+        callback({
+          userInfo: this.globalData.userInfo,
+          hasLogin: this.globalData.hasLogin
+        });
+      } catch (error) {
+        console.error('登录状态变化回调执行失败:', error);
       }
     });
   }
