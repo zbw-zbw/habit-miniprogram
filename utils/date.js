@@ -3,7 +3,7 @@
  * 日期工具函数
  */
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getMonthRange = exports.getWeekRange = exports.isConsecutiveDate = exports.daysBetween = exports.getLastDayOfMonth = exports.getFirstDayOfMonth = exports.getFirstDayOfWeek = exports.isSameDay = exports.getPastDates = exports.getDateAfter = exports.getDateBefore = exports.getDaysInMonth = exports.getDayOfMonth = exports.getDayOfWeek = exports.getDaysBetween = exports.parseDate = exports.formatDate = exports.getCurrentDate = void 0;
+exports.getMonthRange = exports.getWeekRange = exports.isConsecutiveDate = exports.getCurrentWeekDates = exports.addDays = exports.daysBetween = exports.getLastDayOfMonth = exports.getFirstDayOfMonth = exports.getFirstDayOfWeek = exports.isSameDay = exports.getPastDates = exports.getDateAfter = exports.getDateBefore = exports.getDaysInMonth = exports.getDayOfMonth = exports.getDayOfWeek = exports.getDaysBetween = exports.parseDate = exports.formatDate = exports.getCurrentDate = void 0;
 /**
  * 获取当前日期，格式为YYYY-MM-DD
  */
@@ -140,21 +140,52 @@ function getLastDayOfMonth(date) {
 exports.getLastDayOfMonth = getLastDayOfMonth;
 /**
  * 计算两个日期之间的天数差
- * @param date1 第一个日期
- * @param date2 第二个日期，默认为当前日期
+ * @param start 起始日期
+ * @param end 结束日期
  * @returns 天数差
  */
-const daysBetween = (date1, date2 = new Date()) => {
-    const d1 = typeof date1 === 'string' ? new Date(date1) : date1;
-    const d2 = typeof date2 === 'string' ? new Date(date2) : date2;
-    // 将时间部分设置为0，只比较日期
-    d1.setHours(0, 0, 0, 0);
-    d2.setHours(0, 0, 0, 0);
-    // 计算毫秒差并转换为天数
-    const diffTime = Math.abs(d2.getTime() - d1.getTime());
-    return Math.floor(diffTime / (1000 * 60 * 60 * 24));
-};
+function daysBetween(start, end) {
+    // 将时间部分清零，只比较日期
+    const startDate = new Date(start.getFullYear(), start.getMonth(), start.getDate());
+    const endDate = new Date(end.getFullYear(), end.getMonth(), end.getDate());
+    // 转换为毫秒并计算差值
+    const diffTime = Math.abs(endDate.getTime() - startDate.getTime());
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    return diffDays;
+}
 exports.daysBetween = daysBetween;
+/**
+ * 向日期添加指定天数
+ * @param date 原始日期
+ * @param days 要添加的天数
+ * @returns 新日期
+ */
+function addDays(date, days) {
+    const result = new Date(date);
+    result.setDate(result.getDate() + days);
+    return result;
+}
+exports.addDays = addDays;
+/**
+ * 获取当前周的日期列表（周一到周日）
+ * @returns 当前周的日期数组
+ */
+function getCurrentWeekDates() {
+    const now = new Date();
+    const dayOfWeek = now.getDay(); // 0是周日，1-6是周一到周六
+    // 调整到本周一
+    const monday = new Date(now);
+    monday.setDate(now.getDate() - (dayOfWeek === 0 ? 6 : dayOfWeek - 1));
+    // 生成周一到周日的日期数组
+    const weekDates = [];
+    for (let i = 0; i < 7; i++) {
+        const date = new Date(monday);
+        date.setDate(monday.getDate() + i);
+        weekDates.push(date);
+    }
+    return weekDates;
+}
+exports.getCurrentWeekDates = getCurrentWeekDates;
 /**
  * 检查是否为连续日期
  * @param date1 第一个日期
@@ -162,7 +193,7 @@ exports.daysBetween = daysBetween;
  * @returns 如果两个日期相邻，则返回 true
  */
 const isConsecutiveDate = (date1, date2) => {
-    return (0, exports.daysBetween)(date1, date2) === 1;
+    return daysBetween(date1, date2) === 1;
 };
 exports.isConsecutiveDate = isConsecutiveDate;
 /**

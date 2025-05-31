@@ -1,6 +1,6 @@
 /**
  * 习惯分析工具函数
- * 提供高级习惯分析和科学建议
+ * 提供各种习惯数据分析方法
  */
 
 // 使用工具函数
@@ -15,16 +15,16 @@ interface ICheckinWithTime extends ICheckin {
 }
 
 /**
- * 分析习惯表现水平
+ * 分析习惯性能水平
  * @param completionRate 完成率
- * @returns 表现水平 'excellent' | 'good' | 'average' | 'needsImprovement'
+ * @returns 性能水平：excellent(优秀), good(良好), average(一般), needsImprovement(需要改进)
  */
 export function analyzePerformanceLevel(completionRate: number): string {
-  if (completionRate >= 90) {
+  if (completionRate >= 80) {
     return 'excellent';
-  } else if (completionRate >= 70) {
+  } else if (completionRate >= 60) {
     return 'good';
-  } else if (completionRate >= 50) {
+  } else if (completionRate >= 40) {
     return 'average';
   } else {
     return 'needsImprovement';
@@ -32,370 +32,394 @@ export function analyzePerformanceLevel(completionRate: number): string {
 }
 
 /**
- * 分析习惯最佳时段
- * @param habit 习惯对象
+ * 分析最佳时段
+ * @param habit 习惯数据
  * @param checkins 打卡记录
- * @returns 最佳时段分析
+ * @returns 最佳时段分析结果
  */
-export function analyzeBestPeriods(habit: IHabit, checkins: ICheckin[]): any {
+export function analyzeBestPeriods(habit: any, checkins: any[]): any {
+  // 过滤出已完成的打卡记录
   const completedCheckins = checkins.filter(c => c.isCompleted);
   
-  // 按星期几分组
-  const dayPerformance = [0, 0, 0, 0, 0, 0, 0]; // 周日到周六
-  const dayCompletions = [0, 0, 0, 0, 0, 0, 0]; // 周日到周六的完成次数
-  const dayTotals = [0, 0, 0, 0, 0, 0, 0]; // 周日到周六的总次数
+  // 按周几统计
+  const dayNames = ['周一', '周二', '周三', '周四', '周五', '周六', '周日'];
+  const dayStats = [0, 0, 0, 0, 0, 0, 0];
+  const dayCompletions = [0, 0, 0, 0, 0, 0, 0];
+  const dayTotals = [0, 0, 0, 0, 0, 0, 0];
   
-  // 统计每天的表现
-  completedCheckins.forEach(checkin => {
+  // 计算每天的完成情况
+  checkins.forEach(checkin => {
     const date = new Date(checkin.date);
-    const day = date.getDay(); // 0-6，周日到周六
-    dayCompletions[day]++;
+    const dayOfWeek = date.getDay(); // 0是周日，1-6是周一到周六
+    const index = dayOfWeek === 0 ? 6 : dayOfWeek - 1; // 转换为0-6表示周一到周日
+    
+    dayTotals[index]++;
+    if (checkin.isCompleted) {
+      dayCompletions[index]++;
+    }
   });
   
-  // 计算每天应该完成的总次数
-  const startDate = new Date(habit.startDate);
-  const today = new Date();
+  // 计算每天的完成率
+  const dayPerformance = dayTotals.map((total, index) => {
+    return total > 0 ? (dayCompletions[index] / total) * 100 : 0;
+  });
   
-  for (let d = new Date(startDate); d <= today; d.setDate(d.getDate() + 1)) {
-    const day = d.getDay(); // 0-6，周日到周六
-    
-    // 检查这一天是否需要执行习惯
-    const dateStr = formatDate(d);
-    if (shouldDoHabitOnDate(habit, dateStr)) {
-      dayTotals[day]++;
+  // 找出最佳天和最差天
+  let bestDayIndex = 0;
+  let worstDayIndex = 0;
+  let maxRate = dayPerformance[0];
+  let minRate = dayPerformance[0];
+  
+  for (let i = 1; i < dayPerformance.length; i++) {
+    if (dayTotals[i] > 0) {
+      if (dayPerformance[i] > maxRate) {
+        maxRate = dayPerformance[i];
+        bestDayIndex = i;
+      }
+      if (dayPerformance[i] < minRate || minRate === 0) {
+        minRate = dayPerformance[i];
+        worstDayIndex = i;
+      }
     }
   }
   
-  // 计算每天的完成率
-  for (let i = 0; i < 7; i++) {
-    dayPerformance[i] = dayTotals[i] > 0 ? (dayCompletions[i] / dayTotals[i]) * 100 : 0;
-  }
-  
-  // 找出最佳和最差的日期
-  const bestDayIndex = dayPerformance.indexOf(Math.max(...dayPerformance.filter(p => dayTotals[dayPerformance.indexOf(p)] > 0)));
-  const worstDayIndex = dayPerformance.indexOf(Math.min(...dayPerformance.filter(p => p > 0 && dayTotals[dayPerformance.indexOf(p)] > 0)));
-  
-  const dayNames = ['周日', '周一', '周二', '周三', '周四', '周五', '周六'];
-  
+  // 分析结果
   return {
+    dayPerformance,
+    dayNames,
     bestDay: {
       day: dayNames[bestDayIndex],
-      rate: dayPerformance[bestDayIndex].toFixed(1),
-      index: bestDayIndex
+      rate: maxRate.toFixed(1)
     },
     worstDay: {
       day: dayNames[worstDayIndex],
-      rate: dayPerformance[worstDayIndex].toFixed(1),
-      index: worstDayIndex
-    },
-    dayPerformance: dayPerformance.map(p => parseFloat(p.toFixed(1))),
-    dayNames
+      rate: minRate.toFixed(1)
+    }
   };
 }
 
 /**
  * 分析习惯模式
- * @param habit 习惯对象
+ * @param habit 习惯数据
  * @param checkins 打卡记录
- * @returns 习惯模式分析
+ * @returns 习惯模式分析结果
  */
-export function analyzeHabitPatterns(habit: IHabit, checkins: ICheckin[]): any {
+export function analyzeHabitPatterns(habit: any, checkins: any[]): any {
+  // 过滤出已完成的打卡记录
   const completedCheckins = checkins.filter(c => c.isCompleted);
   
-  // 按时间排序
-  const sortedCheckins = [...completedCheckins].sort((a, b) => 
-    new Date(a.date).getTime() - new Date(b.date).getTime()
-  );
+  // 1. 分析周期性
+  const periodicity = analyzePeriodicity(habit, checkins);
   
-  // 分析连续性
-  const streakData = analyzeStreaks(sortedCheckins);
-  
-  // 分析周期性
-  const periodicityData = analyzePeriodicity(sortedCheckins);
-  
-  // 分析时间分布
+  // 2. 分析时间分布
   const timeDistribution = analyzeTimeDistribution(completedCheckins);
   
+  // 3. 分析连续记录
+  const streaks = analyzeStreaks(checkins);
+  
+  // 组合分析结果
   return {
-    streaks: streakData,
-    periodicity: periodicityData,
-    timeDistribution
-  };
-}
-
-/**
- * 分析连续性
- * @param sortedCheckins 按时间排序的打卡记录
- * @returns 连续性分析
- */
-function analyzeStreaks(sortedCheckins: ICheckin[]): any {
-  if (sortedCheckins.length === 0) {
-    return {
-      longestStreak: 0,
-      averageStreak: 0,
-      streakDistribution: []
-    };
-  }
-  
-  let currentStreak = 1;
-  let longestStreak = 1;
-  let streakStart = sortedCheckins[0].date;
-  let streakEnd = sortedCheckins[0].date;
-  let longestStreakStart = streakStart;
-  let longestStreakEnd = streakEnd;
-  
-  const streaks = [];
-  
-  for (let i = 1; i < sortedCheckins.length; i++) {
-    const prevDate = new Date(sortedCheckins[i-1].date);
-    const currDate = new Date(sortedCheckins[i].date);
-    
-    // 检查是否为连续日期
-    const dayDiff = daysBetween(prevDate, currDate);
-    
-    if (dayDiff === 1) {
-      // 连续
-      currentStreak++;
-      streakEnd = sortedCheckins[i].date;
-    } else {
-      // 不连续，记录当前连续记录
-      streaks.push({
-        length: currentStreak,
-        start: streakStart,
-        end: streakEnd
-      });
-      
-      // 更新最长连续记录
-      if (currentStreak > longestStreak) {
-        longestStreak = currentStreak;
-        longestStreakStart = streakStart;
-        longestStreakEnd = streakEnd;
-      }
-      
-      // 重置
-      currentStreak = 1;
-      streakStart = sortedCheckins[i].date;
-      streakEnd = sortedCheckins[i].date;
-    }
-  }
-  
-  // 处理最后一个连续记录
-  streaks.push({
-    length: currentStreak,
-    start: streakStart,
-    end: streakEnd
-  });
-  
-  if (currentStreak > longestStreak) {
-    longestStreak = currentStreak;
-    longestStreakStart = streakStart;
-    longestStreakEnd = streakEnd;
-  }
-  
-  // 计算平均连续长度
-  const averageStreak = streaks.reduce((sum, streak) => sum + streak.length, 0) / streaks.length;
-  
-  // 连续长度分布
-  const streakDistribution = [0, 0, 0, 0, 0]; // 1天, 2-3天, 4-7天, 8-14天, 15+天
-  
-  streaks.forEach(streak => {
-    if (streak.length === 1) {
-      streakDistribution[0]++;
-    } else if (streak.length <= 3) {
-      streakDistribution[1]++;
-    } else if (streak.length <= 7) {
-      streakDistribution[2]++;
-    } else if (streak.length <= 14) {
-      streakDistribution[3]++;
-    } else {
-      streakDistribution[4]++;
-    }
-  });
-  
-  return {
-    longestStreak,
-    longestStreakStart,
-    longestStreakEnd,
-    averageStreak: parseFloat(averageStreak.toFixed(1)),
-    streakDistribution,
+    periodicity,
+    timeDistribution,
     streaks
   };
 }
 
 /**
- * 分析周期性
- * @param sortedCheckins 按时间排序的打卡记录
- * @returns 周期性分析
+ * 分析习惯周期性
+ * @param habit 习惯数据
+ * @param checkins 打卡记录
+ * @returns 周期性分析结果
  */
-function analyzePeriodicity(sortedCheckins: ICheckin[]): any {
-  if (sortedCheckins.length < 7) {
-    return {
-      hasPattern: false,
-      confidence: 0,
-      pattern: null
-    };
-  }
+function analyzePeriodicity(habit: any, checkins: any[]): any {
+  // 统计每周几的完成情况
+  const dayCounts = [0, 0, 0, 0, 0, 0, 0]; // 周一到周日的完成次数
+  const totalDays = [0, 0, 0, 0, 0, 0, 0]; // 周一到周日的总次数
   
-  // 分析每周模式
-  const weekdayPattern = [0, 0, 0, 0, 0, 0, 0]; // 周日到周六
-  
-  sortedCheckins.forEach(checkin => {
+  checkins.forEach(checkin => {
     const date = new Date(checkin.date);
-    const day = date.getDay();
-    weekdayPattern[day]++;
+    const dayOfWeek = date.getDay(); // 0是周日，1-6是周一到周六
+    const index = dayOfWeek === 0 ? 6 : dayOfWeek - 1; // 转换为0-6表示周一到周日
+    
+    totalDays[index]++;
+    if (checkin.isCompleted) {
+      dayCounts[index]++;
+    }
   });
   
-  // 计算每天的比例
-  const total = weekdayPattern.reduce((sum, count) => sum + count, 0);
-  const weekdayRatios = weekdayPattern.map(count => (count / total) * 100);
+  // 计算每天的完成率
+  const dayRates = totalDays.map((total, index) => {
+    return total > 0 ? (dayCounts[index] / total) * 100 : 0;
+  });
   
-  // 检测是否有明显的周期性模式
-  const threshold = 20; // 比例阈值
-  const highDays = weekdayRatios.filter(ratio => ratio > threshold);
-  const hasPattern = highDays.length > 0 && highDays.length < 5;
+  // 识别显著高于平均的日期
+  const averageRate = dayRates.reduce((sum, rate) => sum + rate, 0) / 7;
+  const significantThreshold = averageRate * 1.3; // 高于平均30%认为是显著
+  
+  const dominantDays = dayRates
+    .map((rate, index) => ({ rate, index }))
+    .filter(item => item.rate > significantThreshold && item.rate > 50)
+    .map(item => item.index);
   
   // 计算置信度
-  const stdDev = calculateStandardDeviation(weekdayRatios);
-  const confidence = Math.min(100, stdDev * 5); // 标准差越大，模式越明显
+  const confidence = dominantDays.length > 0
+    ? dominantDays.reduce((sum, index) => sum + dayRates[index], 0) / dominantDays.length
+    : 0;
   
   return {
-    hasPattern,
-    confidence: parseFloat(confidence.toFixed(1)),
-    weekdayPattern: weekdayRatios.map(ratio => parseFloat(ratio.toFixed(1))),
-    dominantDays: weekdayRatios
-      .map((ratio, index) => ({ ratio, index }))
-      .filter(item => item.ratio > threshold)
-      .map(item => item.index)
+    hasPattern: dominantDays.length > 0,
+    dominantDays,
+    confidence,
+    dayRates
   };
 }
 
 /**
  * 分析时间分布
- * @param checkins 打卡记录
- * @returns 时间分布分析
+ * @param completedCheckins 已完成的打卡记录
+ * @returns 时间分布分析结果
  */
-function analyzeTimeDistribution(checkins: ICheckinWithTime[]): any {
-  const timeSlots = [0, 0, 0, 0]; // 早晨(5-11), 下午(12-17), 晚上(18-22), 深夜(23-4)
+function analyzeTimeDistribution(completedCheckins: any[]): any {
+  // 只处理有时间记录的打卡
+  const checkinsWithTime = completedCheckins.filter(c => c.time);
   
-  checkins.forEach(checkin => {
-    if (!checkin.time) return;
+  if (checkinsWithTime.length === 0) {
+    return {
+      bestTime: null,
+      distribution: [0, 0, 0, 0],
+      timeNames: ['早晨', '中午', '下午', '晚上']
+    };
+  }
+  
+  // 定义时间段
+  const timeSlots = [
+    { name: '早晨', start: 5, end: 11 },
+    { name: '中午', start: 11, end: 14 },
+    { name: '下午', start: 14, end: 18 },
+    { name: '晚上', start: 18, end: 24 }
+  ];
+  
+  // 统计每个时间段的打卡次数
+  const timeCounts = [0, 0, 0, 0];
+  
+  checkinsWithTime.forEach(checkin => {
+    const timeStr = checkin.time;
+    const hour = parseInt(timeStr.split(':')[0]);
     
-    const [hour] = checkin.time.split(':').map(Number);
-    
-    if (hour >= 5 && hour < 12) {
-      timeSlots[0]++;
-    } else if (hour >= 12 && hour < 18) {
-      timeSlots[1]++;
-    } else if (hour >= 18 && hour < 23) {
-      timeSlots[2]++;
-    } else {
-      timeSlots[3]++;
+    for (let i = 0; i < timeSlots.length; i++) {
+      if (hour >= timeSlots[i].start && hour < timeSlots[i].end) {
+        timeCounts[i]++;
+        break;
+      } else if (hour >= 0 && hour < 5) {
+        // 凌晨算作晚上
+        timeCounts[3]++;
+        break;
+      }
     }
   });
   
-  const total = timeSlots.reduce((sum, count) => sum + count, 0);
-  if (total === 0) return null;
+  // 计算分布比例
+  const total = timeCounts.reduce((sum, count) => sum + count, 0);
+  const distribution = timeCounts.map(count => (count / total) * 100);
   
-  const timeDistribution = timeSlots.map(count => (count / total) * 100);
-  
-  const timeNames = ['早晨', '下午', '晚上', '深夜'];
-  const bestTimeIndex = timeDistribution.indexOf(Math.max(...timeDistribution));
+  // 找出最佳时间
+  const bestTimeIndex = timeCounts.indexOf(Math.max(...timeCounts));
   
   return {
-    distribution: timeDistribution.map(ratio => parseFloat(ratio.toFixed(1))),
     bestTime: {
-      name: timeNames[bestTimeIndex],
-      ratio: timeDistribution[bestTimeIndex].toFixed(1)
+      name: timeSlots[bestTimeIndex].name,
+      ratio: Math.round(distribution[bestTimeIndex])
     },
-    timeNames
+    distribution,
+    timeNames: timeSlots.map(slot => slot.name)
   };
 }
 
 /**
- * 生成科学建议
- * @param habit 习惯对象
- * @param analysisResults 分析结果
- * @returns 科学建议
+ * 分析连续记录
+ * @param checkins 打卡记录
+ * @returns 连续记录分析结果
  */
-export function generateRecommendations(habit: IHabit, analysisResults: any): any[] {
-  const recommendations = [];
-  
-  // 基于表现水平的建议
-  if (analysisResults.performanceLevel === 'needsImprovement') {
-    recommendations.push({
-      type: 'improvement',
-      title: '习惯养成挑战',
-      description: '你的习惯完成率较低，建议设置更小的目标，逐步提高难度。',
-      actionText: '调整目标',
-      actionType: 'adjustGoal'
-    });
+function analyzeStreaks(checkins: any[]): any {
+  if (checkins.length === 0) {
+    return {
+      currentStreak: 0,
+      longestStreak: 0,
+      averageStreak: 0,
+      streakHistory: []
+    };
   }
   
-  // 基于最佳时段的建议
-  if (analysisResults.bestPeriods && analysisResults.bestPeriods.bestDay) {
-    recommendations.push({
-      type: 'timing',
-      title: '最佳执行时间',
-      description: `你在${analysisResults.bestPeriods.bestDay.day}的完成率最高，建议将重要习惯安排在这一天。`,
-      actionText: '查看详情',
-      actionType: 'viewBestTimes'
-    });
-  }
+  // 按日期排序
+  const sortedCheckins = [...checkins].sort((a, b) => 
+    new Date(a.date).getTime() - new Date(b.date).getTime()
+  );
   
-  // 基于习惯模式的建议
-  if (analysisResults.patterns && analysisResults.patterns.periodicity) {
-    const { hasPattern, confidence } = analysisResults.patterns.periodicity;
-    
-    if (hasPattern && confidence > 60) {
-      recommendations.push({
-        type: 'pattern',
-        title: '习惯模式发现',
-        description: '我们发现了你的习惯执行模式，可以据此优化你的习惯计划。',
-        actionText: '查看模式',
-        actionType: 'viewPattern'
-      });
+  // 计算所有连续记录
+  const streaks = [];
+  let currentStreak = 0;
+  let longestStreak = 0;
+  
+  // 遍历打卡记录
+  for (let i = 0; i < sortedCheckins.length; i++) {
+    if (sortedCheckins[i].isCompleted) {
+      currentStreak++;
+      
+      // 检查是否是最后一条记录或下一条不是连续的
+      if (i === sortedCheckins.length - 1 || 
+          !isContinuousDate(sortedCheckins[i].date, sortedCheckins[i + 1].date) ||
+          !sortedCheckins[i + 1].isCompleted) {
+        
+        if (currentStreak > 0) {
+          streaks.push(currentStreak);
+          longestStreak = Math.max(longestStreak, currentStreak);
+          currentStreak = 0;
+        }
+      }
+    } else {
+      // 重置当前连续记录
+      if (currentStreak > 0) {
+        streaks.push(currentStreak);
+        longestStreak = Math.max(longestStreak, currentStreak);
+        currentStreak = 0;
+      }
     }
   }
   
-  // 基于连续性的建议
-  if (analysisResults.currentStreak > 0) {
+  // 检查当前连续记录
+  const today = formatDate(new Date());
+  const lastCheckin = sortedCheckins[sortedCheckins.length - 1];
+  let currentStreakCount = 0;
+  
+  if (lastCheckin && lastCheckin.isCompleted && 
+      (lastCheckin.date === today || isContinuousDate(lastCheckin.date, today))) {
+    
+    // 从最后一条记录向前计算当前连续天数
+    currentStreakCount = 1;
+    let currentIndex = sortedCheckins.length - 1;
+    
+    while (currentIndex > 0 && 
+           sortedCheckins[currentIndex].isCompleted && 
+           isContinuousDate(sortedCheckins[currentIndex - 1].date, sortedCheckins[currentIndex].date) &&
+           sortedCheckins[currentIndex - 1].isCompleted) {
+      
+      currentStreakCount++;
+      currentIndex--;
+    }
+  }
+  
+  // 计算平均连续天数
+  const averageStreak = streaks.length > 0
+    ? streaks.reduce((sum, streak) => sum + streak, 0) / streaks.length
+    : 0;
+  
+  return {
+    currentStreak: currentStreakCount,
+    longestStreak,
+    averageStreak: parseFloat(averageStreak.toFixed(1)),
+    streakHistory: streaks
+  };
+}
+
+/**
+ * 检查两个日期是否连续
+ * @param date1 第一个日期
+ * @param date2 第二个日期
+ * @returns 是否连续
+ */
+function isContinuousDate(date1: string, date2: string): boolean {
+  const d1 = new Date(date1);
+  const d2 = new Date(date2);
+  
+  // 将时间部分设置为0，只比较日期
+  d1.setHours(0, 0, 0, 0);
+  d2.setHours(0, 0, 0, 0);
+  
+  // 计算两个日期之间的天数差
+  const diffTime = Math.abs(d2.getTime() - d1.getTime());
+  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+  
+  return diffDays === 1;
+}
+
+/**
+ * 生成个性化建议
+ * @param habit 习惯数据
+ * @param analysisData 分析数据
+ * @returns 建议列表
+ */
+export function generateRecommendations(habit: any, analysisData: any): any[] {
+  const recommendations = [];
+  const { performanceLevel, currentStreak, completionRate, bestPeriods, patterns } = analysisData;
+  
+  // 1. 根据性能水平生成建议
+  if (performanceLevel === 'excellent') {
     recommendations.push({
-      type: 'streak',
-      title: '保持连续',
-      description: `你已经连续执行这个习惯${analysisResults.currentStreak}天，继续保持！`,
-      actionText: '查看记录',
-      actionType: 'viewStreak'
+      type: 'achievement',
+      title: '保持良好状态',
+      description: '你的习惯已经形成得很好，尝试设定更高的目标来挑战自己。',
+      actionType: 'upgrade',
+      actionText: '提高目标'
     });
-  } else {
+  } else if (performanceLevel === 'needsImprovement') {
     recommendations.push({
-      type: 'restart',
-      title: '重新开始',
-      description: '连续记录已中断，现在是重新开始的好时机。',
-      actionText: '立即打卡',
-      actionType: 'checkin'
+      type: 'improvement',
+      title: '简化习惯',
+      description: '完成率较低，考虑降低习惯难度或拆分为更小的步骤。',
+      actionType: 'simplify',
+      actionText: '修改习惯'
     });
   }
   
-  // 根据习惯类型的特定建议
-  if (habit.category === '健身') {
+  // 2. 根据连续记录生成建议
+  if (currentStreak > 0) {
     recommendations.push({
-      type: 'category',
-      title: '健身小贴士',
-      description: '适当的休息对于健身同样重要，建议每周安排1-2天的恢复日。',
-      actionText: '了解更多',
-      actionType: 'learnMore',
-      category: '健身'
+      type: 'streak',
+      title: '保持连续',
+      description: `你已连续完成${currentStreak}天，不要打破这个链条！`,
+      actionType: 'continue',
+      actionText: '继续坚持'
     });
-  } else if (habit.category === '学习') {
+  } else if (completionRate > 0) {
     recommendations.push({
-      type: 'category',
-      title: '学习效率提升',
-      description: '研究表明，短时间高专注学习配合适当休息效果最佳。',
-      actionText: '了解更多',
-      actionType: 'learnMore',
-      category: '学习'
+      type: 'restart',
+      title: '重新开始',
+      description: '连续记录已中断，今天是重新开始的好时机。',
+      actionType: 'checkin',
+      actionText: '立即打卡'
     });
   }
+  
+  // 3. 根据最佳时段生成建议
+  if (bestPeriods && bestPeriods.bestDay) {
+    recommendations.push({
+      type: 'timing',
+      title: '利用最佳时间',
+      description: `数据显示，你在${bestPeriods.bestDay.day}的完成率最高，尽量在这天安排更重要的习惯。`,
+      actionType: 'schedule',
+      actionText: '调整提醒'
+    });
+  }
+  
+  // 4. 根据习惯模式生成建议
+  if (patterns && patterns.timeDistribution && patterns.timeDistribution.bestTime) {
+    recommendations.push({
+      type: 'pattern',
+      title: '固定时间段',
+      description: `你通常在${patterns.timeDistribution.bestTime.name}完成习惯，考虑设置这个时间段的固定提醒。`,
+      actionType: 'reminder',
+      actionText: '设置提醒'
+    });
+  }
+  
+  // 5. 通用建议
+  recommendations.push({
+    type: 'general',
+    title: '环境提示',
+    description: '在环境中设置视觉提示，比如便利贴或物品摆放，帮助你记住习惯。',
+    actionType: 'tips',
+    actionText: '更多建议'
+  });
   
   return recommendations;
 }

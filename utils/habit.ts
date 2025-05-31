@@ -227,4 +227,30 @@ export const generateHabitStats = (habit: IHabit, checkins: ICheckin[]): IHabitS
   console.log(`习惯[${habit.name}]统计结果:`, stats);
   
   return stats;
-}; 
+};
+
+/**
+ * 格式化日期范围显示
+ * @param startDate 开始日期
+ * @param endDate 结束日期
+ * @returns 格式化的日期范围字符串
+ */
+export function formatDateRange(startDate: string, endDate: string): string {
+  const start = new Date(startDate);
+  const end = new Date(endDate);
+  
+  // 格式化日期
+  const formatOptions: Intl.DateTimeFormatOptions = { 
+    year: 'numeric', 
+    month: 'short', 
+    day: 'numeric' 
+  };
+  
+  // 如果是同一年，则省略第一个日期的年份
+  if (start.getFullYear() === end.getFullYear()) {
+    return `${start.toLocaleDateString('zh-CN', { month: 'short', day: 'numeric' })} - ${end.toLocaleDateString('zh-CN', formatOptions)}`;
+  }
+  
+  // 不同年份，则完整显示
+  return `${start.toLocaleDateString('zh-CN', formatOptions)} - ${end.toLocaleDateString('zh-CN', formatOptions)}`;
+} 

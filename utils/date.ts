@@ -140,22 +140,56 @@ export function getLastDayOfMonth(date: Date): Date {
 
 /**
  * 计算两个日期之间的天数差
- * @param date1 第一个日期
- * @param date2 第二个日期，默认为当前日期
+ * @param start 起始日期
+ * @param end 结束日期
  * @returns 天数差
  */
-export const daysBetween = (date1: Date | string, date2: Date | string = new Date()): number => {
-  const d1 = typeof date1 === 'string' ? new Date(date1) : date1;
-  const d2 = typeof date2 === 'string' ? new Date(date2) : date2;
+export function daysBetween(start: Date, end: Date): number {
+  // 将时间部分清零，只比较日期
+  const startDate = new Date(start.getFullYear(), start.getMonth(), start.getDate());
+  const endDate = new Date(end.getFullYear(), end.getMonth(), end.getDate());
   
-  // 将时间部分设置为0，只比较日期
-  d1.setHours(0, 0, 0, 0);
-  d2.setHours(0, 0, 0, 0);
+  // 转换为毫秒并计算差值
+  const diffTime = Math.abs(endDate.getTime() - startDate.getTime());
+  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
   
-  // 计算毫秒差并转换为天数
-  const diffTime = Math.abs(d2.getTime() - d1.getTime());
-  return Math.floor(diffTime / (1000 * 60 * 60 * 24));
-};
+  return diffDays;
+}
+
+/**
+ * 向日期添加指定天数
+ * @param date 原始日期
+ * @param days 要添加的天数
+ * @returns 新日期
+ */
+export function addDays(date: Date, days: number): Date {
+  const result = new Date(date);
+  result.setDate(result.getDate() + days);
+  return result;
+}
+
+/**
+ * 获取当前周的日期列表（周一到周日）
+ * @returns 当前周的日期数组
+ */
+export function getCurrentWeekDates(): Date[] {
+  const now = new Date();
+  const dayOfWeek = now.getDay(); // 0是周日，1-6是周一到周六
+  
+  // 调整到本周一
+  const monday = new Date(now);
+  monday.setDate(now.getDate() - (dayOfWeek === 0 ? 6 : dayOfWeek - 1));
+  
+  // 生成周一到周日的日期数组
+  const weekDates: Date[] = [];
+  for (let i = 0; i < 7; i++) {
+    const date = new Date(monday);
+    date.setDate(monday.getDate() + i);
+    weekDates.push(date);
+  }
+  
+  return weekDates;
+}
 
 /**
  * 检查是否为连续日期
@@ -173,7 +207,7 @@ export const isConsecutiveDate = (date1: Date | string, date2: Date | string): b
  * @param startDay 一周的起始日，0表示周日，1表示周一，默认为1
  * @returns 包含一周日期的数组，格式为 'YYYY-MM-DD'
  */
-export const getWeekRange = (date: Date | string = new Date(), startDay: number = 1): string[] => {
+export const getWeekRange = (date: Date | string = new Date(), startDay = 1): string[] => {
   const d = typeof date === 'string' ? new Date(date) : date;
   const day = d.getDay(); // 0-6，0表示周日
   
