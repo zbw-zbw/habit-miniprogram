@@ -1,0 +1,29 @@
+<view class="container">
+  <view class="header">
+    <text class="title">系统测试</text>
+  </view>
+  
+  <view class="test-controls">
+    <button class="test-btn" bindtap="runAllTests" disabled="{{testing}}">运行所有测试</button>
+    <button class="test-btn" bindtap="testAPIAvailability" disabled="{{testing}}">测试API可用性</button>
+    <button class="test-btn" bindtap="testDataFlow" disabled="{{testing}}">测试数据流程</button>
+    <button class="test-btn" bindtap="testOfflineFeatures" disabled="{{testing}}">测试离线功能</button>
+    <button class="test-btn" bindtap="testSyncManager" disabled="{{testing}}">测试同步管理器</button>
+    <button class="test-btn clear" bindtap="clearTestResults" disabled="{{testing}}">清空结果</button>
+  </view>
+  
+  <view class="test-results">
+    <view class="results-header">
+      <text>测试结果</text>
+      <text wx:if="{{testing}}" class="testing">测试中...</text>
+    </view>
+    <scroll-view scroll-y class="results-content">
+      <view wx:for="{{testResults}}" wx:key="index" class="result-item {{item.startsWith('错误') ? 'error' : item.startsWith('✅') ? 'success' : ''}}">
+        <text>{{item}}</text>
+      </view>
+      <view wx:if="{{testResults.length === 0}}" class="empty-results">
+        <text>暂无测试结果</text>
+      </view>
+    </scroll-view>
+  </view>
+</view> 
