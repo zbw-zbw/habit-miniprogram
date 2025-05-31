@@ -66,6 +66,28 @@ exports.getDashboard = async (req, res) => {
       { $project: { name: 1, category: 1, longestStreak: '$stats.longestStreak' } }
     ]);
     
+    // 获取所有习惯并添加完成率和总计字段
+    const habits = await Habit.find({ user: userId });
+    const habitsWithStats = await Promise.all(habits.map(async habit => {
+      const habitObj = habit.toObject();
+      
+      // 计算完成率
+      const completionRate = habitObj.stats && habitObj.stats.totalDays > 0 
+        ? Math.round((habitObj.stats.completedDays / habitObj.stats.totalDays) * 100) 
+        : 0;
+      
+      // 确保stats对象存在
+      if (!habitObj.stats) {
+        habitObj.stats = {};
+      }
+      
+      // 添加完成率和总计字段到stats对象中
+      habitObj.stats.completionRate = completionRate;
+      habitObj.stats.totalCompletions = habitObj.stats.completedDays || 0;
+      
+      return habitObj;
+    }));
+    
     // 构建仪表盘数据
     const dashboard = {
       habitsOverview: {
@@ -83,7 +105,8 @@ exports.getDashboard = async (req, res) => {
         totalCheckins: req.user.completedCheckins,
         currentStreak: req.user.currentStreak,
         longestStreak: req.user.longestStreak
-      }
+      },
+      habits: habitsWithStats
     };
     
     res.status(200).json({
@@ -143,6 +166,23 @@ exports.getHabitsCompletion = async (req, res) => {
         ? (completedCheckins / totalCheckins) * 100
         : 0;
       
+      // 计算stats中的完成率
+      const statsCompletionRate = habit.stats && habit.stats.totalDays > 0 
+        ? Math.round((habit.stats.completedDays / habit.stats.totalDays) * 100) 
+        : 0;
+      
+      // 获取习惯对象并添加必要的字段
+      const habitObj = habit.toObject();
+      
+      // 确保stats对象存在
+      if (!habitObj.stats) {
+        habitObj.stats = {};
+      }
+      
+      // 添加完成率和总计字段到stats对象中
+      habitObj.stats.completionRate = statsCompletionRate;
+      habitObj.stats.totalCompletions = habitObj.stats.completedDays || 0;
+      
       return {
         habitId: habit._id,
         name: habit.name,
@@ -151,7 +191,8 @@ exports.getHabitsCompletion = async (req, res) => {
         icon: habit.icon,
         totalCheckins,
         completedCheckins,
-        completionRate: completionRate.toFixed(2)
+        completionRate: parseFloat(completionRate.toFixed(2)),
+        stats: habitObj.stats
       };
     }));
     
@@ -186,16 +227,43 @@ exports.getHabitsStreak = async (req, res) => {
     
     // 查询习惯的连续记录数据
     const habits = await Habit.find(matchStage)
-      .select('name category color icon stats.currentStreak stats.longestStreak');
+      .select('name category color icon stats');
     
-    const result = habits.map(habit => ({
-      habitId: habit._id,
-      name: habit.name,
-      category: habit.category,
-      color: habit.color,
-      icon: habit.icon,
-      currentStreak: habit.stats.currentStreak,
-      longestStreak: habit.stats.longestStreak
+    const result = await Promise.all(habits.map(async habit => {
+      // 获取习惯的打卡记录数量
+      const totalCheckins = await Checkin.countDocuments({
+        habit: habit._id,
+        user: userId
+      });
+      
+      // 获取已完成的打卡记录数量
+      const completedCheckins = await Checkin.countDocuments({
+        habit: habit._id,
+        user: userId,
+        isCompleted: true
+      });
+      
+      // 计算完成率
+      const completionRate = habit.stats && habit.stats.totalDays > 0 
+        ? Math.round((habit.stats.completedDays / habit.stats.totalDays) * 100) 
+        : 0;
+      
+      return {
+        habitId: habit._id,
+        name: habit.name,
+        category: habit.category,
+        color: habit.color,
+        icon: habit.icon,
+        currentStreak: habit.stats.currentStreak,
+        longestStreak: habit.stats.longestStreak,
+        completionRate: completionRate,
+        totalCompletions: habit.stats.completedDays || 0,
+        stats: {
+          ...habit.stats.toObject(),
+          completionRate: completionRate,
+          totalCompletions: habit.stats.completedDays || 0
+        }
+      };
     }));
     
     res.status(200).json({
@@ -257,6 +325,35 @@ exports.getHabitsTrends = async (req, res) => {
       matchStage.habit = habitId;
     }
     
+    // 查询习惯数据
+    let habits;
+    if (habitId) {
+      habits = await Habit.find({ _id: habitId, user: userId });
+    } else {
+      habits = await Habit.find({ user: userId });
+    }
+    
+    // 添加completionRate和totalCompletions字段到stats对象中
+    const habitsWithStats = await Promise.all(habits.map(async habit => {
+      const habitObj = habit.toObject();
+      
+      // 计算完成率
+      const completionRate = habitObj.stats && habitObj.stats.totalDays > 0 
+        ? Math.round((habitObj.stats.completedDays / habitObj.stats.totalDays) * 100) 
+        : 0;
+      
+      // 确保stats对象存在
+      if (!habitObj.stats) {
+        habitObj.stats = {};
+      }
+      
+      // 添加完成率和总计字段到stats对象中
+      habitObj.stats.completionRate = completionRate;
+      habitObj.stats.totalCompletions = habitObj.stats.completedDays || 0;
+      
+      return habitObj;
+    }));
+    
     // 查询打卡记录
     const checkins = await Checkin.find(matchStage)
       .populate('habit', 'name category color icon');
@@ -270,12 +367,16 @@ exports.getHabitsTrends = async (req, res) => {
       const date = period === 'year' ? checkin.date.substring(0, 7) : checkin.date;
       
       if (!trendsMap[habitId]) {
+        // 查找对应的习惯，包含stats字段
+        const habit = habitsWithStats.find(h => h._id.toString() === habitId);
+        
         trendsMap[habitId] = {
           habitId,
           name: habitName,
           category: checkin.habit.category,
           color: checkin.habit.color,
           icon: checkin.habit.icon,
+          stats: habit ? habit.stats : {},
           data: {}
         };
       }

@@ -35,10 +35,44 @@ exports.getHabits = async (req, res) => {
       .sort(sortOptions)
       .populate('advanced.templateId', 'name description scientificBasis');
     
+    // 为每个习惯添加完成率和总计字段
+    const habitsWithStats = await Promise.all(habits.map(async (habit) => {
+      const habitObj = habit.toObject();
+      
+      // 获取习惯的打卡记录数量
+      const totalCheckins = await Checkin.countDocuments({
+        habit: habit._id,
+        user: req.user._id
+      });
+      
+      // 获取已完成的打卡记录数量
+      const completedCheckins = await Checkin.countDocuments({
+        habit: habit._id,
+        user: req.user._id,
+        isCompleted: true
+      });
+      
+      // 计算完成率
+      const completionRate = habitObj.stats && habitObj.stats.totalDays > 0 
+        ? Math.round((habitObj.stats.completedDays / habitObj.stats.totalDays) * 100) 
+        : 0;
+      
+      // 确保stats对象存在
+      if (!habitObj.stats) {
+        habitObj.stats = {};
+      }
+      
+      // 添加完成率和总计字段到stats对象中
+      habitObj.stats.completionRate = completionRate;
+      habitObj.stats.totalCompletions = habitObj.stats.completedDays || 0;
+      
+      return habitObj;
+    }));
+    
     res.status(200).json({
       success: true,
-      count: habits.length,
-      data: habits
+      count: habitsWithStats.length,
+      data: habitsWithStats
     });
   } catch (error) {
     console.error('获取习惯列表错误:', error);
@@ -419,24 +453,31 @@ exports.getHabitStats = async (req, res) => {
       lastCompletedDate: null
     };
     
-    // 构建统计数据
-    const stats = {
-      totalDays: habitStats.totalDays || 0,
-      completedDays: habitStats.completedDays || 0,
-      completionRate: habit.completionRate || 0,
-      currentStreak: habitStats.currentStreak || 0,
-      longestStreak: habitStats.longestStreak || 0,
-      lastCompletedDate: habitStats.lastCompletedDate || null,
-      recentCompletionRate: recentCompletionRate.toFixed(2),
-      recentCheckins
-    };
+    // 计算总完成率
+    const completionRate = habitStats.totalDays > 0 
+      ? Math.round((habitStats.completedDays / habitStats.totalDays) * 100)
+      : 0;
     
-    // 计算总完成次数（与客户端保持一致）
-    stats.totalCompletions = stats.completedDays;
+    // 构建返回数据
+    const resultData = {
+      stats: {
+        totalDays: habitStats.totalDays || 0,
+        completedDays: habitStats.completedDays || 0,
+        completionRate: completionRate,
+        currentStreak: habitStats.currentStreak || 0,
+        longestStreak: habitStats.longestStreak || 0,
+        lastCompletedDate: habitStats.lastCompletedDate || null,
+        totalCompletions: habitStats.completedDays || 0
+      },
+      recentStats: {
+        recentCompletionRate: parseFloat(recentCompletionRate.toFixed(2)),
+        recentCheckins
+      }
+    };
     
     res.status(200).json({
       success: true,
-      data: stats
+      data: resultData
     });
   } catch (error) {
     console.error('获取习惯统计数据错误:', error);

@@ -18,6 +18,7 @@ const communityRoutes = require('./routes/community.routes');
 const notificationRoutes = require('./routes/notification.routes');
 const settingsRoutes = require('./routes/settings.routes');
 const friendsRoutes = require('./routes/friends.routes');
+const dashboardRoutes = require('./routes/dashboard.routes');
 
 // 导入控制器
 const postController = require('./controllers/post.controller');
@@ -47,6 +48,9 @@ app.use('/api/community', communityRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/settings', settingsRoutes);
 app.use('/api/friends', friendsRoutes);
+
+// 聚合API路由
+app.use('/api', dashboardRoutes);
 
 // 直接访问社区接口
 app.get('/api/posts', authMiddleware, postController.getPosts);
