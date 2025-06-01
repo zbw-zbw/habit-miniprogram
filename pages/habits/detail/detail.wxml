@@ -18,6 +18,28 @@
             <text class="iconfont icon-tag"></text>
             {{categoryMap[habit.category] || habit.category}}
           </view>
+          <!-- 频率标签 -->
+          <view class="tag">
+            <text class="iconfont icon-repeat"></text>
+            <block wx:if="{{habit.frequency.type === 'daily'}}">每天</block>
+            <block wx:elif="{{habit.frequency.type === 'weekly' && habit.frequency.days.length === 1}}">每周一次</block>
+            <block wx:elif="{{habit.frequency.type === 'workdays'}}">工作日</block>
+            <block wx:elif="{{habit.frequency.type === 'weekends'}}">周末</block>
+            <block wx:else>自定义</block>
+          </view>
+          <!-- 目标标签：显示次数或时长 -->
+          <view class="tag">
+            <text class="iconfont icon-target"></text>
+            <block wx:if="{{habit.duration && habit.duration.enabled}}">
+              {{habit.duration.format || '00:00:00'}}
+            </block>
+            <block wx:elif="{{habit.targetValue && habit.unit}}">
+              {{habit.targetValue}}{{habit.unit}}
+            </block>
+            <block wx:else>
+              1次
+            </block>
+          </view>
         </view>
       </view>
       <!-- 添加头部打卡按钮 -->

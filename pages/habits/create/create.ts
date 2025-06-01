@@ -18,11 +18,23 @@ Page({
     icon: 'habit',
     color: '#4F7CFF',
     frequency: 'daily',
-    customDays: [1, 2, 3, 4, 5, 6, 0], // 周日-周六 (0-6)
+    customDays: [1, 2, 3, 4, 5, 6, 0], // 周一至周日 (1-6, 0)
     reminderTime: '08:00',
     isReminderEnabled: false,
     goalValue: 1,
     goalUnit: '次',
+    // 时长设置
+    isDurationEnabled: false, 
+    durationFormat: '00:30:00', // 默认30分钟
+    durationValue: 1800, // 默认1800秒
+    durationArray: {
+      values: [
+        Array.from({ length: 24 }, (_, i) => String(i).padStart(2, '0')), // 小时 0-23
+        Array.from({ length: 60 }, (_, i) => String(i).padStart(2, '0')), // 分钟 0-59
+        Array.from({ length: 60 }, (_, i) => String(i).padStart(2, '0'))  // 秒钟 0-59
+      ],
+      selectedIndex: [0, 30, 0] // 默认选中 00:30:00
+    },
     // 分类显示用的中文名称
     categoryOptions: [
       { id: 'learning', name: '学习', icon: 'book' },
@@ -165,13 +177,30 @@ Page({
         description: habit.description || '',
         category: habit.category,
         categoryName: categoryName,
-        icon: habit.icon,
-        color: habit.color,
+        icon: habit.icon || 'habit',
+        color: habit.color || '#4F7CFF',
         isReminderEnabled: habit.reminder?.enabled || false,
         reminderTime: habit.reminder?.time || '08:00',
-        goalValue: habit.target || 1,
+        goalValue: habit.targetValue || 1,
         goalUnit: habit.unit || '次',
+        isDurationEnabled: habit.duration?.enabled || false,
       });
+      
+      // 如果有时长设置，处理时长值
+      if (habit.duration?.enabled && habit.duration.value) {
+        const totalSeconds = habit.duration.value;
+        const hours = Math.floor(totalSeconds / 3600);
+        const minutes = Math.floor((totalSeconds % 3600) / 60);
+        const seconds = totalSeconds % 60;
+        
+        const durationFormat = `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+        
+        this.setData({
+          durationValue: totalSeconds,
+          durationFormat: durationFormat,
+          'durationArray.selectedIndex': [hours, minutes, seconds]
+        });
+      }
 
       // 设置频率
       if (habit.frequency) {
@@ -352,13 +381,13 @@ Page({
     let customDays: number[] = [];
     switch (frequency) {
       case 'daily':
-        customDays = [0, 1, 2, 3, 4, 5, 6]; // 每天
+        customDays = [1, 2, 3, 4, 5, 6, 0]; // 周一至周日
         break;
       case 'workdays':
-        customDays = [1, 2, 3, 4, 5]; // 工作日
+        customDays = [1, 2, 3, 4, 5]; // 周一至周五
         break;
       case 'weekends':
-        customDays = [0, 6]; // 周末
+        customDays = [6, 0]; // 周六、周日
         break;
       case 'weekly':
         customDays = [1]; // 默认周一
@@ -409,7 +438,7 @@ Page({
    */
   openCategoryPicker() {
     this.setData({
-      showCategoryPicker: true,
+      showCategoryPicker: true
     });
   },
 
@@ -418,22 +447,29 @@ Page({
    */
   closeCategoryPicker() {
     this.setData({
-      showCategoryPicker: false,
+      showCategoryPicker: false
     });
   },
 
   /**
    * 选择分类
    */
-  onSelectCategory(e: WechatMiniprogram.TouchEvent) {
-    const { id, name } = e.currentTarget.dataset as {
-      id: string;
-      name: string;
-    };
+  selectCategory(e: WechatMiniprogram.TouchEvent) {
+    const { id, name } = e.currentTarget.dataset;
+    
     this.setData({
       category: id,
       categoryName: name,
-      showCategoryPicker: false,
+      showCategoryPicker: false
+    });
+  },
+
+  /**
+   * 切换分类选择器
+   */
+  toggleCategoryPicker() {
+    this.setData({
+      showCategoryPicker: !this.data.showCategoryPicker
     });
   },
 
@@ -455,6 +491,9 @@ Page({
       reminderTime,
       goalValue,
       goalUnit,
+      isDurationEnabled,
+      durationValue,
+      durationFormat,
     } = this.data;
 
     // 表单验证
@@ -488,16 +527,26 @@ Page({
         icon,
         color,
         frequency: {
-          type: frequency === 'daily' ? 'daily' : 'weekly',
+          type: frequency === 'daily' ? 'daily' : 
+                frequency === 'workdays' ? 'workdays' : 
+                frequency === 'weekends' ? 'weekends' : 'weekly',
           days: frequency === 'daily' ? undefined : customDays,
         },
         reminder: {
           enabled: isReminderEnabled,
           time: reminderTime,
         },
-        target: Number(goalValue),
+        targetValue: Number(goalValue),
         unit: goalUnit,
         startDate: new Date().toISOString().split('T')[0],
+        duration: isDurationEnabled ? {
+          enabled: true,
+          value: durationValue,
+          format: durationFormat
+        } : {
+          enabled: false,
+          value: 0
+        },
       };
 
       if (isEdit) {
@@ -540,18 +589,40 @@ Page({
   },
 
   /**
-   * 切换分类选择器
-   */
-  toggleCategoryPicker() {
-    this.setData({
-      showCategoryPicker: !this.data.showCategoryPicker,
-    });
-  },
-
-  /**
    * 阻止事件冒泡
    */
   stopPropagation() {
     // 阻止事件冒泡
+  },
+
+  /**
+   * 开关时长设置
+   */
+  onSwitchDuration(e: WechatMiniprogram.SwitchChange) {
+    this.setData({
+      isDurationEnabled: e.detail.value
+    });
+  },
+
+  /**
+   * 时长选择器改变事件
+   */
+  onDurationChange(e: WechatMiniprogram.PickerChange) {
+    const selectedIndex = e.detail.value as number[];
+    const hours = parseInt(this.data.durationArray.values[0][selectedIndex[0]]);
+    const minutes = parseInt(this.data.durationArray.values[1][selectedIndex[1]]);
+    const seconds = parseInt(this.data.durationArray.values[2][selectedIndex[2]]);
+    
+    // 计算总秒数
+    const totalSeconds = hours * 3600 + minutes * 60 + seconds;
+    
+    // 格式化显示
+    const durationFormat = `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+    
+    this.setData({
+      durationValue: totalSeconds,
+      durationFormat: durationFormat,
+      'durationArray.selectedIndex': selectedIndex
+    });
   },
 });

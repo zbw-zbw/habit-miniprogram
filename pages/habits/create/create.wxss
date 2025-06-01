@@ -116,6 +116,7 @@
   flex-wrap: wrap;
   width: 100%;
   margin-top: 16rpx;
+  gap: 16rpx;
 }
 
 .weekday-item {
@@ -125,16 +126,19 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-right: 16rpx;
-  margin-bottom: 16rpx;
   background-color: var(--background-color);
   color: var(--text-color);
-  font-size: 24rpx;
+  font-size: 28rpx;
+  font-weight: 500;
+  box-shadow: 0 2rpx 6rpx rgba(0, 0, 0, 0.1);
+  flex-grow: 0;
+  flex-shrink: 0;
 }
 
 .weekday-item.active {
   background-color: var(--primary-color);
   color: #FFFFFF;
+  box-shadow: 0 2rpx 8rpx rgba(79, 124, 255, 0.5);
 }
 
 /* 目标输入 */
@@ -250,89 +254,76 @@
   overflow-y: auto;
 }
 
-/* 图标网格 */
+/* 图标选择器 */
 .icon-grid {
   display: flex;
   flex-wrap: wrap;
+  margin: 0 -8rpx;
 }
 
 .icon-item {
   width: 20%;
-  display: flex;
-  justify-content: center;
-  margin-bottom: 32rpx;
+  padding: 8rpx;
+  box-sizing: border-box;
 }
 
 .icon-box {
-  width: 80rpx;
-  height: 80rpx;
+  width: 90rpx;
+  height: 90rpx;
   border-radius: 50%;
+  margin: 0 auto;
   display: flex;
   align-items: center;
   justify-content: center;
   color: #FFFFFF;
-  position: relative;
+  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.1);
 }
 
 .icon-box .iconfont {
-  font-size: 40rpx;
+  font-size: 44rpx;
 }
 
-.icon-item.active .icon-box::after {
-  content: '';
-  position: absolute;
-  top: -6rpx;
-  right: -6rpx;
-  width: 24rpx;
-  height: 24rpx;
-  border-radius: 50%;
-  background-color: var(--success-color);
-  border: 2rpx solid #FFFFFF;
+.icon-item.active .icon-box {
+  box-shadow: 0 0 0 4rpx var(--primary-color);
 }
 
-/* 颜色网格 */
+/* 颜色选择器 */
 .color-grid {
   display: flex;
   flex-wrap: wrap;
+  margin: 0 -8rpx;
 }
 
 .color-item {
   width: 20%;
-  display: flex;
-  justify-content: center;
-  margin-bottom: 32rpx;
+  padding: 8rpx;
+  box-sizing: border-box;
 }
 
 .color-box {
-  width: 60rpx;
-  height: 60rpx;
+  width: 90rpx;
+  height: 90rpx;
   border-radius: 50%;
-  position: relative;
+  margin: 0 auto;
+  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.1);
 }
 
-.color-item.active .color-box::after {
-  content: '';
-  position: absolute;
-  top: -6rpx;
-  right: -6rpx;
-  width: 24rpx;
-  height: 24rpx;
-  border-radius: 50%;
-  background-color: var(--success-color);
-  border: 2rpx solid #FFFFFF;
+.color-item.active .color-box {
+  box-shadow: 0 0 0 4rpx var(--primary-color);
 }
 
-/* 频率列表 */
+/* 频率选择器 */
 .frequency-list {
-  
+  display: flex;
+  flex-direction: column;
 }
 
 .frequency-item {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 24rpx 0;
-  font-size: 28rpx;
+  padding: 24rpx 16rpx;
+  font-size: 32rpx;
   color: var(--text-color);
   border-bottom: 1px solid var(--divider-color);
 }
@@ -345,35 +336,74 @@
   color: var(--primary-color);
 }
 
-.frequency-item .iconfont {
-  font-size: 32rpx;
+.frequency-item .icon-check {
   color: var(--primary-color);
+  font-size: 36rpx;
 }
 
-/* 分类列表 */
-.category-list {
-  
+/* 分类选择器 */
+.category-grid {
+  display: flex;
+  flex-wrap: wrap;
+  margin: 0 -12rpx;
 }
 
 .category-item {
+  width: 25%;
+  padding: 12rpx;
+  box-sizing: border-box;
   display: flex;
-  justify-content: space-between;
+  flex-direction: column;
   align-items: center;
-  padding: 24rpx 0;
-  font-size: 28rpx;
+}
+
+.category-icon {
+  width: 100rpx;
+  height: 100rpx;
+  border-radius: var(--radius-medium);
+  background-color: var(--divider-color);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 12rpx;
+}
+
+.category-icon .iconfont {
+  font-size: 48rpx;
   color: var(--text-color);
-  border-bottom: 1px solid var(--divider-color);
 }
 
-.category-item:last-child {
-  border-bottom: none;
+.category-name {
+  font-size: 24rpx;
+  color: var(--text-color);
+  text-align: center;
 }
 
-.category-item.active {
+.category-item.active .category-icon {
+  background-color: var(--primary-color);
+}
+
+.category-item.active .category-icon .iconfont {
+  color: #FFFFFF;
+}
+
+.category-item.active .category-name {
+  color: var(--primary-color);
+  font-weight: 600;
+}
+
+/* 分类内容布局 */
+.category-item-content {
+  display: flex;
+  align-items: center;
+}
+
+.category-item-content .iconfont {
+  margin-right: 16rpx;
+  font-size: 36rpx;
   color: var(--primary-color);
 }
 
-.category-item .iconfont {
-  font-size: 32rpx;
-  color: var(--primary-color);
+.category-item-content .category-name {
+  font-size: 28rpx;
 }

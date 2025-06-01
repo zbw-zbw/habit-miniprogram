@@ -6,7 +6,7 @@
       <view class="form-title">基本信息</view>
       
       <view class="form-item">
-        <view class="form-label">习惯名称 <text class="required">*</text></view>
+        <view class="form-label">名称<text class="required">*</text></view>
         <input class="form-input" 
           placeholder="请输入习惯名称" 
           value="{{name}}" 
@@ -23,7 +23,7 @@
           data-field="description" />
       </view>
       
-      <view class="form-item" bindtap="toggleCategoryPicker">
+      <view class="form-item" bindtap="openCategoryPicker">
         <view class="form-label">分类</view>
         <view class="form-value">
           <text>{{categoryName}}</text>
@@ -74,12 +74,12 @@
           <view class="form-label">自定义天数</view>
           <view class="weekday-selector">
             <view 
-              wx:for="{{weekdays}}" 
-              wx:key="index" 
-              class="weekday-item {{customDays.includes(index) ? 'active' : ''}}" 
+              wx:for="{{[1, 2, 3, 4, 5, 6, 0]}}"
+              wx:key="*this" 
+              class="weekday-item {{customDays.includes(item) ? 'active' : ''}}" 
               bindtap="toggleCustomDay" 
-              data-day="{{index}}">
-              {{item}}
+              data-day="{{item}}">
+              {{weekdays[item]}}
             </view>
           </view>
         </view>
@@ -101,6 +101,24 @@
             data-field="goalUnit" />
         </view>
       </view>
+      
+      <!-- 时长设置 -->
+      <view class="form-item">
+        <view class="form-label">启用时长目标</view>
+        <switch checked="{{isDurationEnabled}}" bindchange="onSwitchDuration" color="var(--primary-color)" />
+      </view>
+      
+      <block wx:if="{{isDurationEnabled}}">
+        <view class="form-item">
+          <view class="form-label">时长设置</view>
+          <picker mode="multiSelector" value="{{durationArray.selectedIndex}}" range="{{durationArray.values}}" bindchange="onDurationChange">
+            <view class="form-picker">
+              <text>{{durationFormat}}</text>
+              <text class="iconfont icon-right"></text>
+            </view>
+          </picker>
+        </view>
+      </block>
     </view>
     
     <!-- 提醒设置 -->
@@ -205,22 +223,27 @@
   </view>
   
   <!-- 分类选择弹窗 -->
-  <view class="modal {{showCategoryPicker ? 'show' : ''}}" bindtap="toggleCategoryPicker">
-    <view class="modal-content" catchtap="stopPropagation">
+  <view class="modal {{showCategoryPicker ? 'show' : ''}}" catchtouchmove="true">
+    <view class="modal-mask" bindtap="closeCategoryPicker"></view>
+    <view class="modal-content">
       <view class="modal-header">
-        <text>选择分类</text>
-        <text class="close" bindtap="toggleCategoryPicker">×</text>
+        <view class="modal-title">选择分类</view>
+        <view class="modal-close" bindtap="closeCategoryPicker">×</view>
       </view>
       <view class="modal-body">
-        <view 
-          wx:for="{{categoryOptions}}" 
-          wx:key="id" 
-          class="category-item {{category === item.id ? 'active' : ''}}"
-          bindtap="onSelectCategory"
-          data-id="{{item.id}}"
-          data-name="{{item.name}}">
-          <text class="category-icon">{{item.icon}}</text>
-          <text>{{item.name}}</text>
+        <view class="frequency-list">
+          <view 
+            wx:for="{{categoryOptions}}" 
+            wx:key="id" 
+            class="frequency-item {{category === item.id ? 'active' : ''}}"
+            bindtap="selectCategory"
+            data-id="{{item.id}}"
+            data-name="{{item.name}}">
+            <view class="category-item-content">
+              <text class="category-name">{{item.name}}</text>
+            </view>
+            <text class="iconfont icon-check" wx:if="{{category === item.id}}"></text>
+          </view>
         </view>
       </view>
     </view>
