@@ -797,7 +797,7 @@ Page<IPageData, IPageMethods>({
     setTimeout(() => {
       wx.navigateBack({
         delta: 1
-      });
+    });
     }, 300);
   },
 

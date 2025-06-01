@@ -447,4 +447,105 @@ exports.toggleFollow = async (req, res) => {
       message: '服务器错误，操作失败'
     });
   }
+};
+
+/**
+ * 获取推荐用户
+ * @route GET /api/community/recommend-users
+ */
+exports.getRecommendUsers = async (req, res) => {
+  try {
+    const currentUserId = req.user._id;
+    
+    // 查询当前用户已关注的用户ID列表
+    const following = await Follow.find({ follower: currentUserId }).select('following');
+    const followingIds = following.map(f => f.following);
+    
+    // 添加当前用户ID到排除列表
+    const excludeIds = [...followingIds, currentUserId];
+    
+    // 查询最近活跃的用户（不包括已关注的用户和自己）
+    const users = await User.find({ 
+      _id: { $nin: excludeIds },
+      isActive: true
+    })
+    .sort({ lastLogin: -1 })
+    .limit(10)
+    .select('username nickname avatar bio');
+    
+    // 处理用户数据，添加isFriend标记
+    const processedUsers = users.map(user => ({
+      id: user._id,
+      username: user.username,
+      nickname: user.nickname,
+      avatar: user.avatar,
+      bio: user.bio,
+      isFriend: false
+    }));
+    
+    res.status(200).json({
+      success: true,
+      data: processedUsers
+    });
+  } catch (error) {
+    console.error('获取推荐用户错误:', error);
+    res.status(500).json({
+      success: false,
+      message: '服务器错误，获取推荐用户失败'
+    });
+  }
+};
+
+/**
+ * 搜索用户
+ * @route GET /api/community/search/users
+ */
+exports.searchUsers = async (req, res) => {
+  try {
+    const { keyword } = req.query;
+    const currentUserId = req.user._id;
+    
+    if (!keyword || typeof keyword !== 'string') {
+      return res.status(400).json({
+        success: false,
+        message: '搜索关键词不能为空'
+      });
+    }
+    
+    // 查询当前用户已关注的用户ID列表
+    const following = await Follow.find({ follower: currentUserId }).select('following');
+    const followingIds = following.map(f => f.following.toString());
+    
+    // 根据关键词搜索用户
+    const users = await User.find({
+      $or: [
+        { username: { $regex: keyword, $options: 'i' } },
+        { nickname: { $regex: keyword, $options: 'i' } }
+      ],
+      isActive: true
+    })
+    .limit(20)
+    .select('username nickname avatar bio');
+    
+    // 处理用户数据，添加isFriend标记
+    const processedUsers = users.map(user => ({
+      id: user._id,
+      username: user.username,
+      nickname: user.nickname,
+      avatar: user.avatar,
+      bio: user.bio,
+      isFriend: followingIds.includes(user._id.toString())
+    }));
+    
+    res.status(200).json({
+      success: true,
+      data: processedUsers
+    });
+  } catch (error) {
+    console.error('搜索用户错误:', error);
+    res.status(500).json({
+      success: false,
+      message: '服务器错误，搜索用户失败'
+    });
+  }
 }; 

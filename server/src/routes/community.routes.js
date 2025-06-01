@@ -9,6 +9,7 @@ const postController = require('../controllers/post.controller');
 const commentController = require('../controllers/comment.controller');
 const followController = require('../controllers/follow.controller');
 const challengeController = require('../controllers/challenge.controller');
+const searchController = require('../controllers/search.controller');
 
 // 资源所有者权限中间件
 const checkResourceOwner = (req, res, next) => {
@@ -83,6 +84,15 @@ router.post('/challenges/:challengeId/leave', authMiddleware, challengeControlle
 router.get('/challenges/:challengeId/participants', authMiddleware, challengeController.getChallengeParticipants);
 router.get('/challenges/:challengeId/leaderboard', authMiddleware, challengeController.getChallengeLeaderboard);
 router.get('/my-challenges', authMiddleware, challengeController.getUserChallenges);
+
+// 用户推荐和搜索路由
+router.get('/recommend-users', authMiddleware, followController.getRecommendUsers);
+router.get('/search/users', authMiddleware, followController.searchUsers);
+
+// 社区搜索路由
+router.get('/search', authMiddleware, searchController.search);
+router.get('/hot-searches', authMiddleware, searchController.getHotSearches);
+router.get('/hot-topics', authMiddleware, searchController.getHotTopics);
 
 module.exports = router; 
  

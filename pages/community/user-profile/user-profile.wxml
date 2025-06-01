@@ -1,0 +1,178 @@
+<!--用户资料页面-->
+<view class="container">
+  <!-- 加载中 -->
+  <view class="loading-container" wx:if="{{loading}}">
+    <van-loading size="24px" color="#4F7CFF">加载中...</van-loading>
+  </view>
+
+  <!-- 错误提示 -->
+  <view class="error-container" wx:elif="{{error}}">
+    <image class="error-icon" src="/assets/images/error.png" mode="aspectFit"></image>
+    <text class="error-text">{{error}}</text>
+    <button class="retry-button" bindtap="loadUserProfile">重试</button>
+  </view>
+
+  <!-- 用户资料 -->
+  <block wx:else>
+    <!-- 用户头部信息 -->
+    <view class="user-header">
+      <image class="user-cover" src="{{userInfo.coverImage || '/assets/images/default-cover.jpg'}}" mode="aspectFill"></image>
+      <view class="user-info">
+        <image class="user-avatar" src="{{userInfo.avatar || '/assets/images/default-avatar.png'}}" mode="aspectFill"></image>
+        <view class="user-meta">
+          <view class="user-name">{{userInfo.nickname || userInfo.username}}</view>
+          <view class="user-bio" wx:if="{{userInfo.bio}}">{{userInfo.bio}}</view>
+          <view class="user-stats">
+            <view class="stat-item">
+              <text class="stat-value">{{userInfo.postsCount || 0}}</text>
+              <text class="stat-label">动态</text>
+            </view>
+            <view class="stat-item">
+              <text class="stat-value">{{userInfo.followingCount || 0}}</text>
+              <text class="stat-label">关注</text>
+            </view>
+            <view class="stat-item">
+              <text class="stat-value">{{userInfo.followersCount || 0}}</text>
+              <text class="stat-label">粉丝</text>
+            </view>
+          </view>
+        </view>
+        <button class="follow-button {{userInfo.isFollowing ? 'following' : ''}}" 
+                bindtap="toggleFollow" 
+                wx:if="{{!isCurrentUser && hasLogin}}">
+          {{userInfo.isFollowing ? '已关注' : '关注'}}
+        </button>
+        <button class="edit-button" 
+                bindtap="editProfile" 
+                wx:if="{{isCurrentUser}}">
+          编辑资料
+        </button>
+      </view>
+    </view>
+
+    <!-- 标签页 -->
+    <van-tabs active="{{activeTab}}" bind:change="switchTab" sticky animated swipeable>
+      <!-- 动态标签页 -->
+      <van-tab title="动态" name="posts">
+        <view class="tab-content">
+          <!-- 无内容提示 -->
+          <view class="empty-tip" wx:if="{{posts.length === 0 && !loadingPosts}}">
+            <image class="empty-icon" src="/assets/images/posts.png" mode="aspectFit"></image>
+            <text class="empty-text">{{isCurrentUser ? '你还没有发布动态' : '该用户还没有发布动态'}}</text>
+          </view>
+
+          <!-- 动态列表 -->
+          <view class="post-list" wx:else>
+            <view class="post-item" wx:for="{{posts}}" wx:key="_id" bindtap="viewPostDetail" data-id="{{item._id}}">
+              <view class="post-header">
+                <view class="post-time">{{item.createdAt}}</view>
+              </view>
+              <view class="post-content">
+                <text class="post-text">{{item.content}}</text>
+                <view class="post-images" wx:if="{{item.images && item.images.length > 0}}">
+                  <image 
+                    class="post-image {{item.images.length === 1 ? 'single' : ''}}" 
+                    src="{{item.images[0]}}" 
+                    mode="aspectFill"
+                  ></image>
+                  <view class="image-count" wx:if="{{item.images.length > 1}}">+{{item.images.length}}</view>
+                </view>
+              </view>
+              <view class="post-actions">
+                <view class="action-item" catchtap="likePost" data-id="{{item._id}}" data-index="{{index}}">
+                  <van-icon name="{{item.isLiked ? 'like-fill' : 'like'}}" class="{{item.isLiked ? 'liked' : ''}}" />
+                  <text>{{item.likes || 0}}</text>
+                </view>
+                <view class="action-item" catchtap="commentPost" data-id="{{item._id}}">
+                  <van-icon name="comment" />
+                  <text>{{item.comments || 0}}</text>
+                </view>
+              </view>
+            </view>
+            
+            <!-- 加载更多 -->
+            <view class="loading-more" wx:if="{{loadingMorePosts}}">
+              <van-loading size="20px">加载中...</van-loading>
+            </view>
+            
+            <!-- 没有更多 -->
+            <view class="no-more" wx:if="{{!hasMorePosts && posts.length > 0}}">
+              <text>没有更多了</text>
+            </view>
+          </view>
+        </view>
+      </van-tab>
+
+      <!-- 习惯标签页 -->
+      <van-tab title="习惯" name="habits">
+        <view class="tab-content">
+          <!-- 无内容提示 -->
+          <view class="empty-tip" wx:if="{{habits.length === 0 && !loadingHabits}}">
+            <image class="empty-icon" src="/assets/images/habits.png" mode="aspectFit"></image>
+            <text class="empty-text">{{isCurrentUser ? '你还没有创建习惯' : '该用户还没有公开习惯'}}</text>
+          </view>
+
+          <!-- 习惯列表 -->
+          <view class="habit-list" wx:else>
+            <view class="habit-item" wx:for="{{habits}}" wx:key="_id" bindtap="viewHabitDetail" data-id="{{item._id}}">
+              <view class="habit-icon">
+                <image src="{{item.icon || '/assets/images/habits.png'}}" mode="aspectFill"></image>
+              </view>
+              <view class="habit-info">
+                <view class="habit-name">{{item.name}}</view>
+                <view class="habit-stats">
+                  <text class="habit-streak">连续{{item.currentStreak || 0}}天</text>
+                  <text class="habit-completion">完成率{{item.completionRate || 0}}%</text>
+                </view>
+              </view>
+              <van-icon name="arrow" class="arrow-icon" />
+            </view>
+            
+            <!-- 加载更多 -->
+            <view class="loading-more" wx:if="{{loadingMoreHabits}}">
+              <van-loading size="20px">加载中...</van-loading>
+            </view>
+            
+            <!-- 没有更多 -->
+            <view class="no-more" wx:if="{{!hasMoreHabits && habits.length > 0}}">
+              <text>没有更多了</text>
+            </view>
+          </view>
+        </view>
+      </van-tab>
+
+      <!-- 成就标签页 -->
+      <van-tab title="成就" name="achievements">
+        <view class="tab-content">
+          <!-- 无内容提示 -->
+          <view class="empty-tip" wx:if="{{achievements.length === 0 && !loadingAchievements}}">
+            <image class="empty-icon" src="/assets/images/achievements.png" mode="aspectFit"></image>
+            <text class="empty-text">{{isCurrentUser ? '你还没有获得成就' : '该用户还没有获得成就'}}</text>
+          </view>
+
+          <!-- 成就列表 -->
+          <view class="achievement-list" wx:else>
+            <view class="achievement-item" wx:for="{{achievements}}" wx:key="_id">
+              <image class="achievement-icon" src="{{item.icon || '/assets/images/achievements.png'}}" mode="aspectFit"></image>
+              <view class="achievement-info">
+                <view class="achievement-name">{{item.name}}</view>
+                <view class="achievement-desc">{{item.description}}</view>
+                <view class="achievement-date">获得于 {{item.earnedAt}}</view>
+              </view>
+            </view>
+            
+            <!-- 加载更多 -->
+            <view class="loading-more" wx:if="{{loadingMoreAchievements}}">
+              <van-loading size="20px">加载中...</van-loading>
+            </view>
+            
+            <!-- 没有更多 -->
+            <view class="no-more" wx:if="{{!hasMoreAchievements && achievements.length > 0}}">
+              <text>没有更多了</text>
+            </view>
+          </view>
+        </view>
+      </van-tab>
+    </van-tabs>
+  </block>
+</view> 

@@ -249,4 +249,29 @@ export const formatRelativeTime = (date: Date | string): string => {
   // 大于等于12个月
   const diffYear = Math.floor(diffMonth / 12);
   return `${diffYear}年前`;
-}; 
+};
+
+/**
+ * 格式化时间为相对时间（如：5分钟前，1小时前等）
+ * @param time 时间字符串或时间戳
+ * @returns 格式化后的相对时间字符串
+ */
+export function formatTimeAgo(time: string | number): string {
+  const now = new Date();
+  const date = typeof time === 'string' ? new Date(time) : new Date(time);
+  const diff = Math.floor((now.getTime() - date.getTime()) / 1000); // 秒数差
+  
+  if (diff < 60) {
+    return `${diff}秒前`;
+  } else if (diff < 3600) {
+    return `${Math.floor(diff / 60)}分钟前`;
+  } else if (diff < 86400) {
+    return `${Math.floor(diff / 3600)}小时前`;
+  } else if (diff < 2592000) {
+    return `${Math.floor(diff / 86400)}天前`;
+  } else if (diff < 31536000) {
+    return `${Math.floor(diff / 2592000)}个月前`;
+  } else {
+    return `${Math.floor(diff / 31536000)}年前`;
+  }
+} 

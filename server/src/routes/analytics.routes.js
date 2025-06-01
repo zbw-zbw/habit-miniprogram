@@ -159,6 +159,27 @@ router.get(
 );
 
 /**
+ * @route GET /api/analytics/report
+ * @desc 生成习惯报告
+ * @access Private
+ */
+router.get(
+  '/report',
+  authMiddleware,
+  [
+    query('startDate')
+      .optional()
+      .matches(/^\d{4}-\d{2}-\d{2}$/)
+      .withMessage('开始日期格式应为YYYY-MM-DD'),
+    query('endDate')
+      .optional()
+      .matches(/^\d{4}-\d{2}-\d{2}$/)
+      .withMessage('结束日期格式应为YYYY-MM-DD')
+  ],
+  analyticsController.generateReport
+);
+
+/**
  * @route GET /api/analytics/export
  * @desc 导出分析数据
  * @access Private

@@ -29,6 +29,9 @@ interface IPageData {
   newTag: string;
   tempTags: string[];
   hasLogin: boolean;
+  titleError: string;
+  descriptionError: string;
+  rulesError: string;
 }
 
 Page<IPageData, {
@@ -37,7 +40,7 @@ Page<IPageData, {
   inputTitle(e: WechatMiniprogram.Input): void;
   typeChange(e: WechatMiniprogram.PickerChange): void;
   durationChange(e: WechatMiniprogram.PickerChange): void;
-  startDateChange(e: WechatMiniprogram.DatePickerChange): void;
+  startDateChange(e: WechatMiniprogram.PickerChange): void;
   inputDescription(e: WechatMiniprogram.Input): void;
   inputRules(e: WechatMiniprogram.Input): void;
   showTagSelector(): void;
@@ -52,7 +55,11 @@ Page<IPageData, {
   submitForm(e: WechatMiniprogram.FormSubmit): void;
   uploadCover(filePath: string): Promise<string>;
   validateForm(): boolean;
+  validateTitle(): boolean;
+  validateDescription(): boolean;
+  validateRules(): boolean;
   formatDate(date: Date): string;
+  refreshData(): void;
 }>({
   /**
    * 页面的初始数据
@@ -96,7 +103,10 @@ Page<IPageData, {
     ],
     newTag: '',
     tempTags: [],
-    hasLogin: false
+    hasLogin: false,
+    titleError: '',
+    descriptionError: '',
+    rulesError: ''
   },
 
   /**
@@ -126,7 +136,8 @@ Page<IPageData, {
     
     this.setData({
       'formData.startDate': this.formatDate(tomorrow),
-      minDate: this.formatDate(tomorrow)
+      minDate: this.formatDate(tomorrow),
+      tempTags: [] // 初始化临时标签数组
     });
   },
 
@@ -153,7 +164,9 @@ Page<IPageData, {
           'formData.image': tempFilePath
         });
         
-        // 验证表单
+        // 验证标题
+        this.validateTitle();
+        // 验证整个表单
         this.validateForm();
       }
     });
@@ -167,7 +180,9 @@ Page<IPageData, {
       'formData.title': e.detail.value
     });
     
-    // 验证表单
+    // 验证标题
+    this.validateTitle();
+    // 验证整个表单
     this.validateForm();
   },
 
@@ -175,7 +190,7 @@ Page<IPageData, {
    * 切换类型
    */
   typeChange(e: WechatMiniprogram.PickerChange) {
-    const index = e.detail.value as number;
+    const index = Number(e.detail.value);
     
     this.setData({
       typeIndex: index,
@@ -187,7 +202,7 @@ Page<IPageData, {
    * 切换时长
    */
   durationChange(e: WechatMiniprogram.PickerChange) {
-    const index = e.detail.value as number;
+    const index = Number(e.detail.value);
     
     this.setData({
       durationIndex: index,
@@ -198,9 +213,9 @@ Page<IPageData, {
   /**
    * 选择开始日期
    */
-  startDateChange(e: WechatMiniprogram.DatePickerChange) {
+  startDateChange(e: WechatMiniprogram.PickerChange) {
     this.setData({
-      'formData.startDate': e.detail.value
+      'formData.startDate': e.detail.value as string
     });
   },
 
@@ -212,7 +227,9 @@ Page<IPageData, {
       'formData.description': e.detail.value
     });
     
-    // 验证表单
+    // 验证描述
+    this.validateDescription();
+    // 验证整个表单
     this.validateForm();
   },
 
@@ -224,7 +241,9 @@ Page<IPageData, {
       'formData.rules': e.detail.value
     });
     
-    // 验证表单
+    // 验证规则
+    this.validateRules();
+    // 验证整个表单
     this.validateForm();
   },
 
@@ -232,10 +251,9 @@ Page<IPageData, {
    * 显示标签选择器
    */
   showTagSelector() {
-    // 复制当前标签到临时标签
     this.setData({
-      tempTags: [...this.data.formData.tags],
-      showTagSelector: true
+      showTagSelector: true,
+      tempTags: [...this.data.formData.tags] // 复制当前标签到临时标签
     });
   },
 
@@ -252,22 +270,22 @@ Page<IPageData, {
    * 阻止冒泡
    */
   preventBubble() {
-    // 阻止点击事件冒泡
+    // 阻止事件冒泡
+    return;
   },
 
   /**
-   * 切换标签选择状态
+   * 切换标签选择
    */
   toggleTag(e: WechatMiniprogram.TouchEvent) {
     const tag = e.currentTarget.dataset.tag as string;
-    const tempTags = [...this.data.tempTags];
+    const { tempTags } = this.data;
     
-    const index = tempTags.indexOf(tag);
-    if (index > -1) {
-      // 已选中，取消选择
-      tempTags.splice(index, 1);
-    } else {
-      // 未选中，添加选择
+    // 检查标签是否已选择
+    const tagIndex = tempTags.indexOf(tag);
+    
+    if (tagIndex === -1) {
+      // 标签未选择，添加标签
       if (tempTags.length >= 5) {
         wx.showToast({
           title: '最多选择5个标签',
@@ -275,12 +293,19 @@ Page<IPageData, {
         });
         return;
       }
-      tempTags.push(tag);
+      
+      this.setData({
+        tempTags: [...tempTags, tag]
+      });
+    } else {
+      // 标签已选择，移除标签
+      const newTags = [...tempTags];
+      newTags.splice(tagIndex, 1);
+      
+      this.setData({
+        tempTags: newTags
+      });
     }
-    
-    this.setData({
-      tempTags
-    });
   },
 
   /**
@@ -296,7 +321,7 @@ Page<IPageData, {
    * 添加自定义标签
    */
   addCustomTag() {
-    const { newTag, tempTags } = this.data;
+    const { newTag, tempTags, suggestedTags } = this.data;
     
     if (!newTag.trim()) {
       return;
@@ -318,10 +343,20 @@ Page<IPageData, {
       return;
     }
     
+    const newTagTrimmed = newTag.trim();
+    
+    // 添加到临时标签
     this.setData({
-      tempTags: [...tempTags, newTag.trim()],
+      tempTags: [...tempTags, newTagTrimmed],
       newTag: ''
     });
+    
+    // 如果不在建议标签中，也添加到建议标签列表
+    if (!suggestedTags.includes(newTagTrimmed)) {
+      this.setData({
+        suggestedTags: [...suggestedTags, newTagTrimmed]
+      });
+    }
   },
 
   /**
@@ -363,6 +398,10 @@ Page<IPageData, {
   submitForm(e: WechatMiniprogram.FormSubmit) {
     // 验证表单
     if (!this.validateForm()) {
+      wx.showToast({
+        title: '请完善表单信息',
+        icon: 'none'
+      });
       return;
     }
     
@@ -371,6 +410,7 @@ Page<IPageData, {
     });
     
     const { formData } = this.data;
+    console.log('准备提交的表单数据:', formData);
     
     // 如果有封面，先上传封面
     const uploadCoverPromise = formData.image 
@@ -379,20 +419,28 @@ Page<IPageData, {
     
     uploadCoverPromise
       .then((imageUrl) => {
-        // 创建挑战
-        return communityAPI.createChallenge({
+        console.log('封面上传成功, URL:', imageUrl);
+        
+        // 准备提交的数据
+        const challengeData = {
           title: formData.title,
-          type: formData.type,
-          duration: formData.duration,
-          startDate: formData.startDate,
           description: formData.description,
           rules: formData.rules,
+          duration: formData.duration,
+          startDate: formData.startDate,
           tags: formData.tags,
           needsApproval: formData.needsApproval,
-          image: imageUrl || undefined
-        });
+          image: imageUrl || undefined,
+          isPublic: true
+        };
+        
+        console.log('发送到服务器的数据:', challengeData);
+        
+        // 创建挑战
+        return communityAPI.createChallenge(challengeData);
       })
       .then((challenge) => {
+        console.log('挑战创建成功:', challenge);
         wx.hideLoading();
         wx.showToast({
           title: '创建成功',
@@ -413,10 +461,33 @@ Page<IPageData, {
       })
       .catch((error) => {
         console.error('创建挑战失败:', error);
+        // 尝试解析错误详情
+        let errorMsg = '创建失败';
+        if (error && error.message) {
+          errorMsg = error.message;
+        } else if (typeof error === 'string') {
+          errorMsg = error;
+        }
+        
+        // 检查是否是网络请求错误
+        if (error && error.statusCode) {
+          console.error('HTTP错误状态码:', error.statusCode);
+          console.error('HTTP错误响应:', error.data);
+          
+          if (error.statusCode === 404) {
+            errorMsg = 'API接口不存在，请联系管理员';
+          } else if (error.statusCode === 401) {
+            errorMsg = '登录已过期，请重新登录';
+          } else if (error.statusCode >= 500) {
+            errorMsg = '服务器错误，请稍后再试';
+          }
+        }
+        
         wx.hideLoading();
         wx.showToast({
-          title: '创建失败',
-          icon: 'none'
+          title: errorMsg,
+          icon: 'none',
+          duration: 2000
         });
       });
   },
@@ -444,32 +515,77 @@ Page<IPageData, {
   },
 
   /**
+   * 验证标题
+   */
+  validateTitle(): boolean {
+    const { title } = this.data.formData;
+    
+    if (!title.trim()) {
+      this.setData({ titleError: '请输入挑战标题' });
+      return false;
+    }
+    
+    if (title.length < 5) {
+      this.setData({ titleError: '标题至少需要5个字符' });
+      return false;
+    }
+    
+    this.setData({ titleError: '' });
+    return true;
+  },
+
+  /**
+   * 验证描述
+   */
+  validateDescription(): boolean {
+    const { description } = this.data.formData;
+    
+    if (!description.trim()) {
+      this.setData({ descriptionError: '请输入挑战描述' });
+      return false;
+    }
+    
+    if (description.length < 20) {
+      this.setData({ descriptionError: '描述至少需要20个字符' });
+      return false;
+    }
+    
+    this.setData({ descriptionError: '' });
+    return true;
+  },
+
+  /**
+   * 验证规则
+   */
+  validateRules(): boolean {
+    const { rules } = this.data.formData;
+    
+    if (!rules.trim()) {
+      this.setData({ rulesError: '请输入挑战规则' });
+      return false;
+    }
+    
+    if (rules.length < 20) {
+      this.setData({ rulesError: '规则至少需要20个字符' });
+      return false;
+    }
+    
+    this.setData({ rulesError: '' });
+    return true;
+  },
+
+  /**
    * 验证表单
    */
   validateForm(): boolean {
-    const { formData } = this.data;
+    const titleValid = this.validateTitle();
+    const descriptionValid = this.validateDescription();
+    const rulesValid = this.validateRules();
     
-    // 验证标题
-    if (!formData.title.trim() || formData.title.length < 5) {
-      this.setData({ formValid: false });
-      return false;
-    }
+    const formValid = titleValid && descriptionValid && rulesValid;
     
-    // 验证描述
-    if (!formData.description.trim() || formData.description.length < 20) {
-      this.setData({ formValid: false });
-      return false;
-    }
-    
-    // 验证规则
-    if (!formData.rules.trim() || formData.rules.length < 20) {
-      this.setData({ formValid: false });
-      return false;
-    }
-    
-    // 表单有效
-    this.setData({ formValid: true });
-    return true;
+    this.setData({ formValid });
+    return formValid;
   },
 
   /**
@@ -481,5 +597,13 @@ Page<IPageData, {
     const day = date.getDate().toString().padStart(2, '0');
     
     return `${year}-${month}-${day}`;
+  },
+  
+  /**
+   * 刷新数据方法，供上一页面调用
+   */
+  refreshData() {
+    console.log('创建挑战页面刷新数据');
+    // 这个方法会被上一页面调用，不需要实现具体逻辑
   }
 }); 

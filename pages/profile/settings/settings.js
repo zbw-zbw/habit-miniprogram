@@ -4,6 +4,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
  * 个人中心-设置页面
  */
 const storage_1 = require("../../../utils/storage");
+const use_auth_1 = require("../../../utils/use-auth");
 Page({
     /**
      * 页面的初始数据
@@ -31,12 +32,15 @@ Page({
         showThemeModal: false,
         showLanguageModal: false,
         showClearModal: false,
-        showLogoutModal: false
+        showLogoutModal: false,
+        hasLogin: false,
+        userInfo: null
     },
     /**
      * 生命周期函数--监听页面加载
      */
     onLoad() {
+        (0, use_auth_1.useAuth)(this);
         this.loadSettings();
     },
     /**

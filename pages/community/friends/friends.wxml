@@ -1,0 +1,169 @@
+<!--好友列表页面-->
+<view class="container">
+  <!-- 搜索框 -->
+  <view class="search-container">
+    <van-search
+      value="{{ searchValue }}"
+      placeholder="搜索好友"
+      bind:change="onSearchChange"
+      bind:search="onSearch"
+      shape="round"
+      show-action="{{searchValue.length > 0}}"
+      action-text="搜索"
+      bind:cancel="onSearchCancel"
+    />
+  </view>
+
+  <!-- 标签页 -->
+  <van-tabs active="{{ activeTab }}" bind:change="onTabChange" animated swipeable>
+    <!-- 好友列表标签 -->
+    <van-tab title="我的好友" name="friends">
+      <!-- 加载中 -->
+      <view class="loading-container" wx:if="{{loading}}">
+        <van-loading size="24px" color="#4F7CFF">加载中...</van-loading>
+      </view>
+
+      <!-- 空状态 -->
+      <view class="empty-container" wx:elif="{{friends.length === 0 && !loading}}">
+        <van-empty description="暂无好友" image="search">
+          <van-button round type="info" size="small" bind:tap="goToFindFriends" custom-class="find-btn">
+            寻找好友
+          </van-button>
+        </van-empty>
+      </view>
+
+      <!-- 好友列表 -->
+      <view class="friends-list" wx:else>
+        <view class="friend-item" wx:for="{{friends}}" wx:key="_id" bindtap="viewUserProfile" data-id="{{item._id}}">
+          <view class="friend-avatar">
+            <image src="{{item.avatar || '/assets/images/default-avatar.png'}}" mode="aspectFill"></image>
+            <view class="online-status {{item.isOnline ? 'online' : ''}}" wx:if="{{item.isOnline}}"></view>
+          </view>
+          <view class="friend-info">
+            <view class="friend-name">{{item.nickname || item.username}}</view>
+            <view class="friend-bio" wx:if="{{item.bio}}">{{item.bio}}</view>
+          </view>
+          <view class="friend-actions">
+            <button class="action-btn message-btn" catchtap="sendMessage" data-id="{{item._id}}">
+              <van-icon name="chat" />
+            </button>
+          </view>
+        </view>
+
+        <!-- 加载更多 -->
+        <view class="loading-more" wx:if="{{loadingMore}}">
+          <van-loading size="20px">加载中...</van-loading>
+        </view>
+        
+        <!-- 没有更多 -->
+        <view class="no-more" wx:if="{{!hasMore && friends.length > 0}}">
+          <text>没有更多了</text>
+        </view>
+      </view>
+    </van-tab>
+
+    <!-- 关注列表标签 -->
+    <van-tab title="我的关注" name="following">
+      <!-- 加载中 -->
+      <view class="loading-container" wx:if="{{loadingFollowing}}">
+        <van-loading size="24px" color="#4F7CFF">加载中...</van-loading>
+      </view>
+
+      <!-- 空状态 -->
+      <view class="empty-container" wx:elif="{{following.length === 0 && !loadingFollowing}}">
+        <van-empty description="暂无关注" image="search">
+          <van-button round type="info" size="small" bind:tap="goToFindFriends" custom-class="find-btn">
+            寻找用户关注
+          </van-button>
+        </van-empty>
+      </view>
+
+      <!-- 关注列表 -->
+      <view class="friends-list" wx:else>
+        <view class="friend-item" wx:for="{{following}}" wx:key="_id" bindtap="viewUserProfile" data-id="{{item._id}}">
+          <view class="friend-avatar">
+            <image src="{{item.avatar || '/assets/images/default-avatar.png'}}" mode="aspectFill"></image>
+          </view>
+          <view class="friend-info">
+            <view class="friend-name">{{item.nickname || item.username}}</view>
+            <view class="friend-bio" wx:if="{{item.bio}}">{{item.bio}}</view>
+          </view>
+          <view class="friend-actions">
+            <button class="action-btn {{item.isFriend ? 'added-btn' : 'add-btn'}}" 
+                    catchtap="addFriend" 
+                    data-id="{{item._id}}" 
+                    data-index="{{index}}"
+                    wx:if="{{!item.isFriend}}">
+              <van-icon name="plus" />
+            </button>
+            <button class="action-btn message-btn" catchtap="sendMessage" data-id="{{item._id}}">
+              <van-icon name="chat" />
+            </button>
+          </view>
+        </view>
+
+        <!-- 加载更多 -->
+        <view class="loading-more" wx:if="{{loadingMoreFollowing}}">
+          <van-loading size="20px">加载中...</van-loading>
+        </view>
+        
+        <!-- 没有更多 -->
+        <view class="no-more" wx:if="{{!hasMoreFollowing && following.length > 0}}">
+          <text>没有更多了</text>
+        </view>
+      </view>
+    </van-tab>
+
+    <!-- 粉丝列表标签 -->
+    <van-tab title="我的粉丝" name="followers">
+      <!-- 加载中 -->
+      <view class="loading-container" wx:if="{{loadingFollowers}}">
+        <van-loading size="24px" color="#4F7CFF">加载中...</van-loading>
+      </view>
+
+      <!-- 空状态 -->
+      <view class="empty-container" wx:elif="{{followers.length === 0 && !loadingFollowers}}">
+        <van-empty description="暂无粉丝" image="search" />
+      </view>
+
+      <!-- 粉丝列表 -->
+      <view class="friends-list" wx:else>
+        <view class="friend-item" wx:for="{{followers}}" wx:key="_id" bindtap="viewUserProfile" data-id="{{item._id}}">
+          <view class="friend-avatar">
+            <image src="{{item.avatar || '/assets/images/default-avatar.png'}}" mode="aspectFill"></image>
+          </view>
+          <view class="friend-info">
+            <view class="friend-name">{{item.nickname || item.username}}</view>
+            <view class="friend-bio" wx:if="{{item.bio}}">{{item.bio}}</view>
+          </view>
+          <view class="friend-actions">
+            <button class="action-btn {{item.isFollowing ? 'following-btn' : 'follow-btn'}}" 
+                    catchtap="toggleFollow" 
+                    data-id="{{item._id}}" 
+                    data-index="{{index}}">
+              {{item.isFollowing ? '已关注' : '关注'}}
+            </button>
+            <button class="action-btn message-btn" catchtap="sendMessage" data-id="{{item._id}}">
+              <van-icon name="chat" />
+            </button>
+          </view>
+        </view>
+
+        <!-- 加载更多 -->
+        <view class="loading-more" wx:if="{{loadingMoreFollowers}}">
+          <van-loading size="20px">加载中...</van-loading>
+        </view>
+        
+        <!-- 没有更多 -->
+        <view class="no-more" wx:if="{{!hasMoreFollowers && followers.length > 0}}">
+          <text>没有更多了</text>
+        </view>
+      </view>
+    </van-tab>
+  </van-tabs>
+
+  <!-- 浮动按钮 -->
+  <view class="float-btn" bindtap="goToFindFriends">
+    <van-icon name="plus" />
+  </view>
+</view> 

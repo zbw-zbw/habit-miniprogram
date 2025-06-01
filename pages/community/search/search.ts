@@ -1,4 +1,7 @@
 // 社区搜索页面
+import { communityAPI } from '../../../services/api';
+import { useAuth } from '../../../utils/use-auth';
+
 interface IUserResult {
   id: string;
   avatar: string;
@@ -17,12 +20,13 @@ interface IGroupResult {
   isJoined: boolean;
 }
 
-interface ITopicResult {
+interface IChallengeResult {
   id: string;
   name: string;
-  postsCount: number;
+  description: string;
+  image: string;
   participantsCount: number;
-  isTrending: boolean;
+  isJoined: boolean;
 }
 
 interface IPostResult {
@@ -36,41 +40,49 @@ interface IPostResult {
   comments: number;
 }
 
-type TabType = 'all' | 'users' | 'groups' | 'topics' | 'posts';
+type TabType = 'all' | 'users' | 'groups' | 'challenges' | 'posts';
 
 Page({
   data: {
     keyword: '',
     searchHistory: [] as string[],
-    hotSearches: [
-      '健身打卡',
-      '早起习惯',
-      '阅读挑战',
-      '冥想',
-      '学习英语',
-      '每日喝水',
-      '跑步',
-      '饮食记录',
-      '写作'
-    ],
+    hotSearches: [] as string[],
     activeTab: 'all' as TabType,
     loading: false,
     results: [] as any[],
     userResults: [] as IUserResult[],
     groupResults: [] as IGroupResult[],
-    topicResults: [] as ITopicResult[],
+    challengeResults: [] as IChallengeResult[],
     postResults: [] as IPostResult[],
     hasMore: false,
     page: 1,
-    pageSize: 10
+    pageSize: 10,
+    hasLogin: false
   },
 
   onLoad() {
+    // 使用useAuth工具获取全局登录状态
+    useAuth(this);
+    
     // 获取搜索历史
     const searchHistory = wx.getStorageSync('searchHistory') || [];
     this.setData({
       searchHistory
     });
+    
+    // 加载热门搜索词
+    this.loadHotSearches();
+  },
+
+  // 加载热门搜索词
+  loadHotSearches() {
+    communityAPI.getHotSearches()
+      .then(hotSearches => {
+        this.setData({ hotSearches });
+      })
+      .catch(error => {
+        console.error('加载热门搜索词失败:', error);
+      });
   },
 
   // 输入搜索内容
@@ -100,7 +112,7 @@ Page({
       results: [],
       userResults: [],
       groupResults: [],
-      topicResults: [],
+      challengeResults: [],
       postResults: [],
       page: 1
     });
@@ -142,7 +154,7 @@ Page({
       results: [],
       userResults: [],
       groupResults: [],
-      topicResults: [],
+      challengeResults: [],
       postResults: [],
       page: 1,
       hasMore: false,
@@ -172,110 +184,82 @@ Page({
 
   // 获取搜索结果
   fetchSearchResults() {
-    const { keyword, page, pageSize } = this.data;
-
-    // 模拟API请求
-    setTimeout(() => {
-      // 模拟数据
-      const mockResults = {
-        users: [
-          {
-            id: 'user1',
-            avatar: '/assets/images/avatar1.png',
-            nickname: '健身达人',
-            bio: '每天坚持运动，保持健康生活方式',
-            isFollowing: false
-          },
-          {
-            id: 'user2',
-            avatar: '/assets/images/avatar2.png',
-            nickname: '阅读小子',
-            bio: '爱读书，爱生活',
-            isFollowing: true
-          }
-        ],
-        groups: [
-          {
-            id: 'group1',
-            avatar: '/assets/images/group1.png',
-            name: '每日运动小组',
-            description: '一起坚持运动，共同成长',
-            membersCount: 234,
-            postsCount: 1256,
-            isJoined: false
-          },
-          {
-            id: 'group2',
-            avatar: '/assets/images/group2.png',
-            name: '读书会',
-            description: '分享读书心得，推荐好书',
-            membersCount: 125,
-            postsCount: 896,
-            isJoined: true
-          }
-        ],
-        topics: [
-          {
-            id: 'topic1',
-            name: '健身打卡',
-            postsCount: 1234,
-            participantsCount: 567,
-            isTrending: true
-          },
-          {
-            id: 'topic2',
-            name: '早起习惯',
-            postsCount: 896,
-            participantsCount: 432,
-            isTrending: false
-          }
-        ],
-        posts: [
-          {
-            id: 'post1',
-            userAvatar: '/assets/images/avatar1.png',
-            userName: '健身达人',
-            createdAt: '2小时前',
-            content: '今天完成了5公里跑步，感觉很好！#健身打卡#',
-            images: ['/assets/images/post1.png'],
-            likes: 45,
-            comments: 12
-          },
-          {
-            id: 'post2',
-            userAvatar: '/assets/images/avatar2.png',
-            userName: '阅读小子',
-            createdAt: '昨天',
-            content: '这本书真的很推荐，让我对生活有了新的思考。#读书分享#',
-            images: ['/assets/images/post2.png', '/assets/images/post3.png'],
-            likes: 32,
-            comments: 8
-          }
-        ]
-      };
-
-      this.setData({
-        loading: false,
-        userResults: page === 1 ? mockResults.users : [...this.data.userResults, ...mockResults.users],
-        groupResults: page === 1 ? mockResults.groups : [...this.data.groupResults, ...mockResults.groups],
-        topicResults: page === 1 ? mockResults.topics : [...this.data.topicResults, ...mockResults.topics],
-        postResults: page === 1 ? mockResults.posts : [...this.data.postResults, ...mockResults.posts],
-        results: [
-          ...mockResults.users,
-          ...mockResults.groups,
-          ...mockResults.topics,
-          ...mockResults.posts
-        ],
-        hasMore: page < 3, // 模拟只有3页数据
-        page: page + 1
+    const { keyword, activeTab, page, pageSize } = this.data;
+    
+    if (!this.data.hasLogin) {
+      wx.showToast({
+        title: '请先登录',
+        icon: 'none'
       });
-    }, 1000);
+      return;
+    }
+
+    this.setData({ loading: true });
+
+    communityAPI.search({
+      keyword,
+      type: activeTab,
+      page,
+      limit: pageSize
+    })
+      .then(results => {
+        if (activeTab === 'all') {
+          this.setData({
+            userResults: results.users || [],
+            groupResults: results.groups || [],
+            challengeResults: results.challenges || [],
+            postResults: results.posts || [],
+            loading: false,
+            hasMore: false // 全部搜索不支持分页
+          });
+        } else if (activeTab === 'users') {
+          const newUsers = page === 1 ? results.users : [...this.data.userResults, ...results.users];
+          this.setData({
+            userResults: newUsers,
+            loading: false,
+            hasMore: results.users && results.users.length === pageSize
+          });
+        } else if (activeTab === 'groups') {
+          const newGroups = page === 1 ? results.groups : [...this.data.groupResults, ...results.groups];
+          this.setData({
+            groupResults: newGroups,
+            loading: false,
+            hasMore: results.groups && results.groups.length === pageSize
+          });
+        } else if (activeTab === 'challenges') {
+          const newChallenges = page === 1 ? results.challenges : [...this.data.challengeResults, ...results.challenges];
+          this.setData({
+            challengeResults: newChallenges,
+            loading: false,
+            hasMore: results.challenges && results.challenges.length === pageSize
+          });
+        } else if (activeTab === 'posts') {
+          const newPosts = page === 1 ? results.posts : [...this.data.postResults, ...results.posts];
+          this.setData({
+            postResults: newPosts,
+            loading: false,
+            hasMore: results.posts && results.posts.length === pageSize
+          });
+        }
+      })
+      .catch(error => {
+        console.error('搜索失败:', error);
+        this.setData({ loading: false });
+        wx.showToast({
+          title: '搜索失败',
+          icon: 'none'
+        });
+      });
   },
 
-  // 加载更多
+  // 加载更多结果
   loadMore() {
     if (this.data.loading || !this.data.hasMore) return;
-    this.setData({ loading: true });
+    
+    this.setData({
+      page: this.data.page + 1
+    });
+    
     this.fetchSearchResults();
   },
 
@@ -301,11 +285,11 @@ Page({
     });
   },
 
-  // 查看话题详情
-  viewTopicDetail(e: WechatMiniprogram.TouchEvent) {
+  // 查看挑战详情
+  viewChallengeDetail(e: WechatMiniprogram.TouchEvent) {
     const id = e.currentTarget.dataset.id;
     wx.navigateTo({
-      url: `/pages/community/tag/tag?id=${id}`
+      url: `/pages/community/challenges/detail/detail?id=${id}`
     });
   },
 
@@ -317,20 +301,156 @@ Page({
     });
   },
 
-  // 关注/取消关注用户
+  // 切换关注状态
   toggleFollow(e: WechatMiniprogram.TouchEvent) {
+    if (!this.data.hasLogin) {
+      wx.showToast({
+        title: '请先登录',
+        icon: 'none'
+      });
+      return;
+    }
+    
     const { id, index } = e.currentTarget.dataset;
-    const userResults = [...this.data.userResults];
-    userResults[index].isFollowing = !userResults[index].isFollowing;
-    this.setData({ userResults });
+    const { userResults } = this.data;
+    const user = userResults[index];
+    
+    if (!user) return;
+    
+    const isFollow = !user.isFollowing;
+    
+    wx.showLoading({ title: '处理中' });
+    
+    communityAPI.followUser(id, isFollow)
+      .then(() => {
+        this.setData({
+          [`userResults[${index}].isFollowing`]: isFollow
+        });
+      })
+      .catch(error => {
+        console.error('操作失败:', error);
+        wx.showToast({
+          title: '操作失败',
+          icon: 'none'
+        });
+      })
+      .finally(() => {
+        wx.hideLoading();
+      });
   },
 
-  // 加入/退出小组
+  // 切换加入状态
   toggleJoin(e: WechatMiniprogram.TouchEvent) {
+    if (!this.data.hasLogin) {
+      wx.showToast({
+        title: '请先登录',
+        icon: 'none'
+      });
+      return;
+    }
+    
     const { id, index } = e.currentTarget.dataset;
-    const groupResults = [...this.data.groupResults];
-    groupResults[index].isJoined = !groupResults[index].isJoined;
-    this.setData({ groupResults });
+    const { groupResults } = this.data;
+    const group = groupResults[index];
+    
+    if (!group) return;
+    
+    const isJoined = !group.isJoined;
+    
+    wx.showLoading({ title: '处理中' });
+    
+    if (isJoined) {
+      communityAPI.joinGroup(id)
+        .then(() => {
+          this.setData({
+            [`groupResults[${index}].isJoined`]: true
+          });
+        })
+        .catch(error => {
+          console.error('加入失败:', error);
+          wx.showToast({
+            title: '加入失败',
+            icon: 'none'
+          });
+        })
+        .finally(() => {
+          wx.hideLoading();
+        });
+    } else {
+      communityAPI.leaveGroup(id)
+        .then(() => {
+          this.setData({
+            [`groupResults[${index}].isJoined`]: false
+          });
+        })
+        .catch(error => {
+          console.error('退出失败:', error);
+          wx.showToast({
+            title: '退出失败',
+            icon: 'none'
+          });
+        })
+        .finally(() => {
+          wx.hideLoading();
+        });
+    }
+  },
+
+  // 切换挑战参与状态
+  toggleJoinChallenge(e: WechatMiniprogram.TouchEvent) {
+    if (!this.data.hasLogin) {
+      wx.showToast({
+        title: '请先登录',
+        icon: 'none'
+      });
+      return;
+    }
+    
+    const { id, index } = e.currentTarget.dataset;
+    const { challengeResults } = this.data;
+    const challenge = challengeResults[index];
+    
+    if (!challenge) return;
+    
+    const isJoined = !challenge.isJoined;
+    
+    wx.showLoading({ title: '处理中' });
+    
+    if (isJoined) {
+      communityAPI.joinChallenge(id)
+        .then(() => {
+          this.setData({
+            [`challengeResults[${index}].isJoined`]: true
+          });
+        })
+        .catch(error => {
+          console.error('参与失败:', error);
+          wx.showToast({
+            title: '参与失败',
+            icon: 'none'
+          });
+        })
+        .finally(() => {
+          wx.hideLoading();
+        });
+    } else {
+      communityAPI.leaveChallenge(id)
+        .then(() => {
+          this.setData({
+            [`challengeResults[${index}].isJoined`]: false
+          });
+        })
+        .catch(error => {
+          console.error('退出失败:', error);
+          wx.showToast({
+            title: '退出失败',
+            icon: 'none'
+          });
+        })
+        .finally(() => {
+          wx.hideLoading();
+        });
+    }
   },
 
   // 返回

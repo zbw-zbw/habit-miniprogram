@@ -12,6 +12,48 @@ export function login(callback?: (success: boolean) => void): void {
     title: '登录中',
   });
 
+  // 获取微信登录凭证
+  wx.login({
+    success: (loginRes) => {
+      if (loginRes.code) {
+        // 展示用户信息设置界面
+        getUserProfile(loginRes.code, callback);
+      } else {
+        wx.hideLoading();
+        wx.showToast({
+          title: '登录失败',
+          icon: 'error',
+        });
+
+        if (typeof callback === 'function') {
+          callback(false);
+        }
+      }
+    },
+    fail: (err) => {
+      console.error('微信登录失败:', err);
+      wx.hideLoading();
+      wx.showToast({
+        title: '登录失败',
+        icon: 'error',
+      });
+
+      if (typeof callback === 'function') {
+        callback(false);
+      }
+    },
+  });
+}
+
+/**
+ * 获取用户信息并登录
+ * @param code 微信登录凭证
+ * @param callback 登录回调
+ */
+function getUserProfile(
+  code: string,
+  callback?: (success: boolean) => void
+): void {
   // 获取用户信息
   wx.getUserProfile({
     desc: '用于完善用户资料',
@@ -25,38 +67,85 @@ export function login(callback?: (success: boolean) => void): void {
         nickName: res.userInfo.nickName, // 确保使用正确的属性名
       } as IUserInfo;
 
-      app.login(userInfo, (success) => {
-        if (success) {
-          wx.showToast({
-            title: '登录成功',
-            icon: 'success',
-          });
-        } else {
+      // 调用后端API进行登录
+      const apiBaseUrl =
+        wx.getStorageSync('apiBaseUrl') || 'http://localhost:3000';
+      wx.request({
+        url: `${apiBaseUrl}/api/auth/wx-login`,
+        method: 'POST',
+        data: {
+          code: code,
+          userInfo: userInfo,
+        },
+        success: (res: any) => {
+          if (res.statusCode === 200 && res.data && res.data.success) {
+            // 保存令牌和用户信息
+            const responseData = res.data.data;
+            app.globalData.token = responseData.token;
+            app.globalData.refreshToken = responseData.refreshToken || null;
+            app.globalData.userInfo = responseData.user;
+            app.globalData.hasLogin = true;
+
+            // 保存到本地存储
+            try {
+              wx.setStorageSync('token', app.globalData.token);
+              if (app.globalData.refreshToken) {
+                wx.setStorageSync('refreshToken', app.globalData.refreshToken);
+              }
+              wx.setStorageSync('userInfo', app.globalData.userInfo);
+            } catch (e) {
+              console.error('保存登录状态失败', e);
+            }
+
+            // 通知登录状态变化
+            app.notifyLoginStateChanged();
+
+            wx.showToast({
+              title: '登录成功',
+              icon: 'success',
+            });
+
+            if (callback) {
+              callback(true);
+            }
+          } else {
+            console.error('登录失败:', res.statusCode, res.data);
+            wx.showToast({
+              title: '登录失败',
+              icon: 'error',
+            });
+
+            if (callback) {
+              callback(false);
+            }
+          }
+        },
+        fail: (err) => {
+          console.error('登录请求失败:', err);
           wx.showToast({
             title: '登录失败',
             icon: 'error',
           });
-        }
-        
-        // 调用回调函数传递登录结果
-        if (typeof callback === 'function') {
-          callback(success);
-        }
+
+          if (callback) {
+            callback(false);
+          }
+        },
+        complete: () => {
+          wx.hideLoading();
+        },
       });
     },
     fail: () => {
+      wx.hideLoading();
       wx.showToast({
         title: '已取消',
         icon: 'none',
       });
-      
-      // 调用回调函数并传递失败结果
-      if (typeof callback === 'function') {
+
+      if (callback) {
         callback(false);
       }
-    },
-    complete: () => {
-      wx.hideLoading();
     },
   });
 }
@@ -77,7 +166,7 @@ export function logout(callback?: () => void): void {
             title: '已退出登录',
             icon: 'success',
           });
-          
+
           // 调用回调函数
           if (typeof callback === 'function') {
             callback();
@@ -86,4 +175,4 @@ export function logout(callback?: () => void): void {
       }
     },
   });
-} 
+}

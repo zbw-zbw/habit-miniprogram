@@ -1,0 +1,158 @@
+<view class="container">
+  <!-- 加载中 -->
+  <view class="loading-container" wx:if="{{loading}}">
+    <van-loading size="24px" color="#4F7CFF">加载中...</van-loading>
+  </view>
+
+  <!-- 挑战详情 -->
+  <view class="challenge-container" wx:else>
+    <!-- 挑战封面 -->
+    <view class="challenge-cover">
+      <image class="cover-image" src="{{challenge.coverImage || '/assets/images/challenge.png'}}" mode="aspectFill"></image>
+      <view class="back-btn" bindtap="goBack">
+        <van-icon name="arrow-left" size="20px" color="#fff" />
+      </view>
+      <view class="challenge-status {{statusClass}}">{{statusText}}</view>
+    </view>
+
+    <!-- 挑战信息 -->
+    <view class="challenge-info">
+      <view class="challenge-title">{{challenge.name}}</view>
+      
+      <view class="challenge-meta">
+        <view class="meta-item">
+          <van-icon name="friends-o" />
+          <text>{{challenge.participantsCount || 0}}人参与</text>
+        </view>
+        <view class="meta-item">
+          <van-icon name="clock-o" />
+          <text>{{timeRemaining}}</text>
+        </view>
+      </view>
+      
+      <!-- 标签 -->
+      <view class="challenge-tags" wx:if="{{challenge.tags && challenge.tags.length > 0}}">
+        <van-tag 
+          wx:for="{{challenge.tags}}" 
+          wx:key="index" 
+          type="primary" 
+          color="#4F7CFF" 
+          plain
+          custom-class="tag"
+        >{{item}}</van-tag>
+      </view>
+      
+      <!-- 创建者信息 -->
+      <view class="creator-info" wx:if="{{challenge.creator}}" bindtap="viewUserProfile" data-id="{{challenge.creator._id}}">
+        <image class="creator-avatar" src="{{challenge.creator.avatar || '/assets/images/default-avatar.png'}}" mode="aspectFill"></image>
+        <text class="creator-name">{{challenge.creator.nickname || challenge.creator.username || '匿名用户'}}</text>
+        <text class="creator-label">发起者</text>
+      </view>
+      
+      <!-- 参与按钮 -->
+      <view class="action-btn" wx:if="{{challenge.status !== 'completed' && challenge.status !== 'cancelled'}}">
+        <van-button 
+          wx:if="{{isCreator}}"
+          type="danger" 
+          block 
+          custom-class="join-btn" 
+          bindtap="dismissChallenge"
+        >解散挑战</van-button>
+        <van-button 
+          wx:else
+          type="{{isJoined ? 'default' : 'primary'}}" 
+          block 
+          custom-class="join-btn" 
+          bindtap="toggleJoinChallenge"
+        >{{isJoined ? '退出挑战' : '参加挑战'}}</van-button>
+      </view>
+      
+      <!-- 进度信息 -->
+      <view class="progress-section" wx:if="{{isJoined || isCreator}}">
+        <view class="section-title">我的进度</view>
+        <view class="progress-info">
+          <view class="progress-text">
+            <text>{{progress.completedCount || 0}}/{{progress.targetCount || 0}}天</text>
+            <text>{{progress.completionRate || 0}}%</text>
+          </view>
+          <van-progress 
+            percentage="{{progress.completionRate || 0}}" 
+            color="#4F7CFF" 
+            track-color="#E4E7ED" 
+            stroke-width="8"
+          />
+        </view>
+      </view>
+      
+      <!-- 描述 -->
+      <view class="description-section">
+        <view class="section-title">挑战描述</view>
+        <view class="description-content">{{challenge.description}}</view>
+      </view>
+      
+      <!-- 规则 -->
+      <view class="rules-section" wx:if="{{challenge.rules}}">
+        <view class="section-title">挑战规则</view>
+        <view class="rules-content">{{challenge.rules}}</view>
+      </view>
+      
+      <!-- 参与者 -->
+      <view class="participants-section">
+        <view class="section-header">
+          <view class="section-title">参与者</view>
+          <view class="view-all" bindtap="viewAllParticipants" wx:if="{{participants && participants.length > 0}}">查看全部</view>
+        </view>
+        
+        <view class="participants-loading" wx:if="{{participantsLoading}}">
+          <van-loading size="20px" color="#4F7CFF">加载中...</van-loading>
+        </view>
+        
+        <view class="participants-list" wx:elif="{{participants.length > 0}}">
+          <view 
+            class="participant-item" 
+            wx:for="{{participants}}" 
+            wx:key="index"
+            bindtap="viewUserProfile"
+            data-id="{{item.user._id}}"
+          >
+            <image class="participant-avatar" src="{{item.user.avatar || '/assets/images/default-avatar.png'}}" mode="aspectFill"></image>
+            <text class="participant-name">{{item.user.nickname || item.user.username || '匿名用户'}}</text>
+          </view>
+        </view>
+        
+        <view class="empty-participants" wx:else>
+          <text>暂无参与者</text>
+        </view>
+      </view>
+      
+      <!-- 排行榜 -->
+      <view class="leaderboard-section" wx:if="{{challenge.participantsCount > 1}}">
+        <view class="section-header">
+          <view class="section-title">排行榜</view>
+          <view class="view-all" bindtap="viewLeaderboard">查看全部</view>
+        </view>
+        
+        <van-button 
+          type="default" 
+          block 
+          custom-class="leaderboard-btn" 
+          bindtap="viewLeaderboard"
+        >查看排行榜</van-button>
+      </view>
+      
+      <!-- 分享按钮 -->
+      <view class="share-section">
+        <van-button 
+          type="default" 
+          block 
+          custom-class="share-btn" 
+          bindtap="shareChallenge"
+          open-type="share"
+        >
+          <van-icon name="share-o" />
+          <text>分享挑战</text>
+        </van-button>
+      </view>
+    </view>
+  </view>
+</view> 

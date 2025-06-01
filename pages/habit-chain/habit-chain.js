@@ -366,8 +366,8 @@ Page({
                 const targetHabit = habits.find(h => h.id === relation.targetHabitId);
                 return {
                     ...relation,
-                    sourceHabitName: sourceHabit?.name || '未知习惯',
-                    targetHabitName: targetHabit?.name || '未知习惯'
+                    sourceHabitName: (sourceHabit === null || sourceHabit === void 0 ? void 0 : sourceHabit.name) || '未知习惯',
+                    targetHabitName: (targetHabit === null || targetHabit === void 0 ? void 0 : targetHabit.name) || '未知习惯'
                 };
             });
             // 生成推荐习惯链

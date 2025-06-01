@@ -1,0 +1,151 @@
+<!--小组详情页面-->
+<view class="container">
+  <!-- 加载中 -->
+  <view class="loading-container" wx:if="{{loading}}">
+    <van-loading size="24px" color="#4F7CFF">加载中...</van-loading>
+  </view>
+
+  <!-- 错误提示 -->
+  <view class="error-container" wx:elif="{{error}}">
+    <image class="error-icon" src="/assets/images/error.png" mode="aspectFit"></image>
+    <text class="error-text">{{error}}</text>
+    <button class="retry-button" bindtap="loadGroupDetail">重试</button>
+  </view>
+
+  <!-- 小组详情 -->
+  <block wx:else>
+    <!-- 小组头部信息 -->
+    <view class="group-header">
+      <image class="group-cover" src="{{group.coverImage || '/assets/images/groups.png'}}" mode="aspectFill"></image>
+      <view class="group-info">
+        <image class="group-avatar" src="{{group.avatar || '/assets/images/groups.png'}}" mode="aspectFill"></image>
+        <view class="group-meta">
+          <view class="group-name">{{group.name}}</view>
+          <view class="group-stats">
+            <text class="stat-item">{{group.membersCount || 0}}人</text>
+            <text class="stat-item">{{group.postsCount || 0}}条动态</text>
+          </view>
+          <view class="group-tags">
+            <van-tag wx:for="{{group.tags}}" wx:key="index" plain type="primary" custom-class="group-tag">{{item}}</van-tag>
+          </view>
+        </view>
+        <button class="join-button {{group.isJoined ? 'joined' : ''}}" bindtap="toggleJoin">
+          {{group.isJoined ? '已加入' : '加入小组'}}
+        </button>
+      </view>
+    </view>
+
+    <!-- 小组描述 -->
+    <view class="group-description">
+      <text class="description-title">小组介绍</text>
+      <text class="description-content">{{group.description}}</text>
+    </view>
+
+    <!-- 小组管理员 -->
+    <view class="group-admin" wx:if="{{group.creator}}">
+      <text class="admin-title">小组管理员</text>
+      <view class="admin-info" bindtap="viewUserProfile" data-id="{{group.creator._id}}">
+        <image class="admin-avatar" src="{{group.creator.avatar}}" mode="aspectFill"></image>
+        <text class="admin-name">{{group.creator.nickname || group.creator.username}}</text>
+        <van-icon name="arrow" class="arrow-icon" />
+      </view>
+    </view>
+
+    <!-- 标签页 -->
+    <van-tabs active="{{activeTab}}" bind:change="switchTab" sticky animated swipeable>
+      <!-- 动态标签页 -->
+      <van-tab title="动态" name="posts">
+        <view class="tab-content">
+          <!-- 无内容提示 -->
+          <view class="empty-tip" wx:if="{{posts.length === 0 && !loadingPosts}}">
+            <image class="empty-icon" src="/assets/images/posts.png" mode="aspectFit"></image>
+            <text class="empty-text">暂无动态</text>
+            <button class="create-button" bindtap="createPost" wx:if="{{group.isJoined}}">发布动态</button>
+          </view>
+
+          <!-- 动态列表 -->
+          <view class="post-list" wx:else>
+            <view class="post-item" wx:for="{{posts}}" wx:key="_id" bindtap="viewPostDetail" data-id="{{item._id}}">
+              <view class="post-header">
+                <image class="user-avatar" src="{{item.user.avatar}}" mode="aspectFill"></image>
+                <view class="post-user-info">
+                  <text class="user-name">{{item.user.nickname || item.user.username}}</text>
+                  <text class="post-time">{{item.createdAt}}</text>
+                </view>
+              </view>
+              <view class="post-content">
+                <text class="post-text">{{item.content}}</text>
+                <view class="post-images" wx:if="{{item.images && item.images.length > 0}}">
+                  <image 
+                    class="post-image {{item.images.length === 1 ? 'single' : ''}}" 
+                    src="{{item.images[0]}}" 
+                    mode="aspectFill"
+                  ></image>
+                  <view class="image-count" wx:if="{{item.images.length > 1}}">+{{item.images.length}}</view>
+                </view>
+              </view>
+              <view class="post-actions">
+                <view class="action-item" catchtap="likePost" data-id="{{item._id}}" data-index="{{index}}">
+                  <van-icon name="{{item.isLiked ? 'like-fill' : 'like'}}" class="{{item.isLiked ? 'liked' : ''}}" />
+                  <text>{{item.likes || 0}}</text>
+                </view>
+                <view class="action-item" catchtap="commentPost" data-id="{{item._id}}">
+                  <van-icon name="comment" />
+                  <text>{{item.comments || 0}}</text>
+                </view>
+              </view>
+            </view>
+            
+            <!-- 加载更多 -->
+            <view class="loading-more" wx:if="{{loadingMorePosts}}">
+              <van-loading size="20px">加载中...</van-loading>
+            </view>
+            
+            <!-- 没有更多 -->
+            <view class="no-more" wx:if="{{!hasMorePosts && posts.length > 0}}">
+              <text>没有更多了</text>
+            </view>
+          </view>
+        </view>
+      </van-tab>
+
+      <!-- 成员标签页 -->
+      <van-tab title="成员" name="members">
+        <view class="tab-content">
+          <!-- 无内容提示 -->
+          <view class="empty-tip" wx:if="{{members.length === 0 && !loadingMembers}}">
+            <image class="empty-icon" src="/assets/images/empty.png" mode="aspectFit"></image>
+            <text class="empty-text">暂无成员</text>
+          </view>
+
+          <!-- 成员列表 -->
+          <view class="member-list" wx:else>
+            <view class="member-item" wx:for="{{members}}" wx:key="_id" bindtap="viewUserProfile" data-id="{{item._id}}">
+              <image class="member-avatar" src="{{item.avatar}}" mode="aspectFill"></image>
+              <view class="member-info">
+                <text class="member-name">{{item.nickname || item.username}}</text>
+                <text class="member-role" wx:if="{{item.role}}">{{item.role}}</text>
+              </view>
+              <van-icon name="arrow" class="arrow-icon" />
+            </view>
+            
+            <!-- 加载更多 -->
+            <view class="loading-more" wx:if="{{loadingMoreMembers}}">
+              <van-loading size="20px">加载中...</van-loading>
+            </view>
+            
+            <!-- 没有更多 -->
+            <view class="no-more" wx:if="{{!hasMoreMembers && members.length > 0}}">
+              <text>没有更多了</text>
+            </view>
+          </view>
+        </view>
+      </van-tab>
+    </van-tabs>
+  </block>
+
+  <!-- 悬浮按钮 -->
+  <view class="float-button" wx:if="{{group.isJoined}}" bindtap="createPost">
+    <van-icon name="plus" />
+  </view>
+</view> 

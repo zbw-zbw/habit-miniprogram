@@ -1,16 +1,16 @@
 "use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
+exports.__esModule = true;
 exports.analyticsAPI = void 0;
 /**
  * 数据分析相关API
  */
-const request_1 = require("../../utils/request");
+var request_1 = require("../../utils/request");
 exports.analyticsAPI = {
     /**
      * 获取仪表盘数据
      * @returns Promise<{habitCount: number; completedToday: number; streak: number; completion: number;}>
      */
-    getDashboard: () => {
+    getDashboard: function () {
         return (0, request_1.get)('/api/analytics/dashboard');
     },
     /**
@@ -18,7 +18,7 @@ exports.analyticsAPI = {
      * @param params 查询参数
      * @returns Promise<{labels: string[]; data: number[]; average: number;}>
      */
-    getCompletionRate: (params) => {
+    getCompletionRate: function (params) {
         return (0, request_1.get)('/api/analytics/completion-rate', params);
     },
     /**
@@ -26,15 +26,15 @@ exports.analyticsAPI = {
      * @param habitId 习惯ID
      * @returns Promise<{totalCompletions: number; completionRate: number; currentStreak: number; longestStreak: number; bestDayOfWeek: string; bestTimeOfDay: string;}>
      */
-    getHabitStats: (habitId) => {
-        return (0, request_1.get)(`/api/analytics/habits/${habitId}/stats`);
+    getHabitStats: function (habitId) {
+        return (0, request_1.get)("/api/analytics/habits/".concat(habitId, "/stats"));
     },
     /**
      * 获取月度报告
      * @param params 查询参数
      * @returns Promise
      */
-    getMonthlyReport: (params) => {
+    getMonthlyReport: function (params) {
         return (0, request_1.get)('/api/analytics/monthly-report', params);
     },
     /**
@@ -42,14 +42,14 @@ exports.analyticsAPI = {
      * @param params 查询参数
      * @returns Promise
      */
-    getWeeklyReport: (params) => {
+    getWeeklyReport: function (params) {
         return (0, request_1.get)('/api/analytics/weekly-report', params);
     },
     /**
      * 获取综合报告数据
      * @returns Promise
      */
-    getReport: () => {
+    getReport: function () {
         return (0, request_1.get)('/api/analytics/report');
     }
 };

@@ -23,6 +23,8 @@ interface IPageData {
   newTag: string;
   tempTags: string[];
   hasLogin: boolean;
+  nameError: string;
+  descriptionError: string;
 }
 
 Page<IPageData, {
@@ -51,17 +53,15 @@ Page<IPageData, {
     formData: {
       avatar: '',
       name: '',
-      type: 'hobby',
+      type: 'habit',
       description: '',
       tags: [],
       isPrivate: false
     },
     typeOptions: [
-      { value: 'hobby', label: '兴趣爱好' },
-      { value: 'study', label: '学习成长' },
-      { value: 'fitness', label: '健康健身' },
-      { value: 'lifestyle', label: '生活方式' },
-      { value: 'work', label: '工作技能' },
+      { value: 'habit', label: '习惯养成' },
+      { value: 'challenge', label: '挑战活动' },
+      { value: 'topic', label: '主题讨论' },
       { value: 'other', label: '其他' }
     ],
     typeIndex: 0,
@@ -74,7 +74,9 @@ Page<IPageData, {
     ],
     newTag: '',
     tempTags: [],
-    hasLogin: false
+    hasLogin: false,
+    nameError: '',
+    descriptionError: ''
   },
 
   /**
@@ -133,7 +135,8 @@ Page<IPageData, {
    */
   inputName(e: WechatMiniprogram.Input) {
     this.setData({
-      'formData.name': e.detail.value
+      'formData.name': e.detail.value,
+      nameError: ''
     });
     
     // 验证表单
@@ -144,7 +147,7 @@ Page<IPageData, {
    * 切换类型
    */
   typeChange(e: WechatMiniprogram.PickerChange) {
-    const index = e.detail.value as number;
+    const index = parseInt(e.detail.value as string);
     
     this.setData({
       typeIndex: index,
@@ -160,7 +163,8 @@ Page<IPageData, {
    */
   inputDescription(e: WechatMiniprogram.Input) {
     this.setData({
-      'formData.description': e.detail.value
+      'formData.description': e.detail.value,
+      descriptionError: ''
     });
     
     // 验证表单
@@ -321,11 +325,11 @@ Page<IPageData, {
         // 创建小组
         return communityAPI.createGroup({
           name: formData.name,
-          type: formData.type,
           description: formData.description,
           tags: formData.tags,
           isPrivate: formData.isPrivate,
-          avatar: avatarUrl || undefined
+          avatar: avatarUrl || undefined,
+          type: formData.type // 确保传递type字段
         });
       })
       .then((group) => {
@@ -351,7 +355,7 @@ Page<IPageData, {
         console.error('创建小组失败:', error);
         wx.hideLoading();
         wx.showToast({
-          title: '创建失败',
+          title: error?.message || '创建失败',
           icon: 'none'
         });
       });
@@ -384,21 +388,41 @@ Page<IPageData, {
    */
   validateForm(): boolean {
     const { formData } = this.data;
+    let isValid = true;
+    const updates: any = {};
     
     // 验证名称
-    if (!formData.name.trim() || formData.name.length < 2) {
-      this.setData({ formValid: false });
-      return false;
+    if (!formData.name.trim()) {
+      updates.nameError = '请输入小组名称';
+      isValid = false;
+    } else if (formData.name.length < 2) {
+      updates.nameError = '名称至少需要2个字符';
+      isValid = false;
+    } else if (formData.name.length > 50) {
+      updates.nameError = '名称最多50个字符';
+      isValid = false;
+    } else {
+      updates.nameError = '';
     }
     
     // 验证描述
-    if (!formData.description.trim() || formData.description.length < 10) {
-      this.setData({ formValid: false });
-      return false;
+    if (!formData.description.trim()) {
+      updates.descriptionError = '请输入小组描述';
+      isValid = false;
+    } else if (formData.description.length < 10) {
+      updates.descriptionError = '描述至少需要10个字符';
+      isValid = false;
+    } else if (formData.description.length > 1000) {
+      updates.descriptionError = '描述最多1000个字符';
+      isValid = false;
+    } else {
+      updates.descriptionError = '';
     }
     
-    // 表单有效
-    this.setData({ formValid: true });
-    return true;
+    // 更新表单状态
+    updates.formValid = isValid;
+    this.setData(updates);
+    
+    return isValid;
   }
 }); 

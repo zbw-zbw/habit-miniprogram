@@ -17,7 +17,7 @@
   
   <!-- 标签页导航 -->
   <tab-bar 
-    tabs="{{['小组', '挑战', '动态', '好友']}}" 
+    tabs="{{['动态', '挑战', '小组', '好友']}}" 
     activeTab="{{tabIndex}}" 
     bind:tabchange="onTabChange">
   </tab-bar>
@@ -36,10 +36,9 @@
       <view class="content-card">
         <view class="section-header">
           <text class="section-title">热门小组</text>
-          <text class="section-more" bindtap="viewAllGroups">
-            查看全部
-            <text class="iconfont icon-right"></text>
-          </text>
+          <view class="section-more" bindtap="viewAllGroups">
+            查看全部<text class="iconfont icon-right"></text>
+          </view>
         </view>
         
         <view class="groups-grid">
@@ -77,10 +76,9 @@
       <view class="content-card">
         <view class="section-header">
           <text class="section-title">热门挑战</text>
-          <text class="section-more" bindtap="viewAllChallenges">
-              查看全部
-             <text class="iconfont icon-right"></text>
-          </text>
+          <view class="section-more" bindtap="viewAllChallenges">
+            查看全部<text class="iconfont icon-right"></text>
+          </view>
         </view>
         
         <view class="challenges-grid">
@@ -88,16 +86,16 @@
                 wx:for="{{challenges}}" 
                 wx:key="id" 
                 bindtap="viewChallengeDetail"
-                data-id="{{item.id}}">
-            <image class="challenge-image" src="{{item.image}}" mode="aspectFill"></image>
+                data-challenge-id="{{item.id}}">
+            <image class="challenge-image" src="{{item.coverImage || item.image}}" mode="aspectFill"></image>
             <view class="challenge-overlay"></view>
             <view class="challenge-info">
-              <text class="challenge-title">{{item.title}}</text>
-              <text class="challenge-participants">{{item.participants}}人参与</text>
+              <text class="challenge-title">{{item.name || item.title}}</text>
+              <text class="challenge-participants">{{item.participantCount || item.participantsCount || 0}}人参与</text>
             </view>
             <view class="challenge-join {{item.isJoined ? 'joined' : ''}}" 
                   catchtap="joinChallenge" 
-                  data-id="{{item.id}}"
+                  data-challenge-id="{{item.id}}"
                   data-index="{{index}}">
               <text class="iconfont {{item.isJoined ? 'icon-check' : 'icon-plus'}}"></text>
             </view>
@@ -126,8 +124,7 @@
         <view class="section-header">
           <text class="section-title">动态列表</text>
           <view class="section-more" bindtap="viewAllPosts" wx:if="{{posts.length > 0}}">
-            查看全部
-            <text class="iconfont icon-right"></text>
+            查看全部<text class="iconfont icon-right"></text>
           </view>
         </view>
         
@@ -175,10 +172,9 @@
       <view class="content-card">
         <view class="section-header">
           <text class="section-title">我的好友</text>
-          <text class="section-more" bindtap="viewAllFriends" wx:if="{{friends.length > 0}}">
-            查看全部
-             <text class="iconfont icon-right"></text>
-          </text>
+          <view class="section-more" bindtap="viewAllFriends" wx:if="{{friends.length > 0}}">
+            查看全部<text class="iconfont icon-right"></text>
+          </view>
         </view>
         
         <view class="friends-grid" wx:if="{{friends.length > 0}}">
@@ -210,6 +206,21 @@
   <!-- 发布按钮 -->
   <view class="create-post-btn" bindtap="showCreatePost" wx:if="{{activeTab === 'posts' && hasLogin}}">
     <text class="iconfont icon-edit"></text>
+  </view>
+  
+  <!-- 创建按钮 - 小组 -->
+  <view class="create-post-btn" bindtap="createGroup" wx:if="{{activeTab === 'groups' && hasLogin}}">
+    <text class="iconfont icon-add"></text>
+  </view>
+  
+  <!-- 创建按钮 - 挑战 -->
+  <view class="create-post-btn" bindtap="createChallenge" wx:if="{{activeTab === 'challenges' && hasLogin}}">
+    <text class="iconfont icon-add"></text>
+  </view>
+  
+  <!-- 创建按钮 - 好友 -->
+  <view class="create-post-btn" bindtap="addFriend" wx:if="{{activeTab === 'friends' && hasLogin}}">
+    <text class="iconfont icon-add"></text>
   </view>
   
   <!-- 发布动态弹窗 -->
@@ -260,7 +271,7 @@
           </view>
         </view>
         
-        <button class="post-submit-btn" bindtap="submitPost">发布</button>
+        <button class="post-submit-btn active" bindtap="submitPost">发布</button>
       </view>
     </view>
   </view>

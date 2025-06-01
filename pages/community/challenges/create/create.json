@@ -1,5 +1,6 @@
 {
-  "usingComponents": {},
   "navigationBarTitleText": "创建挑战",
-  "navigationStyle": "custom"
+  "navigationStyle": "default",
+  "backgroundColor": "#F5F7FA",
+  "usingComponents": {}
 } 

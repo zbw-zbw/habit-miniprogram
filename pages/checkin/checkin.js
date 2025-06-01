@@ -10,18 +10,28 @@ Page({
         habit: null,
         showForm: false,
         formData: {
-            duration: '00:30:00',
+            date: (0, date_1.formatDate)(new Date()),
+            time: (0, date_1.formatTime)(new Date()),
+            duration: '00:00:00',
             content: '',
             note: '',
-            mood: null,
-            photos: []
+            mood: '',
+            difficulty: 3,
+            photos: [],
+        },
+        durationArray: {
+            values: [
+                Array.from({ length: 24 }, (_, i) => String(i).padStart(2, '0')),
+                Array.from({ length: 60 }, (_, i) => String(i).padStart(2, '0')),
+                Array.from({ length: 60 }, (_, i) => String(i).padStart(2, '0')) // 秒钟 0-59
+            ],
+            selectedIndex: [0, 0, 0] // 默认选中 00:00:00
         },
         timer: {
-            isRunning: false,
+            active: false,
             startTime: 0,
             elapsedTime: 0,
             displayTime: '00:00:00',
-            intervalId: null
         },
         todayCheckins: [],
         weekDays: [],
@@ -38,10 +48,10 @@ Page({
         today: '',
         showSuccessPopup: false,
         successMessage: {
-            title: '打卡成功',
-            subtitle: '继续保持',
+            title: '',
+            subtitle: '',
             streak: 0,
-            points: 0
+            points: 0,
         },
         photos: [],
         todayHabits: []
@@ -73,8 +83,8 @@ Page({
     },
     onUnload() {
         // 清除定时器
-        if (this.data.timer.intervalId) {
-            clearInterval(this.data.timer.intervalId);
+        if (this.data.timer.active) {
+            clearInterval(this.data.timer.active);
         }
     },
     // 加载习惯详情
@@ -257,7 +267,7 @@ Page({
     },
     // 启动计时器
     startTimer() {
-        if (this.data.timer.isRunning) {
+        if (this.data.timer.active) {
             this.stopTimer();
             return;
         }
@@ -266,19 +276,19 @@ Page({
             this.updateTimerDisplay();
         }, 1000);
         this.setData({
-            'timer.isRunning': true,
+            'timer.active': true,
             'timer.startTime': now - this.data.timer.elapsedTime,
-            'timer.intervalId': intervalId
+            'timer.active': intervalId
         });
     },
     // 停止计时器
     stopTimer() {
-        if (this.data.timer.intervalId) {
-            clearInterval(this.data.timer.intervalId);
+        if (this.data.timer.active) {
+            clearInterval(this.data.timer.active);
         }
         this.setData({
-            'timer.isRunning': false,
-            'timer.intervalId': null
+            'timer.active': false,
+            'timer.active': null
         });
     },
     // 重置计时器
@@ -373,9 +383,7 @@ Page({
                 note: this.data.formData.note,
                 mood: this.data.formData.mood,
                 content: this.data.formData.content,
-                duration: this.data.timer.isRunning
-                    ? Math.floor(this.data.timer.elapsedTime / 1000)
-                    : this.data.formData.duration ? this.parseTimeStringToSeconds(this.data.formData.duration) : 0
+                duration: this.data.formData.duration ? this.parseTimeStringToSeconds(this.data.formData.duration) : 0
             };
             // 如果有图片，先上传图片
             if (this.data.formData.photos && this.data.formData.photos.length > 0) {
@@ -394,10 +402,6 @@ Page({
             // 创建打卡记录
             const response = await api_1.checkinAPI.createCheckin(checkinData);
             console.log('打卡成功:', response);
-            // 停止计时器
-            if (this.data.timer.isRunning) {
-                this.stopTimer();
-            }
             // 构建成功信息
             let streak = 0;
             let points = 0;
@@ -437,14 +441,6 @@ Page({
                 detailPage.loadCheckins();
                 detailPage.loadStats();
             }
-            // 延迟返回
-            setTimeout(() => {
-                // 如果不是从习惯详情页来的，则返回上一页
-                const refererPage = pages[pages.length - 2];
-                if (!refererPage || refererPage.route !== 'pages/habits/detail/detail') {
-                    wx.navigateBack();
-                }
-            }, 3000);
         }
         catch (error) {
             console.error('打卡失败:', error);
@@ -509,7 +505,7 @@ Page({
         const uploadPromises = photos.map(photo => {
             return new Promise((resolve, reject) => {
                 wx.uploadFile({
-                    url: getApp().globalData.apiBaseUrl + '/api/upload',
+                    url: getApp().globalData.apiBaseUrl + '/api/media/upload',
                     filePath: photo,
                     name: 'file',
                     success: (res) => {
@@ -568,6 +564,7 @@ Page({
             isPublic: false
         })
             .then(result => {
+            var _a, _b;
             console.log('打卡成功:', result);
             this.setData({
                 submitting: false,
@@ -575,7 +572,7 @@ Page({
                 successMessage: {
                     title: '打卡成功',
                     subtitle: '坚持的力量不可小觑',
-                    streak: this.data.habit?.stats?.currentStreak ? this.data.habit.stats.currentStreak + 1 : 1,
+                    streak: ((_b = (_a = this.data.habit) === null || _a === void 0 ? void 0 : _a.stats) === null || _b === void 0 ? void 0 : _b.currentStreak) ? this.data.habit.stats.currentStreak + 1 : 1,
                     points: 5
                 }
             });
@@ -620,20 +617,26 @@ Page({
     closeSuccessPopup() {
         this.setData({ showSuccessPopup: false });
         // 返回上一页
-        setTimeout(() => {
-            wx.navigateBack({
-                delta: 1
-            });
-        }, 300);
+        wx.navigateBack({
+            delta: 1
+        });
     },
     /**
      * 分享打卡记录
      */
     shareCheckin() {
         this.setData({ showSuccessPopup: false });
-        wx.navigateTo({
-            url: `/pages/community/post/post?habitId=${this.data.habitId}&action=checkin`
+        // 调用系统分享
+        wx.showShareMenu({
+            withShareTicket: true,
+            menus: ['shareAppMessage', 'shareTimeline']
         });
+        // 延迟返回上一页，确保分享界面显示完成
+        setTimeout(() => {
+            wx.navigateBack({
+                delta: 1
+            });
+        }, 300);
     },
     /**
      * 用户点击右上角分享
@@ -702,6 +705,20 @@ Page({
         // 导航到该习惯的打卡页面
         wx.redirectTo({
             url: `/pages/checkin/checkin?habitId=${habitId}&habitName=${habitName}`
+        });
+    },
+    /**
+     * 选择时长
+     */
+    onDurationChange(e) {
+        const selectedIndex = e.detail.value;
+        const hours = this.data.durationArray.values[0][selectedIndex[0]];
+        const minutes = this.data.durationArray.values[1][selectedIndex[1]];
+        const seconds = this.data.durationArray.values[2][selectedIndex[2]];
+        const durationString = `${hours}:${minutes}:${seconds}`;
+        this.setData({
+            'formData.duration': durationString,
+            'durationArray.selectedIndex': selectedIndex
         });
     }
 });

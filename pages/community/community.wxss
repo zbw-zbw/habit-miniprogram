@@ -290,13 +290,15 @@
 
 .challenge-title {
   font-size: 28rpx;
-  font-weight: 500;
+  font-weight: 600;
+  color: #FFFFFF;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
   margin-bottom: 8rpx;
-  white-space: nowrap;
+  display: block;
   overflow: hidden;
   text-overflow: ellipsis;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
-  display: block;
+  white-space: nowrap;
+  max-width: 100%;
 }
 
 .challenge-participants {
@@ -310,18 +312,23 @@
   position: absolute;
   top: 16rpx;
   right: 16rpx;
-  width: 48rpx;
-  height: 48rpx;
+  width: 56rpx;
+  height: 56rpx;
   border-radius: 50%;
-  background-color: rgba(255, 255, 255, 0.2);
+  background-color: rgba(255, 255, 255, 0.3);
   display: flex;
   align-items: center;
   justify-content: center;
   color: #FFFFFF;
+  z-index: 10;
+  backdrop-filter: blur(4px);
+  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.2);
+  transition: all 0.3s ease;
 }
 
 .challenge-join.joined {
-  background-color: rgba(79, 124, 255, 0.8);
+  background-color: rgba(103, 194, 58, 0.9);
+  transform: scale(1.1);
 }
 
 .challenge-join .iconfont {
@@ -495,13 +502,14 @@
   width: 110rpx;
   height: 110rpx;
   border-radius: 50%;
-  background: linear-gradient(135deg, #4F7CFF, #5E72E4);
+  background: linear-gradient(135deg, #4F7CFF, #4169E1);
   color: #FFFFFF;
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 8rpx 16rpx rgba(94, 114, 228, 0.3);
+  box-shadow: 0 8rpx 16rpx rgba(79, 124, 255, 0.4);
   transition: transform 0.2s ease;
+  z-index: 100;
 }
 
 .create-post-btn:active {
@@ -510,6 +518,7 @@
 
 .create-post-btn .iconfont {
   font-size: 50rpx;
+  color: #FFFFFF;
 }
 
 /* 发布动态弹窗 */
@@ -640,11 +649,13 @@
   border-top: 1rpx solid #EBEEF5;
 }
 
-.post-tools {
+.post-modal-tools {
   display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
-.post-tool {
+.tool-item {
   width: 80rpx;
   height: 80rpx;
   display: flex;
@@ -652,7 +663,7 @@
   justify-content: center;
 }
 
-.post-tool .iconfont {
+.tool-item .iconfont {
   font-size: 40rpx;
   color: #606266;
 }
@@ -661,7 +672,7 @@
   width: 160rpx;
   height: 70rpx;
   border-radius: 35rpx;
-  background-color: #DCDFE6;
+  background-color: #4F7CFF;
   color: #FFFFFF;
   font-size: 28rpx;
   display: flex;
@@ -670,6 +681,7 @@
   border: none;
 }
 
+/* 仍然保留active类，保持和默认相同的颜色 */
 .post-submit-btn.active {
   background-color: #4F7CFF;
 }
@@ -841,18 +853,17 @@
 .challenges-grid {
   display: flex;
   flex-wrap: wrap;
-  margin: 0 -12rpx;
-  padding: 12rpx 0;
+  margin: 0 -10rpx;
 }
 
-.challenge-item {
-  width: calc(50% - 24rpx);
+.challenges-grid .challenge-item {
+  display: flex;
+  width: calc(50% - 20rpx);
   height: 180rpx;
-  margin: 12rpx;
-  border-radius: var(--radius-medium);
+  margin: 10rpx;
+  border-radius: 12rpx;
   overflow: hidden;
   position: relative;
-  box-shadow: 0 4rpx 8rpx rgba(0, 0, 0, 0.1);
 }
 
 .challenge-image {
@@ -880,13 +891,15 @@
 
 .challenge-title {
   font-size: 28rpx;
-  font-weight: 500;
+  font-weight: 600;
+  color: #FFFFFF;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
   margin-bottom: 8rpx;
-  white-space: nowrap;
+  display: block;
   overflow: hidden;
   text-overflow: ellipsis;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
-  display: block;
+  white-space: nowrap;
+  max-width: 100%;
 }
 
 .challenge-participants {
@@ -903,17 +916,20 @@
   width: 56rpx;
   height: 56rpx;
   border-radius: 50%;
-  background-color: rgba(255, 255, 255, 0.2);
+  background-color: rgba(255, 255, 255, 0.3);
   display: flex;
   align-items: center;
   justify-content: center;
   color: #FFFFFF;
+  z-index: 10;
   backdrop-filter: blur(4px);
   box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.2);
+  transition: all 0.3s ease;
 }
 
 .challenge-join.joined {
-  background: var(--primary-gradient);
+  background-color: rgba(103, 194, 58, 0.9);
+  transform: scale(1.1);
 }
 
 .challenge-join .iconfont {

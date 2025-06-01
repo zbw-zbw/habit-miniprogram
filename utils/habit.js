@@ -9,6 +9,7 @@ const date_1 = require("./date");
  * @returns 如果应该执行习惯，则返回 true
  */
 const shouldDoHabitOnDate = (habit, date = (0, date_1.getCurrentDate)()) => {
+    var _a, _b, _c, _d;
     const targetDate = new Date(date);
     // 检查日期是否在习惯的有效期内
     const startDate = new Date(habit.startDate);
@@ -30,9 +31,9 @@ const shouldDoHabitOnDate = (habit, date = (0, date_1.getCurrentDate)()) => {
         case 'daily':
             return true;
         case 'weekly':
-            return habit.frequency.days?.includes(dayOfWeek) ?? false;
+            return (_b = (_a = habit.frequency.days) === null || _a === void 0 ? void 0 : _a.includes(dayOfWeek)) !== null && _b !== void 0 ? _b : false;
         case 'monthly':
-            return habit.frequency.days?.includes(dayOfMonth) ?? false;
+            return (_d = (_c = habit.frequency.days) === null || _c === void 0 ? void 0 : _c.includes(dayOfMonth)) !== null && _d !== void 0 ? _d : false;
         case 'custom': {
             if (!habit.frequency.interval) {
                 return false;

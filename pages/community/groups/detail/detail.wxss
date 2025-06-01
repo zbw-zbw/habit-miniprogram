@@ -1,0 +1,390 @@
+/* 小组详情页面样式 */
+.container {
+  min-height: 100vh;
+  background-color: var(--background-color);
+  padding-bottom: 120rpx;
+}
+
+/* 加载中 */
+.loading-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 300rpx;
+}
+
+/* 错误提示 */
+.error-container {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 60rpx;
+}
+
+.error-icon {
+  width: 160rpx;
+  height: 160rpx;
+  margin-bottom: 30rpx;
+}
+
+.error-text {
+  font-size: 28rpx;
+  color: var(--text-color-secondary);
+  margin-bottom: 30rpx;
+}
+
+.retry-button {
+  width: 200rpx;
+  height: 70rpx;
+  line-height: 70rpx;
+  font-size: 28rpx;
+  color: #FFFFFF;
+  background: var(--primary-color);
+  border-radius: 35rpx;
+  text-align: center;
+}
+
+/* 小组头部 */
+.group-header {
+  position: relative;
+  width: 100%;
+  background-color: #FFFFFF;
+  margin-bottom: 20rpx;
+}
+
+.group-cover {
+  width: 100%;
+  height: 300rpx;
+  object-fit: cover;
+}
+
+.group-info {
+  position: relative;
+  padding: 30rpx;
+  display: flex;
+  align-items: flex-start;
+}
+
+.group-avatar {
+  width: 120rpx;
+  height: 120rpx;
+  border-radius: 12rpx;
+  margin-right: 20rpx;
+  border: 4rpx solid #FFFFFF;
+  box-shadow: 0 2rpx 10rpx rgba(0, 0, 0, 0.1);
+}
+
+.group-meta {
+  flex: 1;
+}
+
+.group-name {
+  font-size: 36rpx;
+  font-weight: bold;
+  color: var(--title-color);
+  margin-bottom: 10rpx;
+}
+
+.group-stats {
+  display: flex;
+  align-items: center;
+  margin-bottom: 16rpx;
+}
+
+.stat-item {
+  font-size: 24rpx;
+  color: var(--text-color-secondary);
+  margin-right: 20rpx;
+}
+
+.group-tags {
+  display: flex;
+  flex-wrap: wrap;
+}
+
+.group-tag {
+  margin-right: 16rpx;
+  margin-bottom: 10rpx;
+}
+
+.join-button {
+  min-width: 160rpx;
+  height: 64rpx;
+  line-height: 64rpx;
+  font-size: 28rpx;
+  color: #FFFFFF;
+  background: var(--primary-color);
+  border-radius: 32rpx;
+  text-align: center;
+  padding: 0 30rpx;
+  margin: 0;
+}
+
+.join-button.joined {
+  background-color: #F2F2F2;
+  color: var(--text-color);
+}
+
+/* 小组描述 */
+.group-description {
+  background-color: #FFFFFF;
+  padding: 30rpx;
+  margin-bottom: 20rpx;
+}
+
+.description-title {
+  font-size: 30rpx;
+  font-weight: 500;
+  color: var(--title-color);
+  margin-bottom: 16rpx;
+  display: block;
+}
+
+.description-content {
+  font-size: 28rpx;
+  color: var(--text-color);
+  line-height: 1.6;
+}
+
+/* 小组管理员 */
+.group-admin {
+  background-color: #FFFFFF;
+  padding: 30rpx;
+  margin-bottom: 20rpx;
+}
+
+.admin-title {
+  font-size: 30rpx;
+  font-weight: 500;
+  color: var(--title-color);
+  margin-bottom: 16rpx;
+  display: block;
+}
+
+.admin-info {
+  display: flex;
+  align-items: center;
+}
+
+.admin-avatar {
+  width: 80rpx;
+  height: 80rpx;
+  border-radius: 50%;
+  margin-right: 20rpx;
+}
+
+.admin-name {
+  flex: 1;
+  font-size: 28rpx;
+  color: var(--text-color);
+}
+
+.arrow-icon {
+  color: var(--text-color-secondary);
+}
+
+/* 标签页内容 */
+.tab-content {
+  min-height: 300rpx;
+  background-color: #FFFFFF;
+  padding: 20rpx 0;
+}
+
+/* 空内容提示 */
+.empty-tip {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60rpx 0;
+}
+
+.empty-icon {
+  width: 160rpx;
+  height: 160rpx;
+  margin-bottom: 20rpx;
+  opacity: 0.6;
+}
+
+.empty-text {
+  font-size: 28rpx;
+  color: var(--text-color-secondary);
+  margin-bottom: 30rpx;
+}
+
+.create-button {
+  width: 240rpx;
+  height: 70rpx;
+  line-height: 70rpx;
+  font-size: 28rpx;
+  color: #FFFFFF;
+  background: var(--primary-color);
+  border-radius: 35rpx;
+  text-align: center;
+}
+
+/* 动态列表 */
+.post-list {
+  padding: 0 30rpx;
+}
+
+.post-item {
+  padding: 30rpx 0;
+  border-bottom: 1px solid var(--divider-color);
+}
+
+.post-header {
+  display: flex;
+  align-items: center;
+  margin-bottom: 16rpx;
+}
+
+.user-avatar {
+  width: 80rpx;
+  height: 80rpx;
+  border-radius: 50%;
+  margin-right: 16rpx;
+}
+
+.post-user-info {
+  flex: 1;
+}
+
+.user-name {
+  font-size: 28rpx;
+  font-weight: 500;
+  color: var(--title-color);
+}
+
+.post-time {
+  font-size: 24rpx;
+  color: var(--text-color-secondary);
+}
+
+.post-content {
+  margin-bottom: 16rpx;
+}
+
+.post-text {
+  font-size: 28rpx;
+  color: var(--text-color);
+  line-height: 1.5;
+  margin-bottom: 16rpx;
+}
+
+.post-images {
+  position: relative;
+}
+
+.post-image {
+  width: 240rpx;
+  height: 240rpx;
+  border-radius: 12rpx;
+  object-fit: cover;
+}
+
+.post-image.single {
+  width: 400rpx;
+  height: 300rpx;
+}
+
+.image-count {
+  position: absolute;
+  right: 16rpx;
+  top: 16rpx;
+  background-color: rgba(0, 0, 0, 0.5);
+  color: #FFFFFF;
+  font-size: 24rpx;
+  padding: 6rpx 12rpx;
+  border-radius: 16rpx;
+}
+
+.post-actions {
+  display: flex;
+}
+
+.action-item {
+  display: flex;
+  align-items: center;
+  margin-right: 40rpx;
+  font-size: 24rpx;
+  color: var(--text-color-secondary);
+}
+
+.action-item .van-icon {
+  margin-right: 8rpx;
+  font-size: 32rpx;
+}
+
+.action-item .liked {
+  color: #FF5252;
+}
+
+/* 成员列表 */
+.member-list {
+  padding: 0 30rpx;
+}
+
+.member-item {
+  display: flex;
+  align-items: center;
+  padding: 20rpx 0;
+  border-bottom: 1px solid var(--divider-color);
+}
+
+.member-avatar {
+  width: 80rpx;
+  height: 80rpx;
+  border-radius: 50%;
+  margin-right: 20rpx;
+}
+
+.member-info {
+  flex: 1;
+}
+
+.member-name {
+  font-size: 28rpx;
+  color: var(--text-color);
+}
+
+.member-role {
+  font-size: 24rpx;
+  color: var(--text-color-secondary);
+}
+
+/* 加载更多 */
+.loading-more {
+  text-align: center;
+  padding: 30rpx 0;
+}
+
+/* 没有更多 */
+.no-more {
+  text-align: center;
+  padding: 30rpx 0;
+  font-size: 24rpx;
+  color: var(--text-color-secondary);
+}
+
+/* 悬浮按钮 */
+.float-button {
+  position: fixed;
+  right: 40rpx;
+  bottom: 100rpx;
+  width: 100rpx;
+  height: 100rpx;
+  border-radius: 50%;
+  background: var(--primary-color);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  box-shadow: 0 4rpx 16rpx rgba(79, 124, 255, 0.5);
+  z-index: 99;
+}
+
+.float-button .van-icon {
+  font-size: 48rpx;
+  color: #FFFFFF;
+} 

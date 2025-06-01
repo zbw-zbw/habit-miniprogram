@@ -134,7 +134,7 @@ Page({
   viewGroupDetail(e) {
     const { id } = e.currentTarget.dataset;
     wx.navigateTo({
-      url: `/pages/community/group/group?id=${id}`
+      url: `/pages/community/groups/detail/detail?id=${id}`
     });
   },
 

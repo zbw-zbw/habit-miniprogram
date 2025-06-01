@@ -388,6 +388,7 @@ function calculateStandardDeviation(values) {
  * @returns 是否应该执行
  */
 function shouldDoHabitOnDate(habit, dateStr) {
+    var _a;
     const date = new Date(dateStr);
     const day = date.getDay(); // 0-6，周日到周六
     // 检查习惯开始日期
@@ -404,7 +405,7 @@ function shouldDoHabitOnDate(habit, dateStr) {
             return true;
         case 'weekly':
             // 检查是否为指定的星期几
-            return habit.frequency.days?.includes(day) || false;
+            return ((_a = habit.frequency.days) === null || _a === void 0 ? void 0 : _a.includes(day)) || false;
         case 'monthly':
             // 每月固定日期
             return date.getDate() === habit.frequency.interval;

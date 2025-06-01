@@ -472,6 +472,122 @@ exports.getMonthlyReport = async (req, res) => {
   });
 };
 
+/**
+ * 生成习惯报告
+ * @route GET /api/analytics/report
+ */
+exports.generateReport = async (req, res) => {
+  try {
+    const userId = req.user._id;
+    
+    // 获取日期范围参数，默认为过去30天
+    const endDate = new Date();
+    const startDate = new Date();
+    startDate.setDate(startDate.getDate() - 30);
+    
+    const startDateFormatted = startDate.toISOString().split('T')[0];
+    const endDateFormatted = endDate.toISOString().split('T')[0];
+    
+    // 获取用户的习惯数据
+    const habits = await Habit.find({ 
+      user: userId
+    }).select('-__v');
+    
+    // 获取打卡记录
+    const checkins = await Checkin.find({
+      user: userId,
+      date: { $gte: startDateFormatted, $lte: endDateFormatted }
+    }).populate('habit', 'name category icon color');
+    
+    // 计算总体概览数据
+    const totalHabits = habits.length;
+    const activeHabits = habits.filter(h => !h.isArchived).length;
+    
+    // 计算打卡数据
+    const totalCheckins = checkins.filter(c => c.isCompleted).length;
+    const totalDays = Math.round((endDate - startDate) / (1000 * 60 * 60 * 24));
+    
+    // 计算完成率
+    const completionRate = habits.length > 0
+      ? Math.round((totalCheckins / (activeHabits * totalDays)) * 100)
+      : 0;
+    
+    // 获取用户数据
+    const user = await User.findById(userId);
+    
+    // 获取今日完成的习惯数
+    const today = endDateFormatted;
+    const todayCheckins = checkins.filter(c => c.date === today && c.isCompleted);
+    const completedToday = todayCheckins.length;
+    
+    // 计算习惯详情
+    const habitDetails = habits.map(habit => {
+      const habitId = habit._id.toString();
+      const habitCheckins = checkins.filter(c => 
+        c.habit && (c.habit._id.toString() === habitId || c.habit === habitId)
+      );
+      
+      const completedCheckins = habitCheckins.filter(c => c.isCompleted);
+      
+      // 计算习惯完成率
+      const habitTotalDays = Math.min(
+        totalDays,
+        Math.round((endDate - new Date(habit.createdAt)) / (1000 * 60 * 60 * 24))
+      );
+      
+      const habitCompletionRate = habitTotalDays > 0
+        ? Math.round((completedCheckins.length / habitTotalDays) * 100)
+        : 0;
+      
+      return {
+        id: habitId,
+        name: habit.name,
+        category: habit.category,
+        icon: habit.icon || 'star',
+        color: habit.color || '#4F7CFF',
+        completionRate: habitCompletionRate,
+        streak: habit.stats?.currentStreak || 0,
+        totalCheckins: completedCheckins.length,
+        bestDay: '周一', // 这里需要进一步分析数据确定
+        bestTime: '上午' // 这里需要进一步分析数据确定
+      };
+    });
+    
+    // 构建报告数据
+    const reportData = {
+      overview: {
+        startDate: startDateFormatted,
+        endDate: endDateFormatted,
+        totalHabits,
+        activeHabits,
+        totalCheckins,
+        completionRate,
+        currentStreak: user.currentStreak || 0,
+        longestStreak: user.longestStreak || 0,
+        totalDays,
+        completedToday
+      },
+      habitDetails: habitDetails.sort((a, b) => b.completionRate - a.completionRate),
+      trends: {
+        // 这里可以添加趋势数据
+        weeklyData: [],
+        monthlyData: []
+      }
+    };
+    
+    res.status(200).json({
+      success: true,
+      data: reportData
+    });
+  } catch (error) {
+    console.error('生成习惯报告错误:', error);
+    res.status(500).json({
+      success: false,
+      message: '服务器错误，生成习惯报告失败'
+    });
+  }
+};
+
 exports.exportData = async (req, res) => {
   // 实现数据导出功能
   res.status(200).json({

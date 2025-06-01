@@ -42,7 +42,14 @@ Component({
      * 查看用户资料
      */
     viewUserProfile() {
-      const { userId } = this.data.post;
+      const post = this.data.post;
+      const userId = post.userId || (post.user ? post.user.id : '');
+      
+      if (!userId) {
+        console.warn('无法获取用户ID:', post);
+        return;
+      }
+      
       this.triggerEvent('viewUser', { userId });
     },
 

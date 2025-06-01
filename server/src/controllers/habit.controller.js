@@ -300,23 +300,71 @@ exports.updateHabit = async (req, res) => {
 exports.deleteHabit = async (req, res) => {
   try {
     const habit = req.resource;
-    const session = await mongoose.startSession();
     
-    await session.withTransaction(async () => {
-      // 删除习惯相关的打卡记录
-      await Checkin.deleteMany({ habit: habit._id }, { session });
+    if (!habit) {
+      return res.status(404).json({
+        success: false,
+        message: '习惯不存在'
+      });
+    }
+
+    // 获取习惯ID，确保是字符串格式
+    const habitId = habit._id.toString();
+    
+    // 不使用事务，改为顺序操作
+    console.log(`开始删除习惯: ${habitId}`);
+    
+    // 1. 删除习惯相关的打卡记录
+    try {
+      const deleteCheckinResult = await Checkin.deleteMany({ habit: habitId });
+      console.log(`删除了 ${deleteCheckinResult.deletedCount} 条打卡记录`);
+    } catch (checkinError) {
+      console.error('删除打卡记录失败:', checkinError);
+      return res.status(500).json({
+        success: false,
+        message: '删除打卡记录失败'
+      });
+    }
+    
+    // 2. 删除习惯
+    try {
+      const deleteHabitResult = await Habit.findByIdAndDelete(habitId);
+      if (!deleteHabitResult) {
+        console.error('找不到要删除的习惯');
+        return res.status(404).json({
+          success: false,
+          message: '找不到要删除的习惯'
+        });
+      }
+      console.log('习惯删除成功');
+    } catch (habitError) {
+      console.error('删除习惯失败:', habitError);
+      return res.status(500).json({
+        success: false,
+        message: '删除习惯失败'
+      });
+    }
+    
+    // 3. 更新用户习惯总数
+    try {
+      const updateUserResult = await User.findByIdAndUpdate(
+        req.user._id,
+        { $inc: { totalHabits: -1 } },
+        { new: true }
+      );
       
-      // 删除习惯
-      await Habit.findByIdAndDelete(habit._id, { session });
-      
-      // 更新用户习惯总数
-      await User.findByIdAndUpdate(req.user._id, {
-        $inc: { totalHabits: -1 }
-      }, { session });
-    });
+      if (!updateUserResult) {
+        console.error('更新用户习惯总数失败: 找不到用户');
+        // 不阻止流程，继续返回成功
+      } else {
+        console.log('用户习惯总数更新成功');
+      }
+    } catch (userError) {
+      console.error('更新用户习惯总数失败:', userError);
+      // 不阻止流程，继续返回成功
+    }
     
-    session.endSession();
-    
+    // 所有操作完成，返回成功
     res.status(200).json({
       success: true,
       message: '习惯删除成功'
@@ -533,12 +581,15 @@ exports.archiveHabit = async (req, res) => {
   try {
     const habit = req.resource;
     
-    habit.isArchived = true;
+    // 切换归档状态
+    habit.isArchived = !habit.isArchived;
     await habit.save();
+    
+    const statusMessage = habit.isArchived ? '习惯归档成功' : '习惯取消归档成功';
     
     res.status(200).json({
       success: true,
-      message: '习惯归档成功',
+      message: statusMessage,
       data: habit
     });
   } catch (error) {
@@ -546,31 +597,6 @@ exports.archiveHabit = async (req, res) => {
     res.status(500).json({
       success: false,
       message: '服务器错误，归档习惯失败'
-    });
-  }
-};
-
-/**
- * 取消归档指定习惯
- * @route POST /api/habits/:habitId/unarchive
- */
-exports.unarchiveHabit = async (req, res) => {
-  try {
-    const habit = req.resource;
-    
-    habit.isArchived = false;
-    await habit.save();
-    
-    res.status(200).json({
-      success: true,
-      message: '取消归档成功',
-      data: habit
-    });
-  } catch (error) {
-    console.error('取消归档习惯错误:', error);
-    res.status(500).json({
-      success: false,
-      message: '服务器错误，取消归档习惯失败'
     });
   }
 };

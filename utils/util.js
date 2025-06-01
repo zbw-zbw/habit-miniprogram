@@ -3,7 +3,7 @@
  * 通用工具函数
  */
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.checkNetworkStatus = exports.getCurrentPagePath = exports.copyToClipboard = exports.formatFileSize = exports.throttle = exports.debounce = exports.generateRandomColor = exports.generateUUID = void 0;
+exports.formatTimeAgo = exports.formatRelativeTime = exports.formatDate = exports.checkNetworkStatus = exports.getCurrentPagePath = exports.copyToClipboard = exports.formatFileSize = exports.throttle = exports.debounce = exports.generateRandomColor = exports.generateUUID = void 0;
 /**
  * 生成UUID
  * @returns UUID字符串
@@ -159,3 +159,102 @@ const checkNetworkStatus = () => {
     });
 };
 exports.checkNetworkStatus = checkNetworkStatus;
+/**
+ * 格式化日期
+ * @param date 日期对象或日期字符串
+ * @param format 格式化模式，默认为'YYYY-MM-DD HH:mm'
+ * @returns 格式化后的日期字符串
+ */
+const formatDate = (date, format = 'YYYY-MM-DD HH:mm') => {
+    const d = typeof date === 'string' ? new Date(date) : date;
+    // 处理无效日期
+    if (isNaN(d.getTime())) {
+        return '无效日期';
+    }
+    const year = d.getFullYear().toString();
+    const month = (d.getMonth() + 1).toString().padStart(2, '0');
+    const day = d.getDate().toString().padStart(2, '0');
+    const hours = d.getHours().toString().padStart(2, '0');
+    const minutes = d.getMinutes().toString().padStart(2, '0');
+    const seconds = d.getSeconds().toString().padStart(2, '0');
+    return format
+        .replace('YYYY', year)
+        .replace('MM', month)
+        .replace('DD', day)
+        .replace('HH', hours)
+        .replace('mm', minutes)
+        .replace('ss', seconds);
+};
+exports.formatDate = formatDate;
+/**
+ * 格式化相对时间（例如"3分钟前"）
+ * @param date 日期对象或日期字符串
+ * @returns 相对时间字符串
+ */
+const formatRelativeTime = (date) => {
+    const d = typeof date === 'string' ? new Date(date) : date;
+    // 处理无效日期
+    if (isNaN(d.getTime())) {
+        return '无效日期';
+    }
+    const now = new Date();
+    const diffMs = now.getTime() - d.getTime();
+    const diffSec = Math.floor(diffMs / 1000);
+    // 小于1分钟
+    if (diffSec < 60) {
+        return '刚刚';
+    }
+    // 小于1小时
+    const diffMin = Math.floor(diffSec / 60);
+    if (diffMin < 60) {
+        return `${diffMin}分钟前`;
+    }
+    // 小于1天
+    const diffHour = Math.floor(diffMin / 60);
+    if (diffHour < 24) {
+        return `${diffHour}小时前`;
+    }
+    // 小于30天
+    const diffDay = Math.floor(diffHour / 24);
+    if (diffDay < 30) {
+        return `${diffDay}天前`;
+    }
+    // 小于12个月
+    const diffMonth = Math.floor(diffDay / 30);
+    if (diffMonth < 12) {
+        return `${diffMonth}个月前`;
+    }
+    // 大于等于12个月
+    const diffYear = Math.floor(diffMonth / 12);
+    return `${diffYear}年前`;
+};
+exports.formatRelativeTime = formatRelativeTime;
+/**
+ * 格式化时间为相对时间（如：5分钟前，1小时前等）
+ * @param time 时间字符串或时间戳
+ * @returns 格式化后的相对时间字符串
+ */
+function formatTimeAgo(time) {
+    const now = new Date();
+    const date = typeof time === 'string' ? new Date(time) : new Date(time);
+    const diff = Math.floor((now.getTime() - date.getTime()) / 1000); // 秒数差
+    if (diff < 60) {
+        return `${diff}秒前`;
+    }
+    else if (diff < 3600) {
+        return `${Math.floor(diff / 60)}分钟前`;
+    }
+    else if (diff < 86400) {
+        return `${Math.floor(diff / 3600)}小时前`;
+    }
+    else if (diff < 2592000) {
+        return `${Math.floor(diff / 86400)}天前`;
+    }
+    else if (diff < 31536000) {
+        return `${Math.floor(diff / 2592000)}个月前`;
+    }
+    else {
+        return `${Math.floor(diff / 31536000)}年前`;
+    }
+}
+exports.formatTimeAgo = formatTimeAgo;

@@ -72,17 +72,17 @@
           
           <!-- 回复列表 -->
           <view class="reply-list" wx:if="{{item.replies && item.replies.length > 0}}">
-            <view class="reply-item" wx:for="{{item.replies}}" wx:key="id" wx:for-item="reply">
+            <view class="reply-item" wx:for="{{item.replies}}" wx:key="id" wx:for-item="reply" wx:for-index="replyIndex">
               <image class="reply-avatar" 
-                     src="{{reply.userAvatar}}" 
+                     src="{{reply.userAvatar || reply.user.avatar}}" 
                      mode="aspectFill"
                      bindtap="viewUserProfile" 
-                     data-id="{{reply.userId}}"></image>
+                     data-id="{{reply.userId || reply.user.id}}"></image>
               
               <view class="reply-content">
                 <view class="reply-header">
-                  <view class="reply-username" bindtap="viewUserProfile" data-id="{{reply.userId}}">
-                    {{reply.userName}}
+                  <view class="reply-username" bindtap="viewUserProfile" data-id="{{reply.userId || reply.user.id}}">
+                    {{reply.userName || reply.user.nickname || reply.user.username}}
                   </view>
                   <text class="reply-to" wx:if="{{reply.replyTo}}">回复</text>
                   <view class="reply-to-username" wx:if="{{reply.replyTo}}" bindtap="viewUserProfile" data-id="{{reply.replyToId}}">
@@ -92,6 +92,26 @@
                 </view>
                 
                 <view class="reply-text">{{reply.content}}</view>
+                
+                <!-- 回复操作 -->
+                <view class="reply-actions">
+                  <view class="reply-action {{reply.isLiked ? 'active' : ''}}" 
+                        catchtap="likeReply" 
+                        data-comment-index="{{index}}"
+                        data-reply-index="{{replyIndex}}">
+                    <text class="iconfont {{reply.isLiked ? 'icon-heart-fill' : 'icon-heart'}}"></text>
+                    <text>{{reply.likes || 0}}</text>
+                  </view>
+                  
+                  <view class="reply-action" 
+                        catchtap="replyToReply" 
+                        data-comment-index="{{index}}"
+                        data-reply-index="{{replyIndex}}"
+                        data-username="{{reply.userName || reply.user.nickname || reply.user.username}}">
+                    <text class="iconfont icon-comment"></text>
+                    <text>回复</text>
+                  </view>
+                </view>
               </view>
             </view>
           </view>
@@ -110,7 +130,7 @@
     
     <view class="comment-input-container">
       <input class="comment-input" 
-             placeholder="{{replyTo ? '回复评论...' : '写评论...'}}" 
+             placeholder="{{replyTo ? '回复 @' + replyTo.username + '...' : '写评论...'}}" 
              value="{{commentContent}}"
              focus="{{focusComment}}"
              bindinput="inputComment"
@@ -124,7 +144,7 @@
         </view>
         
         <view class="input-action send {{commentContent ? 'active' : ''}}" bindtap="submitComment">
-          <text class="iconfont icon-send"></text>
+          <text>发送</text>
         </view>
       </view>
     </view>

@@ -1,0 +1,349 @@
+/* 用户资料页面样式 */
+.container {
+  min-height: 100vh;
+  background-color: var(--background-color);
+  padding-bottom: 30rpx;
+}
+
+/* 加载中 */
+.loading-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 300rpx;
+}
+
+/* 错误提示 */
+.error-container {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 60rpx;
+}
+
+.error-icon {
+  width: 160rpx;
+  height: 160rpx;
+  margin-bottom: 30rpx;
+}
+
+.error-text {
+  font-size: 28rpx;
+  color: var(--text-color-secondary);
+  margin-bottom: 30rpx;
+}
+
+.retry-button {
+  width: 200rpx;
+  height: 70rpx;
+  line-height: 70rpx;
+  font-size: 28rpx;
+  color: #FFFFFF;
+  background: var(--primary-color);
+  border-radius: 35rpx;
+  text-align: center;
+}
+
+/* 用户头部 */
+.user-header {
+  position: relative;
+  width: 100%;
+  background-color: #FFFFFF;
+  margin-bottom: 20rpx;
+}
+
+.user-cover {
+  width: 100%;
+  height: 300rpx;
+  object-fit: cover;
+}
+
+.user-info {
+  position: relative;
+  padding: 30rpx;
+  display: flex;
+  align-items: flex-start;
+}
+
+.user-avatar {
+  width: 120rpx;
+  height: 120rpx;
+  border-radius: 50%;
+  margin-right: 20rpx;
+  border: 4rpx solid #FFFFFF;
+  box-shadow: 0 2rpx 10rpx rgba(0, 0, 0, 0.1);
+}
+
+.user-meta {
+  flex: 1;
+}
+
+.user-name {
+  font-size: 36rpx;
+  font-weight: bold;
+  color: var(--title-color);
+  margin-bottom: 10rpx;
+}
+
+.user-bio {
+  font-size: 28rpx;
+  color: var(--text-color);
+  margin-bottom: 16rpx;
+  line-height: 1.4;
+}
+
+.user-stats {
+  display: flex;
+  align-items: center;
+}
+
+.stat-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-right: 40rpx;
+}
+
+.stat-value {
+  font-size: 30rpx;
+  font-weight: 500;
+  color: var(--title-color);
+}
+
+.stat-label {
+  font-size: 24rpx;
+  color: var(--text-color-secondary);
+}
+
+.follow-button, .edit-button {
+  min-width: 160rpx;
+  height: 64rpx;
+  line-height: 64rpx;
+  font-size: 28rpx;
+  color: #FFFFFF;
+  background: var(--primary-color);
+  border-radius: 32rpx;
+  text-align: center;
+  padding: 0 30rpx;
+  margin: 0;
+}
+
+.follow-button.following {
+  background-color: #F2F2F2;
+  color: var(--text-color);
+}
+
+.edit-button {
+  background-color: #F2F2F2;
+  color: var(--text-color);
+}
+
+/* 标签页内容 */
+.tab-content {
+  min-height: 300rpx;
+  background-color: #FFFFFF;
+  padding: 20rpx 0;
+}
+
+/* 空内容提示 */
+.empty-tip {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60rpx 0;
+}
+
+.empty-icon {
+  width: 160rpx;
+  height: 160rpx;
+  margin-bottom: 20rpx;
+  opacity: 0.6;
+}
+
+.empty-text {
+  font-size: 28rpx;
+  color: var(--text-color-secondary);
+}
+
+/* 动态列表 */
+.post-list {
+  padding: 0 30rpx;
+}
+
+.post-item {
+  padding: 30rpx 0;
+  border-bottom: 1px solid var(--divider-color);
+}
+
+.post-header {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 16rpx;
+}
+
+.post-time {
+  font-size: 24rpx;
+  color: var(--text-color-secondary);
+}
+
+.post-content {
+  margin-bottom: 16rpx;
+}
+
+.post-text {
+  font-size: 28rpx;
+  color: var(--text-color);
+  line-height: 1.5;
+  margin-bottom: 16rpx;
+}
+
+.post-images {
+  position: relative;
+}
+
+.post-image {
+  width: 240rpx;
+  height: 240rpx;
+  border-radius: 12rpx;
+  object-fit: cover;
+}
+
+.post-image.single {
+  width: 400rpx;
+  height: 300rpx;
+}
+
+.image-count {
+  position: absolute;
+  right: 16rpx;
+  top: 16rpx;
+  background-color: rgba(0, 0, 0, 0.5);
+  color: #FFFFFF;
+  font-size: 24rpx;
+  padding: 6rpx 12rpx;
+  border-radius: 16rpx;
+}
+
+.post-actions {
+  display: flex;
+}
+
+.action-item {
+  display: flex;
+  align-items: center;
+  margin-right: 40rpx;
+  font-size: 24rpx;
+  color: var(--text-color-secondary);
+}
+
+.action-item .van-icon {
+  margin-right: 8rpx;
+  font-size: 32rpx;
+}
+
+.action-item .liked {
+  color: #FF5252;
+}
+
+/* 习惯列表 */
+.habit-list {
+  padding: 0 30rpx;
+}
+
+.habit-item {
+  display: flex;
+  align-items: center;
+  padding: 20rpx 0;
+  border-bottom: 1px solid var(--divider-color);
+}
+
+.habit-icon {
+  width: 80rpx;
+  height: 80rpx;
+  margin-right: 20rpx;
+}
+
+.habit-icon image {
+  width: 100%;
+  height: 100%;
+  border-radius: 12rpx;
+}
+
+.habit-info {
+  flex: 1;
+}
+
+.habit-name {
+  font-size: 30rpx;
+  color: var(--title-color);
+  margin-bottom: 8rpx;
+}
+
+.habit-stats {
+  display: flex;
+  font-size: 24rpx;
+  color: var(--text-color-secondary);
+}
+
+.habit-streak {
+  margin-right: 20rpx;
+}
+
+.arrow-icon {
+  color: var(--text-color-secondary);
+}
+
+/* 成就列表 */
+.achievement-list {
+  padding: 0 30rpx;
+}
+
+.achievement-item {
+  display: flex;
+  align-items: center;
+  padding: 20rpx 0;
+  border-bottom: 1px solid var(--divider-color);
+}
+
+.achievement-icon {
+  width: 80rpx;
+  height: 80rpx;
+  margin-right: 20rpx;
+}
+
+.achievement-info {
+  flex: 1;
+}
+
+.achievement-name {
+  font-size: 30rpx;
+  color: var(--title-color);
+  margin-bottom: 8rpx;
+}
+
+.achievement-desc {
+  font-size: 26rpx;
+  color: var(--text-color);
+  margin-bottom: 8rpx;
+}
+
+.achievement-date {
+  font-size: 24rpx;
+  color: var(--text-color-secondary);
+}
+
+/* 加载更多 */
+.loading-more {
+  text-align: center;
+  padding: 30rpx 0;
+}
+
+/* 没有更多 */
+.no-more {
+  text-align: center;
+  padding: 30rpx 0;
+  font-size: 24rpx;
+  color: var(--text-color-secondary);
+} 

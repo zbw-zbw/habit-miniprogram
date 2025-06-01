@@ -1,0 +1,52 @@
+<!--pages/community/challenges/participants/participants.wxml-->
+<view class="container">
+  <!-- 顶部导航 -->
+  <view class="nav-bar">
+    <view class="back-btn" bindtap="goBack">
+      <text class="iconfont icon-arrow-left"></text>
+    </view>
+    <view class="page-title">{{challengeName}} - 参与者</view>
+  </view>
+  
+  <!-- 参与者列表 -->
+  <view class="participants-list">
+    <!-- 加载中 -->
+    <view class="loading-container" wx:if="{{loading && participants.length === 0}}">
+      <view class="loading-spinner"></view>
+      <text class="loading-text">加载中...</text>
+    </view>
+    
+    <!-- 空状态 -->
+    <view class="empty-state" wx:elif="{{!loading && participants.length === 0}}">
+      <text class="iconfont icon-empty"></text>
+      <view class="empty-text">暂无参与者</view>
+    </view>
+    
+    <!-- 参与者列表 -->
+    <view class="participant-item" 
+          wx:for="{{participants}}" 
+          wx:key="index"
+          bindtap="viewUserProfile"
+          data-id="{{item.user._id}}">
+      <image class="participant-avatar" src="{{item.user.avatar || '/assets/images/default-avatar.png'}}" mode="aspectFill"></image>
+      <view class="participant-info">
+        <view class="participant-name">{{item.user.nickname || item.user.username || '匿名用户'}}</view>
+        <view class="participant-meta">
+          <text class="participant-date">加入于 {{item.joinedAt}}</text>
+          <text class="participant-progress" wx:if="{{item.progress}}">进度: {{item.progress.completionRate || 0}}%</text>
+        </view>
+      </view>
+    </view>
+    
+    <!-- 底部加载更多 -->
+    <view class="loading-more" wx:if="{{loading && participants.length > 0}}">
+      <view class="loading-spinner small"></view>
+      <text class="loading-text">加载更多...</text>
+    </view>
+    
+    <!-- 没有更多数据 -->
+    <view class="no-more" wx:if="{{!loading && !hasMore && participants.length > 0}}">
+      <text>没有更多数据了</text>
+    </view>
+  </view>
+</view> 

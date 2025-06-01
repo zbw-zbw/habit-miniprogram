@@ -92,6 +92,7 @@ interface IPageMethods {
   login(): void;
   viewAllPosts(): void;
   viewAllFriends(): void;
+  createChallenge(): void;
 }
 
 Page<IPageData, IPageMethods>({
@@ -99,7 +100,7 @@ Page<IPageData, IPageMethods>({
    * 页面的初始数据
    */
   data: {
-    activeTab: 'groups',
+    activeTab: 'posts',
     tabIndex: 0,
     loading: true,
     hasLogin: false,
@@ -125,24 +126,6 @@ Page<IPageData, IPageMethods>({
   onLoad() {
     // 使用useAuth工具获取全局登录状态
     useAuth(this);
-
-    // 设置初始tabIndex
-    let tabIndex = 0;
-    switch (this.data.activeTab) {
-      case 'groups':
-        tabIndex = 0;
-        break;
-      case 'challenges':
-        tabIndex = 1;
-        break;
-      case 'posts':
-        tabIndex = 2;
-        break;
-      case 'friends':
-        tabIndex = 3;
-        break;
-    }
-    this.setData({ tabIndex });
 
     // 只有登录后才加载数据
     if (this.data.hasLogin) {
@@ -311,38 +294,50 @@ Page<IPageData, IPageMethods>({
    */
   loadChallenges() {
     return communityAPI
-      .getChallenges({ limit: 3 })
+      .getChallenges({ limit: 3, status: 'all' })
       .then((response: any) => {
+        console.log('社区页面获取到挑战数据:', response);
+        
         // 处理API返回的不同格式
         let challenges: IChallenge[] = [];
-        if (Array.isArray(response)) {
-          // 直接返回数组
-          challenges = response;
-        } else if (response && typeof response === 'object') {
-          // 处理包含data的响应
-          if (
-            'data' in response &&
-            response.data &&
-            typeof response.data === 'object'
-          ) {
-            if (
-              'challenges' in response.data &&
-              Array.isArray(response.data.challenges)
-            ) {
-              challenges = response.data.challenges;
-            }
-          } else if (
-            'challenges' in response &&
-            Array.isArray(response.challenges)
-          ) {
-            // 直接包含challenges的对象
+        
+        if (response && typeof response === 'object') {
+          // 处理标准格式: { challenges: [], pagination: {} }
+          if (response.challenges && Array.isArray(response.challenges)) {
             challenges = response.challenges;
           }
+          // 处理包含data的响应: { data: { challenges: [] } }
+          else if (response.data && 
+                  typeof response.data === 'object' && 
+                  response.data.challenges && 
+                  Array.isArray(response.data.challenges)) {
+            challenges = response.data.challenges;
+          }
         }
-
-        console.log('处理后的挑战数据:', challenges);
-        this.setData({ challenges });
-        return challenges;
+        // 如果直接返回数组
+        else if (Array.isArray(response)) {
+          challenges = response;
+        }
+        
+        // 处理挑战数据，确保字段一致性
+        const processedChallenges = challenges.map(challenge => {
+          return {
+            ...challenge,
+            id: challenge.id || challenge._id,
+            name: challenge.name || challenge.title,
+            title: challenge.title || challenge.name,
+            image: challenge.coverImage || challenge.image,
+            coverImage: challenge.coverImage || challenge.image,
+            participants: challenge.participants || challenge.participantsCount || 0,
+            participantsCount: challenge.participantsCount || challenge.participants || 0,
+            // 确保isParticipating字段存在
+            isParticipating: challenge.isParticipating || challenge.isJoined || false
+          };
+        });
+        
+        console.log('社区页面处理后的挑战数据:', processedChallenges);
+        this.setData({ challenges: processedChallenges });
+        return processedChallenges;
       })
       .catch((error) => {
         console.error('加载热门挑战失败:', error);
@@ -428,14 +423,26 @@ Page<IPageData, IPageMethods>({
     // 根据当前标签加载不同数据
     const { activeTab } = this.data;
     wx.showNavigationBarLoading();
+    
+    // 加载动态数据
     this.loadPosts()
       .then(() => {
-        // 如果是关注标签，还需要刷新好友列表
+        // 无论当前是哪个标签页，都加载挑战数据
+        return this.loadChallenges();
+      })
+      .then(() => {
+        // 如果是小组标签，还需要刷新小组列表
+        if (activeTab === 'groups') {
+          return this.loadGroups();
+        }
+        return Promise.resolve([] as IGroup[]);
+      })
+      .then(() => {
+        // 如果是好友标签，还需要刷新好友列表
         if (activeTab === 'friends') {
           return this.loadFriends();
         }
-        // 明确返回类型，避免Promise<void>和Promise<IFriend[]>类型不匹配问题
-        return Promise.resolve([]);
+        return Promise.resolve([] as IFriend[]);
       })
       .catch((error) => {
         console.error('刷新数据失败:', error);
@@ -485,7 +492,15 @@ Page<IPageData, IPageMethods>({
    * 查看挑战详情
    */
   viewChallengeDetail(e: WechatMiniprogram.TouchEvent) {
-    const { challengeId } = e.currentTarget.dataset;
+    const challengeId = e.currentTarget.dataset.challengeId;
+    
+    if (!challengeId) {
+      console.error('缺少挑战ID');
+      return;
+    }
+    
+    console.log('跳转到挑战详情页，ID:', challengeId);
+    
     wx.navigateTo({
       url: `/pages/community/challenges/detail/detail?id=${challengeId}`,
     });
@@ -603,10 +618,28 @@ Page<IPageData, IPageMethods>({
    * 参加挑战
    */
   joinChallenge(e: WechatMiniprogram.TouchEvent) {
-    const { challengeId, index } = e.currentTarget.dataset;
+    // 在微信小程序中，使用catchtap属性代替stopPropagation
+    // 已在wxml中使用catchtap处理
+
+    // 如果未登录，跳转到登录页
+    if (!this.data.hasLogin) {
+      return this.login();
+    }
+
+    const challengeId = e.currentTarget.dataset.challengeId;
+    const index = e.currentTarget.dataset.index;
     const challenge = this.data.challenges[index];
 
     if (!challenge) return;
+
+    // 检查是否已经参与
+    if (challenge.isJoined || challenge.isParticipating) {
+      wx.showToast({
+        title: '已参与此挑战',
+        icon: 'none'
+      });
+      return;
+    }
 
     wx.showLoading({
       title: '处理中',
@@ -618,7 +651,9 @@ Page<IPageData, IPageMethods>({
         // 更新本地状态
         this.setData({
           [`challenges[${index}].isJoined`]: true,
+          [`challenges[${index}].isParticipating`]: true,
           [`challenges[${index}].participants`]: challenge.participants + 1,
+          [`challenges[${index}].participantsCount`]: (challenge.participantsCount || challenge.participants || 0) + 1
         });
         wx.showToast({
           title: '已成功参加',
@@ -996,45 +1031,50 @@ Page<IPageData, IPageMethods>({
   },
 
   /**
-   * 处理tab-bar组件的切换事件
+   * 切换标签页
    */
   onTabChange(e: any) {
-    const index = e.detail.index;
+    const tabIndex = e.detail.index;
     let activeTab: 'groups' | 'challenges' | 'posts' | 'friends';
-
-    // 根据索引确定activeTab
-    switch (index) {
+    
+    switch (tabIndex) {
       case 0:
-        activeTab = 'groups';
+        activeTab = 'posts';
         break;
       case 1:
         activeTab = 'challenges';
         break;
       case 2:
-        activeTab = 'posts';
+        activeTab = 'groups';
         break;
       case 3:
         activeTab = 'friends';
         break;
       default:
-        activeTab = 'groups';
+        activeTab = 'posts';
     }
+    
+    this.setData({
+      tabIndex,
+      activeTab,
+      page: 1
+    });
+    
+    // 根据标签页加载不同的数据
+    this.loadData();
+  },
 
-    // 如果点击的是当前标签，不做任何操作
-    if (activeTab === this.data.activeTab) {
+  /**
+   * 创建挑战
+   */
+  createChallenge() {
+    if (!this.data.hasLogin) {
+      this.login();
       return;
     }
-
-    this.setData(
-      {
-        activeTab,
-        tabIndex: index,
-        page: 1,
-      },
-      () => {
-        // 重新加载数据
-        this.loadData();
-      }
-    );
+    
+    wx.navigateTo({
+      url: '/pages/community/challenges/create/create',
+    });
   },
 });

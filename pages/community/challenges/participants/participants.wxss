@@ -1,0 +1,166 @@
+/* pages/community/challenges/participants/participants.wxss */
+.container {
+  padding: 0;
+  background-color: #F5F7FA;
+  min-height: 100vh;
+}
+
+/* 导航栏 */
+.nav-bar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 44px;
+  background-color: #fff;
+  display: flex;
+  align-items: center;
+  padding: 0 16px;
+  z-index: 100;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.back-btn {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.page-title {
+  flex: 1;
+  text-align: center;
+  font-size: 16px;
+  font-weight: 500;
+  color: #303133;
+  margin-right: 32px; /* 平衡返回按钮的宽度 */
+}
+
+/* 参与者列表 */
+.participants-list {
+  padding: 60px 16px 16px;
+}
+
+.participant-item {
+  display: flex;
+  align-items: center;
+  padding: 12px 16px;
+  background-color: #fff;
+  border-radius: 8px;
+  margin-bottom: 12px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+.participant-avatar {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  margin-right: 12px;
+}
+
+.participant-info {
+  flex: 1;
+}
+
+.participant-name {
+  font-size: 16px;
+  font-weight: 500;
+  color: #303133;
+  margin-bottom: 4px;
+}
+
+.participant-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.participant-date {
+  font-size: 12px;
+  color: #909399;
+}
+
+.participant-progress {
+  font-size: 12px;
+  color: #4F7CFF;
+  background-color: rgba(79, 124, 255, 0.1);
+  padding: 2px 8px;
+  border-radius: 10px;
+}
+
+/* 加载中 */
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 32px 0;
+}
+
+.loading-spinner {
+  width: 32px;
+  height: 32px;
+  border: 3px solid rgba(79, 124, 255, 0.2);
+  border-top-color: #4F7CFF;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+  margin-bottom: 8px;
+}
+
+.loading-spinner.small {
+  width: 20px;
+  height: 20px;
+  border-width: 2px;
+}
+
+.loading-text {
+  font-size: 14px;
+  color: #909399;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* 加载更多 */
+.loading-more {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px 0;
+}
+
+.loading-more .loading-text {
+  margin-left: 8px;
+}
+
+/* 没有更多数据 */
+.no-more {
+  text-align: center;
+  padding: 16px 0;
+  color: #909399;
+  font-size: 14px;
+}
+
+/* 空状态 */
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 64px 0;
+}
+
+.empty-state .iconfont {
+  font-size: 48px;
+  color: #DCDFE6;
+  margin-bottom: 16px;
+}
+
+.empty-text {
+  font-size: 16px;
+  color: #909399;
+} 

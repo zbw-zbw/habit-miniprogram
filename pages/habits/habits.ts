@@ -15,12 +15,39 @@ interface ApiResponse<T> {
   count?: number;
 }
 
+// 页面数据接口
+interface IPageData {
+  habits: IHabit[];
+  allHabits: IHabit[]; // 添加allHabits属性，用于保存完整的习惯列表
+  habitStats: Record<string, IHabitStats>;
+  loading: boolean;
+  activeTab: number;
+  categories: string[];
+  categoryLabels: string[];
+  categoryTabs: string[];
+  categoryMap: Record<string, string>;
+  showCategoryModal: boolean;
+  showSortModal: boolean;
+  sortType: string;
+  sortOrder: string;
+  sortOptions: Array<{
+    type: string;
+    label: string;
+    orders: Array<{ value: string; label: string }>;
+  }>;
+  showArchived: boolean;
+  error: string;
+  apiAvailable: boolean;
+  hasLogin: boolean;
+}
+
 Page({
   /**
    * 页面的初始数据
    */
   data: {
     habits: [] as IHabit[],
+    allHabits: [] as IHabit[],
     habitStats: {} as Record<string, IHabitStats>,
     loading: true,
     activeTab: 0,
@@ -213,6 +240,7 @@ Page({
         // 更新数据
         this.setData({
           habits: sortedHabits,
+          allHabits: habits, // 保存完整的习惯列表
           habitStats,
           loading: false,
           apiAvailable: true,
@@ -322,6 +350,7 @@ Page({
         // 更新数据
         this.setData({
           habits: sortedHabits,
+          allHabits: habits, // 保存完整的习惯列表
           habitStats,
           loading: false,
           apiAvailable: true,
@@ -467,8 +496,8 @@ Page({
 
     // 只更新活动标签，并基于现有数据过滤，不再重新加载
     this.setData({ activeTab }, () => {
-      // 获取当前的所有习惯数据
-      const { habits: allHabits, habitStats } = this.data;
+      // 从缓存中获取所有习惯数据，如果没有则重新加载
+      const { allHabits, habitStats } = this.data;
       
       if (allHabits && allHabits.length > 0) {
         // 根据当前标签筛选习惯
@@ -480,8 +509,11 @@ Page({
         
         // 更新数据
         this.setData({
-          habits: sortedHabits,
+          habits: sortedHabits
         });
+      } else {
+        // 如果没有缓存的所有习惯数据，重新加载
+        this.loadHabits();
       }
     });
   },

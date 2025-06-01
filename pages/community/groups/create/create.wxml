@@ -24,8 +24,9 @@
       <!-- 小组名称 -->
       <view class="form-item">
         <view class="form-label">小组名称<text class="required">*</text></view>
-        <input class="form-input" name="name" value="{{formData.name}}" placeholder="请输入小组名称（2-50字）" maxlength="50" bindinput="inputName" />
+        <input class="form-input {{nameError ? 'input-error' : ''}}" name="name" value="{{formData.name}}" placeholder="请输入小组名称（2-50字）" maxlength="50" bindinput="inputName" />
         <view class="input-counter">{{formData.name.length}}/50</view>
+        <view class="error-message" wx:if="{{nameError}}">{{nameError}}</view>
       </view>
 
       <!-- 小组类型 -->
@@ -42,8 +43,9 @@
       <!-- 小组描述 -->
       <view class="form-item">
         <view class="form-label">小组描述<text class="required">*</text></view>
-        <textarea class="form-textarea" name="description" value="{{formData.description}}" placeholder="请输入小组描述（10-1000字）" maxlength="1000" bindinput="inputDescription"></textarea>
+        <textarea class="form-textarea {{descriptionError ? 'input-error' : ''}}" name="description" value="{{formData.description}}" placeholder="请输入小组描述（10-1000字）" maxlength="1000" bindinput="inputDescription"></textarea>
         <view class="input-counter">{{formData.description.length}}/1000</view>
+        <view class="error-message" wx:if="{{descriptionError}}">{{descriptionError}}</view>
       </view>
 
       <!-- 小组标签 -->
@@ -89,12 +91,19 @@
           <button class="tag-add-btn" bindtap="addCustomTag" disabled="{{!newTag}}">添加</button>
         </view>
         <view class="tag-selector-list">
-          <view class="tag-selector-item {{formData.tags.includes(item) ? 'selected' : ''}}" 
+          <view class="tag-selector-item {{tempTags.includes(item) ? 'selected' : ''}}" 
                 wx:for="{{suggestedTags}}" 
                 wx:key="index"
                 data-tag="{{item}}"
                 bindtap="toggleTag">
             {{item}}
+            <text class="tag-check" wx:if="{{tempTags.includes(item)}}">✓</text>
+          </view>
+        </view>
+        <view class="selected-tags-preview" wx:if="{{tempTags.length > 0}}">
+          <view class="preview-title">已选标签:</view>
+          <view class="preview-tags">
+            <view class="preview-tag" wx:for="{{tempTags}}" wx:key="index">{{item}}</view>
           </view>
         </view>
       </view>

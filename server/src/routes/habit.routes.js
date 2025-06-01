@@ -116,16 +116,15 @@ router.get('/:habitId/stats', authMiddleware, isOwner('Habit', 'habitId'), habit
 
 /**
  * @route POST /api/habits/:habitId/archive
- * @desc 归档指定习惯
+ * @desc 归档/取消归档指定习惯
  * @access Private
  */
 router.post('/:habitId/archive', authMiddleware, isOwner('Habit', 'habitId'), habitController.archiveHabit);
 
 /**
- * @route POST /api/habits/:habitId/unarchive
- * @desc 取消归档指定习惯
+ * @route GET /api/habits/categories
+ * @desc 获取习惯分类列表
  * @access Private
  */
-router.post('/:habitId/unarchive', authMiddleware, isOwner('Habit', 'habitId'), habitController.unarchiveHabit);
 
 module.exports = router; 

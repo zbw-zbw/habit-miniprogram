@@ -15,6 +15,15 @@
   
   <!-- 总览标签内容 -->
   <block wx:if="{{activeTab === 'overview' && !loading}}">
+    <!-- 没有习惯数据时显示空状态 -->
+    <block wx:if="{{stats.totalHabits === 0}}">
+      <empty-state
+        title="暂无统计数据"
+        description="创建并完成习惯后即可查看统计数据"
+        icon="/assets/images/stats.png">
+      </empty-state>
+    </block>
+    <block wx:else>
     <!-- 统计卡片 -->
     <view class="stats-grid">
       <view class="stat-card">
@@ -84,11 +93,12 @@
       </view>
     </view>
     
-    <!-- 报告生成按钮 -->
-    <button class="report-btn" bindtap="generateReport">生成详细报告</button>
-    
-    <!-- 数据洞察按钮 -->
-    <button class="insight-btn" bindtap="navigateToInsights">查看习惯洞察</button>
+
+    <view class="action-buttons">
+      <button class="action-btn view-btn" bindtap="navigateToInsights">查看习惯洞察</button>
+      <button class="action-btn report-btn" bindtap="generateReport">生成详细报告</button>
+    </view>
+    </block>
   </block>
   
   <!-- 习惯标签内容 -->
@@ -115,7 +125,15 @@
   
   <!-- 日历标签内容 -->
   <block wx:if="{{activeTab === 'calendar' && !loading}}">
-    <view class="calendar-card">
+    <!-- 没有习惯数据时显示空状态 -->
+    <block wx:if="{{stats.totalHabits === 0}}">
+      <empty-state
+        title="暂无日历数据"
+        description="创建并完成习惯后即可查看日历数据"
+        icon="/assets/images/calendar.png">
+      </empty-state>
+    </block>
+    <view class="calendar-card" wx:else>
       <view class="calendar-header">
         <view class="calendar-title">{{calendarTitle}}</view>
         <view class="calendar-actions">

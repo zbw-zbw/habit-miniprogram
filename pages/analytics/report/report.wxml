@@ -138,8 +138,8 @@
     
     <!-- 操作按钮 -->
     <view class="action-buttons">
-      <button class="action-btn save-btn" bindtap="saveReport">保存报告</button>
       <button class="action-btn share-btn" open-type="share">分享报告</button>
+      <button class="action-btn save-btn" bindtap="saveReport">保存报告</button>
     </view>
   </view>
 </view>

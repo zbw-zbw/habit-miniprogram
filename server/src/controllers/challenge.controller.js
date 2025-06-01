@@ -13,101 +13,119 @@ const mongoose = require('mongoose');
  */
 exports.getChallenges = async (req, res) => {
   try {
-    const {
-      type = 'all',
+    const { 
+      page = 1, 
+      limit = 10, 
+      type = 'all', 
       status = 'active',
-      category,
-      isOfficial,
-      isFeatured,
-      search,
-      page = 1,
-      limit = 10
+      keyword = '',
+      tag = ''
     } = req.query;
     
     const skip = (page - 1) * limit;
     
     // 构建查询条件
-    let query = {};
+    const query = {};
     
-    // 挑战类型
-    if (type !== 'all') {
-      query.type = type;
-    }
-    
-    // 挑战状态
-    if (status !== 'all') {
-      query.status = status;
-    }
-    
-    // 挑战分类
-    if (category) {
-      query['targetHabit.category'] = category;
-    }
-    
-    // 官方挑战
-    if (isOfficial === 'true') {
-      query.isOfficial = true;
-    }
-    
-    // 精选挑战
-    if (isFeatured === 'true') {
-      query.isFeatured = true;
-    }
-    
-    // 搜索关键词
-    if (search) {
+    // 如果有关键词，添加标题或描述搜索
+    if (keyword) {
       query.$or = [
-        { name: { $regex: search, $options: 'i' } },
-        { description: { $regex: search, $options: 'i' } },
-        { tags: { $in: [search] } }
+        { name: new RegExp(keyword, 'i') },
+        { description: new RegExp(keyword, 'i') }
       ];
     }
     
-    // 隐私设置 - 只显示公开挑战或当前用户创建的挑战
-    query.$or = [
-      { privacy: 'public' },
-      { creator: req.user._id }
-    ];
+    // 如果有标签，添加标签搜索
+    if (tag) {
+      query.tags = { $in: [tag] };
+    }
     
-    // 获取挑战列表
+    // 根据状态筛选
+    if (status && status !== 'all') {
+      query.status = status;
+    }
+    
+    // 根据类型筛选
+    if (type === 'joined' && req.user) {
+      // 查询用户参与的挑战ID
+      const participations = await ChallengeParticipant.find({
+        user: req.user._id,
+        status: { $in: ['joined', 'completed'] }
+      });
+      
+      const joinedChallengeIds = participations.map(p => p.challenge);
+      
+      query._id = { $in: joinedChallengeIds };
+    } else if (type === 'popular') {
+      // 热门挑战按参与人数排序
+    } else if (type === 'new') {
+      // 新挑战按创建时间排序
+    }
+    
+    // 查询挑战总数
+    const total = await Challenge.countDocuments(query);
+    
+    // 构建排序条件
+    let sort = {};
+    if (type === 'popular') {
+      sort = { participantCount: -1 };
+    } else if (type === 'new') {
+      sort = { createdAt: -1 };
+    } else {
+      sort = { updatedAt: -1 };
+    }
+    
+    // 查询挑战列表
     const challenges = await Challenge.find(query)
-      .sort({ createdAt: -1 })
+      .sort(sort)
       .skip(skip)
       .limit(parseInt(limit))
-      .populate('creator', 'username nickname avatar');
+      .populate('creator', 'username nickname avatar')
+      .lean();
     
-    // 查询用户是否已参与
-    const challengeIds = challenges.map(c => c._id);
-    const participations = await ChallengeParticipant.find({
-      challenge: { $in: challengeIds },
-      user: req.user._id
-    });
+    // 获取当前用户ID
+    const userId = req.user ? req.user._id : null;
     
-    const participationMap = {};
-    participations.forEach(p => {
-      participationMap[p.challenge.toString()] = p;
-    });
-    
-    // 添加参与状态
-    const challengesWithStatus = challenges.map(challenge => {
-      const participation = participationMap[challenge._id.toString()];
-      const json = challenge.toJSON();
+    // 处理挑战数据，添加参与状态和实际参与人数
+    const processedChallenges = await Promise.all(challenges.map(async (challenge) => {
+      // 查询用户是否已参与
+      let isJoined = false;
+      let userProgress = null;
+      
+      if (userId) {
+        const participant = await ChallengeParticipant.findOne({
+          challenge: challenge._id,
+          user: userId,
+          status: { $in: ['joined', 'completed'] }
+        });
+        
+        isJoined = !!participant;
+        
+        if (participant) {
+          userProgress = participant.progress;
+        }
+      }
+      
+      // 获取实际参与人数（排除创建者自己）
+      const participantsCount = await ChallengeParticipant.countDocuments({
+        challenge: challenge._id,
+        status: { $in: ['joined', 'completed'] },
+        user: { $ne: challenge.creator._id } // 排除创建者
+      });
       
       return {
-        ...json,
-        isParticipating: !!participation,
-        participationStatus: participation ? participation.status : null,
-        progress: participation ? participation.progress : null
+        ...challenge,
+        isJoined,
+        isParticipating: isJoined,
+        progress: userProgress,
+        participantsCount: participantsCount // 使用不包含创建者的参与人数
       };
-    });
-    
-    // 获取总数
-    const total = await Challenge.countDocuments(query);
+    }));
     
     res.status(200).json({
       success: true,
       data: {
-        challenges: challengesWithStatus,
+        challenges: processedChallenges,
         pagination: {
           total,
           page: parseInt(page),
@@ -131,62 +149,89 @@ exports.getChallenges = async (req, res) => {
  */
 exports.createChallenge = async (req, res) => {
   try {
-    // 验证请求
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      return res.status(400).json({
-        success: false,
-        errors: errors.array()
-      });
-    }
-    
+    // 接收客户端数据
     const {
-      name,
+      title,
       description,
-      coverImage,
-      type = 'personal',
-      targetHabit,
-      requirements,
-      dateRange,
-      rewards,
-      privacy = 'public',
-      maxParticipants = 0,
-      tags
+      rules,
+      image,
+      duration,
+      startDate,
+      tags,
+      isPublic = true,
+      habitId,
+      needsApproval = false
     } = req.body;
     
-    // 验证日期范围
-    const startDate = new Date(dateRange.startDate);
-    const endDate = new Date(dateRange.endDate);
+    console.log('创建挑战请求数据:', req.body);
     
-    if (endDate <= startDate) {
+    // 数据验证
+    if (!title || title.length < 5) {
       return res.status(400).json({
         success: false,
-        message: '结束日期必须晚于开始日期'
+        message: '挑战标题不能为空且长度至少为5个字符'
       });
     }
+    
+    if (!description || description.length < 20) {
+      return res.status(400).json({
+        success: false,
+        message: '挑战描述不能为空且长度至少为20个字符'
+      });
+    }
+    
+    if (!rules || rules.length < 20) {
+      return res.status(400).json({
+        success: false,
+        message: '挑战规则不能为空且长度至少为20个字符'
+      });
+    }
+    
+    if (!startDate) {
+      return res.status(400).json({
+        success: false,
+        message: '开始日期不能为空'
+      });
+    }
+    
+    // 计算结束日期
+    const start = new Date(startDate);
+    const end = new Date(start);
+    end.setDate(end.getDate() + duration);
     
     // 创建新挑战
     const challenge = new Challenge({
-      name,
+      name: title,
       description,
-      coverImage,
+      coverImage: image,
       creator: req.user._id,
-      type,
-      targetHabit,
-      requirements,
-      dateRange,
-      rewards,
-      privacy,
-      maxParticipants,
-      participantCount: 0,
-      tags: tags ? tags.split(',').map(tag => tag.trim()) : []
+      type: 'personal',
+      targetHabit: {
+        name: title,
+        description: description
+      },
+      requirements: {
+        targetCount: duration,
+        requireStreak: false
+      },
+      dateRange: {
+        startDate: start,
+        endDate: end
+      },
+      rewards: {
+        points: 100
+      },
+      privacy: isPublic ? 'public' : 'private',
+      maxParticipants: 0,
+      participantCount: 1,
+      tags: tags || []
     });
     
     // 设置挑战状态
     const now = new Date();
-    if (startDate <= now && endDate > now) {
+    if (start <= now && end > now) {
       challenge.status = 'active';
-    } else if (startDate > now) {
+    } else if (start > now) {
       challenge.status = 'upcoming';
     } else {
       challenge.status = 'completed';
@@ -195,21 +240,19 @@ exports.createChallenge = async (req, res) => {
     await challenge.save();
     
     // 创建者自动参与挑战
+    const ChallengeParticipant = mongoose.model('ChallengeParticipant');
     const participant = new ChallengeParticipant({
       challenge: challenge._id,
       user: req.user._id,
       status: 'joined',
       progress: {
         completedCount: 0,
-        targetCount: requirements.targetCount
-      }
+        targetCount: duration
+      },
+      joinDate: new Date()
     });
     
     await participant.save();
-    
-    // 更新挑战参与人数
-    challenge.participantCount = 1;
-    await challenge.save();
     
     // 填充创建者信息
     await challenge.populate('creator', 'username nickname avatar');
@@ -260,14 +303,16 @@ exports.checkChallengeOwner = async (req, res, next) => {
 
 /**
  * 获取指定挑战详情
- * @route GET /api/community/challenges/:challengeId
+ * @route GET /api/community/challenges/:id
  */
 exports.getChallenge = async (req, res) => {
   try {
-    const challengeId = req.params.challengeId;
+    const challengeId = req.params.id;
     
+    // 查询挑战详情
     const challenge = await Challenge.findById(challengeId)
-      .populate('creator', 'username nickname avatar');
+      .populate('creator', 'username nickname avatar')
+      .lean();
     
     if (!challenge) {
       return res.status(404).json({
@@ -276,39 +321,46 @@ exports.getChallenge = async (req, res) => {
       });
     }
     
-    // 检查权限
-    if (challenge.privacy !== 'public' && challenge.creator._id.toString() !== req.user._id.toString()) {
-      // 检查用户是否被邀请参与
-      const isInvited = await ChallengeParticipant.findOne({
+    // 获取当前用户ID
+    const userId = req.user ? req.user._id : null;
+    
+    // 查询当前用户是否已参与
+    let isJoined = false;
+    let userProgress = null;
+    
+    if (userId) {
+      const participant = await ChallengeParticipant.findOne({
         challenge: challengeId,
-        user: req.user._id,
-        status: 'invited'
+        user: userId,
+        status: { $in: ['joined', 'completed'] }
       });
       
-      if (!isInvited) {
-        return res.status(403).json({
-          success: false,
-          message: '无权查看此挑战'
-        });
+      isJoined = !!participant;
+      
+      if (participant) {
+        userProgress = participant.progress;
       }
     }
     
-    // 查询用户参与状态
-    const participation = await ChallengeParticipant.findOne({
+    // 获取实际参与人数（排除创建者自己）
+    const participantsCount = await ChallengeParticipant.countDocuments({
       challenge: challengeId,
-      user: req.user._id
+      status: { $in: ['joined', 'completed'] },
+      user: { $ne: challenge.creator._id } // 排除创建者
     });
     
-    const challengeData = challenge.toJSON();
-    
-    // 添加参与状态
-    challengeData.isParticipating = !!participation;
-    challengeData.participationStatus = participation ? participation.status : null;
-    challengeData.progress = participation ? participation.progress : null;
+    // 添加参与状态和进度
+    const result = {
+      ...challenge,
+      isJoined,
+      isParticipating: isJoined,
+      progress: userProgress,
+      participantsCount: participantsCount // 使用不包含创建者的参与人数
+    };
     
     res.status(200).json({
       success: true,
-      data: challengeData
+      data: result
     });
   } catch (error) {
     console.error('获取挑战详情错误:', error);

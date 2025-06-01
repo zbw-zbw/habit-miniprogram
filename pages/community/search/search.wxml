@@ -6,7 +6,7 @@
       <text class="iconfont icon-search"></text>
       <input 
         class="search-input" 
-        placeholder="搜索用户、小组、话题或内容" 
+        placeholder="搜索用户、小组、挑战或内容" 
         placeholder-class="placeholder"
         bindinput="onSearchInput"
         bindconfirm="onSearch"
@@ -77,10 +77,10 @@
         data-tab="groups"
       >小组</view>
       <view 
-        class="tab-item {{activeTab === 'topics' ? 'active' : ''}}" 
+        class="tab-item {{activeTab === 'challenges' ? 'active' : ''}}" 
         bindtap="switchTab" 
-        data-tab="topics"
-      >话题</view>
+        data-tab="challenges"
+      >挑战</view>
       <view 
         class="tab-item {{activeTab === 'posts' ? 'active' : ''}}" 
         bindtap="switchTab" 
@@ -133,20 +133,20 @@
       </view>
     </view>
     
-    <!-- 话题列表 -->
-    <view class="result-list topic-list" wx:if="{{!loading && activeTab === 'topics' && topicResults.length > 0}}">
-      <view class="topic-item" wx:for="{{topicResults}}" wx:key="id" bindtap="viewTopicDetail" data-id="{{item.id}}">
-        <view class="topic-info">
-          <view class="topic-title">#{{item.name}}</view>
-          <view class="topic-meta">
-            <text>{{item.postsCount}}条动态</text>
+    <!-- 挑战列表 -->
+    <view class="result-list challenge-list" wx:if="{{!loading && activeTab === 'challenges' && challengeResults.length > 0}}">
+      <view class="challenge-item" wx:for="{{challengeResults}}" wx:key="id" bindtap="viewChallengeDetail" data-id="{{item.id}}">
+        <image class="challenge-image" src="{{item.image}}" mode="aspectFill" wx:if="{{item.image}}"></image>
+        <view class="challenge-info">
+          <view class="challenge-title">{{item.name}}</view>
+          <view class="challenge-desc">{{item.description}}</view>
+          <view class="challenge-meta">
             <text>{{item.participantsCount}}人参与</text>
           </view>
         </view>
-        <view class="topic-trending" wx:if="{{item.isTrending}}">
-          <text class="trending-icon iconfont icon-fire"></text>
-          <text class="trending-text">热门</text>
-        </view>
+        <button class="join-btn {{item.isJoined ? 'joined' : ''}}" catchtap="toggleJoinChallenge" data-id="{{item.id}}" data-index="{{index}}">
+          {{item.isJoined ? '已参与' : '参与'}}
+        </button>
       </view>
     </view>
     

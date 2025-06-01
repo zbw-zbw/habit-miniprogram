@@ -1,0 +1,95 @@
+<!--发布动态页面-->
+<view class="container">
+  <!-- 发布表单 -->
+  <view class="post-form">
+    <!-- 内容输入区 -->
+    <view class="content-area">
+      <textarea class="content-input" 
+                placeholder="分享你的习惯打卡心得..." 
+                placeholder-class="placeholder"
+                maxlength="1000"
+                bindinput="onContentInput"
+                value="{{content}}"
+                auto-height></textarea>
+      <view class="word-count">{{contentLength}}/1000</view>
+    </view>
+    
+    <!-- 图片上传 -->
+    <view class="image-uploader">
+      <van-uploader file-list="{{ fileList }}" 
+                    max-count="9"
+                    bind:after-read="afterRead"
+                    bind:delete="onDelete"
+                    accept="image"
+                    multiple
+                    image-fit="aspectFill"
+                    upload-text="添加图片"
+                    max-size="10485760"
+                    bind:oversize="onOversize">
+      </van-uploader>
+    </view>
+    
+    <!-- 标签选择 -->
+    <view class="tags-section" wx:if="{{showTagSelector}}">
+      <view class="section-title">
+        <text>添加标签</text>
+        <text class="tag-tip">最多选择5个标签</text>
+      </view>
+      <view class="tags-container">
+        <view class="tag {{selectedTags.includes(tag) ? 'selected' : ''}}" 
+              wx:for="{{tags}}" 
+              wx:for-item="tag" 
+              wx:key="index"
+              bindtap="toggleTag" 
+              data-tag="{{tag}}">
+          {{tag}}
+        </view>
+      </view>
+    </view>
+    
+    <!-- 关联习惯 -->
+    <view class="habit-section" wx:if="{{showHabitSelector && habits.length > 0}}">
+      <view class="section-title">关联习惯</view>
+      <view class="habit-selector">
+        <picker bindchange="onHabitChange" range="{{habits}}" range-key="name" value="{{habitIndex}}">
+          <view class="picker">
+            <text wx:if="{{habitIndex === -1}}">选择要关联的习惯</text>
+            <text wx:else>{{habits[habitIndex].name}}</text>
+            <van-icon name="arrow-down" />
+          </view>
+        </picker>
+      </view>
+    </view>
+    
+    <!-- 发布到小组 -->
+    <view class="group-section" wx:if="{{groupId}}">
+      <view class="section-title">发布到小组</view>
+      <view class="group-info">
+        <text class="group-name">{{groupName}}</text>
+      </view>
+    </view>
+  </view>
+  
+  <!-- 底部工具栏 -->
+  <view class="toolbar">
+    <view class="tool-buttons">
+      <view class="tool-button" bindtap="toggleTagSelector">
+        <van-icon name="{{showTagSelector ? 'close' : 'label'}}" />
+        <text>标签</text>
+      </view>
+      <view class="tool-button" bindtap="toggleHabitSelector" wx:if="{{habits.length > 0}}">
+        <van-icon name="{{showHabitSelector ? 'close' : 'clock'}}" />
+        <text>习惯</text>
+      </view>
+    </view>
+    <view class="submit-button">
+      <van-button type="primary" 
+                  loading="{{isSubmitting}}" 
+                  disabled="{{!canSubmit}}" 
+                  bind:click="submitPost" 
+                  loading-text="发布中...">
+        发布
+      </van-button>
+    </view>
+  </view>
+</view> 

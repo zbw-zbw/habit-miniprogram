@@ -1,0 +1,152 @@
+/* 发布动态页面样式 */
+.container {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  background-color: #FFFFFF;
+}
+
+/* 发布表单 */
+.post-form {
+  flex: 1;
+  padding: 30rpx;
+}
+
+/* 内容输入区 */
+.content-area {
+  position: relative;
+  margin-bottom: 30rpx;
+}
+
+.content-input {
+  width: 100%;
+  min-height: 240rpx;
+  padding: 0;
+  font-size: 30rpx;
+  line-height: 1.6;
+  color: var(--text-color);
+}
+
+.placeholder {
+  color: var(--text-color-placeholder);
+}
+
+.word-count {
+  position: absolute;
+  right: 0;
+  bottom: -30rpx;
+  font-size: 24rpx;
+  color: var(--text-color-secondary);
+}
+
+/* 图片上传 */
+.image-uploader {
+  margin: 40rpx 0;
+}
+
+/* 标签选择 */
+.tags-section {
+  margin: 30rpx 0;
+}
+
+.section-title {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20rpx;
+  font-size: 28rpx;
+  color: var(--text-color);
+}
+
+.tag-tip {
+  font-size: 24rpx;
+  color: var(--text-color-secondary);
+}
+
+.tags-container {
+  display: flex;
+  flex-wrap: wrap;
+}
+
+.tag {
+  display: inline-block;
+  padding: 10rpx 20rpx;
+  margin: 0 20rpx 20rpx 0;
+  font-size: 26rpx;
+  color: var(--text-color);
+  background-color: #F5F5F5;
+  border-radius: 30rpx;
+}
+
+.tag.selected {
+  color: #FFFFFF;
+  background-color: var(--primary-color);
+}
+
+/* 习惯选择 */
+.habit-section {
+  margin: 30rpx 0;
+}
+
+.habit-selector {
+  padding: 20rpx 0;
+}
+
+.picker {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20rpx;
+  background-color: #F5F5F5;
+  border-radius: 8rpx;
+  font-size: 28rpx;
+  color: var(--text-color);
+}
+
+/* 小组信息 */
+.group-section {
+  margin: 30rpx 0;
+}
+
+.group-info {
+  padding: 20rpx;
+  background-color: #F5F5F5;
+  border-radius: 8rpx;
+}
+
+.group-name {
+  font-size: 28rpx;
+  color: var(--text-color);
+}
+
+/* 底部工具栏 */
+.toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20rpx 30rpx;
+  border-top: 1rpx solid var(--divider-color);
+  background-color: #FFFFFF;
+}
+
+.tool-buttons {
+  display: flex;
+}
+
+.tool-button {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-right: 40rpx;
+}
+
+.tool-button .van-icon {
+  font-size: 40rpx;
+  color: var(--text-color-secondary);
+}
+
+.tool-button text {
+  font-size: 22rpx;
+  color: var(--text-color-secondary);
+  margin-top: 6rpx;
+} 

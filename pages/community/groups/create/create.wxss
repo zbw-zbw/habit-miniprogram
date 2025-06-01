@@ -313,9 +313,13 @@
 .tag-selector-list {
   display: flex;
   flex-wrap: wrap;
+  padding: 20rpx 0;
 }
 
 .tag-selector-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
   padding: 10rpx 20rpx;
   background-color: #F5F7FA;
   color: #606266;
@@ -327,6 +331,12 @@
 
 .tag-selector-item.selected {
   background-color: rgba(79, 124, 255, 0.1);
+  color: #4F7CFF;
+  font-weight: 500;
+}
+
+.tag-check {
+  margin-left: 10rpx;
   color: #4F7CFF;
 }
 
@@ -346,4 +356,47 @@
   align-items: center;
   justify-content: center;
   border: none;
+}
+
+.form-input.input-error {
+  border: 1px solid #F56C6C;
+  background-color: rgba(245, 108, 108, 0.05);
+}
+
+.form-textarea.input-error {
+  border: 1px solid #F56C6C;
+  background-color: rgba(245, 108, 108, 0.05);
+}
+
+.error-message {
+  font-size: 24rpx;
+  color: #F56C6C;
+  margin-top: 8rpx;
+}
+
+.selected-tags-preview {
+  margin-top: 20rpx;
+  border-top: 1rpx solid #EBEEF5;
+  padding-top: 20rpx;
+}
+
+.preview-title {
+  font-size: 24rpx;
+  color: #909399;
+  margin-bottom: 10rpx;
+}
+
+.preview-tags {
+  display: flex;
+  flex-wrap: wrap;
+}
+
+.preview-tag {
+  padding: 6rpx 16rpx;
+  background-color: rgba(79, 124, 255, 0.1);
+  color: #4F7CFF;
+  border-radius: 20rpx;
+  margin-right: 16rpx;
+  margin-bottom: 10rpx;
+  font-size: 22rpx;
 } 

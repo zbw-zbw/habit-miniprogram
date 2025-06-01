@@ -516,7 +516,8 @@ Page({
     },
     // 分享
     onShareAppMessage() {
-        const habitName = this.data.habit?.name || '习惯养成';
+        var _a;
+        const habitName = ((_a = this.data.habit) === null || _a === void 0 ? void 0 : _a.name) || '习惯养成';
         return {
             title: `我正在坚持「${habitName}」，一起来打卡吧！`,
             path: `/pages/index/index?share=habit&id=${this.data.habitId}`,
@@ -560,47 +561,37 @@ Page({
             url: `/pages/habits/create/create?id=${this.data.habitId}`,
         });
     },
-    // 归档习惯
-    archiveHabit() {
-        if (!this.data.habit)
-            return;
-        const isArchived = this.data.habit.isArchived;
-        const actionText = isArchived ? '取消归档' : '归档';
-        wx.showModal({
-            title: `${actionText}习惯`,
-            content: isArchived
-                ? '取消归档后，习惯将重新显示在习惯列表中'
-                : '归档后，习惯将不再显示在主列表中，但不会被删除',
-            confirmColor: '#4F7CFF',
-            success: async (res) => {
-                if (res.confirm) {
-                    wx.showLoading({
-                        title: `${actionText}中...`,
-                        mask: true,
-                    });
-                    try {
-                        // 更新习惯状态
-                        await api_1.habitAPI.updateHabit(this.data.habitId, {
-                            isArchived: !isArchived,
-                        });
-                        // 重新加载习惯数据
-                        await this.loadHabitDetailWithDashboard();
-                        wx.hideLoading();
-                        wx.showToast({
-                            title: `${actionText}成功`,
-                            icon: 'success',
-                        });
-                    }
-                    catch (error) {
-                        console.error(`${actionText}习惯失败:`, error);
-                        wx.hideLoading();
-                        wx.showToast({
-                            title: `${actionText}失败`,
-                            icon: 'error',
-                        });
-                    }
-                }
-            },
+    // 切换归档状态
+    toggleArchive(e) {
+        const isArchived = e.detail.value;
+        const actionText = isArchived ? '归档' : '取消归档';
+        wx.showLoading({
+            title: `${actionText}中...`,
+            mask: true,
+        });
+        api_1.habitAPI.updateHabit(this.data.habitId, {
+            isArchived: isArchived,
+        })
+            .then(() => {
+            // 重新加载习惯数据
+            this.loadHabitDetailWithDashboard();
+            wx.hideLoading();
+            wx.showToast({
+                title: `${actionText}成功`,
+                icon: 'success',
+            });
+        })
+            .catch(error => {
+            console.error(`${actionText}习惯失败:`, error);
+            wx.hideLoading();
+            wx.showToast({
+                title: `${actionText}失败`,
+                icon: 'error',
+            });
+            // 恢复开关状态
+            this.setData({
+                'habit.isArchived': !isArchived
+            });
         });
     },
     // 删除习惯

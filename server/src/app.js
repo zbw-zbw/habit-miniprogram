@@ -71,7 +71,12 @@ app.post('/api/comments/:commentId/like', authMiddleware, commentController.like
 app.post('/api/comments/:commentId/unlike', authMiddleware, commentController.unlikeComment);
 app.delete('/api/comments/:commentId', authMiddleware, commentController.checkCommentOwner, commentController.deleteComment);
 
+// 挑战相关操作
 app.get('/api/challenges', authMiddleware, challengeController.getChallenges);
+app.post('/api/challenges', authMiddleware, challengeController.createChallenge);
+app.get('/api/challenges/:challengeId', authMiddleware, challengeController.getChallenge);
+app.post('/api/challenges/:challengeId/join', authMiddleware, challengeController.joinChallenge);
+app.post('/api/challenges/:challengeId/leave', authMiddleware, challengeController.leaveChallenge);
 
 // 根路由
 app.get('/', (req, res) => {

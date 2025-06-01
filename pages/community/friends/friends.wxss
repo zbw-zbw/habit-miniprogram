@@ -1,0 +1,182 @@
+/* 好友列表页面样式 */
+.container {
+  min-height: 100vh;
+  background-color: #f5f7fa;
+  padding-bottom: 100rpx;
+  position: relative;
+}
+
+/* 搜索框容器 */
+.search-container {
+  padding: 20rpx 30rpx;
+  background-color: #ffffff;
+  position: sticky;
+  top: 0;
+  z-index: 99;
+}
+
+/* 加载中 */
+.loading-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 300rpx;
+}
+
+/* 空状态容器 */
+.empty-container {
+  padding: 100rpx 0;
+}
+
+.find-btn {
+  margin-top: 30rpx;
+}
+
+/* 好友列表 */
+.friends-list {
+  padding: 0 30rpx;
+}
+
+/* 好友项 */
+.friend-item {
+  display: flex;
+  align-items: center;
+  padding: 30rpx 0;
+  border-bottom: 1rpx solid #ebedf0;
+}
+
+/* 好友头像 */
+.friend-avatar {
+  position: relative;
+  margin-right: 20rpx;
+}
+
+.friend-avatar image {
+  width: 100rpx;
+  height: 100rpx;
+  border-radius: 50%;
+  background-color: #f2f2f2;
+}
+
+/* 在线状态指示器 */
+.online-status {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  width: 20rpx;
+  height: 20rpx;
+  border-radius: 50%;
+  background-color: #cccccc;
+  border: 2rpx solid #ffffff;
+}
+
+.online-status.online {
+  background-color: #67c23a;
+}
+
+/* 好友信息 */
+.friend-info {
+  flex: 1;
+  overflow: hidden;
+}
+
+.friend-name {
+  font-size: 32rpx;
+  font-weight: 500;
+  color: #303133;
+  margin-bottom: 6rpx;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.friend-bio {
+  font-size: 26rpx;
+  color: #909399;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* 好友操作按钮 */
+.friend-actions {
+  display: flex;
+  align-items: center;
+}
+
+.action-btn {
+  min-width: auto;
+  height: 64rpx;
+  line-height: 64rpx;
+  padding: 0 24rpx;
+  margin: 0 0 0 16rpx;
+  font-size: 28rpx;
+  border-radius: 32rpx;
+  background-color: #f2f2f2;
+  color: #606266;
+  border: none;
+}
+
+.action-btn::after {
+  border: none;
+}
+
+.message-btn {
+  background-color: #f2f2f2;
+  color: #606266;
+}
+
+.follow-btn {
+  background-color: #4f7cff;
+  color: #ffffff;
+}
+
+.following-btn {
+  background-color: #f2f2f2;
+  color: #606266;
+}
+
+.add-btn {
+  background-color: #4f7cff;
+  color: #ffffff;
+}
+
+.added-btn {
+  background-color: #f2f2f2;
+  color: #606266;
+}
+
+/* 加载更多 */
+.loading-more {
+  text-align: center;
+  padding: 30rpx 0;
+}
+
+/* 没有更多 */
+.no-more {
+  text-align: center;
+  padding: 30rpx 0;
+  font-size: 24rpx;
+  color: #909399;
+}
+
+/* 浮动按钮 */
+.float-btn {
+  position: fixed;
+  right: 40rpx;
+  bottom: 40rpx;
+  width: 100rpx;
+  height: 100rpx;
+  border-radius: 50%;
+  background-color: #4f7cff;
+  color: #ffffff;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  box-shadow: 0 6rpx 16rpx rgba(79, 124, 255, 0.3);
+  z-index: 99;
+}
+
+.float-btn .van-icon {
+  font-size: 48rpx;
+} 

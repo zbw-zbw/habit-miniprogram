@@ -1,0 +1,40 @@
+<!-- 用户资料设置页面 -->
+<view class="profile-setup-container">
+  <view class="profile-setup-header">
+    <view class="profile-setup-title">设置个人资料</view>
+    <view class="profile-setup-subtitle">完善您的个人资料信息</view>
+  </view>
+  
+  <view class="profile-setup-form">
+    <!-- 头像选择 -->
+    <view class="avatar-section">
+      <button class="avatar-wrapper" open-type="chooseAvatar" bind:chooseavatar="chooseAvatar">
+        <image class="avatar" src="{{avatarUrl}}" mode="aspectFill"></image>
+        <view class="avatar-edit-icon">
+          <text class="iconfont icon-edit"></text>
+        </view>
+      </button>
+      <text class="avatar-tip">点击更换头像</text>
+    </view>
+    
+    <!-- 昵称输入 -->
+    <view class="form-item">
+      <view class="form-label">昵称<text class="required">*</text></view>
+      <input class="form-input {{nicknameError ? 'input-error' : ''}}" 
+             type="nickname" 
+             placeholder="请输入昵称（2-20个字符）" 
+             value="{{nickname}}"
+             bindinput="inputNickname" />
+      <view class="error-message" wx:if="{{nicknameError}}">{{nicknameError}}</view>
+    </view>
+    
+    <!-- 提交按钮 -->
+    <view class="form-actions">
+      <button class="submit-btn" 
+              disabled="{{isSubmitting || !nickname}}" 
+              bindtap="submitUserInfo">
+        {{isSubmitting ? '提交中...' : '完成'}}
+      </button>
+    </view>
+  </view>
+</view> 

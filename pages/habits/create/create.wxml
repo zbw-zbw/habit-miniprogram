@@ -232,13 +232,13 @@
       </view>
       <view class="modal-body">
         <view class="frequency-list">
-          <view 
-            wx:for="{{categoryOptions}}" 
-            wx:key="id" 
+        <view 
+          wx:for="{{categoryOptions}}" 
+          wx:key="id" 
             class="frequency-item {{category === item.id ? 'active' : ''}}"
             bindtap="selectCategory"
-            data-id="{{item.id}}"
-            data-name="{{item.name}}">
+          data-id="{{item.id}}"
+          data-name="{{item.name}}">
             <view class="category-item-content">
               <text class="category-name">{{item.name}}</text>
             </view>

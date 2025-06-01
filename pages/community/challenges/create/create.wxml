@@ -24,8 +24,9 @@
       <!-- 挑战标题 -->
       <view class="form-item">
         <view class="form-label">挑战标题<text class="required">*</text></view>
-        <input class="form-input" name="title" value="{{formData.title}}" placeholder="请输入挑战标题（5-30字）" maxlength="30" bindinput="inputTitle" />
+        <input class="form-input {{titleError ? 'input-error' : ''}}" name="title" value="{{formData.title}}" placeholder="请输入挑战标题（5-30字）" maxlength="30" bindinput="inputTitle" />
         <view class="input-counter">{{formData.title.length}}/30</view>
+        <view class="error-message" wx:if="{{titleError}}">{{titleError}}</view>
       </view>
 
       <!-- 挑战类型 -->
@@ -64,15 +65,17 @@
       <!-- 挑战描述 -->
       <view class="form-item">
         <view class="form-label">挑战描述<text class="required">*</text></view>
-        <textarea class="form-textarea" name="description" value="{{formData.description}}" placeholder="请输入挑战描述（20-1000字）" maxlength="1000" bindinput="inputDescription"></textarea>
+        <textarea class="form-textarea {{descriptionError ? 'input-error' : ''}}" name="description" value="{{formData.description}}" placeholder="请输入挑战描述（20-1000字）" maxlength="1000" bindinput="inputDescription"></textarea>
         <view class="input-counter">{{formData.description.length}}/1000</view>
+        <view class="error-message" wx:if="{{descriptionError}}">{{descriptionError}}</view>
       </view>
 
       <!-- 挑战规则 -->
       <view class="form-item">
         <view class="form-label">挑战规则<text class="required">*</text></view>
-        <textarea class="form-textarea" name="rules" value="{{formData.rules}}" placeholder="请输入挑战规则（20-500字）" maxlength="500" bindinput="inputRules"></textarea>
+        <textarea class="form-textarea {{rulesError ? 'input-error' : ''}}" name="rules" value="{{formData.rules}}" placeholder="请输入挑战规则（20-500字）" maxlength="500" bindinput="inputRules"></textarea>
         <view class="input-counter">{{formData.rules.length}}/500</view>
+        <view class="error-message" wx:if="{{rulesError}}">{{rulesError}}</view>
       </view>
 
       <!-- 挑战标签 -->
@@ -100,7 +103,7 @@
 
       <!-- 提交按钮 -->
       <view class="form-button-area">
-        <button class="form-button" form-type="submit" disabled="{{!formValid}}">创建挑战</button>
+        <button class="form-button {{formValid ? 'active' : 'disabled'}}" form-type="submit" disabled="{{!formValid}}">创建挑战</button>
       </view>
     </form>
   </view>
@@ -118,12 +121,19 @@
           <button class="tag-add-btn" bindtap="addCustomTag" disabled="{{!newTag}}">添加</button>
         </view>
         <view class="tag-selector-list">
-          <view class="tag-selector-item {{formData.tags.includes(item) ? 'selected' : ''}}" 
+          <view class="tag-selector-item {{tempTags.includes(item) ? 'selected' : ''}}" 
                 wx:for="{{suggestedTags}}" 
                 wx:key="index"
                 data-tag="{{item}}"
                 bindtap="toggleTag">
             {{item}}
+            <text class="tag-check" wx:if="{{tempTags.includes(item)}}">✓</text>
+          </view>
+        </view>
+        <view class="selected-tags-preview" wx:if="{{tempTags.length > 0}}">
+          <view class="preview-title">已选标签:</view>
+          <view class="preview-tags">
+            <view class="preview-tag" wx:for="{{tempTags}}" wx:key="index">{{item}}</view>
           </view>
         </view>
       </view>

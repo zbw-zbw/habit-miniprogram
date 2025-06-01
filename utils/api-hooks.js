@@ -242,17 +242,19 @@ function createApiRequests(requests) {
         Object.entries(requests).forEach(([key, request]) => {
             request.apiCall()
                 .then(data => {
+                var _a;
                 // 更新数据和加载状态
                 page.setData({
                     [`data.${key}`]: data,
                     [`loading.${key}`]: false
                 });
                 // 调用成功回调
-                if (request.options?.onSuccess) {
+                if ((_a = request.options) === null || _a === void 0 ? void 0 : _a.onSuccess) {
                     request.options.onSuccess(data);
                 }
             })
                 .catch(error => {
+                var _a, _b;
                 console.error(`API请求失败 [${key}]:`, error);
                 // 更新错误状态
                 const errorMessage = error.message || '请求失败';
@@ -261,12 +263,12 @@ function createApiRequests(requests) {
                     [`error.${key}`]: errorMessage
                 };
                 // 如果有fallback数据，在错误时使用
-                if (request.options?.fallbackData !== undefined) {
+                if (((_a = request.options) === null || _a === void 0 ? void 0 : _a.fallbackData) !== undefined) {
                     updateData[`data.${key}`] = request.options.fallbackData;
                 }
                 page.setData(updateData);
                 // 调用错误回调
-                if (request.options?.onError) {
+                if ((_b = request.options) === null || _b === void 0 ? void 0 : _b.onError) {
                     request.options.onError(error);
                 }
             });

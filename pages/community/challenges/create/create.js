@@ -48,7 +48,10 @@ Page({
         ],
         newTag: '',
         tempTags: [],
-        hasLogin: false
+        hasLogin: false,
+        titleError: '',
+        descriptionError: '',
+        rulesError: ''
     },
     /**
      * 生命周期函数--监听页面加载
@@ -74,7 +77,8 @@ Page({
         tomorrow.setDate(tomorrow.getDate() + 1);
         this.setData({
             'formData.startDate': this.formatDate(tomorrow),
-            minDate: this.formatDate(tomorrow)
+            minDate: this.formatDate(tomorrow),
+            tempTags: [] // 初始化临时标签数组
         });
     },
     /**
@@ -97,7 +101,9 @@ Page({
                 this.setData({
                     'formData.image': tempFilePath
                 });
-                // 验证表单
+                // 验证标题
+                this.validateTitle();
+                // 验证整个表单
                 this.validateForm();
             }
         });
@@ -109,14 +115,16 @@ Page({
         this.setData({
             'formData.title': e.detail.value
         });
-        // 验证表单
+        // 验证标题
+        this.validateTitle();
+        // 验证整个表单
         this.validateForm();
     },
     /**
      * 切换类型
      */
     typeChange(e) {
-        const index = e.detail.value;
+        const index = Number(e.detail.value);
         this.setData({
             typeIndex: index,
             'formData.type': this.data.typeOptions[index].value
@@ -126,7 +134,7 @@ Page({
      * 切换时长
      */
     durationChange(e) {
-        const index = e.detail.value;
+        const index = Number(e.detail.value);
         this.setData({
             durationIndex: index,
             'formData.duration': this.data.durationOptions[index].value
@@ -147,7 +155,9 @@ Page({
         this.setData({
             'formData.description': e.detail.value
         });
-        // 验证表单
+        // 验证描述
+        this.validateDescription();
+        // 验证整个表单
         this.validateForm();
     },
     /**
@@ -157,17 +167,18 @@ Page({
         this.setData({
             'formData.rules': e.detail.value
         });
-        // 验证表单
+        // 验证规则
+        this.validateRules();
+        // 验证整个表单
         this.validateForm();
     },
     /**
      * 显示标签选择器
      */
     showTagSelector() {
-        // 复制当前标签到临时标签
         this.setData({
-            tempTags: [...this.data.formData.tags],
-            showTagSelector: true
+            showTagSelector: true,
+            tempTags: [...this.data.formData.tags] // 复制当前标签到临时标签
         });
     },
     /**
@@ -182,21 +193,19 @@ Page({
      * 阻止冒泡
      */
     preventBubble() {
-        // 阻止点击事件冒泡
+        // 阻止事件冒泡
+        return;
     },
     /**
-     * 切换标签选择状态
+     * 切换标签选择
      */
     toggleTag(e) {
         const tag = e.currentTarget.dataset.tag;
-        const tempTags = [...this.data.tempTags];
-        const index = tempTags.indexOf(tag);
-        if (index > -1) {
-            // 已选中，取消选择
-            tempTags.splice(index, 1);
-        }
-        else {
-            // 未选中，添加选择
+        const { tempTags } = this.data;
+        // 检查标签是否已选择
+        const tagIndex = tempTags.indexOf(tag);
+        if (tagIndex === -1) {
+            // 标签未选择，添加标签
             if (tempTags.length >= 5) {
                 wx.showToast({
                     title: '最多选择5个标签',
@@ -204,11 +213,18 @@ Page({
                 });
                 return;
             }
-            tempTags.push(tag);
+            this.setData({
+                tempTags: [...tempTags, tag]
+            });
         }
-        this.setData({
-            tempTags
-        });
+        else {
+            // 标签已选择，移除标签
+            const newTags = [...tempTags];
+            newTags.splice(tagIndex, 1);
+            this.setData({
+                tempTags: newTags
+            });
+        }
     },
     /**
      * 输入新标签
@@ -222,7 +238,7 @@ Page({
      * 添加自定义标签
      */
     addCustomTag() {
-        const { newTag, tempTags } = this.data;
+        const { newTag, tempTags, suggestedTags } = this.data;
         if (!newTag.trim()) {
             return;
         }
@@ -240,10 +256,18 @@ Page({
             });
             return;
         }
+        const newTagTrimmed = newTag.trim();
+        // 添加到临时标签
         this.setData({
-            tempTags: [...tempTags, newTag.trim()],
+            tempTags: [...tempTags, newTagTrimmed],
             newTag: ''
         });
+        // 如果不在建议标签中，也添加到建议标签列表
+        if (!suggestedTags.includes(newTagTrimmed)) {
+            this.setData({
+                suggestedTags: [...suggestedTags, newTagTrimmed]
+            });
+        }
     },
     /**
      * 确认标签选择
@@ -279,32 +303,42 @@ Page({
     submitForm(e) {
         // 验证表单
         if (!this.validateForm()) {
+            wx.showToast({
+                title: '请完善表单信息',
+                icon: 'none'
+            });
             return;
         }
         wx.showLoading({
             title: '创建中'
         });
         const { formData } = this.data;
+        console.log('准备提交的表单数据:', formData);
         // 如果有封面，先上传封面
         const uploadCoverPromise = formData.image
             ? this.uploadCover(formData.image)
             : Promise.resolve('');
         uploadCoverPromise
             .then((imageUrl) => {
-            // 创建挑战
-            return api_1.communityAPI.createChallenge({
+            console.log('封面上传成功, URL:', imageUrl);
+            // 准备提交的数据
+            const challengeData = {
                 title: formData.title,
-                type: formData.type,
-                duration: formData.duration,
-                startDate: formData.startDate,
                 description: formData.description,
                 rules: formData.rules,
+                duration: formData.duration,
+                startDate: formData.startDate,
                 tags: formData.tags,
                 needsApproval: formData.needsApproval,
-                image: imageUrl || undefined
-            });
+                image: imageUrl || undefined,
+                isPublic: true
+            };
+            console.log('发送到服务器的数据:', challengeData);
+            // 创建挑战
+            return api_1.communityAPI.createChallenge(challengeData);
         })
             .then((challenge) => {
+            console.log('挑战创建成功:', challenge);
             wx.hideLoading();
             wx.showToast({
                 title: '创建成功',
@@ -324,10 +358,33 @@ Page({
         })
             .catch((error) => {
             console.error('创建挑战失败:', error);
+            // 尝试解析错误详情
+            let errorMsg = '创建失败';
+            if (error && error.message) {
+                errorMsg = error.message;
+            }
+            else if (typeof error === 'string') {
+                errorMsg = error;
+            }
+            // 检查是否是网络请求错误
+            if (error && error.statusCode) {
+                console.error('HTTP错误状态码:', error.statusCode);
+                console.error('HTTP错误响应:', error.data);
+                if (error.statusCode === 404) {
+                    errorMsg = 'API接口不存在，请联系管理员';
+                }
+                else if (error.statusCode === 401) {
+                    errorMsg = '登录已过期，请重新登录';
+                }
+                else if (error.statusCode >= 500) {
+                    errorMsg = '服务器错误，请稍后再试';
+                }
+            }
             wx.hideLoading();
             wx.showToast({
-                title: '创建失败',
-                icon: 'none'
+                title: errorMsg,
+                icon: 'none',
+                duration: 2000
             });
         });
     },
@@ -354,28 +411,63 @@ Page({
         });
     },
     /**
+     * 验证标题
+     */
+    validateTitle() {
+        const { title } = this.data.formData;
+        if (!title.trim()) {
+            this.setData({ titleError: '请输入挑战标题' });
+            return false;
+        }
+        if (title.length < 5) {
+            this.setData({ titleError: '标题至少需要5个字符' });
+            return false;
+        }
+        this.setData({ titleError: '' });
+        return true;
+    },
+    /**
+     * 验证描述
+     */
+    validateDescription() {
+        const { description } = this.data.formData;
+        if (!description.trim()) {
+            this.setData({ descriptionError: '请输入挑战描述' });
+            return false;
+        }
+        if (description.length < 20) {
+            this.setData({ descriptionError: '描述至少需要20个字符' });
+            return false;
+        }
+        this.setData({ descriptionError: '' });
+        return true;
+    },
+    /**
+     * 验证规则
+     */
+    validateRules() {
+        const { rules } = this.data.formData;
+        if (!rules.trim()) {
+            this.setData({ rulesError: '请输入挑战规则' });
+            return false;
+        }
+        if (rules.length < 20) {
+            this.setData({ rulesError: '规则至少需要20个字符' });
+            return false;
+        }
+        this.setData({ rulesError: '' });
+        return true;
+    },
+    /**
      * 验证表单
      */
     validateForm() {
-        const { formData } = this.data;
-        // 验证标题
-        if (!formData.title.trim() || formData.title.length < 5) {
-            this.setData({ formValid: false });
-            return false;
-        }
-        // 验证描述
-        if (!formData.description.trim() || formData.description.length < 20) {
-            this.setData({ formValid: false });
-            return false;
-        }
-        // 验证规则
-        if (!formData.rules.trim() || formData.rules.length < 20) {
-            this.setData({ formValid: false });
-            return false;
-        }
-        // 表单有效
-        this.setData({ formValid: true });
-        return true;
+        const titleValid = this.validateTitle();
+        const descriptionValid = this.validateDescription();
+        const rulesValid = this.validateRules();
+        const formValid = titleValid && descriptionValid && rulesValid;
+        this.setData({ formValid });
+        return formValid;
     },
     /**
      * 格式化日期为 YYYY-MM-DD
@@ -385,5 +477,12 @@ Page({
         const month = (date.getMonth() + 1).toString().padStart(2, '0');
         const day = date.getDate().toString().padStart(2, '0');
         return `${year}-${month}-${day}`;
+    },
+    /**
+     * 刷新数据方法，供上一页面调用
+     */
+    refreshData() {
+        console.log('创建挑战页面刷新数据');
+        // 这个方法会被上一页面调用，不需要实现具体逻辑
     }
 });

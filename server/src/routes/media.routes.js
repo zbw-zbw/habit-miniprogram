@@ -77,7 +77,7 @@ router.post(
       // 返回文件URL
       res.status(200).json({
         success: true,
-        message: '文件上传成功',
+        message: 'File uploaded successfully',
         url: `/uploads/${req.file.filename}`,
         type: fileType,
         filename: req.file.filename

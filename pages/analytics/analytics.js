@@ -11,6 +11,7 @@ const dashboard_1 = require("../../services/api/dashboard");
 /* eslint-disable @typescript-eslint/no-require-imports */
 const wxCharts = require('../../utils/wxcharts');
 const use_auth_1 = require("../../utils/use-auth");
+const auth_1 = require("../../utils/auth");
 /**
  * 格式化日期为指定格式
  * @param date 日期对象
@@ -67,32 +68,57 @@ Page({
         weeklyTrend: 0,
         bestCategory: '',
         timelineData: [],
+        hasLogin: false,
     },
     /**
      * 生命周期函数--监听页面加载
      */
     onLoad() {
-        // 页面加载时执行
-        console.log('初始化analytics页面tabList:', this.data.tabList);
-        // 使用useAuth工具获取全局登录状态
-        (0, use_auth_1.useAuth)(this);
+        // 使用useAuth获取登录状态
+        (0, use_auth_1.useAuth)(this, {
+            onChange: (authState) => {
+                console.log('登录状态变化:', authState);
+                // 如果登录状态发生变化，重新加载数据
+                if (this.data.hasLogin !== authState.hasLogin) {
+                    this.setData({ hasLogin: authState.hasLogin });
+                    if (authState.hasLogin) {
+                        // 已登录，加载数据
+                        this.loadData();
+                        this.updateCalendar();
+                    }
+                    else {
+                        // 未登录，重置数据
+                        this.resetStatsData();
+                    }
+                }
+            }
+        });
+        // 设置初始tabIndex
+        let tabIndex = 0;
+        switch (this.data.activeTab) {
+            case 'overview':
+                tabIndex = 0;
+                break;
+            case 'habits':
+                tabIndex = 1;
+                break;
+            case 'calendar':
+                tabIndex = 2;
+                break;
+        }
+        this.setData({ tabIndex });
+        // 加载数据
+        this.loadData();
+        // 初始化日历
+        this.updateCalendar();
     },
     /**
      * 生命周期函数--监听页面显示
      */
     onShow() {
-        console.log('统计页面显示 - onShow被触发');
-        const app = getApp();
-        // 检查是否已登录，未登录则不请求数据
-        if (!app.globalData.hasLogin) {
-            console.log('用户未登录，不加载统计数据');
-            this.setData({
-                loading: false,
-                chartLoading: false,
-                error: '请先登录以查看数据统计',
-            });
-            // 绘制空图表
-            this.drawEmptyCharts();
+        // 未登录时重置数据
+        if (!this.data.hasLogin) {
+            this.resetStatsData();
             return;
         }
         this.loadData();
@@ -250,7 +276,7 @@ Page({
             habits.forEach((habit) => {
                 // 使用类型断言和可选链处理stats属性
                 const habitStats = habit.stats;
-                if (habitStats?.currentStreak) {
+                if (habitStats === null || habitStats === void 0 ? void 0 : habitStats.currentStreak) {
                     currentStreak = Math.max(currentStreak, habitStats.currentStreak);
                 }
             });
@@ -259,7 +285,7 @@ Page({
                 habits.forEach((habit) => {
                     // 使用类型断言和可选链处理stats属性
                     const habitStats = habit.stats;
-                    if (habitStats?.longestStreak) {
+                    if (habitStats === null || habitStats === void 0 ? void 0 : habitStats.longestStreak) {
                         longestStreak = Math.max(longestStreak, habitStats.longestStreak);
                     }
                 });
@@ -543,17 +569,49 @@ Page({
      */
     switchTimeRange(e) {
         const range = e.currentTarget.dataset.range;
-        // 避免重复加载相同时间范围
         if (this.data.timeRange === range) {
-            return;
+            return; // 如果是相同的范围，不做任何操作
         }
+        console.log('切换时间范围:', range);
         this.setData({
             timeRange: range,
-            chartLoading: true, // 显示图表加载状态
-        }, () => {
-            // 重新加载数据
-            this.loadData();
+            chartLoading: true
         });
+        // 如果用户未登录，不发送请求，只重置数据
+        if (!this.data.hasLogin) {
+            this.resetStatsData();
+            return;
+        }
+        // 加载新的时间范围数据
+        this.loadData();
+    },
+    /**
+     * 重置统计数据到默认状态
+     */
+    resetStatsData() {
+        this.setData({
+            loading: false,
+            chartLoading: false,
+            stats: {
+                totalHabits: 0,
+                activeHabits: 0,
+                completedToday: 0,
+                completionRate: 0,
+                totalCheckins: 0,
+                currentStreak: 0,
+                longestStreak: 0
+            },
+            chartData: {
+                dates: [],
+                values: [],
+                completionRates: []
+            },
+            habitStats: [],
+            habitsMap: {},
+            error: '请先登录以查看数据统计'
+        });
+        // 绘制空图表
+        this.drawEmptyCharts();
     },
     /**
      * 查看习惯详情
@@ -1089,9 +1147,17 @@ Page({
      * 登录方法
      */
     login() {
-        // 跳转到登录页面
-        wx.navigateTo({
-            url: '/pages/login/login'
+        (0, auth_1.login)((success) => {
+            if (success) {
+                // 登录成功后，获取最新的用户信息
+                const app = getApp();
+                this.setData({
+                    userInfo: app.globalData.userInfo,
+                    hasLogin: true,
+                });
+                // 重新加载数据
+                this.loadData();
+            }
         });
     },
 });

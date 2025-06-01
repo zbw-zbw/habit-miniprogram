@@ -3,6 +3,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 /**
  * 习惯列表页面
  */
+const auth_1 = require("../../utils/auth");
 const api_1 = require("../../services/api");
 const dashboard_1 = require("../../services/api/dashboard");
 const use_auth_1 = require("../../utils/use-auth");
@@ -12,6 +13,7 @@ Page({
      */
     data: {
         habits: [],
+        allHabits: [],
         habitStats: {},
         loading: true,
         activeTab: 0,
@@ -19,6 +21,8 @@ Page({
         categories: ['all', 'learning', 'health', 'work', 'life'],
         // 用于Tab组件显示的中文标签
         categoryLabels: [],
+        // 为tab-bar组件准备的标签
+        categoryTabs: [],
         // 分类英文到中文的映射
         categoryMap: {
             all: '全部',
@@ -56,6 +60,7 @@ Page({
         this.setData({
             apiAvailable: app.globalData.apiAvailable,
             categoryLabels,
+            categoryTabs: categoryLabels,
             activeTab: 0,
             hasLogin: app.globalData.hasLogin,
         });
@@ -64,7 +69,7 @@ Page({
             onChange: (authState) => {
                 // 当登录状态变化时更新本地状态
                 this.setData({ hasLogin: authState.hasLogin });
-            }
+            },
         });
     },
     /**
@@ -75,7 +80,7 @@ Page({
         const app = getApp();
         // 更新登录状态
         this.setData({
-            hasLogin: app.globalData.hasLogin
+            hasLogin: app.globalData.hasLogin,
         });
         // 检查是否已登录，未登录则不请求数据
         if (!app.globalData.hasLogin) {
@@ -83,27 +88,35 @@ Page({
             this.setData({
                 habits: [],
                 loading: false,
-                error: '请先登录以查看您的习惯'
+                error: '请先登录以查看您的习惯',
             });
             return;
         }
         // 强制刷新习惯数据
-        this.forceRefreshHabits();
+        this.loadData();
     },
     /**
      * 登录方法
      */
     login() {
-        // 跳转到登录页面
-        wx.navigateTo({
-            url: '/pages/login/login'
+        // 使用公共登录方法
+        (0, auth_1.login)((success) => {
+            if (success) {
+                // 登录成功后，获取最新的用户信息
+                const app = getApp();
+                this.setData({
+                    userInfo: app.globalData.userInfo,
+                    hasLogin: true,
+                });
+                // 重新加载数据
+                this.loadData();
+            }
         });
     },
     /**
-     * 强制刷新习惯数据，不使用缓存
+     * 初始化数据
      */
-    forceRefreshHabits() {
-        console.log('强制刷新习惯数据');
+    loadData() {
         // 设置加载状态
         this.setData({
             loading: true,
@@ -174,6 +187,7 @@ Page({
             // 更新数据
             this.setData({
                 habits: sortedHabits,
+                allHabits: habits,
                 habitStats,
                 loading: false,
                 apiAvailable: true,
@@ -187,7 +201,7 @@ Page({
             this.setData({
                 loading: false,
                 error: '加载习惯数据失败，请重试',
-                apiAvailable: false
+                apiAvailable: false,
             });
         });
     },
@@ -207,7 +221,7 @@ Page({
             this.setData({
                 habits: [],
                 loading: false,
-                error: '请先登录以查看您的习惯'
+                error: '请先登录以查看您的习惯',
             });
             return;
         }
@@ -275,6 +289,7 @@ Page({
             // 更新数据
             this.setData({
                 habits: sortedHabits,
+                allHabits: habits,
                 habitStats,
                 loading: false,
                 apiAvailable: true,
@@ -288,7 +303,7 @@ Page({
             this.setData({
                 loading: false,
                 error: '加载习惯数据失败，请重试',
-                apiAvailable: false
+                apiAvailable: false,
             });
         });
     },
@@ -390,8 +405,25 @@ Page({
             activeTab = e.currentTarget.dataset.index;
             console.log('来自点击事件的Tab切换:', activeTab);
         }
+        // 只更新活动标签，并基于现有数据过滤，不再重新加载
         this.setData({ activeTab }, () => {
-            this.loadHabits();
+            // 从缓存中获取所有习惯数据，如果没有则重新加载
+            const { allHabits, habitStats } = this.data;
+            if (allHabits && allHabits.length > 0) {
+                // 根据当前标签筛选习惯
+                const filteredHabits = this.filterHabits(allHabits);
+                console.log('筛选后的习惯列表:', filteredHabits);
+                // 根据当前排序方式排序习惯
+                const sortedHabits = this.sortHabits(filteredHabits, habitStats);
+                // 更新数据
+                this.setData({
+                    habits: sortedHabits
+                });
+            }
+            else {
+                // 如果没有缓存的所有习惯数据，重新加载
+                this.loadHabits();
+            }
         });
     },
     /**
@@ -459,7 +491,7 @@ Page({
                     console.log('接收到打卡完成事件，刷新习惯列表');
                     // 延迟一点执行，确保后端数据已更新
                     setTimeout(() => {
-                        this.forceRefreshHabits();
+                        this.loadData();
                     }, 500);
                 },
             },

@@ -114,12 +114,108 @@ export const communityAPI = {
   },
   
   /**
+   * 直接点赞评论（用于回复）
+   * @param commentId 评论ID
+   * @returns Promise<{likeCount: number, isLiked: boolean}>
+   */
+  likeCommentDirect: (commentId: string): Promise<{likeCount: number, isLiked: boolean}> => {
+    return post(`/api/comments/${commentId}/like`, {});
+  },
+  
+  /**
+   * 直接取消点赞评论（用于回复）
+   * @param commentId 评论ID
+   * @returns Promise<{likeCount: number, isLiked: boolean}>
+   */
+  unlikeCommentDirect: (commentId: string): Promise<{likeCount: number, isLiked: boolean}> => {
+    return post(`/api/comments/${commentId}/unlike`, {});
+  },
+  
+  /**
    * 获取挑战列表
    * @param params 查询参数
    * @returns Promise<IChallenge[]>
    */
-  getChallenges: (params?: { page?: number; limit?: number; userId?: string }): Promise<IChallenge[]> => {
-    return get('/api/challenges', params);
+  getChallenges: (params?: { page?: number; limit?: number; userId?: string; type?: string; status?: string; category?: string; search?: string }): Promise<any> => {
+    return get('/api/community/challenges', params).then((response: any) => {
+      console.log('挑战列表原始响应:', response);
+      
+      // 处理不同的响应格式
+      if (response && typeof response === 'object') {
+        // 标准格式: { success: true, data: { challenges: [], pagination: {} } }
+        if (response.success === true && response.data && response.data.challenges) {
+          console.log('返回标准格式数据');
+          
+          // 处理挑战数据，确保字段一致性
+          if (Array.isArray(response.data.challenges)) {
+            response.data.challenges = response.data.challenges.map((challenge: any) => ({
+              ...challenge,
+              id: challenge.id || challenge._id,
+              participantsCount: challenge.participantsCount || challenge.participants || 0,
+              participants: challenge.participants || challenge.participantsCount || 0,
+              isJoined: challenge.isJoined || challenge.isParticipating || false,
+              isParticipating: challenge.isParticipating || challenge.isJoined || false
+            }));
+          }
+          
+          return response.data;
+        }
+        
+        // 直接返回数据对象: { challenges: [], pagination: {} }
+        if (response.challenges && Array.isArray(response.challenges)) {
+          console.log('返回数据对象');
+          
+          // 处理挑战数据，确保字段一致性
+          response.challenges = response.challenges.map((challenge: any) => ({
+            ...challenge,
+            id: challenge.id || challenge._id,
+            participantsCount: challenge.participantsCount || challenge.participants || 0,
+            participants: challenge.participants || challenge.participantsCount || 0,
+            isJoined: challenge.isJoined || challenge.isParticipating || false,
+            isParticipating: challenge.isParticipating || challenge.isJoined || false
+          }));
+          
+          return response;
+        }
+      }
+      
+      // 如果是数组，直接返回
+      if (Array.isArray(response)) {
+        console.log('返回数组');
+        
+        // 处理挑战数据，确保字段一致性
+        const processedChallenges = response.map((challenge: any) => ({
+          ...challenge,
+          id: challenge.id || challenge._id,
+          participantsCount: challenge.participantsCount || challenge.participants || 0,
+          participants: challenge.participants || challenge.participantsCount || 0,
+          isJoined: challenge.isJoined || challenge.isParticipating || false,
+          isParticipating: challenge.isParticipating || challenge.isJoined || false
+        }));
+        
+        return { 
+          challenges: processedChallenges,
+          pagination: { 
+            total: processedChallenges.length,
+            page: params?.page || 1,
+            limit: params?.limit || processedChallenges.length,
+            pages: 1
+          } 
+        };
+      }
+      
+      // 默认返回空数据
+      console.log('返回默认空数据');
+      return { 
+        challenges: [],
+        pagination: { 
+          total: 0,
+          page: params?.page || 1,
+          limit: params?.limit || 10,
+          pages: 0
+        } 
+      };
+    });
   },
   
   /**
@@ -128,7 +224,7 @@ export const communityAPI = {
    * @returns Promise<IChallenge>
    */
   getChallenge: (id: string): Promise<IChallenge> => {
-    return get(`/api/challenges/${id}`);
+    return get(`/api/community/challenges/${id}`);
   },
   
   /**
@@ -137,7 +233,7 @@ export const communityAPI = {
    * @returns Promise<{success: boolean}>
    */
   joinChallenge: (id: string): Promise<{success: boolean}> => {
-    return post(`/api/challenges/${id}/join`, {});
+    return post(`/api/community/challenges/${id}/join`, {});
   },
   
   /**
@@ -146,7 +242,16 @@ export const communityAPI = {
    * @returns Promise<{success: boolean}>
    */
   leaveChallenge: (id: string): Promise<{success: boolean}> => {
-    return post(`/api/challenges/${id}/leave`, {});
+    return post(`/api/community/challenges/${id}/leave`, {});
+  },
+  
+  /**
+   * 解散挑战（仅创建者可操作）
+   * @param id 挑战ID
+   * @returns Promise<{success: boolean}>
+   */
+  dismissChallenge: (id: string): Promise<{success: boolean}> => {
+    return post(`/api/community/challenges/${id}/dismiss`, {});
   },
   
   /**
@@ -174,10 +279,16 @@ export const communityAPI = {
    */
   uploadImage: (filePath: string): Promise<{url: string}> => {
     return new Promise((resolve, reject) => {
+      // 获取token
+      const token = wx.getStorageSync('token');
+      
       wx.uploadFile({
         url: wx.getStorageSync('apiBaseUrl') + '/api/media/upload',
         filePath,
         name: 'file',
+        header: {
+          'Authorization': `Bearer ${token}`
+        },
         success: (res) => {
           try {
             const data = JSON.parse(res.data);
@@ -191,6 +302,7 @@ export const communityAPI = {
           }
         },
         fail: (error) => {
+          console.error('上传图片失败:', error);
           reject(error);
         }
       });
@@ -213,6 +325,35 @@ export const communityAPI = {
    */
   getGroup: (id: string): Promise<any> => {
     return get(`/api/groups/${id}`);
+  },
+
+  /**
+   * 获取小组详情（别名，与getGroup功能相同）
+   * @param id 小组ID
+   * @returns Promise<IGroup>
+   */
+  getGroupDetail: (id: string): Promise<any> => {
+    return get(`/api/groups/${id}`);
+  },
+
+  /**
+   * 获取小组动态
+   * @param groupId 小组ID
+   * @param params 查询参数
+   * @returns Promise<{posts: any[], pagination: any}>
+   */
+  getGroupPosts: (groupId: string, params?: { page?: number; limit?: number }): Promise<{posts: any[], pagination: any}> => {
+    return get(`/api/groups/${groupId}/posts`, params);
+  },
+
+  /**
+   * 获取小组成员
+   * @param groupId 小组ID
+   * @param params 查询参数
+   * @returns Promise<{members: any[], pagination: any}>
+   */
+  getGroupMembers: (groupId: string, params?: { page?: number; limit?: number }): Promise<{members: any[], pagination: any}> => {
+    return get(`/api/groups/${groupId}/members`, params);
   },
 
   /**
@@ -241,6 +382,7 @@ export const communityAPI = {
   createGroup: (data: {
     name: string;
     description: string;
+    type?: string;
     isPrivate?: boolean;
     tags?: string[];
     avatar?: string;
@@ -292,12 +434,51 @@ export const communityAPI = {
   },
   
   /**
+   * 创建挑战
+   * @param data 挑战数据
+   * @returns Promise<IChallenge>
+   */
+  createChallenge: (data: {
+    title: string;
+    description: string;
+    rules: string;
+    image?: string;
+    duration: number;
+    startDate?: string;
+    tags?: string[];
+    isPublic?: boolean;
+    habitId?: string;
+    needsApproval?: boolean;
+  }): Promise<any> => {
+    return post('/api/community/challenges', data);
+  },
+
+  /**
    * 添加好友
    * @param userId 用户ID
    * @returns Promise<{success: boolean}>
    */
   addFriend: (userId: string): Promise<{success: boolean}> => {
     return post(`/api/friends/${userId}/add`, {});
+  },
+
+  /**
+   * 获取挑战参与者列表
+   * @param challengeId 挑战ID
+   * @param params 查询参数
+   * @returns Promise<{participants: any[], pagination: any}>
+   */
+  getChallengeParticipants: (challengeId: string, params?: { status?: string; page?: number; limit?: number }): Promise<{participants: any[], pagination: any}> => {
+    return get(`/api/community/challenges/${challengeId}/participants`, params);
+  },
+  
+  /**
+   * 获取挑战排行榜
+   * @param challengeId 挑战ID
+   * @returns Promise<{leaderboard: any[], myRank: number, myProgress: number}>
+   */
+  getChallengeLeaderboard: (challengeId: string): Promise<{leaderboard: any[], myRank: number, myProgress: number}> => {
+    return get(`/api/community/challenges/${challengeId}/leaderboard`);
   },
 }; 
  

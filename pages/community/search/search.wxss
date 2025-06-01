@@ -369,56 +369,50 @@
   color: var(--text-color);
 }
 
-/* 话题列表 */
-.topic-item {
+/* 挑战列表 */
+.challenge-item {
   display: flex;
-  justify-content: space-between;
-  align-items: center;
   padding: 24rpx 0;
   border-bottom: 1px solid var(--divider-color);
 }
 
-.topic-info {
+.challenge-image {
+  width: 120rpx;
+  height: 120rpx;
+  border-radius: var(--radius-medium);
+  margin-right: 24rpx;
+  object-fit: cover;
+}
+
+.challenge-info {
   flex: 1;
   overflow: hidden;
 }
 
-.topic-title {
+.challenge-title {
   font-size: 30rpx;
   font-weight: 500;
-  color: var(--primary-color);
+  color: var(--title-color);
   margin-bottom: 8rpx;
   white-space: nowrap;
   text-overflow: ellipsis;
   overflow: hidden;
 }
 
-.topic-meta {
+.challenge-desc {
+  font-size: 26rpx;
+  color: var(--text-color);
+  margin-bottom: 8rpx;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.challenge-meta {
   font-size: 24rpx;
   color: var(--text-color-secondary);
-}
-
-.topic-meta text:first-child {
-  margin-right: 16rpx;
-}
-
-.topic-trending {
-  display: flex;
-  align-items: center;
-  background-color: rgba(255, 171, 0, 0.1);
-  padding: 6rpx 16rpx;
-  border-radius: 24rpx;
-}
-
-.trending-icon {
-  color: var(--warning-color);
-  font-size: 24rpx;
-  margin-right: 4rpx;
-}
-
-.trending-text {
-  color: var(--warning-color);
-  font-size: 24rpx;
 }
 
 /* 动态列表 */

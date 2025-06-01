@@ -76,6 +76,15 @@ Page({
         post.likes = post.likeCount || 0;
         post.comments = post.commentCount || 0;
         
+        // 确保用户信息字段统一
+        if (post.user) {
+          post.userName = post.user.nickname || post.user.username;
+          post.userAvatar = post.user.avatar;
+          post.userId = post.user.id;
+        }
+        
+        console.log('加载的动态详情:', post);
+        
         this.setData({ 
           post,
           loading: false
@@ -112,6 +121,57 @@ Page({
     communityAPI.getComments(postId, params)
       .then(result => {
         const { comments, pagination } = result;
+        
+        // 格式化评论时间并标准化字段
+        comments.forEach(comment => {
+          // 格式化时间
+          if (comment.createdAt) {
+            comment.createdAt = utils.formatRelativeTime(comment.createdAt);
+          }
+          
+          // 确保用户信息字段统一
+          if (comment.user) {
+            comment.userName = comment.user.nickname || comment.user.username;
+            comment.userAvatar = comment.user.avatar;
+            comment.userId = comment.user.id;
+          }
+          
+          // 确保点赞数据正确
+          comment.likes = comment.likeCount || comment.likes?.length || 0;
+          
+          // 格式化回复时间
+          if (comment.replies && comment.replies.length > 0) {
+            comment.replies.forEach(reply => {
+              // 格式化时间
+              if (reply.createdAt) {
+                reply.createdAt = utils.formatRelativeTime(reply.createdAt);
+              }
+              
+              // 确保用户信息字段统一
+              if (reply.user) {
+                reply.userName = reply.user.nickname || reply.user.username;
+                reply.userAvatar = reply.user.avatar;
+                reply.userId = reply.user.id;
+              }
+              
+              // 确保回复目标信息字段统一
+              if (reply.replyToUser) {
+                reply.replyTo = reply.replyToUser.nickname || reply.replyToUser.username;
+                reply.replyToId = reply.replyToUser.id;
+              }
+              
+              // 确保回复有正确的ID
+              if (!reply.id && reply._id) {
+                reply.id = reply._id;
+              }
+              
+              // 确保点赞数据正确
+              reply.likes = reply.likeCount || reply.likes?.length || 0;
+              
+              console.log('回复数据:', reply);
+            });
+          }
+        });
         
         this.setData({
           comments: loadMore ? [...this.data.comments, ...comments] : comments,
@@ -154,7 +214,10 @@ Page({
     
     apiCall
       .then(result => {
-        const { likeCount, isLiked } = result;
+        // 处理嵌套的数据结构
+        const responseData = result.data || result;
+        const likeCount = responseData.likeCount || responseData.likes?.length || 0;
+        const isLiked = responseData.isLiked || false;
         
         post.isLiked = isLiked;
         post.likes = likeCount;
@@ -178,27 +241,59 @@ Page({
     const index = e.currentTarget.dataset.index;
     const comment = this.data.comments[index];
     
-    const apiCall = comment.isLiked 
-      ? communityAPI.unlikeComment(this.data.postId, comment.id)
-      : communityAPI.likeComment(this.data.postId, comment.id);
+    // 检查评论ID
+    const commentId = comment.id || comment._id;
     
-    apiCall
-      .then(result => {
-        const { likeCount, isLiked } = result;
+    if (!commentId) {
+      console.error('评论ID不存在:', comment);
+      wx.showToast({
+        title: '操作失败：评论ID不存在',
+        icon: 'none'
+      });
+      return;
+    }
+    
+    console.log('点赞评论:', { commentId, comment });
+    
+    // 直接使用API路径
+    const apiUrl = `/api/comments/${commentId}/${comment.isLiked ? 'unlike' : 'like'}`;
+    
+    wx.request({
+      url: wx.getStorageSync('apiBaseUrl') + apiUrl,
+      method: 'POST',
+      header: {
+        'content-type': 'application/json',
+        'Authorization': 'Bearer ' + wx.getStorageSync('token')
+      },
+      data: {},
+      success: (res) => {
+        if (res.statusCode === 200) {
+          console.log('点赞评论成功:', res.data);
+          // 处理嵌套的数据结构
+          const responseData = res.data.data || res.data;
+          const likeCount = responseData.likeCount || responseData.likes?.length || 0;
+          const isLiked = responseData.isLiked || false;
         
         const comments = this.data.comments;
         comments[index].isLiked = isLiked;
         comments[index].likes = likeCount;
         
         this.setData({ comments });
-      })
-      .catch(error => {
-        console.error('点赞评论失败:', error);
-        
+        } else {
+          console.error('点赞评论失败:', res);
+          wx.showToast({
+            title: res.data.message || '操作失败',
+            icon: 'none'
+          });
+        }
+      },
+      fail: (error) => {
+        console.error('点赞评论请求失败:', error);
         wx.showToast({
-          title: '操作失败',
+          title: '网络请求失败',
           icon: 'none'
         });
+      }
       });
   },
   
@@ -207,13 +302,18 @@ Page({
    */
   replyComment(e) {
     const { index, username } = e.currentTarget.dataset;
+    const comment = this.data.comments[index];
+    
+    // 确保用户名存在
+    const replyUsername = username || (comment.user ? comment.user.nickname || comment.user.username : '用户');
     
     this.setData({
       replyTo: {
         index: index,
-        username: username
+        username: replyUsername,
+        userId: comment.user ? comment.user.id || comment.userId : ''
       },
-      commentContent: `回复 @${username}: `,
+      commentContent: '',
       focusComment: true
     });
   },
@@ -280,23 +380,70 @@ Page({
     });
     
     // 构建评论数据
-    let commentData = { content };
+    let commentData = { 
+      content
+    };
     
     // 如果是回复评论，添加回复信息
     if (this.data.replyTo) {
-      commentData.replyTo = this.data.comments[this.data.replyTo.index].id;
-      commentData.replyToUser = this.data.comments[this.data.replyTo.index].user.id;
+      const replyToComment = this.data.comments[this.data.replyTo.index];
+      
+      if (replyToComment) {
+        // 如果是回复二级评论
+        if (this.data.replyTo.isReplyToReply && this.data.replyTo.replyId) {
+          commentData.replyTo = this.data.replyTo.replyId;
+        } else {
+          commentData.replyTo = replyToComment.id;
+        }
+        
+        // 获取被回复用户ID
+        if (this.data.replyTo.userId) {
+          commentData.replyToUser = this.data.replyTo.userId;
+        } else if (replyToComment.user && replyToComment.user.id) {
+          commentData.replyToUser = replyToComment.user.id;
+        } else if (replyToComment.userId) {
+          commentData.replyToUser = replyToComment.userId;
+        }
+        
+        // 在评论内容前添加@用户名前缀
+        if (this.data.replyTo.username && !content.includes(`@${this.data.replyTo.username}`)) {
+          commentData.content = `@${this.data.replyTo.username} ${content}`;
+        }
+      }
     }
     
     console.log('提交评论数据:', commentData);
     
     // 调用API提交评论
+    const sendComment = (retryCount = 0) => {
     communityAPI.addComment(this.data.postId, commentData)
-      .then(result => {
-        console.log('评论成功:', result);
-        // 获取返回的评论数据
-        const comment = result.data;
-        
+        .then(result => {
+          console.log('评论成功:', result);
+          // 获取返回的评论数据
+          const comment = result;
+          
+          // 格式化评论时间
+          if (comment.createdAt) {
+            comment.createdAt = utils.formatRelativeTime(comment.createdAt);
+          }
+          
+          // 确保用户信息字段统一
+          if (comment.user) {
+            comment.userName = comment.user.nickname || comment.user.username;
+            comment.userAvatar = comment.user.avatar;
+            comment.userId = comment.user.id;
+          }
+          
+          // 确保回复信息字段统一
+          if (comment.replyToUser) {
+            comment.replyToUserName = comment.replyToUser.nickname || comment.replyToUser.username;
+            comment.replyToId = comment.replyToUser.id;
+          }
+          
+          // 确保点赞数据正确
+          comment.likes = comment.likeCount || comment.likes?.length || 0;
+          comment.isLiked = comment.isLiked || false;
+          
         // 更新评论列表
         const comments = [comment, ...this.data.comments];
         
@@ -321,23 +468,34 @@ Page({
       })
       .catch(error => {
         console.error('提交评论失败:', error);
-        
-        let errorMessage = '评论失败';
-        if (error.message) {
-          errorMessage = error.message;
-        } else if (error.errMsg) {
-          errorMessage = error.errMsg;
-        }
+          
+          let errorMessage = '评论失败';
+          if (error.message) {
+            errorMessage = error.message;
+          } else if (error.errMsg) {
+            errorMessage = error.errMsg;
+          }
+          
+          // 如果是服务器错误且重试次数小于2，尝试重试
+          if (retryCount < 2 && (errorMessage.includes('服务器错误') || errorMessage.includes('500'))) {
+            console.log(`评论失败，正在重试(${retryCount + 1})...`);
+            setTimeout(() => sendComment(retryCount + 1), 1000);
+            return;
+          }
         
         wx.showToast({
-          title: errorMessage,
-          icon: 'none',
-          duration: 3000
+            title: errorMessage,
+            icon: 'none',
+            duration: 3000
         });
       })
       .finally(() => {
         wx.hideLoading();
       });
+    };
+    
+    // 开始发送评论
+    sendComment();
   },
   
   /**
@@ -435,5 +593,92 @@ Page({
       path: `/pages/community/post-detail/post-detail?id=${post.id}&share=true`,
       imageUrl: post.images && post.images.length > 0 ? post.images[0] : ''
     };
-  }
+  },
+
+  /**
+   * 点赞回复
+   */
+  likeReply(e) {
+    const { commentIndex, replyIndex } = e.currentTarget.dataset;
+    const comment = this.data.comments[commentIndex];
+    const reply = comment.replies[replyIndex];
+    
+    console.log('点赞回复 - 原始数据:', JSON.stringify(reply));
+    
+    // 检查回复ID
+    const replyId = reply.id || reply._id;
+    
+    if (!replyId) {
+      console.error('回复ID不存在:', reply);
+      wx.showToast({
+        title: '操作失败：回复ID不存在',
+        icon: 'none'
+      });
+      return;
+    }
+    
+    console.log('点赞回复:', { replyId, reply });
+    
+    // 直接使用API路径
+    const apiUrl = `/api/comments/${replyId}/${reply.isLiked ? 'unlike' : 'like'}`;
+    
+    wx.request({
+      url: wx.getStorageSync('apiBaseUrl') + apiUrl,
+      method: 'POST',
+      header: {
+        'content-type': 'application/json',
+        'Authorization': 'Bearer ' + wx.getStorageSync('token')
+      },
+      data: {},
+      success: (res) => {
+        if (res.statusCode === 200) {
+          console.log('点赞回复成功:', res.data);
+          // 处理嵌套的数据结构
+          const responseData = res.data.data || res.data;
+          const likeCount = responseData.likeCount || responseData.likes?.length || 0;
+          const isLiked = responseData.isLiked || false;
+          
+          const comments = this.data.comments;
+          comments[commentIndex].replies[replyIndex].isLiked = isLiked;
+          comments[commentIndex].replies[replyIndex].likes = likeCount;
+          
+          this.setData({ comments });
+        } else {
+          console.error('点赞回复失败:', res);
+          wx.showToast({
+            title: res.data.message || '操作失败',
+            icon: 'none'
+          });
+        }
+      },
+      fail: (error) => {
+        console.error('点赞回复请求失败:', error);
+        wx.showToast({
+          title: '网络请求失败',
+          icon: 'none'
+        });
+      }
+    });
+  },
+
+  /**
+   * 回复二级评论
+   */
+  replyToReply(e) {
+    const { commentIndex, replyIndex, username } = e.currentTarget.dataset;
+    const comment = this.data.comments[commentIndex];
+    const reply = comment.replies[replyIndex];
+    
+    this.setData({
+      replyTo: {
+        index: commentIndex,
+        username: username,
+        userId: reply.userId || (reply.user ? reply.user.id : ''),
+        isReplyToReply: true,
+        replyId: reply.id
+      },
+      commentContent: '',
+      focusComment: true
+    });
+  },
 }) 

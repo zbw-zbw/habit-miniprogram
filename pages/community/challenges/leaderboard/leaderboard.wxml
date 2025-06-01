@@ -1,0 +1,70 @@
+<!--pages/community/challenges/leaderboard/leaderboard.wxml-->
+<view class="container">
+  <!-- 顶部导航 -->
+  <view class="nav-bar">
+    <view class="back-btn" bindtap="goBack">
+      <text class="iconfont icon-arrow-left"></text>
+    </view>
+    <view class="page-title">{{challengeName}} - 排行榜</view>
+  </view>
+  
+  <!-- 加载中 -->
+  <view class="loading-container" wx:if="{{loading}}">
+    <view class="loading-spinner"></view>
+    <text class="loading-text">加载中...</text>
+  </view>
+  
+  <!-- 排行榜内容 -->
+  <view class="leaderboard-content" wx:else>
+    <!-- 我的排名 -->
+    <view class="my-rank-card" wx:if="{{myRank > 0}}">
+      <view class="my-rank-title">我的排名</view>
+      <view class="my-rank-content">
+        <view class="my-rank-number">{{myRank}}</view>
+        <view class="my-rank-progress">
+          <progress percent="{{myProgress}}" stroke-width="4" activeColor="#4F7CFF" backgroundColor="#E4E7ED" />
+          <text class="progress-text">{{myProgress}}%</text>
+        </view>
+      </view>
+    </view>
+    
+    <!-- 排行榜列表 -->
+    <view class="leaderboard-list">
+      <view class="leaderboard-header">
+        <text class="header-rank">排名</text>
+        <text class="header-user">用户</text>
+        <text class="header-progress">进度</text>
+      </view>
+      
+      <!-- 排行榜项 -->
+      <view class="leaderboard-item {{item.isMe ? 'is-me' : ''}}" 
+            wx:for="{{leaderboard}}" 
+            wx:key="index"
+            bindtap="viewUserProfile"
+            data-id="{{item.user._id}}">
+        <!-- 排名 -->
+        <view class="rank-number {{index < 3 ? 'top-' + (index + 1) : ''}}">
+          {{index + 1}}
+        </view>
+        
+        <!-- 用户信息 -->
+        <view class="user-info">
+          <image class="user-avatar" src="{{item.user.avatar || '/assets/images/default-avatar.png'}}" mode="aspectFill"></image>
+          <text class="user-name">{{item.user.nickname || item.user.username || '匿名用户'}}</text>
+        </view>
+        
+        <!-- 进度 -->
+        <view class="progress-info">
+          <progress percent="{{item.progress}}" stroke-width="3" activeColor="#4F7CFF" backgroundColor="#E4E7ED" />
+          <text class="progress-text">{{item.progress}}%</text>
+        </view>
+      </view>
+      
+      <!-- 空状态 -->
+      <view class="empty-state" wx:if="{{leaderboard.length === 0}}">
+        <text class="iconfont icon-empty"></text>
+        <view class="empty-text">暂无排行数据</view>
+      </view>
+    </view>
+  </view>
+</view> 
