@@ -201,10 +201,25 @@ Page<IPageData, IPageMethods>({
       }
     });
 
-    // 设置初始标签索引
-    this.setData({
-      tabIndex: 0 // 总览
-    });
+    // 设置初始tabIndex
+    let tabIndex = 0;
+    switch (this.data.activeTab) {
+      case 'overview':
+        tabIndex = 0;
+        break;
+      case 'habits':
+        tabIndex = 1;
+        break;
+      case 'calendar':
+        tabIndex = 2;
+        break;
+    }
+    this.setData({ tabIndex });
+    
+    // 加载数据
+    this.loadData();
+    // 初始化日历
+    this.updateCalendar();
   },
 
   /**

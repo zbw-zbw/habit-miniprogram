@@ -1,13 +1,11 @@
 <!--pages/analytics/analytics.wxml-->
 <view class="container">
   <!-- 顶部标签栏 -->
-  <view class="tabs">
-    <scroll-view scroll-x class="tabs-scroll" scroll-with-animation enable-flex>
-      <view class="tab-item {{activeTab === 'overview' ? 'active' : ''}}" bindtap="switchTab" data-tab="overview">总览</view>
-      <view class="tab-item {{activeTab === 'habits' ? 'active' : ''}}" bindtap="switchTab" data-tab="habits">习惯</view>
-      <view class="tab-item {{activeTab === 'calendar' ? 'active' : ''}}" bindtap="switchTab" data-tab="calendar">日历</view>
-    </scroll-view>
-  </view>
+  <tab-bar 
+    tabs="{{['总览', '习惯', '日历']}}" 
+    activeTab="{{tabIndex}}" 
+    bind:tabchange="onTabChange">
+  </tab-bar>
   
   <!-- 加载状态 -->
   <view class="loading" wx:if="{{loading}}">

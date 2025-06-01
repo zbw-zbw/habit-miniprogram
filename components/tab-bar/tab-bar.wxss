@@ -7,9 +7,8 @@
   padding: 16rpx 0;
   border-bottom: 1px solid var(--divider-color);
   margin-bottom: 16rpx;
-  width: 100vw;
   left: 0;
-  margin-left: -32rpx; /* 抵消container的padding */
+  margin: 0 calc(-1 * var(--spacing-medium)); /* 抵消container的padding */
   box-sizing: border-box;
 }
 

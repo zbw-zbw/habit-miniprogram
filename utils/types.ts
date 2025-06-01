@@ -14,21 +14,29 @@ export interface IHabit {
   icon?: string;
   color?: string;
   frequency: {
-    type: 'daily' | 'weekly' | 'monthly' | 'custom';
+    type: 'daily' | 'weekly' | 'monthly' | 'custom' | 'workdays' | 'weekends';
     days?: number[];
     dates?: number[];
     interval?: number;
   };
   targetValue?: number;
   unit?: string;
+  duration?: {
+    enabled: boolean;
+    value: number; // 以秒为单位的目标时长
+    format?: string; // 显示格式，如 "HH:MM:SS"
+  };
   isArchived: boolean;
   createdAt: string;
   updatedAt: string;
+  startDate?: string;
+  endDate?: string;
   // 可选的实时状态，非数据库字段
   isCompleted?: boolean;
   todayValue?: number;
   completionRate?: number;
   streak?: number;
+  stats?: any;
 }
 
 /**

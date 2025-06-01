@@ -15,9 +15,12 @@
   
   <!-- 空状态 -->
   <view wx:elif="{{filteredAchievements.length === 0}}">
-    <empty-achievement 
-      title="暂无{{activeTab === 'completed' ? '已完成' : activeTab === 'in-progress' ? '进行中' : ''}}成就"
-      tips="继续坚持习惯，解锁更多成就！" />
+  <empty-state
+    title="暂无{{activeTab === 'completed' ? '已完成' : activeTab === 'in-progress' ? '进行中' : ''}}成就"
+    description="继续坚持习惯，解锁更多成就！"
+    icon="/assets/images/achievement.png"
+  >
+  </empty-state>
   </view>
   
   <!-- 成就列表 -->

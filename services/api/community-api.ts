@@ -175,7 +175,7 @@ export const communityAPI = {
   uploadImage: (filePath: string): Promise<{url: string}> => {
     return new Promise((resolve, reject) => {
       wx.uploadFile({
-        url: wx.getStorageSync('apiBaseUrl') + '/api/upload',
+        url: wx.getStorageSync('apiBaseUrl') + '/api/media/upload',
         filePath,
         name: 'file',
         success: (res) => {

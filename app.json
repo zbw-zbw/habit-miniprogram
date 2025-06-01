@@ -18,6 +18,8 @@
     "pages/community/tag/tag",
     "pages/community/post-detail/post-detail",
     "pages/community/friends/add-friend",
+    "pages/community/notifications/notifications",
+    "pages/community/search/search",
     "pages/profile/profile",
     "pages/profile/settings/settings",
     "pages/profile/achievements/achievements",

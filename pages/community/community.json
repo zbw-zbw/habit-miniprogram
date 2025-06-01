@@ -4,7 +4,7 @@
   "usingComponents": {
     "empty-state": "../../components/empty-state/empty-state",
     "login-tip": "../../components/login-tip/login-tip",
-    "post-card": "../../components/post-card/post-card"
-  },
-  "navigationStyle": "custom"
+    "post-card": "../../components/post-card/post-card",
+    "tab-bar": "../../components/tab-bar/tab-bar"
+  }
 } 

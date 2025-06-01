@@ -3,6 +3,8 @@
   "usingComponents": {
     "habit-card": "/components/habit-card/habit-card",
     "fab-button": "/components/fab-button/fab-button",
-    "empty-state": "/components/empty-state/empty-state"
+    "empty-state": "/components/empty-state/empty-state",
+    "login-tip": "/components/login-tip/login-tip",
+    "tab-bar": "/components/tab-bar/tab-bar"
   }
 } 

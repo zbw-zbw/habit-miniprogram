@@ -531,4 +531,4 @@ Component({
       this.triggerEvent('orderChanged', { chain: newChain });
     }
   }
-}) 
+}); 

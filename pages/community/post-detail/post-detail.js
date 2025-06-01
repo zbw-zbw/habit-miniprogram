@@ -285,11 +285,18 @@ Page({
     // 如果是回复评论，添加回复信息
     if (this.data.replyTo) {
       commentData.replyTo = this.data.comments[this.data.replyTo.index].id;
+      commentData.replyToUser = this.data.comments[this.data.replyTo.index].user.id;
     }
+    
+    console.log('提交评论数据:', commentData);
     
     // 调用API提交评论
     communityAPI.addComment(this.data.postId, commentData)
-      .then(comment => {
+      .then(result => {
+        console.log('评论成功:', result);
+        // 获取返回的评论数据
+        const comment = result.data;
+        
         // 更新评论列表
         const comments = [comment, ...this.data.comments];
         
@@ -315,9 +322,17 @@ Page({
       .catch(error => {
         console.error('提交评论失败:', error);
         
+        let errorMessage = '评论失败';
+        if (error.message) {
+          errorMessage = error.message;
+        } else if (error.errMsg) {
+          errorMessage = error.errMsg;
+        }
+        
         wx.showToast({
-          title: '评论失败',
-          icon: 'none'
+          title: errorMessage,
+          icon: 'none',
+          duration: 3000
         });
       })
       .finally(() => {

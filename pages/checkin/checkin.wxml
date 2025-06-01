@@ -1,163 +1,84 @@
 <!--pages/checkin/checkin.wxml-->
 <view class="container">
-  <!-- 主内容区 -->
-  <view class="content">
-    <!-- 当前正在打卡的习惯 -->
-    <view class="section-title">正在打卡</view>
-    <view class="current-habit-card">
-      <view class="habit-info">
-        <view class="habit-icon" style="background-color: {{habit.color || '#4F7CFF'}}30; color: {{habit.color || '#4F7CFF'}}">
-          <text class="iconfont icon-{{habit.icon || 'book'}}"></text>
-        </view>
-        <view class="habit-meta">
-          <view class="habit-name">{{habitName || '阅读'}}</view>
-          <view class="habit-desc">{{habit.description || '每天30分钟'}}</view>
-        </view>
+  <!-- 精简的打卡表单 -->
+  <view class="checkin-form">
+    <!-- 习惯标题 -->
+    <view class="habit-header">
+      <view class="habit-icon" style="background-color: {{habit.color || '#4F7CFF'}}30; color: {{habit.color || '#4F7CFF'}}">
+        <text class="iconfont icon-{{habit.icon || 'book'}}"></text>
       </view>
-      
-      <view class="habit-actions">
-        <view class="streak-text">已连续{{habit.stats.currentStreak || 0}}天</view>
-        <button class="checkin-btn" bindtap="toggleForm" wx:if="{{!showForm}}">打卡</button>
-        <button class="checkin-btn cancel" bindtap="toggleForm" wx:else>取消</button>
-      </view>
-
-      <!-- 打卡表单 -->
-      <view class="checkin-form" wx:if="{{showForm}}">
-        <view class="form-title">今日{{habitName || '阅读'}}</view>
-        
-        <!-- 时长计时器 -->
-        <view class="form-item">
-          <view class="form-label">{{habitName || '阅读'}}时长</view>
-          <view class="timer-display">{{timer.displayTime}}</view>
-          <view class="timer-controls">
-            <view class="timer-btn reset" bindtap="resetTimer">
-              <text class="iconfont icon-reset"></text>
-            </view>
-            <block wx:if="{{timer.isRunning}}">
-              <view class="timer-btn stop" bindtap="stopTimer">
-                <text class="iconfont icon-pause"></text>
-              </view>
-            </block>
-            <block wx:else>
-              <view class="timer-btn start" bindtap="startTimer">
-                <text class="iconfont icon-play"></text>
-              </view>
-            </block>
-          </view>
+      <view class="habit-title">{{habitName}}打卡</view>
+    </view>
+    
+    <!-- 日期时间 -->
+    <view class="form-date">{{today}} · 已坚持{{habit.stats.currentStreak || 0}}天</view>
+    
+    <!-- 时长选择 -->
+    <view class="form-item">
+      <view class="form-label">时长</view>
+      <picker mode="multiSelector" value="{{durationArray.selectedIndex}}" range="{{durationArray.values}}" bindchange="onDurationChange" class="time-picker">
+        <view class="time-display">{{formData.duration}}</view>
+      </picker>
+    </view>
+    
+    <!-- 内容输入 -->
+    <view class="form-item">
+      <view class="form-label">内容</view>
+      <textarea class="form-input content" placeholder="输入内容" value="{{formData.content}}" bindinput="inputContent"></textarea>
+    </view>
+    
+    <!-- 感受输入 -->
+    <view class="form-item">
+      <view class="form-label">今日感受</view>
+      <textarea class="form-textarea" placeholder="分享你的感受..." value="{{formData.note}}" bindinput="inputNote"></textarea>
+    </view>
+    
+    <!-- 心情选择 -->
+    <view class="form-item">
+      <view class="form-label">今日心情</view>
+      <view class="mood-selector">
+        <view class="mood-option {{formData.mood === 'great' ? 'selected' : ''}}" bindtap="selectMood" data-mood="great">
+          <view class="mood-emoji">😊</view>
+          <view class="mood-label">超棒</view>
         </view>
-        
-        <!-- 内容输入 -->
-        <view class="form-item">
-          <view class="form-label">{{habitName || '阅读'}}内容</view>
-          <input class="form-input" placeholder="输入内容" value="{{formData.content}}" bindinput="inputContent" />
+        <view class="mood-option {{formData.mood === 'good' ? 'selected' : ''}}" bindtap="selectMood" data-mood="good">
+          <view class="mood-emoji">😌</view>
+          <view class="mood-label">不错</view>
         </view>
-        
-        <!-- 感受输入 -->
-        <view class="form-item">
-          <view class="form-label">{{habitName || '阅读'}}感受</view>
-          <textarea class="form-textarea" placeholder="分享你的感受..." value="{{formData.note}}" bindinput="inputNote"></textarea>
+        <view class="mood-option {{formData.mood === 'neutral' ? 'selected' : ''}}" bindtap="selectMood" data-mood="neutral">
+          <view class="mood-emoji">🤔</view>
+          <view class="mood-label">一般</view>
         </view>
-        
-        <!-- 心情选择 -->
-        <view class="form-item">
-          <view class="form-label">今日心情</view>
-          <view class="mood-selector">
-            <view class="mood-option {{formData.mood === 'great' ? 'selected' : ''}}" bindtap="selectMood" data-mood="great">
-              <view class="mood-emoji">😊</view>
-              <view class="mood-label">超棒</view>
-            </view>
-            <view class="mood-option {{formData.mood === 'good' ? 'selected' : ''}}" bindtap="selectMood" data-mood="good">
-              <view class="mood-emoji">😌</view>
-              <view class="mood-label">不错</view>
-            </view>
-            <view class="mood-option {{formData.mood === 'neutral' ? 'selected' : ''}}" bindtap="selectMood" data-mood="neutral">
-              <view class="mood-emoji">🤔</view>
-              <view class="mood-label">一般</view>
-            </view>
-            <view class="mood-option {{formData.mood === 'bad' ? 'selected' : ''}}" bindtap="selectMood" data-mood="bad">
-              <view class="mood-emoji">😴</view>
-              <view class="mood-label">不佳</view>
-            </view>
-            <view class="mood-option {{formData.mood === 'terrible' ? 'selected' : ''}}" bindtap="selectMood" data-mood="terrible">
-              <view class="mood-emoji">😢</view>
-              <view class="mood-label">糟糕</view>
-            </view>
-          </view>
+        <view class="mood-option {{formData.mood === 'bad' ? 'selected' : ''}}" bindtap="selectMood" data-mood="bad">
+          <view class="mood-emoji">😴</view>
+          <view class="mood-label">不佳</view>
         </view>
-        
-        <!-- 照片上传 -->
-        <view class="form-item">
-          <view class="form-label">添加照片</view>
-          <view class="photo-upload" bindtap="chooseImage" wx:if="{{formData.photos.length < 9}}">
-            <text class="iconfont icon-camera"></text>
-            <view class="upload-text">点击上传照片</view>
-          </view>
-          <view class="photo-list" wx:if="{{formData.photos.length > 0}}">
-            <view class="photo-item" wx:for="{{formData.photos}}" wx:key="*this">
-              <image class="photo-image" src="{{item}}" mode="aspectFill"></image>
-              <view class="photo-delete" bindtap="deleteImage" data-index="{{index}}">
-                <text class="iconfont icon-close"></text>
-              </view>
-            </view>
-          </view>
+        <view class="mood-option {{formData.mood === 'terrible' ? 'selected' : ''}}" bindtap="selectMood" data-mood="terrible">
+          <view class="mood-emoji">😢</view>
+          <view class="mood-label">糟糕</view>
         </view>
-        
-        <!-- 提交按钮 -->
-        <button class="submit-btn" bindtap="submitCheckin">完成打卡</button>
       </view>
     </view>
     
-    <!-- 今日待打卡 -->
-    <view class="section-title">今日待打卡</view>
-    <view class="habits-list">
-      <!-- 使用真实的今日待打卡习惯数据 -->
-      <block wx:if="{{todayHabits && todayHabits.length > 0}}">
-        <habit-card 
-          wx:for="{{todayHabits}}" 
-          wx:key="id" 
-          habit="{{item}}" 
-          stats="{{item.stats}}"
-          wx:if="{{!showForm}}"
-          bindcheckin="navigateToCheckin"
-          data-id="{{item.id}}">
-        </habit-card>
-      </block>
-      <block wx:else>
-        <view class="empty-habits">
-          <text>今天没有其他需要打卡的习惯</text>
-        </view>
-      </block>
-    </view>
-
-    <!-- 已完成习惯 -->
-    <view class="section-title">已完成</view>
-    <view class="habits-list">
-      <habit-card 
-        wx:for="{{completedHabits}}" 
-        wx:key="id" 
-        habit="{{item}}" 
-        stats="{{item.stats}}"
-        showCheckinButton="{{false}}">
-      </habit-card>
-    </view>
-    
-    <!-- 本周进度 -->
-    <view class="section-title">本周进度</view>
-    <view class="calendar-card">
-      <view class="calendar-header">
-        <view class="calendar-title">本周</view>
-        <view class="calendar-action" bindtap="viewWeeklyProgress">查看更多</view>
+    <!-- 照片上传 -->
+    <view class="form-item">
+      <view class="form-label">添加照片</view>
+      <view class="photo-upload" bindtap="chooseImage" wx:if="{{formData.photos.length < 9}}">
+        <text class="iconfont icon-camera"></text>
+        <view class="upload-text">点击上传照片</view>
       </view>
-      
-      <view class="calendar-days">
-        <view class="day-column" wx:for="{{weekDays}}" wx:key="weekday">
-          <view class="day-label">{{item.weekday}}</view>
-          <view class="day-circle {{item.isToday ? 'today' : ''}} {{item.isCompleted ? 'completed' : ''}} {{item.isDisabled ? 'disabled' : ''}}">
-            {{item.day}}
+      <view class="photo-list" wx:if="{{formData.photos.length > 0}}">
+        <view class="photo-item" wx:for="{{formData.photos}}" wx:key="*this">
+          <image class="photo-image" src="{{item}}" mode="aspectFill"></image>
+          <view class="photo-delete" bindtap="deleteImage" data-index="{{index}}">
+            <text class="iconfont icon-close"></text>
           </view>
         </view>
       </view>
     </view>
+    
+    <!-- 提交按钮 -->
+    <button class="submit-btn" bindtap="submitCheckin" loading="{{submitting}}">完成打卡</button>
   </view>
   
   <!-- 打卡成功弹窗 -->

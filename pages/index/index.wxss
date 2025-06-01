@@ -2,7 +2,6 @@
  * 首页样式
  */
 .container {
-  padding: 32rpx;
   background-color: var(--background-color);
 }
 
@@ -101,7 +100,7 @@
   background-color: var(--card-background);
   border-radius: var(--radius-large);
   padding: 28rpx;
-  margin-bottom: 32rpx;
+  margin-bottom: 24rpx;
   box-shadow: var(--shadow-light);
   position: relative;
   overflow: hidden;
@@ -171,7 +170,7 @@
   background-color: var(--card-background);
   border-radius: var(--radius-large);
   padding: 28rpx;
-  margin-bottom: 32rpx;
+  margin-bottom: 24rpx;
   box-shadow: var(--shadow-light);
   overflow: hidden;
 }
@@ -236,7 +235,6 @@
   background-color: var(--card-background);
   border-radius: var(--radius-large);
   padding: 28rpx;
-  margin-bottom: 32rpx;
   box-shadow: var(--shadow-light);
   overflow: hidden;
 }

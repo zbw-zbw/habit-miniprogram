@@ -3,6 +3,9 @@
   "enablePullDownRefresh": true,
   "backgroundColor": "#F5F7FA",
   "usingComponents": {
-    "habit-card": "/components/habit-card/habit-card"
+    "habit-card": "/components/habit-card/habit-card",
+    "empty-state": "/components/empty-state/empty-state",
+    "login-tip": "/components/login-tip/login-tip",
+    "tab-bar": "/components/tab-bar/tab-bar"
   }
 } 

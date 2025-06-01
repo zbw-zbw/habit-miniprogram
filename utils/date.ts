@@ -22,6 +22,16 @@ export function formatDate(date: Date): string {
 }
 
 /**
+ * 格式化时间，格式为HH:MM
+ * @param date 日期对象
+ */
+export function formatTime(date: Date): string {
+  const hours = String(date.getHours()).padStart(2, '0');
+  const minutes = String(date.getMinutes()).padStart(2, '0');
+  return `${hours}:${minutes}`;
+}
+
+/**
  * 解析日期字符串，格式为YYYY-MM-DD
  * @param dateStr 日期字符串
  */

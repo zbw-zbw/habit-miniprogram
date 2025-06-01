@@ -1,7 +1,8 @@
-import { formatDate, getCurrentDate } from '../../utils/date';
+import { formatDate, getCurrentDate, formatTime } from '../../utils/date';
 import { habitAPI, checkinAPI } from '../../services/api';
 import { communityAPI } from '../../services/api';
 import { shouldDoHabitOnDate } from '../../utils/habit';
+import { ICheckin, IHabit } from '../../utils/types';
 
 interface IPageData {
   habitId: string;
@@ -9,18 +10,24 @@ interface IPageData {
   habit: IHabit | null;
   showForm: boolean;
   formData: {
-    duration: string; // 格式：HH:MM:SS
+    date: string;
+    time: string;
+    duration: string;
     content: string;
     note: string;
-    mood: 'great' | 'good' | 'neutral' | 'bad' | 'terrible' | null;
+    mood: string;
+    difficulty: number;
     photos: string[];
   };
+  durationArray: {
+    values: string[][];
+    selectedIndex: number[];
+  };
   timer: {
-    isRunning: boolean;
+    active: boolean;
     startTime: number;
     elapsedTime: number;
     displayTime: string;
-    intervalId: number | null;
   };
   todayCheckins: ICheckin[];
   weekDays: Array<{
@@ -77,6 +84,7 @@ interface IPageMethods {
   convertMoodToEnum(mood: number): string;
   loadTodayHabits(): Promise<void>;
   navigateToCheckin(e: WechatMiniprogram.TouchEvent): void;
+  onDurationChange(e: WechatMiniprogram.PickerChange): void;
 }
 
 Page<IPageData, IPageMethods>({
@@ -86,18 +94,28 @@ Page<IPageData, IPageMethods>({
     habit: null,
     showForm: false,
     formData: {
-      duration: '00:30:00',
+      date: formatDate(new Date()),
+      time: formatTime(new Date()),
+      duration: '00:00:00',
       content: '',
       note: '',
-      mood: null,
-      photos: []
+      mood: '',
+      difficulty: 3,
+      photos: [],
+    },
+    durationArray: {
+      values: [
+        Array.from({ length: 24 }, (_, i) => String(i).padStart(2, '0')), // 小时 0-23
+        Array.from({ length: 60 }, (_, i) => String(i).padStart(2, '0')), // 分钟 0-59
+        Array.from({ length: 60 }, (_, i) => String(i).padStart(2, '0'))  // 秒钟 0-59
+      ],
+      selectedIndex: [0, 0, 0] // 默认选中 00:00:00
     },
     timer: {
-      isRunning: false,
+      active: false,
       startTime: 0,
       elapsedTime: 0,
       displayTime: '00:00:00',
-      intervalId: null
     },
     todayCheckins: [],
     weekDays: [],
@@ -114,10 +132,10 @@ Page<IPageData, IPageMethods>({
     today: '',
     showSuccessPopup: false,
     successMessage: {
-      title: '打卡成功',
-      subtitle: '继续保持',
+      title: '',
+      subtitle: '',
       streak: 0,
-      points: 0
+      points: 0,
     },
     photos: [],
     todayHabits: []
@@ -153,8 +171,8 @@ Page<IPageData, IPageMethods>({
 
   onUnload() {
     // 清除定时器
-    if (this.data.timer.intervalId) {
-      clearInterval(this.data.timer.intervalId);
+    if (this.data.timer.active) {
+      clearInterval(this.data.timer.active);
     }
   },
 
@@ -357,7 +375,7 @@ Page<IPageData, IPageMethods>({
 
   // 启动计时器
   startTimer() {
-    if (this.data.timer.isRunning) {
+    if (this.data.timer.active) {
       this.stopTimer();
       return;
     }
@@ -368,21 +386,21 @@ Page<IPageData, IPageMethods>({
     }, 1000);
 
     this.setData({
-      'timer.isRunning': true,
+      'timer.active': true,
       'timer.startTime': now - this.data.timer.elapsedTime,
-      'timer.intervalId': intervalId
+      'timer.active': intervalId
     });
   },
 
   // 停止计时器
   stopTimer() {
-    if (this.data.timer.intervalId) {
-      clearInterval(this.data.timer.intervalId);
+    if (this.data.timer.active) {
+      clearInterval(this.data.timer.active);
     }
 
     this.setData({
-      'timer.isRunning': false,
-      'timer.intervalId': null
+      'timer.active': false,
+      'timer.active': null
     });
   },
 
@@ -492,9 +510,7 @@ Page<IPageData, IPageMethods>({
         note: this.data.formData.note,
         mood: this.data.formData.mood,
         content: this.data.formData.content,
-        duration: this.data.timer.isRunning 
-          ? Math.floor(this.data.timer.elapsedTime / 1000) 
-          : this.data.formData.duration ? this.parseTimeStringToSeconds(this.data.formData.duration) : 0
+        duration: this.data.formData.duration ? this.parseTimeStringToSeconds(this.data.formData.duration) : 0
       };
       
       // 如果有图片，先上传图片
@@ -515,11 +531,6 @@ Page<IPageData, IPageMethods>({
       const response = await checkinAPI.createCheckin(checkinData);
       
       console.log('打卡成功:', response);
-      
-      // 停止计时器
-      if (this.data.timer.isRunning) {
-        this.stopTimer();
-      }
       
       // 构建成功信息
       let streak = 0;
@@ -564,15 +575,6 @@ Page<IPageData, IPageMethods>({
         detailPage.loadCheckins();
         detailPage.loadStats();
       }
-      
-      // 延迟返回
-      setTimeout(() => {
-        // 如果不是从习惯详情页来的，则返回上一页
-        const refererPage = pages[pages.length - 2];
-        if (!refererPage || refererPage.route !== 'pages/habits/detail/detail') {
-          wx.navigateBack();
-        }
-      }, 3000);
       
     } catch (error) {
       console.error('打卡失败:', error);
@@ -646,7 +648,7 @@ Page<IPageData, IPageMethods>({
     const uploadPromises = photos.map(photo => {
       return new Promise<string>((resolve, reject) => {
         wx.uploadFile({
-          url: getApp<IAppOption>().globalData.apiBaseUrl + '/api/upload',
+          url: getApp<IAppOption>().globalData.apiBaseUrl + '/api/media/upload',
           filePath: photo,
           name: 'file',
           success: (res) => {
@@ -774,11 +776,9 @@ Page<IPageData, IPageMethods>({
     this.setData({ showSuccessPopup: false });
     
     // 返回上一页
-    setTimeout(() => {
-      wx.navigateBack({
-        delta: 1
-      });
-    }, 300);
+    wx.navigateBack({
+      delta: 1
+    });
   },
 
   /**
@@ -787,9 +787,18 @@ Page<IPageData, IPageMethods>({
   shareCheckin() {
     this.setData({ showSuccessPopup: false });
     
-    wx.navigateTo({
-      url: `/pages/community/post/post?habitId=${this.data.habitId}&action=checkin`
+    // 调用系统分享
+    wx.showShareMenu({
+      withShareTicket: true,
+      menus: ['shareAppMessage', 'shareTimeline']
     });
+
+    // 延迟返回上一页，确保分享界面显示完成
+    setTimeout(() => {
+      wx.navigateBack({
+        delta: 1
+      });
+    }, 300);
   },
 
   /**
@@ -863,6 +872,23 @@ Page<IPageData, IPageMethods>({
     // 导航到该习惯的打卡页面
     wx.redirectTo({
       url: `/pages/checkin/checkin?habitId=${habitId}&habitName=${habitName}`
+    });
+  },
+
+  /**
+   * 选择时长
+   */
+  onDurationChange(e: WechatMiniprogram.PickerChange) {
+    const selectedIndex = e.detail.value as number[];
+    const hours = this.data.durationArray.values[0][selectedIndex[0]];
+    const minutes = this.data.durationArray.values[1][selectedIndex[1]];
+    const seconds = this.data.durationArray.values[2][selectedIndex[2]];
+    
+    const durationString = `${hours}:${minutes}:${seconds}`;
+    
+    this.setData({
+      'formData.duration': durationString,
+      'durationArray.selectedIndex': selectedIndex
     });
   }
 });

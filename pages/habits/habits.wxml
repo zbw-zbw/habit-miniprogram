@@ -1,18 +1,11 @@
 <!--pages/habits/habits.wxml-->
 <view class="container">
   <!-- 顶部标签栏 -->
-  <view class="tabs">
-    <scroll-view scroll-x class="tabs-scroll" scroll-with-animation enable-flex>
-      <view 
-        wx:for="{{categories}}" 
-        wx:key="index" 
-        class="tab-item {{activeTab === index ? 'active' : ''}}"
-        bindtap="onTabChange"
-        data-index="{{index}}">
-        {{categoryMap[item] || item}}
-      </view>
-    </scroll-view>
-  </view>
+  <tab-bar 
+    tabs="{{categoryTabs}}" 
+    activeTab="{{activeTab}}" 
+    bind:tabchange="onTabChange">
+  </tab-bar>
 
   <!-- 添加已归档习惯的开关 -->
   <view class="filter-bar">

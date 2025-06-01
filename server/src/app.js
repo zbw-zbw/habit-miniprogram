@@ -20,6 +20,7 @@ const settingsRoutes = require('./routes/settings.routes');
 const friendsRoutes = require('./routes/friends.routes');
 const dashboardRoutes = require('./routes/dashboard.routes');
 const groupRoutes = require('./routes/group.routes');
+const mediaRoutes = require('./routes/media.routes');
 
 // 导入控制器
 const postController = require('./controllers/post.controller');
@@ -50,6 +51,7 @@ app.use('/api/notifications', notificationRoutes);
 app.use('/api/settings', settingsRoutes);
 app.use('/api/friends', friendsRoutes);
 app.use('/api/groups', groupRoutes);
+app.use('/api/media', mediaRoutes);
 
 // 聚合API路由
 app.use('/api', dashboardRoutes);

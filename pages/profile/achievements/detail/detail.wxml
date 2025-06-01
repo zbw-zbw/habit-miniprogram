@@ -8,10 +8,16 @@
   
   <!-- 成就不存在 -->
   <view wx:elif="{{!achievement}}">
-    <empty-achievement 
-      title="成就不存在或已被删除"
-      tips="请返回成就列表查看其他成就" />
-    <button class="btn btn-primary" bindtap="navigateBack">返回</button>
+  <empty-state
+    title="成就不存在或已被删除"
+    description="请返回成就列表查看其他成就"
+    icon="/assets/images/achievement.png"
+    showAction="{{true}}"
+    hasLogin="{{true}}"
+    actionText="返回成就列表"
+    bind:action="navigateBack"
+    >
+  </empty-state>
   </view>
   
   <!-- 成就详情 -->

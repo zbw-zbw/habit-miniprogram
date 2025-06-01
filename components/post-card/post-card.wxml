@@ -8,9 +8,6 @@
         <text class="post-meta">{{post.createdAt}}</text>
       </view>
     </view>
-    <view class="post-more">
-      <text class="iconfont icon-more"></text>
-    </view>
   </view>
   
   <view class="post-content">
@@ -57,19 +54,17 @@
   <view class="post-actions">
     <view class="post-action {{post.isLiked ? 'active' : ''}}" catchtap="likePost">
       <text class="iconfont {{post.isLiked ? 'icon-heart-fill' : 'icon-heart'}}"></text>
-      <text>{{post.likes}}</text>
+      <text>{{post.likes || 0}}</text>
     </view>
     <view class="post-action" catchtap="commentPost">
       <text class="iconfont icon-comment"></text>
-      <text>{{post.comments}}</text>
+      <text>{{post.comments || 0}}</text>
     </view>
     <button class="post-action share-btn" open-type="share" wx:if="{{isDetail}}">
       <text class="iconfont icon-share"></text>
-      <text>分享</text>
     </button>
     <view class="post-action" catchtap="sharePost" wx:else>
       <text class="iconfont icon-share"></text>
-      <text>分享</text>
     </view>
   </view>
 </view> 

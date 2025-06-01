@@ -20,6 +20,17 @@
         <block wx:elif="{{habit.frequency.type === 'weekly'}}">每周</block>
         <block wx:elif="{{habit.frequency.type === 'workdays'}}">工作日</block>
         <block wx:elif="{{habit.frequency.type === 'custom'}}">自定义</block>
+        
+        <!-- 显示次数或时长 -->
+        <block wx:if="{{habit.duration && habit.duration.enabled}}">
+          {{habit.duration.format || '00:00:00'}}
+        </block>
+        <block wx:elif="{{habit.targetValue && habit.unit}}">
+          {{habit.targetValue}}{{habit.unit}}
+        </block>
+        <block wx:else>
+          1次
+        </block>
       </view>
     </view>
     

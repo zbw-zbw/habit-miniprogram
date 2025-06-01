@@ -28,6 +28,8 @@ Page({
     categories: ['all', 'learning', 'health', 'work', 'life'] as string[],
     // 用于Tab组件显示的中文标签
     categoryLabels: [] as string[],
+    // 为tab-bar组件准备的标签
+    categoryTabs: [] as string[],
     // 分类英文到中文的映射
     categoryMap: {
       all: '全部',
@@ -71,6 +73,7 @@ Page({
     this.setData({
       apiAvailable: app.globalData.apiAvailable,
       categoryLabels,
+      categoryTabs: categoryLabels, // 同时设置tab-bar组件使用的标签
       activeTab: 0, // 默认选中"全部"标签
       hasLogin: app.globalData.hasLogin,
     });
