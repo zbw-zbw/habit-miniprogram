@@ -37,6 +37,7 @@ interface IPageMethods {
   formatStatusClass(status: string): string;
   calculateTimeRemaining(startDate: string, endDate: string): string;
   goBack(): void;
+  processChallenge(challenge: any): void;
 }
 
 Page<IPageData, IPageMethods>({
@@ -122,58 +123,29 @@ Page<IPageData, IPageMethods>({
     
     this.setData({ loading: true });
     
-    communityAPI.getChallenge(challengeId)
-      .then(challenge => {
-        console.log('获取到挑战详情:', challenge);
+    // 先尝试从挑战列表API获取挑战详情
+    communityAPI.getChallenges({ limit: 20 })
+      .then(result => {
+        console.log('尝试从挑战列表获取挑战详情');
         
-        // 处理挑战数据
-        const processedChallenge = {
-          ...challenge,
-          // 确保id字段存在
-          id: challenge.id || challenge._id,
-          // 确保participantsCount字段存在
-          participantsCount: challenge.participantsCount || challenge.participants || 0,
-          // 确保participants字段存在
-          participants: challenge.participants || challenge.participantsCount || 0,
-          // 确保isJoined和isParticipating字段存在
-          isJoined: challenge.isJoined || challenge.isParticipating || false,
-          isParticipating: challenge.isParticipating || challenge.isJoined || false
-        };
-        
-        // 计算状态文本和样式
-        const statusText = this.formatStatusText(challenge.status);
-        const statusClass = this.formatStatusClass(challenge.status);
-        
-        // 计算剩余时间
-        const timeRemaining = this.calculateTimeRemaining(
-          challenge.dateRange?.startDate || '',
-          challenge.dateRange?.endDate || ''
+        // 从挑战列表中查找指定ID的挑战
+        const challenges = result.challenges || [];
+        const challenge = challenges.find((c: any) => 
+          (c.id === challengeId || c._id === challengeId)
         );
         
-        // 检查是否是创建者
-        const app = getApp<IAppOption>();
-        const isCreator = app.globalData.userInfo && 
-                         challenge.creator && 
-                         app.globalData.userInfo.id === challenge.creator._id;
-        
-        // 更新页面数据
-        this.setData({
-          challenge: processedChallenge,
-          loading: false,
-          isJoined: processedChallenge.isJoined || processedChallenge.isParticipating,
-          isCreator,
-          statusText,
-          statusClass,
-          timeRemaining,
-          progress: challenge.progress || {
-            completedCount: 0,
-            targetCount: challenge.requirements?.targetCount || 0,
-            completionRate: 0
-          }
-        });
-        
-        // 加载参与者列表
-        this.loadParticipants();
+        if (challenge) {
+          console.log('从挑战列表中找到了挑战详情:', challenge);
+          this.processChallenge(challenge);
+        } else {
+          console.log('挑战列表中未找到该挑战，尝试使用挑战详情API');
+          // 如果挑战列表中没有找到，再使用挑战详情API
+          return communityAPI.getChallenge(challengeId)
+            .then(challenge => {
+              console.log('使用挑战详情API获取到挑战详情:', challenge);
+              this.processChallenge(challenge);
+            });
+        }
       })
       .catch(error => {
         console.error('获取挑战详情失败:', error);
@@ -185,6 +157,60 @@ Page<IPageData, IPageMethods>({
         
         this.setData({ loading: false });
       });
+  },
+  
+  /**
+   * 处理挑战数据
+   */
+  processChallenge(challenge: any) {
+    // 处理挑战数据
+    const processedChallenge = {
+      ...challenge,
+      // 确保id字段存在
+      id: challenge.id || challenge._id,
+      // 确保participantsCount字段存在
+      participantsCount: challenge.participantsCount || challenge.participants || 0,
+      // 确保participants字段存在
+      participants: challenge.participants || challenge.participantsCount || 0,
+      // 确保isJoined和isParticipating字段存在
+      isJoined: challenge.isJoined || challenge.isParticipating || false,
+      isParticipating: challenge.isParticipating || challenge.isJoined || false
+    };
+    
+    // 计算状态文本和样式
+    const statusText = this.formatStatusText(challenge.status);
+    const statusClass = this.formatStatusClass(challenge.status);
+    
+    // 计算剩余时间
+    const timeRemaining = this.calculateTimeRemaining(
+      challenge.dateRange?.startDate || '',
+      challenge.dateRange?.endDate || ''
+    );
+    
+    // 检查是否是创建者
+    const app = getApp<IAppOption>();
+    const isCreator = app.globalData.userInfo && 
+                      challenge.creator && 
+                      app.globalData.userInfo.id === challenge.creator._id;
+    
+    // 更新页面数据
+    this.setData({
+      challenge: processedChallenge,
+      loading: false,
+      isJoined: processedChallenge.isJoined || processedChallenge.isParticipating,
+      isCreator,
+      statusText,
+      statusClass,
+      timeRemaining,
+      progress: challenge.progress || {
+        completedCount: 0,
+        targetCount: challenge.requirements?.targetCount || 0,
+        completionRate: 0
+      }
+    });
+    
+    // 加载参与者列表
+    this.loadParticipants();
   },
   
   /**
