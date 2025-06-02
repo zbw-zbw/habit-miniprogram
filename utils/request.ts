@@ -109,6 +109,18 @@ interface ExtendedAppOption extends IAppOption {
 }
 
 /**
+ * 将对象转换为查询字符串
+ * @param params 参数对象
+ * @returns 查询字符串
+ */
+const objectToQueryString = (params: Record<string, any>): string => {
+  return Object.keys(params)
+    .filter(key => params[key] !== undefined && params[key] !== null)
+    .map(key => `${encodeURIComponent(key)}=${encodeURIComponent(params[key])}`)
+    .join('&');
+};
+
+/**
  * 请求拦截器
  * @param options 请求参数
  * @returns 处理后的请求参数
@@ -123,6 +135,40 @@ const requestInterceptor = (options: RequestOptions): RequestOptions => {
       ...options.header,
       Authorization: `Bearer ${app.globalData.token}`,
     };
+  }
+
+  // 清理请求参数，移除undefined和null值
+  if (options.data && typeof options.data === 'object' && !Array.isArray(options.data)) {
+    const cleanData: Record<string, any> = {};
+    Object.keys(options.data).forEach(key => {
+      if (options.data[key] !== undefined && options.data[key] !== null) {
+        cleanData[key] = options.data[key];
+      }
+    });
+    options.data = cleanData;
+  }
+
+  // 如果是GET请求，清理URL参数中的undefined和null值
+  if (options.method === 'GET' || !options.method) {
+    // 解析URL和查询参数
+    const urlParts = options.url.split('?');
+    if (urlParts.length > 1) {
+      const baseUrl = urlParts[0];
+      const queryString = urlParts[1];
+      
+      // 解析查询参数
+      const params: Record<string, string> = {};
+      queryString.split('&').forEach(pair => {
+        const [key, value] = pair.split('=');
+        if (value !== 'undefined' && value !== 'null') {
+          params[decodeURIComponent(key)] = decodeURIComponent(value);
+        }
+      });
+      
+      // 重建URL
+      const cleanQueryString = objectToQueryString(params);
+      options.url = cleanQueryString ? `${baseUrl}?${cleanQueryString}` : baseUrl;
+    }
   }
 
   // 强制使用API服务，不使用本地数据
@@ -159,8 +205,11 @@ const responseInterceptor = <T>(
       );
     }
 
-    // 其他业务错误
-    return Promise.reject(new Error(data.message || '请求失败'));
+    // 业务逻辑错误，创建自定义错误对象，包含服务端返回的错误信息
+    const error = new Error(data.message || '请求失败');
+    (error as any).response = data;
+    (error as any).message = data.message || '请求失败';
+    return Promise.reject(error);
   }
 
   // 处理401未授权错误
@@ -168,8 +217,12 @@ const responseInterceptor = <T>(
     return handleUnauthorized(options);
   }
 
-  // 其他HTTP错误
-  return Promise.reject(new Error(`网络请求失败，状态码：${statusCode}`));
+  // 其他HTTP错误，创建自定义错误对象，包含服务端返回的错误信息
+  const error = new Error(`网络请求失败，状态码：${statusCode}`);
+  (error as any).response = data;
+  (error as any).statusCode = statusCode;
+  (error as any).message = data.message || `网络请求失败，状态码：${statusCode}`;
+  return Promise.reject(error);
 };
 
 /**
@@ -329,7 +382,8 @@ export const request = <T>(options: RequestOptions): Promise<T> => {
 
   // 检查请求URL是否包含API基础URL
   const url = options.url;
-  const apiBaseUrl = getApp<IAppOption>()?.globalData?.apiBaseUrl || '';
+  const app = getApp<IAppOption>();
+  const apiBaseUrl = app?.globalData?.apiBaseUrl || '';
 
   // 应用请求拦截器
   options = requestInterceptor(options);
@@ -413,6 +467,32 @@ export const get = <T>(
   data?: Record<string, any>,
   options?: Omit<RequestOptions, 'url' | 'method' | 'data'>
 ): Promise<T> => {
+  // 处理查询参数
+  if (data) {
+    // 移除undefined和null值
+    const cleanData: Record<string, any> = {};
+    Object.keys(data).forEach(key => {
+      if (data[key] !== undefined && data[key] !== null) {
+        cleanData[key] = data[key];
+      }
+    });
+    
+    // 构建查询字符串
+    const queryString = objectToQueryString(cleanData);
+    
+    // 添加查询字符串到URL
+    if (queryString) {
+      url = url.includes('?') ? `${url}&${queryString}` : `${url}?${queryString}`;
+    }
+    
+    // 使用处理后的URL，不传递data
+    return request<T>({
+      url,
+      method: 'GET',
+      ...options,
+    });
+  }
+  
   return request<T>({
     url,
     method: 'GET',

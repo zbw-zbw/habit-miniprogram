@@ -447,7 +447,7 @@ exports.toggleFollow = async (req, res) => {
       message: '服务器错误，操作失败'
     });
   }
-};
+}; 
 
 /**
  * 获取推荐用户

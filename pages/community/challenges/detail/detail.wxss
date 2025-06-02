@@ -239,6 +239,13 @@
   margin-bottom: 10rpx;
 }
 
+.participant-info {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+}
+
 .participant-name {
   font-size: 24rpx;
   color: #606266;
@@ -247,6 +254,15 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.participant-label {
+  font-size: 20rpx;
+  color: #67C23A;
+  background-color: rgba(103, 194, 58, 0.1);
+  padding: 2rpx 8rpx;
+  border-radius: 10rpx;
+  margin-top: 4rpx;
 }
 
 .empty-participants {

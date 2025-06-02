@@ -1,80 +1,103 @@
 "use strict";
-var __assign = (this && this.__assign) || function () {
-    __assign = Object.assign || function(t) {
-        for (var s, i = 1, n = arguments.length; i < n; i++) {
-            s = arguments[i];
-            for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p))
-                t[p] = s[p];
-        }
-        return t;
-    };
-    return __assign.apply(this, arguments);
-};
-var __spreadArray = (this && this.__spreadArray) || function (to, from, pack) {
-    if (pack || arguments.length === 2) for (var i = 0, l = from.length, ar; i < l; i++) {
-        if (ar || !(i in from)) {
-            if (!ar) ar = Array.prototype.slice.call(from, 0, i);
-            ar[i] = from[i];
-        }
-    }
-    return to.concat(ar || Array.prototype.slice.call(from));
-};
-exports.__esModule = true;
+Object.defineProperty(exports, "__esModule", { value: true });
 exports.del = exports.put = exports.post = exports.get = exports.request = void 0;
 /**
  * 生成UUID
  * @returns UUID字符串
  */
-var generateUUID = function () {
+const generateUUID = () => {
     return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
-        var r = (Math.random() * 16) | 0;
-        var v = c === 'x' ? r : (r & 0x3) | 0x8;
+        const r = (Math.random() * 16) | 0;
+        const v = c === 'x' ? r : (r & 0x3) | 0x8;
         return v.toString(16);
     });
 };
 // 默认请求头
-var DEFAULT_HEADER = {
-    'content-type': 'application/json'
+const DEFAULT_HEADER = {
+    'content-type': 'application/json',
 };
 // 请求队列
-var requestQueue = [];
+const requestQueue = [];
 // 是否正在刷新令牌
-var isRefreshingToken = false;
+let isRefreshingToken = false;
 // 等待令牌刷新的请求队列
-var refreshQueue = [];
+const refreshQueue = [];
 // 显示加载提示
-var showLoadingToast = function (text) {
-    if (text === void 0) { text = '加载中...'; }
+const showLoadingToast = (text = '加载中...') => {
     wx.showLoading({
         title: text,
-        mask: true
+        mask: true,
     });
 };
 // 隐藏加载提示
-var hideLoadingToast = function () {
+const hideLoadingToast = () => {
     if (requestQueue.length === 0) {
         wx.hideLoading();
     }
 };
 // 显示错误提示
-var showErrorToast = function (message) {
+const showErrorToast = (message) => {
     wx.showToast({
         title: message,
         icon: 'none',
-        duration: 2000
+        duration: 2000,
     });
+};
+/**
+ * 将对象转换为查询字符串
+ * @param params 参数对象
+ * @returns 查询字符串
+ */
+const objectToQueryString = (params) => {
+    return Object.keys(params)
+        .filter(key => params[key] !== undefined && params[key] !== null)
+        .map(key => `${encodeURIComponent(key)}=${encodeURIComponent(params[key])}`)
+        .join('&');
 };
 /**
  * 请求拦截器
  * @param options 请求参数
  * @returns 处理后的请求参数
  */
-var requestInterceptor = function (options) {
+const requestInterceptor = (options) => {
     // 获取全局应用实例
-    var app = getApp();
+    const app = getApp();
     // 添加token
     if (app && app.globalData && app.globalData.token) {
-        options.header = __assign(__assign({}, options.header), { Authorization: "Bearer ".concat(app.globalData.token) });
+        options.header = {
+            ...options.header,
+            Authorization: `Bearer ${app.globalData.token}`,
+        };
+    }
+    // 清理请求参数，移除undefined和null值
+    if (options.data && typeof options.data === 'object' && !Array.isArray(options.data)) {
+        const cleanData = {};
+        Object.keys(options.data).forEach(key => {
+            if (options.data[key] !== undefined && options.data[key] !== null) {
+                cleanData[key] = options.data[key];
+            }
+        });
+        options.data = cleanData;
+    }
+    // 如果是GET请求，清理URL参数中的undefined和null值
+    if (options.method === 'GET' || !options.method) {
+        // 解析URL和查询参数
+        const urlParts = options.url.split('?');
+        if (urlParts.length > 1) {
+            const baseUrl = urlParts[0];
+            const queryString = urlParts[1];
+            // 解析查询参数
+            const params = {};
+            queryString.split('&').forEach(pair => {
+                const [key, value] = pair.split('=');
+                if (value !== 'undefined' && value !== 'null') {
+                    params[decodeURIComponent(key)] = decodeURIComponent(value);
+                }
+            });
+            // 重建URL
+            const cleanQueryString = objectToQueryString(params);
+            options.url = cleanQueryString ? `${baseUrl}?${cleanQueryString}` : baseUrl;
+        }
     }
     // 强制使用API服务，不使用本地数据
     options.useLocalData = false;
@@ -86,9 +109,9 @@ var requestInterceptor = function (options) {
  * @param response 响应数据
  * @returns 处理后的响应数据
  */
-var responseInterceptor = function (response, options) {
-    var statusCode = response.statusCode, data = response.data;
-    var app = getApp();
+const responseInterceptor = (response, options) => {
+    const { statusCode, data } = response;
+    const app = getApp();
     // 请求成功
     if (statusCode >= 200 && statusCode < 300) {
         // 业务状态码正常 - 后端可能返回success: true或code: 0表示成功
@@ -99,23 +122,30 @@ var responseInterceptor = function (response, options) {
             // 返回数据可能直接在data中，或者在data.data中
             return Promise.resolve(data.data !== undefined ? data.data : data);
         }
-        // 其他业务错误
-        return Promise.reject(new Error(data.message || '请求失败'));
+        // 业务逻辑错误，创建自定义错误对象，包含服务端返回的错误信息
+        const error = new Error(data.message || '请求失败');
+        error.response = data;
+        error.message = data.message || '请求失败';
+        return Promise.reject(error);
     }
     // 处理401未授权错误
     if (statusCode === 401) {
         return handleUnauthorized(options);
     }
-    // 其他HTTP错误
-    return Promise.reject(new Error("\u7F51\u7EDC\u8BF7\u6C42\u5931\u8D25\uFF0C\u72B6\u6001\u7801\uFF1A".concat(statusCode)));
+    // 其他HTTP错误，创建自定义错误对象，包含服务端返回的错误信息
+    const error = new Error(`网络请求失败，状态码：${statusCode}`);
+    error.response = data;
+    error.statusCode = statusCode;
+    error.message = data.message || `网络请求失败，状态码：${statusCode}`;
+    return Promise.reject(error);
 };
 /**
  * 处理未授权错误 (401)
  * @param options 原始请求参数
  * @returns Promise
  */
-var handleUnauthorized = function (options) {
-    var app = getApp();
+const handleUnauthorized = (options) => {
+    const app = getApp();
     // 检查API服务是否可用
     if (app && app.globalData && !app.globalData.apiAvailable) {
         console.log('API服务不可用，使用本地数据模式处理未授权错误');
@@ -143,20 +173,20 @@ var handleUnauthorized = function (options) {
     // 如果当前没有刷新令牌操作，则启动刷新
     if (!isRefreshingToken) {
         // 添加请求到队列
-        refreshQueue.push({ options: options });
+        refreshQueue.push({ options });
         // 标记正在刷新令牌
         isRefreshingToken = true;
         // 获取API基础URL和刷新令牌
-        var apiBaseUrl = app && app.globalData ? app.globalData.apiBaseUrl : '';
-        var refreshToken = app.globalData.refreshToken;
+        const apiBaseUrl = app && app.globalData ? app.globalData.apiBaseUrl : '';
+        const refreshToken = app.globalData.refreshToken;
         // 调用刷新令牌接口
         wx.request({
-            url: "".concat(apiBaseUrl, "/api/auth/refresh-token"),
+            url: `${apiBaseUrl}/api/auth/refresh-token`,
             method: 'POST',
             data: {
-                refreshToken: refreshToken
+                refreshToken,
             },
-            success: function (res) {
+            success: (res) => {
                 if (res.statusCode === 200 && res.data && res.data.token) {
                     // 更新令牌
                     if (app && app.globalData) {
@@ -176,12 +206,12 @@ var handleUnauthorized = function (options) {
                         console.error('保存令牌失败:', e);
                     }
                     // 重新发送所有等待的请求
-                    var requestsToRetry = __spreadArray([], refreshQueue, true);
+                    const requestsToRetry = [...refreshQueue];
                     // 清空队列
                     refreshQueue.length = 0;
                     // 重试所有请求
-                    requestsToRetry.forEach(function (item) {
-                        (0, exports.request)(item.options)["catch"](function () {
+                    requestsToRetry.forEach((item) => {
+                        (0, exports.request)(item.options).catch(() => {
                             // 忽略错误，已经在原始Promise中处理
                         });
                     });
@@ -199,7 +229,7 @@ var handleUnauthorized = function (options) {
                     }
                 }
             },
-            fail: function () {
+            fail: () => {
                 // 请求失败，清除登录状态
                 if (app && typeof app.clearAuthData === 'function') {
                     app.clearAuthData();
@@ -209,7 +239,7 @@ var handleUnauthorized = function (options) {
                     app.globalData.apiAvailable = false;
                     // 如果有用户信息，尝试使用本地模式登录
                     if (app.globalData.userInfo && typeof app.mockLogin === 'function') {
-                        app.mockLogin(app.globalData.userInfo, function () {
+                        app.mockLogin(app.globalData.userInfo, () => {
                             console.log('令牌刷新失败，已自动切换到本地模式登录');
                         });
                     }
@@ -221,15 +251,15 @@ var handleUnauthorized = function (options) {
                     app.notifyLoginStateChanged();
                 }
             },
-            complete: function () {
+            complete: () => {
                 // 重置刷新标记
                 isRefreshingToken = false;
-            }
+            },
         });
     }
     else {
         // 已经在刷新中，只添加请求到队列
-        refreshQueue.push({ options: options });
+        refreshQueue.push({ options });
     }
     // 无论如何，当前请求都返回错误
     return Promise.reject(new Error('登录已过期，请重新登录'));
@@ -239,42 +269,44 @@ var handleUnauthorized = function (options) {
  * @param options 请求参数
  * @returns Promise
  */
-var request = function (options) {
-    var _a, _b;
+const request = (options) => {
+    var _a;
     // 添加请求到队列
-    var requestId = generateUUID();
+    const requestId = generateUUID();
     requestQueue.push(requestId);
     // 检查请求URL是否包含API基础URL
-    var url = options.url;
-    var apiBaseUrl = ((_b = (_a = getApp()) === null || _a === void 0 ? void 0 : _a.globalData) === null || _b === void 0 ? void 0 : _b.apiBaseUrl) || '';
+    const url = options.url;
+    const app = getApp();
+    const apiBaseUrl = ((_a = app === null || app === void 0 ? void 0 : app.globalData) === null || _a === void 0 ? void 0 : _a.apiBaseUrl) || '';
     // 应用请求拦截器
     options = requestInterceptor(options);
     // 记录请求日志
-    console.log("[API\u8BF7\u6C42] ".concat(options.method || 'GET', " ").concat(url), options.data);
+    console.log(`[API请求] ${options.method || 'GET'} ${url}`, options.data);
     // 是否显示加载提示
     if (options.showLoading) {
         showLoadingToast(options.loadingText);
     }
     // 发送请求
-    return new Promise(function (resolve, reject) {
+    return new Promise((resolve, reject) => {
         wx.request({
             url: apiBaseUrl + url,
             method: options.method || 'GET',
             data: options.data,
             header: options.header || DEFAULT_HEADER,
             timeout: options.timeout || 30000,
-            success: function (res) {
+            success: (res) => {
                 // 记录响应日志
-                console.log("[API\u54CD\u5E94] ".concat(options.method || 'GET', " ").concat(url), res.data);
+                console.log(`[API响应] ${options.method || 'GET'} ${url}`, res.data);
                 // 请求成功，应用响应拦截器
                 responseInterceptor(res, options)
-                    .then(function (data) { return resolve(data); })["catch"](function (error) {
-                    console.error("[API\u9519\u8BEF] ".concat(options.method || 'GET', " ").concat(url), error);
+                    .then((data) => resolve(data))
+                    .catch((error) => {
+                    console.error(`[API错误] ${options.method || 'GET'} ${url}`, error);
                     reject(error);
                 });
             },
-            fail: function (error) {
-                console.error("[API\u5931\u8D25] ".concat(options.method || 'GET', " ").concat(url), error);
+            fail: (error) => {
+                console.error(`[API失败] ${options.method || 'GET'} ${url}`, error);
                 // 检查是否为网络错误
                 if (error.errMsg &&
                     (error.errMsg.includes('timeout') ||
@@ -291,9 +323,9 @@ var request = function (options) {
                 }
                 reject(new Error(error.errMsg || '网络请求失败'));
             },
-            complete: function () {
+            complete: () => {
                 // 从请求队列中移除
-                var index = requestQueue.indexOf(requestId);
+                const index = requestQueue.indexOf(requestId);
                 if (index > -1) {
                     requestQueue.splice(index, 1);
                 }
@@ -301,7 +333,7 @@ var request = function (options) {
                 if (options.showLoading && requestQueue.length === 0) {
                     hideLoadingToast();
                 }
-            }
+            },
         });
     });
 };
@@ -313,8 +345,35 @@ exports.request = request;
  * @param options 其他选项
  * @returns Promise
  */
-var get = function (url, data, options) {
-    return (0, exports.request)(__assign({ url: url, method: 'GET', data: data }, options));
+const get = (url, data, options) => {
+    // 处理查询参数
+    if (data) {
+        // 移除undefined和null值
+        const cleanData = {};
+        Object.keys(data).forEach(key => {
+            if (data[key] !== undefined && data[key] !== null) {
+                cleanData[key] = data[key];
+            }
+        });
+        // 构建查询字符串
+        const queryString = objectToQueryString(cleanData);
+        // 添加查询字符串到URL
+        if (queryString) {
+            url = url.includes('?') ? `${url}&${queryString}` : `${url}?${queryString}`;
+        }
+        // 使用处理后的URL，不传递data
+        return (0, exports.request)({
+            url,
+            method: 'GET',
+            ...options,
+        });
+    }
+    return (0, exports.request)({
+        url,
+        method: 'GET',
+        data,
+        ...options,
+    });
 };
 exports.get = get;
 /**
@@ -324,8 +383,13 @@ exports.get = get;
  * @param options 其他选项
  * @returns Promise
  */
-var post = function (url, data, options) {
-    return (0, exports.request)(__assign({ url: url, method: 'POST', data: data }, options));
+const post = (url, data, options) => {
+    return (0, exports.request)({
+        url,
+        method: 'POST',
+        data,
+        ...options,
+    });
 };
 exports.post = post;
 /**
@@ -335,8 +399,13 @@ exports.post = post;
  * @param options 其他选项
  * @returns Promise
  */
-var put = function (url, data, options) {
-    return (0, exports.request)(__assign({ url: url, method: 'PUT', data: data }, options));
+const put = (url, data, options) => {
+    return (0, exports.request)({
+        url,
+        method: 'PUT',
+        data,
+        ...options,
+    });
 };
 exports.put = put;
 /**
@@ -346,7 +415,12 @@ exports.put = put;
  * @param options 其他选项
  * @returns Promise
  */
-var del = function (url, data, options) {
-    return (0, exports.request)(__assign({ url: url, method: 'DELETE', data: data }, options));
+const del = (url, data, options) => {
+    return (0, exports.request)({
+        url,
+        method: 'DELETE',
+        data,
+        ...options,
+    });
 };
 exports.del = del;

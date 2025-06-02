@@ -29,9 +29,17 @@
             <van-tag wx:for="{{group.tags}}" wx:key="index" plain type="primary" custom-class="group-tag">{{item}}</van-tag>
           </view>
         </view>
-        <button class="join-button {{group.isJoined ? 'joined' : ''}}" bindtap="toggleJoin">
-          {{group.isJoined ? '已加入' : '加入小组'}}
-        </button>
+        <!-- 操作按钮 -->
+        <view class="action-buttons">
+          <button class="action-btn {{group.isJoined ? 'quit' : 'join'}} {{group.isCreator ? 'creator' : ''}}" 
+                  bindtap="toggleJoin">
+            {{group.isCreator ? '解散小组' : (group.isJoined ? '退出小组' : '加入小组')}}
+          </button>
+          <button class="action-btn share" open-type="share">
+            <text class="iconfont icon-share"></text>
+            <text>分享</text>
+          </button>
+        </view>
       </view>
     </view>
 
@@ -43,7 +51,7 @@
 
     <!-- 小组管理员 -->
     <view class="group-admin" wx:if="{{group.creator}}">
-      <text class="admin-title">小组管理员</text>
+      <text class="admin-title">{{group.isCreator ? '小组创建者(我)' : '小组管理员'}}</text>
       <view class="admin-info" bindtap="viewUserProfile" data-id="{{group.creator._id}}">
         <image class="admin-avatar" src="{{group.creator.avatar}}" mode="aspectFill"></image>
         <text class="admin-name">{{group.creator.nickname || group.creator.username}}</text>
@@ -60,7 +68,7 @@
           <view class="empty-tip" wx:if="{{posts.length === 0 && !loadingPosts}}">
             <image class="empty-icon" src="/assets/images/posts.png" mode="aspectFit"></image>
             <text class="empty-text">暂无动态</text>
-            <button class="create-button" bindtap="createPost" wx:if="{{group.isJoined}}">发布动态</button>
+            <button class="create-button" bindtap="createPost" wx:if="{{group.isJoined || group.isCreator}}">发布动态</button>
           </view>
 
           <!-- 动态列表 -->
@@ -145,7 +153,7 @@
   </block>
 
   <!-- 悬浮按钮 -->
-  <view class="float-button" wx:if="{{group.isJoined}}" bindtap="createPost">
+  <view class="float-button" wx:if="{{group.isJoined || group.isCreator}}" bindtap="createPost">
     <van-icon name="plus" />
   </view>
 </view> 

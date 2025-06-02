@@ -20,6 +20,7 @@
     "pages/community/groups/groups",
     "pages/community/groups/create/create",
     "pages/community/groups/detail/detail",
+    "pages/community/posts/posts",
     "pages/community/post-detail/post-detail",
     "pages/community/create-post/create-post",
     "pages/community/user-profile/user-profile",

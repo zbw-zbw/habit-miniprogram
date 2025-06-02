@@ -77,6 +77,13 @@ app.post('/api/challenges', authMiddleware, challengeController.createChallenge)
 app.get('/api/challenges/:challengeId', authMiddleware, challengeController.getChallenge);
 app.post('/api/challenges/:challengeId/join', authMiddleware, challengeController.joinChallenge);
 app.post('/api/challenges/:challengeId/leave', authMiddleware, challengeController.leaveChallenge);
+app.get('/api/challenges/:challengeId/participants', authMiddleware, challengeController.getChallengeParticipants);
+app.get('/api/challenges/:challengeId/leaderboard', authMiddleware, challengeController.getChallengeLeaderboard);
+app.post('/api/challenges/:challengeId/dismiss', authMiddleware, (req, res, next) => {
+  // 设置资源对象，以便后续中间件可以使用
+  req.resource = { creator: req.user._id };
+  next();
+}, challengeController.deleteChallenge); // 使用deleteChallenge作为解散挑战的处理函数
 
 // 根路由
 app.get('/', (req, res) => {

@@ -3,6 +3,7 @@
  */
 const Group = require('../models/group.model');
 const User = require('../models/user.model');
+const Post = require('../models/post.model');
 const { validationResult } = require('express-validator');
 
 /**
@@ -10,7 +11,7 @@ const { validationResult } = require('express-validator');
  */
 exports.getGroups = async (req, res) => {
   try {
-    const { page = 1, limit = 10, type, keyword } = req.query;
+    const { page = 1, limit = 10, type, keyword, joined, created, recommended } = req.query;
     const skip = (page - 1) * limit;
     
     // 构建查询条件
@@ -18,6 +19,8 @@ exports.getGroups = async (req, res) => {
     if (type && type !== 'all') {
       query.type = type;
     }
+    
+    // 处理关键词搜索
     if (keyword) {
       query.$or = [
         { name: { $regex: keyword, $options: 'i' } },
@@ -26,21 +29,59 @@ exports.getGroups = async (req, res) => {
       ];
     }
     
+    // 处理已加入的小组
+    if (joined === 'true') {
+      query.members = req.user._id;
+    }
+    
+    // 处理我创建的小组
+    if (created === 'true') {
+      query.creator = req.user._id;
+    }
+    
+    // 处理推荐的小组
+    if (recommended === 'true') {
+      // 这里可以根据用户兴趣、标签等进行推荐算法
+      // 简单实现：推荐用户未加入的活跃小组
+      query.members = { $ne: req.user._id };
+      // 按成员数量排序
+      var sortOption = { membersCount: -1 };
+    } else {
+      // 默认按创建时间排序
+      var sortOption = { createdAt: -1 };
+    }
+    
     // 查询小组
     const groups = await Group.find(query)
       .populate('creator', 'nickname avatarUrl')
-      .sort({ createdAt: -1 })
+      .sort(sortOption)
       .skip(skip)
       .limit(parseInt(limit));
     
     // 查询总数
     const total = await Group.countDocuments(query);
     
+    // 处理小组数据，添加isJoined标志
+    const processedGroups = await Promise.all(groups.map(async (group) => {
+      const groupObj = group.toObject();
+      
+      // 检查当前用户是否已加入该小组
+      groupObj.isJoined = group.members.some(memberId => 
+        memberId.toString() === req.user._id.toString()
+      );
+      
+      // 检查当前用户是否是创建者
+      groupObj.isCreator = group.creator && 
+        group.creator._id.toString() === req.user._id.toString();
+      
+      return groupObj;
+    }));
+    
     // 返回结果
     return res.json({
       success: true,
       data: {
-        groups,
+        groups: processedGroups,
         pagination: {
           total,
           page: parseInt(page),
@@ -406,6 +447,109 @@ exports.checkGroupOwner = async (req, res, next) => {
     return res.status(500).json({
       success: false,
       message: '检查小组所有者失败'
+    });
+  }
+};
+
+/**
+ * 获取小组动态
+ */
+exports.getGroupPosts = async (req, res) => {
+  try {
+    const { groupId } = req.params;
+    const { page = 1, limit = 10 } = req.query;
+    const skip = (page - 1) * limit;
+    
+    // 查找小组
+    const group = await Group.findById(groupId);
+    
+    if (!group) {
+      return res.status(404).json({
+        success: false,
+        message: '小组不存在'
+      });
+    }
+    
+    // 查询小组动态
+    const posts = await Post.find({ group: groupId })
+      .populate('user', 'nickname avatarUrl')
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(parseInt(limit));
+    
+    // 查询总数
+    const total = await Post.countDocuments({ group: groupId });
+    
+    // 处理点赞状态
+    const postsWithLikeStatus = posts.map(post => {
+      const postObj = post.toObject();
+      postObj.isLiked = post.likes.includes(req.user._id);
+      return postObj;
+    });
+    
+    // 返回结果
+    return res.json({
+      success: true,
+      data: {
+        posts: postsWithLikeStatus,
+        pagination: {
+          total,
+          page: parseInt(page),
+          limit: parseInt(limit),
+          pages: Math.ceil(total / limit)
+        }
+      }
+    });
+  } catch (error) {
+    console.error('获取小组动态失败:', error);
+    return res.status(500).json({
+      success: false,
+      message: '获取小组动态失败'
+    });
+  }
+};
+
+/**
+ * 解散小组
+ */
+exports.dismissGroup = async (req, res) => {
+  try {
+    const { groupId } = req.params;
+    
+    // 查找小组
+    const group = await Group.findById(groupId);
+    
+    if (!group) {
+      return res.status(404).json({
+        success: false,
+        message: '小组不存在'
+      });
+    }
+    
+    // 检查权限
+    if (group.creator.toString() !== req.user._id.toString()) {
+      return res.status(403).json({
+        success: false,
+        message: '只有小组创建者可以解散小组'
+      });
+    }
+    
+    // 删除小组相关的所有动态
+    await Post.deleteMany({ group: groupId });
+    
+    // 删除小组
+    await Group.findByIdAndDelete(groupId);
+    
+    // 返回结果
+    return res.json({
+      success: true,
+      message: '小组已解散'
+    });
+  } catch (error) {
+    console.error('解散小组失败:', error);
+    return res.status(500).json({
+      success: false,
+      message: '解散小组失败'
     });
   }
 }; 

@@ -16,11 +16,14 @@
       />
       <text class="clear-btn iconfont icon-close" wx:if="{{keyword}}" bindtap="clearSearch"></text>
     </view>
+    <view class="search-btn" bindtap="onSearch">
+      <text class="iconfont icon-search"></text>
+    </view>
     <view class="cancel-btn" bindtap="goBack">取消</view>
   </view>
   
   <!-- 搜索历史 -->
-  <view class="search-history" wx:if="{{!keyword && searchHistory.length > 0}}">
+  <view class="search-history" wx:if="{{!isSearched && searchHistory.length > 0}}">
     <view class="history-header">
       <text class="history-title">搜索历史</text>
       <text class="clear-history" bindtap="clearHistory">清除</text>
@@ -39,7 +42,7 @@
   </view>
   
   <!-- 热门搜索 -->
-  <view class="hot-search" wx:if="{{!keyword && hotSearches.length > 0}}">
+  <view class="hot-search" wx:if="{{!isSearched && hotSearches.length > 0}}">
     <view class="hot-header">
       <text class="hot-title">热门搜索</text>
     </view>
@@ -58,7 +61,7 @@
   </view>
   
   <!-- 搜索结果 -->
-  <view class="search-results" wx:if="{{keyword}}">
+  <view class="search-results" wx:if="{{isSearched}}">
     <!-- 切换标签 -->
     <view class="result-tabs">
       <view 
@@ -67,25 +70,25 @@
         data-tab="all"
       >全部</view>
       <view 
-        class="tab-item {{activeTab === 'users' ? 'active' : ''}}" 
+        class="tab-item {{activeTab === 'posts' ? 'active' : ''}}" 
         bindtap="switchTab" 
-        data-tab="users"
-      >用户</view>
-      <view 
-        class="tab-item {{activeTab === 'groups' ? 'active' : ''}}" 
-        bindtap="switchTab" 
-        data-tab="groups"
-      >小组</view>
+        data-tab="posts"
+      >动态</view>
       <view 
         class="tab-item {{activeTab === 'challenges' ? 'active' : ''}}" 
         bindtap="switchTab" 
         data-tab="challenges"
       >挑战</view>
       <view 
-        class="tab-item {{activeTab === 'posts' ? 'active' : ''}}" 
+        class="tab-item {{activeTab === 'groups' ? 'active' : ''}}" 
         bindtap="switchTab" 
-        data-tab="posts"
-      >动态</view>
+        data-tab="groups"
+      >小组</view>
+      <view 
+        class="tab-item {{activeTab === 'users' ? 'active' : ''}}" 
+        bindtap="switchTab" 
+        data-tab="users"
+      >用户</view>
     </view>
     
     <!-- 加载中 -->
@@ -95,66 +98,144 @@
     </view>
     
     <!-- 搜索为空 -->
-    <view class="empty-result" wx:if="{{!loading && results.length === 0}}">
-      <image class="empty-icon" src="/assets/images/search-empty.png" mode="aspectFit"></image>
+    <view class="empty-result" wx:if="{{!loading && keyword && results.length === 0 && isSearched}}">
+      <image class="empty-icon" src="/assets/images/empty.png" mode="aspectFit"></image>
       <text class="empty-text">没有找到"{{keyword}}"相关内容</text>
       <text class="empty-tips">试试其他关键词，或者查看热门搜索</text>
     </view>
     
-    <!-- 用户列表 -->
-    <view class="result-list user-list" wx:if="{{!loading && activeTab === 'users' && userResults.length > 0}}">
-      <view class="user-item" wx:for="{{userResults}}" wx:key="id" bindtap="viewUserProfile" data-id="{{item.id}}">
-        <image class="user-avatar" src="{{item.avatar}}" mode="aspectFill"></image>
-        <view class="user-info">
-          <view class="user-name">{{item.nickname}}</view>
-          <view class="user-bio">{{item.bio || '这个人很懒，没有留下签名'}}</view>
-        </view>
-        <button class="follow-btn {{item.isFollowing ? 'following' : ''}}" catchtap="toggleFollow" data-id="{{item.id}}" data-index="{{index}}">
-          {{item.isFollowing ? '已关注' : '关注'}}
-        </button>
-      </view>
-    </view>
-    
-    <!-- 小组列表 -->
-    <view class="result-list group-list" wx:if="{{!loading && activeTab === 'groups' && groupResults.length > 0}}">
-      <view class="group-item" wx:for="{{groupResults}}" wx:key="id" bindtap="viewGroupDetail" data-id="{{item.id}}">
-        <image class="group-avatar" src="{{item.avatar}}" mode="aspectFill"></image>
-        <view class="group-info">
-          <view class="group-name">{{item.name}}</view>
-          <view class="group-desc">{{item.description}}</view>
-          <view class="group-meta">
-            <text class="group-members">{{item.membersCount}}人</text>
-            <text class="group-posts">{{item.postsCount}}条动态</text>
+    <!-- 全部标签下的内容顺序：动态、挑战、小组、用户 -->
+    <block wx:if="{{activeTab === 'all'}}">
+      <!-- 动态列表 -->
+      <view class="result-list post-list" wx:if="{{!loading && postResults.length > 0}}">
+        <view class="category-title">动态</view>
+        <view class="post-item" wx:for="{{postResults}}" wx:key="id" bindtap="viewPostDetail" data-id="{{item.id}}">
+          <view class="post-header">
+            <image class="post-avatar" src="{{item.userAvatar || '/assets/images/default-avatar.png'}}" mode="aspectFill"></image>
+            <view class="post-user-info">
+              <view class="post-username">{{item.userName}}</view>
+              <view class="post-time">{{item.createdAt}}</view>
+            </view>
+          </view>
+          <view class="post-content">
+            <text class="post-text">{{item.content}}</text>
+            
+            <!-- 图片 - 微信朋友圈风格 -->
+            <block wx:if="{{item.images && item.images.length > 0}}">
+              <!-- 单张图片 -->
+              <view class="post-images" wx:if="{{item.images.length === 1}}">
+                <image 
+                  class="post-image single" 
+                  src="{{item.images[0]}}" 
+                  mode="aspectFill"
+                ></image>
+              </view>
+              
+              <!-- 两张图片 -->
+              <view class="post-images count-2" wx:elif="{{item.images.length === 2}}">
+                <image 
+                  class="post-image" 
+                  wx:for="{{item.images}}" 
+                  wx:for-item="img"
+                  wx:key="*this" 
+                  src="{{img}}" 
+                  mode="aspectFill"
+                ></image>
+              </view>
+              
+              <!-- 三张及以上图片 -->
+              <view class="post-images count-{{item.images.length}}" wx:elif="{{item.images.length > 2}}">
+                <image 
+                  class="post-image" 
+                  wx:for="{{item.images}}" 
+                  wx:for-item="img"
+                  wx:key="*this" 
+                  wx:if="{{index < 3}}"
+                  src="{{img}}" 
+                  mode="aspectFill"
+                ></image>
+                <view class="image-count" wx:if="{{item.images.length > 3}}">+{{item.images.length - 3}}</view>
+              </view>
+            </block>
+          </view>
+          <view class="post-stats">
+            <view class="stat-item">
+              <text class="iconfont {{item.isLiked ? 'icon-heart-fill' : 'icon-heart'}}"></text>
+              <text>{{item.likes || 0}}</text>
+            </view>
+            <view class="stat-item">
+              <text class="iconfont icon-comment"></text>
+              <text>{{item.comments || 0}}</text>
+            </view>
           </view>
         </view>
-        <button class="join-btn {{item.isJoined ? 'joined' : ''}}" catchtap="toggleJoin" data-id="{{item.id}}" data-index="{{index}}">
-          {{item.isJoined ? '已加入' : '加入'}}
-        </button>
+        <view class="view-more" wx:if="{{postResults.length > 3}}" bindtap="switchTab" data-tab="posts">查看更多动态</view>
       </view>
-    </view>
-    
-    <!-- 挑战列表 -->
-    <view class="result-list challenge-list" wx:if="{{!loading && activeTab === 'challenges' && challengeResults.length > 0}}">
-      <view class="challenge-item" wx:for="{{challengeResults}}" wx:key="id" bindtap="viewChallengeDetail" data-id="{{item.id}}">
-        <image class="challenge-image" src="{{item.image}}" mode="aspectFill" wx:if="{{item.image}}"></image>
-        <view class="challenge-info">
-          <view class="challenge-title">{{item.name}}</view>
-          <view class="challenge-desc">{{item.description}}</view>
-          <view class="challenge-meta">
-            <text>{{item.participantsCount}}人参与</text>
+      
+      <!-- 挑战列表 -->
+      <view class="result-list challenge-list" wx:if="{{!loading && challengeResults.length > 0}}">
+        <view class="category-title">挑战</view>
+        <view class="challenge-item" wx:for="{{challengeResults}}" wx:key="id" bindtap="viewChallengeDetail" data-id="{{item.id}}">
+          <image class="challenge-image" src="{{item.image || '/assets/images/challenge.png'}}" mode="aspectFill"></image>
+          <view class="challenge-info">
+            <view class="challenge-title">{{item.name}}</view>
+            <view class="challenge-desc">{{item.description || '暂无描述'}}</view>
+            <view class="challenge-meta">
+              <text>{{item.participantsCount || 0}}人参与</text>
+            </view>
           </view>
+          <view wx:if="{{item.isCreator}}" class="status-label creator">我发起的</view>
+          <view wx:elif="{{item.isJoined}}" class="status-label joined">已参与</view>
+          <button wx:else class="join-btn" catchtap="toggleJoinChallenge" data-id="{{item.id}}" data-index="{{index}}">
+            参与
+          </button>
         </view>
-        <button class="join-btn {{item.isJoined ? 'joined' : ''}}" catchtap="toggleJoinChallenge" data-id="{{item.id}}" data-index="{{index}}">
-          {{item.isJoined ? '已参与' : '参与'}}
-        </button>
+        <view class="view-more" wx:if="{{challengeResults.length > 3}}" bindtap="switchTab" data-tab="challenges">查看更多挑战</view>
       </view>
-    </view>
+      
+      <!-- 小组列表 -->
+      <view class="result-list group-list" wx:if="{{!loading && groupResults.length > 0}}">
+        <view class="category-title">小组</view>
+        <view class="group-item" wx:for="{{groupResults}}" wx:key="id" bindtap="viewGroupDetail" data-id="{{item.id}}">
+          <image class="group-avatar" src="{{item.avatar || '/assets/images/default-group.png'}}" mode="aspectFill"></image>
+          <view class="group-info">
+            <view class="group-name">{{item.name}}</view>
+            <view class="group-desc">{{item.description || '暂无描述'}}</view>
+            <view class="group-meta">
+              <text class="group-members">{{item.membersCount || 0}}人</text>
+              <text class="group-posts">{{item.postsCount || 0}}条动态</text>
+            </view>
+          </view>
+          <view wx:if="{{item.isJoined}}" class="status-label joined">已加入</view>
+          <button wx:else class="join-btn" catchtap="toggleJoin" data-id="{{item.id}}" data-index="{{index}}">
+            加入
+          </button>
+        </view>
+        <view class="view-more" wx:if="{{groupResults.length > 3}}" bindtap="switchTab" data-tab="groups">查看更多小组</view>
+      </view>
+      
+      <!-- 用户列表 -->
+      <view class="result-list user-list" wx:if="{{!loading && userResults.length > 0}}">
+        <view class="category-title">用户</view>
+        <view class="user-item" wx:for="{{userResults}}" wx:key="id" bindtap="viewUserProfile" data-id="{{item.id}}">
+          <image class="user-avatar" src="{{item.avatar || '/assets/images/default-avatar.png'}}" mode="aspectFill"></image>
+          <view class="user-info">
+            <view class="user-name">{{item.nickname}}</view>
+            <view class="user-bio">{{item.bio || '这个人很懒，没有留下签名'}}</view>
+          </view>
+          <button class="follow-btn {{item.isFollowing ? 'following' : ''}}" catchtap="toggleFollow" data-id="{{item.id}}" data-index="{{index}}">
+            {{item.isFollowing ? '已关注' : '关注'}}
+          </button>
+        </view>
+        <view class="view-more" wx:if="{{userResults.length > 3}}" bindtap="switchTab" data-tab="users">查看更多用户</view>
+      </view>
+    </block>
     
     <!-- 动态列表 -->
     <view class="result-list post-list" wx:if="{{!loading && activeTab === 'posts' && postResults.length > 0}}">
       <view class="post-item" wx:for="{{postResults}}" wx:key="id" bindtap="viewPostDetail" data-id="{{item.id}}">
         <view class="post-header">
-          <image class="post-avatar" src="{{item.userAvatar}}" mode="aspectFill"></image>
+          <image class="post-avatar" src="{{item.userAvatar || '/assets/images/default-avatar.png'}}" mode="aspectFill"></image>
           <view class="post-user-info">
             <view class="post-username">{{item.userName}}</view>
             <view class="post-time">{{item.createdAt}}</view>
@@ -162,19 +243,48 @@
         </view>
         <view class="post-content">
           <text class="post-text">{{item.content}}</text>
-          <view class="post-images" wx:if="{{item.images && item.images.length > 0}}">
-            <image 
-              class="post-image {{item.images.length === 1 ? 'single' : ''}}" 
-              src="{{item.images[0]}}" 
-              mode="aspectFill"
-              wx:if="{{item.images.length > 0}}"
-            ></image>
-            <view class="image-count" wx:if="{{item.images.length > 1}}">+{{item.images.length}}</view>
-          </view>
+          
+          <!-- 图片 - 微信朋友圈风格 -->
+          <block wx:if="{{item.images && item.images.length > 0}}">
+            <!-- 单张图片 -->
+            <view class="post-images" wx:if="{{item.images.length === 1}}">
+              <image 
+                class="post-image single" 
+                src="{{item.images[0]}}" 
+                mode="aspectFill"
+              ></image>
+            </view>
+            
+            <!-- 两张图片 -->
+            <view class="post-images count-2" wx:elif="{{item.images.length === 2}}">
+              <image 
+                class="post-image" 
+                wx:for="{{item.images}}" 
+                wx:for-item="img"
+                wx:key="*this" 
+                src="{{img}}" 
+                mode="aspectFill"
+              ></image>
+            </view>
+            
+            <!-- 三张及以上图片 -->
+            <view class="post-images count-{{item.images.length}}" wx:elif="{{item.images.length > 2}}">
+              <image 
+                class="post-image" 
+                wx:for="{{item.images}}" 
+                wx:for-item="img"
+                wx:key="*this" 
+                wx:if="{{index < 3}}"
+                src="{{img}}" 
+                mode="aspectFill"
+              ></image>
+              <view class="image-count" wx:if="{{item.images.length > 3}}">+{{item.images.length - 3}}</view>
+            </view>
+          </block>
         </view>
         <view class="post-stats">
           <view class="stat-item">
-            <text class="iconfont icon-heart"></text>
+            <text class="iconfont {{item.isLiked ? 'icon-heart-fill' : 'icon-heart'}}"></text>
             <text>{{item.likes || 0}}</text>
           </view>
           <view class="stat-item">
@@ -185,13 +295,65 @@
       </view>
     </view>
     
+    <!-- 挑战列表 -->
+    <view class="result-list challenge-list" wx:if="{{!loading && activeTab === 'challenges' && challengeResults.length > 0}}">
+      <view class="challenge-item" wx:for="{{challengeResults}}" wx:key="id" bindtap="viewChallengeDetail" data-id="{{item.id}}">
+        <image class="challenge-image" src="{{item.image || '/assets/images/challenge.png'}}" mode="aspectFill"></image>
+        <view class="challenge-info">
+          <view class="challenge-title">{{item.name}}</view>
+          <view class="challenge-desc">{{item.description || '暂无描述'}}</view>
+          <view class="challenge-meta">
+            <text>{{item.participantsCount || 0}}人参与</text>
+          </view>
+        </view>
+        <view wx:if="{{item.isCreator}}" class="status-label creator">我发起的</view>
+        <view wx:elif="{{item.isJoined}}" class="status-label joined">已参与</view>
+        <button wx:else class="join-btn" catchtap="toggleJoinChallenge" data-id="{{item.id}}" data-index="{{index}}">
+          参与
+        </button>
+      </view>
+    </view>
+    
+    <!-- 小组列表 -->
+    <view class="result-list group-list" wx:if="{{!loading && activeTab === 'groups' && groupResults.length > 0}}">
+      <view class="group-item" wx:for="{{groupResults}}" wx:key="id" bindtap="viewGroupDetail" data-id="{{item.id}}">
+        <image class="group-avatar" src="{{item.avatar || '/assets/images/default-group.png'}}" mode="aspectFill"></image>
+        <view class="group-info">
+          <view class="group-name">{{item.name}}</view>
+          <view class="group-desc">{{item.description || '暂无描述'}}</view>
+          <view class="group-meta">
+            <text class="group-members">{{item.membersCount || 0}}人</text>
+            <text class="group-posts">{{item.postsCount || 0}}条动态</text>
+          </view>
+        </view>
+        <view wx:if="{{item.isJoined}}" class="status-label joined">已加入</view>
+        <button wx:else class="join-btn" catchtap="toggleJoin" data-id="{{item.id}}" data-index="{{index}}">
+          加入
+        </button>
+      </view>
+    </view>
+    
+    <!-- 用户列表 -->
+    <view class="result-list user-list" wx:if="{{!loading && activeTab === 'users' && userResults.length > 0}}">
+      <view class="user-item" wx:for="{{userResults}}" wx:key="id" bindtap="viewUserProfile" data-id="{{item.id}}">
+        <image class="user-avatar" src="{{item.avatar || '/assets/images/default-avatar.png'}}" mode="aspectFill"></image>
+        <view class="user-info">
+          <view class="user-name">{{item.nickname}}</view>
+          <view class="user-bio">{{item.bio || '这个人很懒，没有留下签名'}}</view>
+        </view>
+        <button class="follow-btn {{item.isFollowing ? 'following' : ''}}" catchtap="toggleFollow" data-id="{{item.id}}" data-index="{{index}}">
+          {{item.isFollowing ? '已关注' : '关注'}}
+        </button>
+      </view>
+    </view>
+    
     <!-- 加载更多 -->
-    <view class="load-more" wx:if="{{!loading && hasMore}}" bindtap="loadMore">
+    <view class="load-more" wx:if="{{!loading && hasMore && activeTab !== 'all'}}" bindtap="loadMore">
       <text>加载更多</text>
     </view>
     
     <!-- 没有更多 -->
-    <view class="no-more" wx:if="{{!loading && !hasMore && results.length > 0}}">
+    <view class="no-more" wx:if="{{!loading && !hasMore && results.length > 0 && activeTab !== 'all'}}">
       <text>没有更多了</text>
     </view>
   </view>

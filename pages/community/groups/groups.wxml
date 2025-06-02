@@ -1,18 +1,14 @@
 <!--pages/community/groups/groups.wxml-->
 <view class="container">
   <!-- 顶部搜索栏 -->
-  <view class="search-bar {{showSearch ? 'active' : ''}}">
-    <view class="search-input-container" wx:if="{{showSearch}}">
+  <view class="search-bar">
+    <view class="search-input-container">
+      <text class="iconfont icon-search"></text>
       <input class="search-input" 
              placeholder="搜索小组" 
              value="{{searchKeyword}}" 
              bindinput="inputSearch"
-             bindconfirm="doSearch"
-             focus="{{showSearch}}"/>
-      <text class="iconfont icon-close" bindtap="hideSearchInput"></text>
-    </view>
-    <view class="search-icon" bindtap="showSearchInput" wx:else>
-      <text class="iconfont icon-search"></text>
+             bindconfirm="doSearch"/>
     </view>
     <view class="create-btn" bindtap="createGroup">
       <text class="iconfont icon-add"></text>
@@ -24,6 +20,7 @@
   <view class="tabs">
     <view class="tab-item {{activeTab === 'all' ? 'active' : ''}}" bindtap="switchTab" data-tab="all">全部</view>
     <view class="tab-item {{activeTab === 'joined' ? 'active' : ''}}" bindtap="switchTab" data-tab="joined">已加入</view>
+    <view class="tab-item {{activeTab === 'created' ? 'active' : ''}}" bindtap="switchTab" data-tab="created">我创建的</view>
     <view class="tab-item {{activeTab === 'recommended' ? 'active' : ''}}" bindtap="switchTab" data-tab="recommended">推荐</view>
   </view>
   
@@ -48,25 +45,49 @@
           wx:key="id"
           bindtap="viewGroupDetail"
           data-id="{{item.id}}">
-      <image class="group-cover" src="{{item.coverImage}}" mode="aspectFill"></image>
-      <view class="group-info">
-        <view class="group-header">
-          <image class="group-avatar" src="{{item.avatar}}" mode="aspectFill"></image>
-          <view class="group-meta">
-            <view class="group-name">{{item.name}}</view>
-            <view class="group-members">{{item.membersCount}}人</view>
+      <image class="group-image" src="{{item.coverImage || '/assets/images/groups.png'}}" mode="aspectFill"></image>
+      
+      <!-- 参与状态标签 -->
+      <view class="status-tag {{item.isCreator ? 'creator' : (item.isJoined ? 'active' : '')}}" 
+            wx:if="{{item.isCreator || item.isJoined}}">
+        <text class="iconfont {{item.isCreator ? 'icon-crown' : 'icon-check'}}"></text>
+        <text>{{item.isCreator ? '我创建的' : '已加入'}}</text>
+      </view>
+      
+      <view class="group-content">
+        <view class="group-title">{{item.name}}</view>
+        <view class="group-description">{{item.description}}</view>
+        
+        <!-- 标签 -->
+        <view class="tags-list" wx:if="{{item.tags && item.tags.length > 0}}">
+          <view class="tag" 
+                wx:for="{{item.tags}}" 
+                wx:key="*this"
+                wx:for-item="tag">
+            <text class="iconfont icon-tag"></text>
+            <text>{{tag}}</text>
           </view>
-          
-          <!-- 加入按钮 -->
-          <button class="join-btn {{item.isJoined ? 'quit' : ''}}" 
-                  catchtap="toggleJoinGroup" 
-                  data-id="{{item.id}}"
-                  data-index="{{index}}">
-            {{item.isJoined ? '已加入' : '加入'}}
-          </button>
         </view>
         
-        <view class="group-description">{{item.description}}</view>
+        <!-- 小组信息 -->
+        <view class="group-info">
+          <view class="info-item">
+            <text class="iconfont icon-user"></text>
+            <text>{{item.membersCount}}人</text>
+          </view>
+          <view class="info-item">
+            <text class="iconfont icon-post"></text>
+            <text>{{item.postsCount || 0}}条动态</text>
+          </view>
+        </view>
+        
+        <!-- 加入按钮 -->
+        <button class="join-btn {{item.isCreator ? 'creator' : (item.isJoined ? 'quit' : '')}}" 
+                catchtap="toggleJoinGroup" 
+                data-id="{{item.id}}"
+                data-index="{{index}}">
+          {{item.isCreator ? '解散小组' : (item.isJoined ? '退出小组' : '加入小组')}}
+        </button>
       </view>
     </view>
     

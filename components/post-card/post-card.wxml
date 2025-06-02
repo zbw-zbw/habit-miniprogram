@@ -2,7 +2,7 @@
 <view class="post-item" bindtap="{{!isDetail ? 'viewPostDetail' : ''}}">
   <view class="post-header">
     <view class="post-user" catchtap="viewUserProfile">
-      <image class="post-avatar" src="{{post.userAvatar || post.user.avatar}}" mode="aspectFill"></image>
+      <image class="post-avatar" src="{{post.userAvatar || post.user.avatar || '/assets/images/default-avatar.png'}}" mode="aspectFill"></image>
       <view class="post-user-info">
         <text class="post-username">{{post.userName || post.user.nickname || post.user.username || '用户'}}</text>
         <text class="post-meta">{{post.createdAt}}</text>
@@ -13,41 +13,57 @@
   <view class="post-content">
     <text class="post-text">{{post.content}}</text>
     
-    <!-- 标签 -->
-    <view class="post-tags" wx:if="{{post.tags && post.tags.length > 0}}">
-      <view class="post-tag" 
-            wx:for="{{post.tags}}" 
-            wx:key="*this" 
-            wx:for-item="tag"
-            catchtap="{{!isDetail ? 'viewTag' : ''}}"
-            data-tag="{{tag}}">
-        <text class="iconfont icon-tag"></text>
-        <text>{{tag}}</text>
-      </view>
-    </view>
-    
-    <!-- 图片 -->
-    <view class="post-images" wx:if="{{post.images && post.images.length > 0}}">
-      <block wx:if="{{post.images.length === 1}}">
+    <!-- 图片 - 微信朋友圈风格 -->
+    <block wx:if="{{post.images && post.images.length > 0}}">
+      <!-- 单张图片 -->
+      <view class="post-images" wx:if="{{post.images.length === 1}}">
         <image 
           class="post-image single" 
           src="{{post.images[0]}}" 
           mode="aspectFill"
-          catchtap="{{!isDetail ? 'previewImage' : ''}}"
+          catchtap="previewImage"
           data-index="0"
         ></image>
-      </block>
-      <block wx:else>
+      </view>
+      
+      <!-- 两张图片 -->
+      <view class="post-images count-2" wx:elif="{{post.images.length === 2}}">
         <image 
           class="post-image" 
           wx:for="{{post.images}}" 
           wx:key="*this" 
           src="{{item}}" 
           mode="aspectFill"
-          catchtap="{{!isDetail ? 'previewImage' : ''}}"
+          catchtap="previewImage"
           data-index="{{index}}"
         ></image>
-      </block>
+      </view>
+      
+      <!-- 三张及以上图片 -->
+      <view class="post-images count-{{post.images.length}}" wx:else>
+        <image 
+          class="post-image" 
+          wx:for="{{post.images}}" 
+          wx:key="*this" 
+          src="{{item}}" 
+          mode="aspectFill"
+          catchtap="previewImage"
+          data-index="{{index}}"
+        ></image>
+      </view>
+    </block>
+    
+    <!-- 标签 -->
+    <view class="post-tags" wx:if="{{post.tags && post.tags.length > 0}}">
+      <view class="post-tag" 
+            wx:for="{{post.tags}}" 
+            wx:key="*this" 
+            wx:for-item="tag"
+            catchtap="viewTag"
+            data-tag="{{tag}}">
+        <text class="iconfont icon-tag"></text>
+        <text>{{tag}}</text>
+      </view>
     </view>
   </view>
   

@@ -30,6 +30,7 @@ Page({
         },
         page: 1,
         pageSize: 10,
+        isInitialized: true,
     },
     /**
      * 生命周期函数--监听页面加载
@@ -37,6 +38,8 @@ Page({
     onLoad() {
         // 使用useAuth工具获取全局登录状态
         (0, use_auth_1.useAuth)(this);
+        // 标记页面已经初始化
+        this.data.isInitialized = true;
         // 只有登录后才加载数据
         if (this.data.hasLogin) {
             this.loadData();
@@ -54,17 +57,20 @@ Page({
         // 检查登录状态，可能在其他页面已经登录/登出
         const app = getApp();
         const isLoggedIn = app.globalData.hasLogin;
+        const previousLoginState = this.data.hasLogin;
         // 更新登录状态
         this.setData({
             userInfo: app.globalData.userInfo,
             hasLogin: isLoggedIn,
         });
-        // 只有登录后才刷新数据
-        if (isLoggedIn) {
-            // 每次显示页面时刷新数据
+        // 只有在以下情况才刷新数据：
+        // 1. 登录状态发生变化（从未登录到已登录）
+        // 2. 已登录状态下，不是首次加载页面（避免与onLoad重复加载）
+        if (isLoggedIn &&
+            (!this.data.isInitialized || previousLoginState !== isLoggedIn)) {
             this.refreshData();
         }
-        else {
+        else if (!isLoggedIn) {
             this.setData({
                 loading: false,
                 posts: [],
@@ -72,6 +78,10 @@ Page({
                 groups: [],
                 friends: [],
             });
+        }
+        // 重置初始化标记，以便从其他页面返回时能正确刷新
+        if (this.data.isInitialized) {
+            this.data.isInitialized = false;
         }
     },
     /**
@@ -203,7 +213,7 @@ Page({
                 challenges = response;
             }
             // 处理挑战数据，确保字段一致性
-            const processedChallenges = challenges.map(challenge => {
+            const processedChallenges = challenges.map((challenge) => {
                 return {
                     ...challenge,
                     id: challenge.id || challenge._id,
@@ -214,7 +224,7 @@ Page({
                     participants: challenge.participants || challenge.participantsCount || 0,
                     participantsCount: challenge.participantsCount || challenge.participants || 0,
                     // 确保isParticipating字段存在
-                    isParticipating: challenge.isParticipating || challenge.isJoined || false
+                    isParticipating: challenge.isParticipating || challenge.isJoined || false,
                 };
             });
             console.log('社区页面处理后的挑战数据:', processedChallenges);
@@ -298,28 +308,27 @@ Page({
         // 根据当前标签加载不同数据
         const { activeTab } = this.data;
         wx.showNavigationBarLoading();
-        // 加载动态数据
-        this.loadPosts()
-            .then(() => {
-            // 无论当前是哪个标签页，都加载挑战数据
-            return this.loadChallenges();
-        })
-            .then(() => {
-            // 如果是小组标签，还需要刷新小组列表
-            if (activeTab === 'groups') {
-                return this.loadGroups();
-            }
-            return Promise.resolve([]);
-        })
-            .then(() => {
-            // 如果是好友标签，还需要刷新好友列表
-            if (activeTab === 'friends') {
-                return this.loadFriends();
-            }
-            return Promise.resolve([]);
-        })
+        // 根据当前标签加载对应数据
+        let dataPromise;
+        switch (activeTab) {
+            case 'groups':
+                dataPromise = this.loadGroups();
+                break;
+            case 'challenges':
+                dataPromise = this.loadChallenges();
+                break;
+            case 'posts':
+                dataPromise = this.loadPosts();
+                break;
+            case 'friends':
+                dataPromise = this.loadFriends();
+                break;
+            default:
+                dataPromise = Promise.resolve();
+        }
+        dataPromise
             .catch((error) => {
-            console.error('刷新数据失败:', error);
+            console.error(`刷新${activeTab}数据失败:`, error);
         })
             .finally(() => {
             wx.hideNavigationBarLoading();
@@ -479,7 +488,7 @@ Page({
         if (challenge.isJoined || challenge.isParticipating) {
             wx.showToast({
                 title: '已参与此挑战',
-                icon: 'none'
+                icon: 'none',
             });
             return;
         }
@@ -494,7 +503,7 @@ Page({
                 [`challenges[${index}].isJoined`]: true,
                 [`challenges[${index}].isParticipating`]: true,
                 [`challenges[${index}].participants`]: challenge.participants + 1,
-                [`challenges[${index}].participantsCount`]: (challenge.participantsCount || challenge.participants || 0) + 1
+                [`challenges[${index}].participantsCount`]: (challenge.participantsCount || challenge.participants || 0) + 1,
             });
             wx.showToast({
                 title: '已成功参加',
@@ -651,8 +660,19 @@ Page({
             });
             // 关闭模态框
             this.hideCreatePost();
-            // 刷新数据
-            this.refreshData();
+            // 重置页码，确保获取最新数据
+            this.setData({
+                page: 1,
+                posts: [],
+            });
+            // 刷新数据并滚动到顶部
+            this.loadPosts().then(() => {
+                // 滚动到顶部
+                wx.pageScrollTo({
+                    scrollTop: 0,
+                    duration: 300,
+                });
+            });
         })
             .catch((error) => {
             console.error('发布动态失败:', error);
@@ -808,6 +828,7 @@ Page({
      * 查看所有动态
      */
     viewAllPosts() {
+        console.log('查看所有动态');
         wx.navigateTo({
             url: '/pages/community/posts/posts',
         });
@@ -845,7 +866,7 @@ Page({
         this.setData({
             tabIndex,
             activeTab,
-            page: 1
+            page: 1,
         });
         // 根据标签页加载不同的数据
         this.loadData();
@@ -860,6 +881,15 @@ Page({
         }
         wx.navigateTo({
             url: '/pages/community/challenges/create/create',
+        });
+    },
+    /**
+     * 查看小组详情
+     */
+    viewGroupDetail(e) {
+        const id = e.currentTarget.dataset.id;
+        wx.navigateTo({
+            url: `/pages/community/groups/detail/detail?id=${id}`,
         });
     },
 });

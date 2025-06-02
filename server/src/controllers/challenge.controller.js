@@ -13,116 +13,87 @@ const mongoose = require('mongoose');
  */
 exports.getChallenges = async (req, res) => {
   try {
-    const { 
-      page = 1, 
-      limit = 10, 
-      type = 'all', 
-      status = 'active',
-      keyword = '',
-      tag = ''
-    } = req.query;
-    
+    console.log('获取挑战列表请求参数:', req.query);
+    const { page = 1, limit = 10, sort, keyword, joined, created, status } = req.query;
     const skip = (page - 1) * limit;
     
     // 构建查询条件
     const query = {};
     
-    // 如果有关键词，添加标题或描述搜索
+    // 处理关键词搜索
     if (keyword) {
       query.$or = [
-        { name: new RegExp(keyword, 'i') },
-        { description: new RegExp(keyword, 'i') }
+        { title: { $regex: keyword, $options: 'i' } },
+        { name: { $regex: keyword, $options: 'i' } },
+        { description: { $regex: keyword, $options: 'i' } },
+        { tags: { $in: [new RegExp(keyword, 'i')] } }
       ];
     }
     
-    // 如果有标签，添加标签搜索
-    if (tag) {
-      query.tags = { $in: [tag] };
+    // 处理已参加的挑战
+    if (joined === 'true') {
+      query.participants = req.user._id;
     }
     
-    // 根据状态筛选
+    // 处理我创建的挑战
+    if (created === 'true') {
+      query.creator = req.user._id;
+    }
+    
+    // 处理状态筛选
     if (status && status !== 'all') {
       query.status = status;
     }
     
-    // 根据类型筛选
-    if (type === 'joined' && req.user) {
-      // 查询用户参与的挑战ID
-      const participations = await ChallengeParticipant.find({
-        user: req.user._id,
-        status: { $in: ['joined', 'completed'] }
-      });
-      
-      const joinedChallengeIds = participations.map(p => p.challenge);
-      
-      query._id = { $in: joinedChallengeIds };
-    } else if (type === 'popular') {
-      // 热门挑战按参与人数排序
-    } else if (type === 'new') {
-      // 新挑战按创建时间排序
+    // 确定排序方式
+    let sortOption = { createdAt: -1 }; // 默认按创建时间倒序
+    
+    if (sort === 'popular') {
+      // 按参与人数排序
+      sortOption = { participantsCount: -1 };
+    } else if (sort === 'new') {
+      // 按创建时间排序
+      sortOption = { createdAt: -1 };
     }
     
-    // 查询挑战总数
+    console.log('挑战列表查询条件:', query);
+    console.log('挑战列表排序条件:', sortOption);
+    
+    // 查询挑战
+    const challenges = await Challenge.find(query)
+      .populate('creator', 'nickname avatarUrl')
+      .sort(sortOption)
+      .skip(skip)
+      .limit(parseInt(limit));
+    
+    console.log('挑战列表查询结果数量:', challenges.length);
+    
+    // 查询总数
     const total = await Challenge.countDocuments(query);
     
-    // 构建排序条件
-    let sort = {};
-    if (type === 'popular') {
-      sort = { participantCount: -1 };
-    } else if (type === 'new') {
-      sort = { createdAt: -1 };
-    } else {
-      sort = { updatedAt: -1 };
-    }
-    
-    // 查询挑战列表
-    const challenges = await Challenge.find(query)
-      .sort(sort)
-      .skip(skip)
-      .limit(parseInt(limit))
-      .populate('creator', 'username nickname avatar')
-      .lean();
-    
-    // 获取当前用户ID
-    const userId = req.user ? req.user._id : null;
-    
-    // 处理挑战数据，添加参与状态和实际参与人数
+    // 处理挑战数据，添加isJoined标志和isCreator标志
     const processedChallenges = await Promise.all(challenges.map(async (challenge) => {
-      // 查询用户是否已参与
-      let isJoined = false;
-      let userProgress = null;
+      const challengeObj = challenge.toObject();
       
-      if (userId) {
-        const participant = await ChallengeParticipant.findOne({
-          challenge: challenge._id,
-          user: userId,
-          status: { $in: ['joined', 'completed'] }
-        });
-        
-        isJoined = !!participant;
-        
-        if (participant) {
-          userProgress = participant.progress;
-        }
+      // 确保有参与者字段
+      if (!challengeObj.participants) {
+        challengeObj.participants = [];
       }
       
-      // 获取实际参与人数（排除创建者自己）
-      const participantsCount = await ChallengeParticipant.countDocuments({
-        challenge: challenge._id,
-        status: { $in: ['joined', 'completed'] },
-        user: { $ne: challenge.creator._id } // 排除创建者
-      });
+      // 检查当前用户是否已参加该挑战
+      challengeObj.isJoined = challenge.participants && challenge.participants.some(participantId => 
+        participantId.toString() === req.user._id.toString()
+      );
       
-      return {
-        ...challenge,
-        isJoined,
-        isParticipating: isJoined,
-        progress: userProgress,
-        participantsCount: participantsCount // 使用不包含创建者的参与人数
-      };
+      // 检查当前用户是否是创建者
+      challengeObj.isCreator = challenge.creator && 
+        challenge.creator._id.toString() === req.user._id.toString();
+      
+      return challengeObj;
     }));
     
-    res.status(200).json({
+    // 返回结果
+    return res.json({
       success: true,
       data: {
         challenges: processedChallenges,
@@ -135,10 +106,11 @@ exports.getChallenges = async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('获取挑战列表错误:', error);
-    res.status(500).json({
+    console.error('获取挑战列表失败:', error);
+    return res.status(500).json({
       success: false,
-      message: '服务器错误，获取挑战列表失败'
+      message: '获取挑战列表失败',
+      error: error.message
     });
   }
 };
@@ -307,7 +279,7 @@ exports.checkChallengeOwner = async (req, res, next) => {
  */
 exports.getChallenge = async (req, res) => {
   try {
-    const challengeId = req.params.id;
+    const challengeId = req.params.challengeId;
     
     // 查询挑战详情
     const challenge = await Challenge.findById(challengeId)

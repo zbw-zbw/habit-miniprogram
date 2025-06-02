@@ -1,18 +1,14 @@
 <!--pages/community/challenges/challenges.wxml-->
 <view class="container">
   <!-- 顶部搜索栏 -->
-  <view class="search-bar {{showSearch ? 'active' : ''}}">
-    <view class="search-input-container" wx:if="{{showSearch}}">
+  <view class="search-bar">
+    <view class="search-input-container">
+      <text class="iconfont icon-search"></text>
       <input class="search-input" 
              placeholder="搜索挑战" 
              value="{{searchKeyword}}" 
              bindinput="inputSearch"
-             bindconfirm="doSearch"
-             focus="{{showSearch}}"/>
-      <text class="iconfont icon-close" bindtap="hideSearchInput"></text>
-    </view>
-    <view class="search-icon" bindtap="showSearchInput" wx:else>
-      <text class="iconfont icon-search"></text>
+             bindconfirm="doSearch"/>
     </view>
     <view class="create-btn" bindtap="createChallenge">
       <text class="iconfont icon-add"></text>
@@ -24,6 +20,7 @@
   <view class="tabs">
     <view class="tab-item {{activeTab === 'all' ? 'active' : ''}}" bindtap="switchTab" data-tab="all">全部</view>
     <view class="tab-item {{activeTab === 'joined' ? 'active' : ''}}" bindtap="switchTab" data-tab="joined">已参加</view>
+    <view class="tab-item {{activeTab === 'created' ? 'active' : ''}}" bindtap="switchTab" data-tab="created">我创建的</view>
     <view class="tab-item {{activeTab === 'popular' ? 'active' : ''}}" bindtap="switchTab" data-tab="popular">热门</view>
     <view class="tab-item {{activeTab === 'new' ? 'active' : ''}}" bindtap="switchTab" data-tab="new">最新</view>
   </view>
@@ -52,9 +49,10 @@
       <image class="challenge-image" src="{{item.image || item.coverImage || '/assets/images/challenge.png'}}" mode="aspectFill"></image>
       
       <!-- 参与状态标签 -->
-      <view class="status-tag {{item.isJoined || item.isParticipating ? 'active' : ''}}" wx:if="{{item.isJoined || item.isParticipating}}">
-        <text class="iconfont icon-check"></text>
-        <text>已参加</text>
+      <view class="status-tag {{item.isCreator ? 'creator' : (item.isJoined || item.isParticipating ? 'active' : '')}}" 
+            wx:if="{{item.isCreator || item.isJoined || item.isParticipating}}">
+        <text class="iconfont {{item.isCreator ? 'icon-crown' : 'icon-check'}}"></text>
+        <text>{{item.isCreator ? '我发起的' : '已参加'}}</text>
       </view>
       
       <view class="challenge-content">
@@ -99,7 +97,7 @@
                 catchtap="toggleJoinChallenge" 
                 data-id="{{item.id}}"
                 data-index="{{index}}">
-          {{(item.isJoined || item.isParticipating) ? '退出挑战' : '参加挑战'}}
+          {{item.isCreator ? '解散挑战' : ((item.isJoined || item.isParticipating) ? '退出挑战' : '参加挑战')}}
         </button>
       </view>
     </view>

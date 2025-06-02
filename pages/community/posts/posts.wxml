@@ -1,0 +1,70 @@
+<!--社区动态列表页面-->
+<view class="container">
+  <!-- 搜索栏 -->
+  <view class="search-bar">
+    <view class="search-input-wrap" bindtap="navigateToSearch">
+      <text class="iconfont icon-search"></text>
+      <text class="search-placeholder">搜索动态内容</text>
+    </view>
+    <view class="filter-btn" bindtap="showFilter">
+      <text class="iconfont icon-filter"></text>
+    </view>
+  </view>
+  
+  <!-- 标签筛选 -->
+  <scroll-view scroll-x class="tags-scroll" wx:if="{{tags.length > 0}}">
+    <view class="tags-list">
+      <view class="tag-item {{activeTag === '' ? 'active' : ''}}" bindtap="selectTag" data-tag="">全部</view>
+      <view class="tag-item {{activeTag === tag ? 'active' : ''}}" 
+            wx:for="{{tags}}" 
+            wx:for-item="tag" 
+            wx:key="index" 
+            bindtap="selectTag" 
+            data-tag="{{tag}}">
+        {{tag}}
+      </view>
+    </view>
+  </scroll-view>
+  
+  <!-- 动态列表 -->
+  <view class="posts-list">
+    <block wx:if="{{posts.length > 0}}">
+      <block wx:for="{{posts}}" wx:key="id">
+        <post-card 
+          post="{{item}}" 
+          index="{{index}}" 
+          bind:viewDetail="viewPostDetail"
+          bind:viewUser="viewUserProfile"
+          bind:like="likePost"
+          bind:comment="commentPost"
+          bind:share="sharePost">
+        </post-card>
+      </block>
+    </block>
+    
+    <!-- 加载中 -->
+    <view class="loading-container" wx:if="{{loading}}">
+      <view class="loading-spinner"></view>
+      <text class="loading-text">加载中...</text>
+    </view>
+    
+    <!-- 没有更多数据 -->
+    <view class="no-more" wx:if="{{!loading && !hasMore && posts.length > 0}}">
+      <text>没有更多数据了</text>
+    </view>
+    
+    <!-- 空状态 -->
+    <view class="empty-state" wx:if="{{!loading && posts.length === 0}}">
+      <image class="empty-icon" src="/assets/images/empty-posts.png" mode="aspectFit"></image>
+      <text class="empty-title">暂无动态</text>
+      <text class="empty-desc">还没有任何人发布动态</text>
+      <button class="primary-btn" bindtap="createPost">发布动态</button>
+    </view>
+  </view>
+  
+  <!-- 发布按钮 -->
+  <view class="create-post-btn" bindtap="createPost" wx:if="{{hasLogin && posts.length > 0}}">
+    <text class="iconfont icon-edit"></text>
+  </view>
+</view> 
+ 

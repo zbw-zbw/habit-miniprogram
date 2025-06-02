@@ -116,7 +116,10 @@
             data-id="{{item.user._id}}"
           >
             <image class="participant-avatar" src="{{item.user.avatar || '/assets/images/default-avatar.png'}}" mode="aspectFill"></image>
-            <text class="participant-name">{{item.user.nickname || item.user.username || '匿名用户'}}</text>
+            <view class="participant-info">
+              <text class="participant-name">{{item.user.nickname || item.user.username || '匿名用户'}}</text>
+              <text class="participant-label" wx:if="{{item.isCreator}}">发起者</text>
+            </view>
           </view>
         </view>
         

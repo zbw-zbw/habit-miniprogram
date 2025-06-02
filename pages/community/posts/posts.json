@@ -1,0 +1,7 @@
+{
+  "navigationBarTitleText": "社区动态",
+  "enablePullDownRefresh": true,
+  "usingComponents": {
+    "post-card": "/components/post-card/post-card"
+  }
+} 

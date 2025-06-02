@@ -41,6 +41,16 @@ const postSchema = new Schema({
     type: Schema.Types.ObjectId,
     ref: 'Habit'
   },
+  // 关联的小组
+  group: {
+    type: Schema.Types.ObjectId,
+    ref: 'Group'
+  },
+  // 关联的挑战
+  challenge: {
+    type: Schema.Types.ObjectId,
+    ref: 'Challenge'
+  },
   // 点赞数
   likeCount: {
     type: Number,
@@ -90,6 +100,8 @@ postSchema.index({ user: 1, createdAt: -1 });
 postSchema.index({ tags: 1 });
 postSchema.index({ likes: 1 });
 postSchema.index({ isDeleted: 1, privacy: 1, createdAt: -1 });
+postSchema.index({ group: 1, createdAt: -1 });
+postSchema.index({ challenge: 1, createdAt: -1 });
 
 // 预处理 - 查询时排除已删除的动态
 postSchema.pre('find', function() {

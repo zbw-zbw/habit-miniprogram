@@ -54,6 +54,7 @@ interface IPageData {
   };
   page: number;
   pageSize: number;
+  isInitialized: boolean;
 }
 
 interface IPageMethods {
@@ -93,6 +94,7 @@ interface IPageMethods {
   viewAllPosts(): void;
   viewAllFriends(): void;
   createChallenge(): void;
+  viewGroupDetail(e: WechatMiniprogram.TouchEvent): void;
 }
 
 Page<IPageData, IPageMethods>({
@@ -118,6 +120,7 @@ Page<IPageData, IPageMethods>({
     },
     page: 1,
     pageSize: 10,
+    isInitialized: true,
   },
 
   /**
@@ -126,6 +129,9 @@ Page<IPageData, IPageMethods>({
   onLoad() {
     // 使用useAuth工具获取全局登录状态
     useAuth(this);
+
+    // 标记页面已经初始化
+    this.data.isInitialized = true;
 
     // 只有登录后才加载数据
     if (this.data.hasLogin) {
@@ -144,6 +150,7 @@ Page<IPageData, IPageMethods>({
     // 检查登录状态，可能在其他页面已经登录/登出
     const app = getApp<IAppOption>();
     const isLoggedIn = app.globalData.hasLogin;
+    const previousLoginState = this.data.hasLogin;
 
     // 更新登录状态
     this.setData({
@@ -151,11 +158,15 @@ Page<IPageData, IPageMethods>({
       hasLogin: isLoggedIn,
     });
 
-    // 只有登录后才刷新数据
-    if (isLoggedIn) {
-      // 每次显示页面时刷新数据
+    // 只有在以下情况才刷新数据：
+    // 1. 登录状态发生变化（从未登录到已登录）
+    // 2. 已登录状态下，不是首次加载页面（避免与onLoad重复加载）
+    if (
+      isLoggedIn &&
+      (!this.data.isInitialized || previousLoginState !== isLoggedIn)
+    ) {
       this.refreshData();
-    } else {
+    } else if (!isLoggedIn) {
       this.setData({
         loading: false,
         posts: [],
@@ -163,6 +174,11 @@ Page<IPageData, IPageMethods>({
         groups: [],
         friends: [],
       });
+    }
+
+    // 重置初始化标记，以便从其他页面返回时能正确刷新
+    if (this.data.isInitialized) {
+      this.data.isInitialized = false;
     }
   },
 
@@ -297,20 +313,22 @@ Page<IPageData, IPageMethods>({
       .getChallenges({ limit: 3, status: 'all' })
       .then((response: any) => {
         console.log('社区页面获取到挑战数据:', response);
-        
+
         // 处理API返回的不同格式
         let challenges: IChallenge[] = [];
-        
+
         if (response && typeof response === 'object') {
           // 处理标准格式: { challenges: [], pagination: {} }
           if (response.challenges && Array.isArray(response.challenges)) {
             challenges = response.challenges;
           }
           // 处理包含data的响应: { data: { challenges: [] } }
-          else if (response.data && 
-                  typeof response.data === 'object' && 
-                  response.data.challenges && 
-                  Array.isArray(response.data.challenges)) {
+          else if (
+            response.data &&
+            typeof response.data === 'object' &&
+            response.data.challenges &&
+            Array.isArray(response.data.challenges)
+          ) {
             challenges = response.data.challenges;
           }
         }
@@ -318,9 +336,9 @@ Page<IPageData, IPageMethods>({
         else if (Array.isArray(response)) {
           challenges = response;
         }
-        
+
         // 处理挑战数据，确保字段一致性
-        const processedChallenges = challenges.map(challenge => {
+        const processedChallenges = challenges.map((challenge) => {
           return {
             ...challenge,
             id: challenge.id || challenge._id,
@@ -328,13 +346,16 @@ Page<IPageData, IPageMethods>({
             title: challenge.title || challenge.name,
             image: challenge.coverImage || challenge.image,
             coverImage: challenge.coverImage || challenge.image,
-            participants: challenge.participants || challenge.participantsCount || 0,
-            participantsCount: challenge.participantsCount || challenge.participants || 0,
+            participants:
+              challenge.participants || challenge.participantsCount || 0,
+            participantsCount:
+              challenge.participantsCount || challenge.participants || 0,
             // 确保isParticipating字段存在
-            isParticipating: challenge.isParticipating || challenge.isJoined || false
+            isParticipating:
+              challenge.isParticipating || challenge.isJoined || false,
           };
         });
-        
+
         console.log('社区页面处理后的挑战数据:', processedChallenges);
         this.setData({ challenges: processedChallenges });
         return processedChallenges;
@@ -420,32 +441,34 @@ Page<IPageData, IPageMethods>({
       page: 1,
       hasMore: true,
     });
+
     // 根据当前标签加载不同数据
     const { activeTab } = this.data;
     wx.showNavigationBarLoading();
-    
-    // 加载动态数据
-    this.loadPosts()
-      .then(() => {
-        // 无论当前是哪个标签页，都加载挑战数据
-        return this.loadChallenges();
-      })
-      .then(() => {
-        // 如果是小组标签，还需要刷新小组列表
-        if (activeTab === 'groups') {
-          return this.loadGroups();
-        }
-        return Promise.resolve([] as IGroup[]);
-      })
-      .then(() => {
-        // 如果是好友标签，还需要刷新好友列表
-        if (activeTab === 'friends') {
-          return this.loadFriends();
-        }
-        return Promise.resolve([] as IFriend[]);
-      })
+
+    // 根据当前标签加载对应数据
+    let dataPromise;
+
+    switch (activeTab) {
+      case 'groups':
+        dataPromise = this.loadGroups();
+        break;
+      case 'challenges':
+        dataPromise = this.loadChallenges();
+        break;
+      case 'posts':
+        dataPromise = this.loadPosts();
+        break;
+      case 'friends':
+        dataPromise = this.loadFriends();
+        break;
+      default:
+        dataPromise = Promise.resolve();
+    }
+
+    dataPromise
       .catch((error) => {
-        console.error('刷新数据失败:', error);
+        console.error(`刷新${activeTab}数据失败:`, error);
       })
       .finally(() => {
         wx.hideNavigationBarLoading();
@@ -493,14 +516,14 @@ Page<IPageData, IPageMethods>({
    */
   viewChallengeDetail(e: WechatMiniprogram.TouchEvent) {
     const challengeId = e.currentTarget.dataset.challengeId;
-    
+
     if (!challengeId) {
       console.error('缺少挑战ID');
       return;
     }
-    
+
     console.log('跳转到挑战详情页，ID:', challengeId);
-    
+
     wx.navigateTo({
       url: `/pages/community/challenges/detail/detail?id=${challengeId}`,
     });
@@ -636,7 +659,7 @@ Page<IPageData, IPageMethods>({
     if (challenge.isJoined || challenge.isParticipating) {
       wx.showToast({
         title: '已参与此挑战',
-        icon: 'none'
+        icon: 'none',
       });
       return;
     }
@@ -653,7 +676,8 @@ Page<IPageData, IPageMethods>({
           [`challenges[${index}].isJoined`]: true,
           [`challenges[${index}].isParticipating`]: true,
           [`challenges[${index}].participants`]: challenge.participants + 1,
-          [`challenges[${index}].participantsCount`]: (challenge.participantsCount || challenge.participants || 0) + 1
+          [`challenges[${index}].participantsCount`]:
+            (challenge.participantsCount || challenge.participants || 0) + 1,
         });
         wx.showToast({
           title: '已成功参加',
@@ -836,8 +860,20 @@ Page<IPageData, IPageMethods>({
         // 关闭模态框
         this.hideCreatePost();
 
-        // 刷新数据
-        this.refreshData();
+        // 重置页码，确保获取最新数据
+        this.setData({
+          page: 1,
+          posts: [],
+        });
+
+        // 刷新数据并滚动到顶部
+        this.loadPosts().then(() => {
+          // 滚动到顶部
+          wx.pageScrollTo({
+            scrollTop: 0,
+            duration: 300,
+          });
+        });
       })
       .catch((error: Error) => {
         console.error('发布动态失败:', error);
@@ -1016,6 +1052,7 @@ Page<IPageData, IPageMethods>({
    * 查看所有动态
    */
   viewAllPosts() {
+    console.log('查看所有动态');
     wx.navigateTo({
       url: '/pages/community/posts/posts',
     });
@@ -1036,7 +1073,7 @@ Page<IPageData, IPageMethods>({
   onTabChange(e: any) {
     const tabIndex = e.detail.index;
     let activeTab: 'groups' | 'challenges' | 'posts' | 'friends';
-    
+
     switch (tabIndex) {
       case 0:
         activeTab = 'posts';
@@ -1053,13 +1090,13 @@ Page<IPageData, IPageMethods>({
       default:
         activeTab = 'posts';
     }
-    
+
     this.setData({
       tabIndex,
       activeTab,
-      page: 1
+      page: 1,
     });
-    
+
     // 根据标签页加载不同的数据
     this.loadData();
   },
@@ -1072,9 +1109,19 @@ Page<IPageData, IPageMethods>({
       this.login();
       return;
     }
-    
+
     wx.navigateTo({
       url: '/pages/community/challenges/create/create',
+    });
+  },
+
+  /**
+   * 查看小组详情
+   */
+  viewGroupDetail(e: WechatMiniprogram.TouchEvent) {
+    const id = e.currentTarget.dataset.id;
+    wx.navigateTo({
+      url: `/pages/community/groups/detail/detail?id=${id}`,
     });
   },
 });

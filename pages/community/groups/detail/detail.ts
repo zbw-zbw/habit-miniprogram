@@ -2,6 +2,7 @@
 import { communityAPI } from '../../../../services/api';
 import { formatTimeAgo } from '../../../../utils/util';
 import { getAuthState } from '../../../../utils/use-auth';
+import { IAppOption } from '../../../../app';
 
 // 定义接口
 interface IGroupDetail {
@@ -21,6 +22,7 @@ interface IGroupDetail {
     avatar: string;
   };
   isJoined: boolean;
+  isCreator?: boolean; // 添加创建者标识
   createdAt: string;
   updatedAt: string;
 }
@@ -56,7 +58,55 @@ interface IPagination {
   pages: number;
 }
 
-Page({
+interface IPageData {
+  // 用户登录状态
+  hasLogin: boolean;
+  
+  // 小组ID
+  groupId: string;
+  
+  // 小组详情
+  group: IGroupDetail;
+  
+  // 加载状态
+  loading: boolean;
+  error: string;
+  
+  // 标签页
+  activeTab: string;
+  
+  // 动态列表
+  posts: IPost[];
+  postsPage: number;
+  postsLimit: number;
+  hasMorePosts: boolean;
+  loadingPosts: boolean;
+  loadingMorePosts: boolean;
+  
+  // 成员列表
+  members: IMember[];
+  membersPage: number;
+  membersLimit: number;
+  hasMoreMembers: boolean;
+  loadingMembers: boolean;
+  loadingMoreMembers: boolean;
+}
+
+interface IPageMethods {
+  loadGroupDetail(): void;
+  switchTab(e: any): void;
+  loadPosts(isRefresh?: boolean): void;
+  loadMembers(isRefresh?: boolean): void;
+  toggleJoin(): void;
+  dismissGroup(): void; // 添加解散小组方法
+  viewUserProfile(e: any): void;
+  viewPostDetail(e: any): void;
+  likePost(e: any): void;
+  commentPost(e: any): void;
+  createPost(): void;
+}
+
+Page<IPageData, IPageMethods>({
   // 页面数据
   data: {
     // 用户登录状态
@@ -132,9 +182,20 @@ Page({
     // 调用API获取小组详情
     communityAPI.getGroupDetail(groupId)
       .then(result => {
+        // 获取当前用户ID
+        const app = getApp<IAppOption>();
+        const currentUserId = app?.globalData?.userInfo?.id;
+        
+        // 检查是否是创建者
+        const isCreator = result.creator && 
+          (result.creator._id === currentUserId || result.creator.id === currentUserId);
+        
         // 更新小组详情
         this.setData({
-          group: result,
+          group: {
+            ...result,
+            isCreator: isCreator // 添加创建者标识
+          },
           loading: false
         });
         
@@ -277,6 +338,13 @@ Page({
     }
     
     const { groupId, group } = this.data;
+    
+    // 如果是创建者，则解散小组
+    if (group.isCreator) {
+      this.dismissGroup();
+      return;
+    }
+    
     const isJoined = group.isJoined;
     
     // 显示加载中
@@ -323,6 +391,53 @@ Page({
       .finally(() => {
         wx.hideLoading();
       });
+  },
+  
+  /**
+   * 解散小组
+   */
+  dismissGroup() {
+    const { groupId } = this.data;
+    
+    // 显示确认对话框
+    wx.showModal({
+      title: '解散小组',
+      content: '确定要解散该小组吗？解散后无法恢复，所有成员将自动退出。',
+      confirmText: '确定解散',
+      confirmColor: '#F56C6C',
+      success: (res) => {
+        if (res.confirm) {
+          wx.showLoading({
+            title: '处理中...'
+          });
+          
+          // 调用API解散小组
+          communityAPI.dismissGroup(groupId)
+            .then(() => {
+              wx.showToast({
+                title: '小组已解散',
+                icon: 'success'
+              });
+              
+              // 返回上一页
+              setTimeout(() => {
+                wx.navigateBack();
+              }, 1500);
+            })
+            .catch(error => {
+              console.error('解散小组失败:', error);
+              
+              wx.showToast({
+                title: '解散小组失败',
+                icon: 'none'
+              });
+            })
+            .finally(() => {
+              wx.hideLoading();
+            });
+        }
+      }
+    });
   },
 
   /**
@@ -458,7 +573,7 @@ Page({
     const { group, groupId } = this.data;
     
     return {
-      title: `${group.name} - 习惯打卡小组`,
+      title: group.name,
       path: `/pages/community/groups/detail/detail?id=${groupId}`
     };
   }

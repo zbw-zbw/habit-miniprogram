@@ -1,6 +1,7 @@
 // 好友列表页面
 import { communityAPI } from '../../../services/api';
 import { getAuthState } from '../../../utils/use-auth';
+import { getFullImageUrl } from '../../../utils/image';
 
 // 定义用户接口
 interface IUser {
@@ -112,6 +113,7 @@ Page({
         // 处理数据
         const processedFriends = friends.map(friend => ({
           ...friend,
+          avatar: getFullImageUrl(friend.avatar),
           isOnline: Math.random() > 0.5 // 模拟在线状态
         }));
         
@@ -154,28 +156,65 @@ Page({
       loadingMoreFollowing: this.data.following.length > 0
     });
     
-    // 模拟API调用获取关注列表
-    setTimeout(() => {
-      // 模拟数据
-      const mockFollowing = Array(10).fill(0).map((_, index) => ({
-        _id: `following_${index}`,
-        username: `user_${index}`,
-        nickname: `关注用户 ${index}`,
-        avatar: '/assets/images/default-avatar.png',
-        bio: `这是关注用户 ${index} 的个人简介`,
+    // 使用真实API获取关注列表
+    communityAPI.getFollowing ? communityAPI.getFollowing().then(result => {
+      // 确保result是数组
+      const following = Array.isArray(result) ? result : [];
+      
+      // 处理数据
+      const processedFollowing = following.map(user => ({
+        _id: user._id || user.id || '',
+        username: user.username || '',
+        nickname: user.nickname || user.username || '未命名用户',
+        avatar: getFullImageUrl(user.avatar || '/assets/images/default-avatar.png'),
+        bio: user.bio || '这是一个神秘的用户',
         isFollowing: true,
-        isFriend: Math.random() > 0.5 // 随机是否已经是好友
+        isFriend: user.isFriend || false
       }));
       
       // 更新数据
       this.setData({
-        following: isRefresh ? mockFollowing : [...this.data.following, ...mockFollowing],
+        following: isRefresh ? processedFollowing : [...this.data.following, ...processedFollowing],
         followingPage: currentPage + 1,
-        hasMoreFollowing: mockFollowing.length === followingLimit,
+        hasMoreFollowing: processedFollowing.length === followingLimit,
         loadingFollowing: false,
         loadingMoreFollowing: false
       });
-    }, 500);
+    }).catch(error => {
+      console.error('获取关注列表失败:', error);
+      
+      // 使用模拟数据作为备选
+      this.loadMockFollowing(isRefresh, currentPage);
+    }) : 
+    // 如果API不存在，使用模拟数据
+    this.loadMockFollowing(isRefresh, currentPage);
+  },
+
+  /**
+   * 加载模拟关注列表数据
+   */
+  loadMockFollowing(isRefresh = false, currentPage = 1) {
+    const { followingLimit } = this.data;
+    
+    // 模拟数据
+    const mockFollowing = Array(10).fill(0).map((_, index) => ({
+      _id: `following_${index}`,
+      username: `user_${index}`,
+      nickname: `关注用户 ${index}`,
+      avatar: getFullImageUrl('/assets/images/default-avatar.png'),
+      bio: `这是关注用户 ${index} 的个人简介`,
+      isFollowing: true,
+      isFriend: Math.random() > 0.5 // 随机是否已经是好友
+    }));
+    
+    // 更新数据
+    this.setData({
+      following: isRefresh ? mockFollowing : [...this.data.following, ...mockFollowing],
+      followingPage: currentPage + 1,
+      hasMoreFollowing: mockFollowing.length === followingLimit,
+      loadingFollowing: false,
+      loadingMoreFollowing: false
+    });
   },
 
   /**
@@ -193,27 +232,63 @@ Page({
       loadingMoreFollowers: this.data.followers.length > 0
     });
     
-    // 模拟API调用获取粉丝列表
-    setTimeout(() => {
-      // 模拟数据
-      const mockFollowers = Array(10).fill(0).map((_, index) => ({
-        _id: `follower_${index}`,
-        username: `user_${index}`,
-        nickname: `粉丝用户 ${index}`,
-        avatar: '/assets/images/default-avatar.png',
-        bio: `这是粉丝用户 ${index} 的个人简介`,
-        isFollowing: Math.random() > 0.5 // 随机是否已关注
+    // 使用真实API获取粉丝列表
+    communityAPI.getFollowers ? communityAPI.getFollowers().then(result => {
+      // 确保result是数组
+      const followers = Array.isArray(result) ? result : [];
+      
+      // 处理数据
+      const processedFollowers = followers.map(user => ({
+        _id: user._id || user.id || '',
+        username: user.username || '',
+        nickname: user.nickname || user.username || '未命名用户',
+        avatar: getFullImageUrl(user.avatar || '/assets/images/default-avatar.png'),
+        bio: user.bio || '这是一个神秘的用户',
+        isFollowing: user.isFollowing || false
       }));
       
       // 更新数据
       this.setData({
-        followers: isRefresh ? mockFollowers : [...this.data.followers, ...mockFollowers],
+        followers: isRefresh ? processedFollowers : [...this.data.followers, ...processedFollowers],
         followersPage: currentPage + 1,
-        hasMoreFollowers: mockFollowers.length === followersLimit,
+        hasMoreFollowers: processedFollowers.length === followersLimit,
         loadingFollowers: false,
         loadingMoreFollowers: false
       });
-    }, 500);
+    }).catch(error => {
+      console.error('获取粉丝列表失败:', error);
+      
+      // 使用模拟数据作为备选
+      this.loadMockFollowers(isRefresh, currentPage);
+    }) : 
+    // 如果API不存在，使用模拟数据
+    this.loadMockFollowers(isRefresh, currentPage);
+  },
+
+  /**
+   * 加载模拟粉丝列表数据
+   */
+  loadMockFollowers(isRefresh = false, currentPage = 1) {
+    const { followersLimit } = this.data;
+    
+    // 模拟数据
+    const mockFollowers = Array(10).fill(0).map((_, index) => ({
+      _id: `follower_${index}`,
+      username: `user_${index}`,
+      nickname: `粉丝用户 ${index}`,
+      avatar: getFullImageUrl('/assets/images/default-avatar.png'),
+      bio: `这是粉丝用户 ${index} 的个人简介`,
+      isFollowing: Math.random() > 0.5 // 随机是否已关注
+    }));
+    
+    // 更新数据
+    this.setData({
+      followers: isRefresh ? mockFollowers : [...this.data.followers, ...mockFollowers],
+      followersPage: currentPage + 1,
+      hasMoreFollowers: mockFollowers.length === followersLimit,
+      loadingFollowers: false,
+      loadingMoreFollowers: false
+    });
   },
 
   /**
@@ -230,25 +305,62 @@ Page({
       friends: []
     });
     
-    // 模拟搜索API调用
-    setTimeout(() => {
-      // 模拟搜索结果
-      const searchResults = Array(3).fill(0).map((_, index) => ({
-        _id: `search_${index}`,
-        username: `${searchValue}_${index}`,
-        nickname: `${searchValue} 用户 ${index}`,
-        avatar: '/assets/images/default-avatar.png',
-        bio: `搜索到的用户 ${index} 的个人简介`,
-        isOnline: Math.random() > 0.5
-      }));
-      
-      // 更新数据
-      this.setData({
-        friends: searchResults,
-        loading: false,
-        hasMore: false
+    // 调用真实的搜索API
+    communityAPI.searchUsers({ keyword: searchValue })
+      .then(users => {
+        // 处理搜索结果
+        const searchResults = users.map(user => ({
+          _id: user.id || user._id,
+          username: user.username,
+          nickname: user.nickname || user.username,
+          avatar: getFullImageUrl(user.avatar || '/assets/images/default-avatar.png'),
+          bio: user.bio || '',
+          isOnline: false, // 在线状态无法确定
+          isFriend: user.isFriend || false
+        }));
+        
+        // 更新数据
+        this.setData({
+          friends: searchResults,
+          loading: false,
+          hasMore: false
+        });
+        
+        // 如果没有搜索结果，显示提示
+        if (searchResults.length === 0) {
+          wx.showToast({
+            title: '未找到相关用户',
+            icon: 'none'
+          });
+        }
+      })
+      .catch(error => {
+        console.error('搜索用户失败:', error);
+        
+        // 如果API调用失败，使用模拟数据
+        console.log('使用模拟数据作为备选');
+        const searchResults = Array(3).fill(0).map((_, index) => ({
+          _id: `search_${index}`,
+          username: `${searchValue}_${index}`,
+          nickname: `${searchValue} 用户 ${index}`,
+          avatar: getFullImageUrl('/assets/images/default-avatar.png'),
+          bio: `搜索到的用户 ${index} 的个人简介`,
+          isOnline: Math.random() > 0.5
+        }));
+        
+        // 更新数据
+        this.setData({
+          friends: searchResults,
+          loading: false,
+          hasMore: false
+        });
+        
+        // 显示错误提示
+        wx.showToast({
+          title: '搜索API调用失败，显示模拟数据',
+          icon: 'none'
+        });
       });
-    }, 500);
   },
 
   /**
@@ -264,9 +376,11 @@ Page({
    * 取消搜索
    */
   onSearchCancel() {
+    // 清除搜索状态
     this.setData({
       searchValue: '',
-      isSearching: false
+      isSearching: false,
+      loading: true
     });
     
     // 重新加载好友列表
@@ -288,8 +402,27 @@ Page({
    */
   sendMessage(e) {
     const { id } = e.currentTarget.dataset;
+    
+    console.log('发送消息给用户:', id);
+    
+    // 检查id是否有效
+    if (!id) {
+      console.error('无效的用户ID');
+      return;
+    }
+    
+    // 跳转到聊天页面
     wx.navigateTo({
-      url: `/pages/message/chat/chat?userId=${id}`
+      url: `/pages/message/chat/chat?userId=${id}`,
+      fail: (err) => {
+        console.error('跳转到聊天页面失败:', err);
+        
+        // 如果页面不存在，显示提示
+        wx.showToast({
+          title: '聊天功能暂未实现',
+          icon: 'none'
+        });
+      }
     });
   },
 
@@ -303,6 +436,27 @@ Page({
     wx.showLoading({
       title: '处理中...'
     });
+    
+    // 检查是否是模拟数据
+    if (id.startsWith('following_')) {
+      // 模拟添加好友成功
+      setTimeout(() => {
+        // 更新本地数据
+        const following = [...this.data.following];
+        following[index].isFriend = true;
+        
+        this.setData({ following });
+        
+        // 显示成功提示
+        wx.showToast({
+          title: '已添加好友',
+          icon: 'success'
+        });
+        
+        wx.hideLoading();
+      }, 500);
+      return;
+    }
     
     // 调用API添加好友
     communityAPI.addFriend(id)
@@ -323,8 +477,13 @@ Page({
         console.error('添加好友失败:', error);
         
         // 显示错误提示
+        let errorMsg = '添加好友失败';
+        if (error.statusCode === 404) {
+          errorMsg = '该用户不存在或API尚未实现';
+        }
+        
         wx.showToast({
-          title: '添加好友失败',
+          title: errorMsg,
           icon: 'none'
         });
       })

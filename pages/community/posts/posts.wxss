@@ -1,0 +1,188 @@
+/* 社区动态列表页面样式 - 微信朋友圈风格 */
+.container {
+  padding: 0;
+  background-color: #F7F7F7;
+  min-height: 100vh;
+}
+
+/* 搜索栏 - 微信风格 */
+.search-bar {
+  display: flex;
+  align-items: center;
+  padding: 16rpx 24rpx;
+  background-color: #FFFFFF;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  box-shadow: 0 1px 1px rgba(0, 0, 0, 0.05);
+  border-bottom: 1rpx solid #F2F2F2;
+}
+
+.search-input-wrap {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  background-color: #F7F7F7;
+  border-radius: 8rpx;
+  padding: 12rpx 16rpx;
+  margin-right: 16rpx;
+}
+
+.search-input-wrap .icon-search {
+  font-size: 32rpx;
+  color: #B2B2B2;
+  margin-right: 12rpx;
+}
+
+.search-placeholder {
+  font-size: 28rpx;
+  color: #B2B2B2;
+}
+
+.filter-btn {
+  width: 64rpx;
+  height: 64rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: transparent;
+  border-radius: 0;
+}
+
+.filter-btn .icon-filter {
+  font-size: 36rpx;
+  color: #576B95;
+}
+
+/* 标签筛选 - 微信风格 */
+.tags-scroll {
+  white-space: nowrap;
+  padding: 16rpx 0;
+  background-color: #FFFFFF;
+  border-bottom: 1rpx solid #F2F2F2;
+}
+
+.tags-list {
+  padding: 0 24rpx;
+  display: inline-block;
+}
+
+.tag-item {
+  display: inline-block;
+  padding: 8rpx 20rpx;
+  background-color: #F7F7F7;
+  border-radius: 4rpx;
+  margin-right: 16rpx;
+  font-size: 26rpx;
+  color: #333333;
+}
+
+.tag-item.active {
+  background-color: #576B95;
+  color: white;
+}
+
+/* 动态列表 */
+.posts-list {
+  padding: 0;
+  background-color: #F7F7F7;
+}
+
+/* 加载中 */
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40rpx 0;
+}
+
+.loading-spinner {
+  width: 48rpx;
+  height: 48rpx;
+  border: 3rpx solid #EEEEEE;
+  border-top-color: #576B95;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.loading-text {
+  margin-top: 12rpx;
+  font-size: 26rpx;
+  color: #B2B2B2;
+}
+
+/* 没有更多数据 */
+.no-more {
+  text-align: center;
+  padding: 30rpx 0;
+  font-size: 26rpx;
+  color: #B2B2B2;
+}
+
+/* 空状态 */
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 120rpx 0;
+  background-color: #FFFFFF;
+}
+
+.empty-icon {
+  width: 180rpx;
+  height: 180rpx;
+  margin-bottom: 24rpx;
+  opacity: 0.7;
+}
+
+.empty-title {
+  font-size: 32rpx;
+  font-weight: 500;
+  color: #333333;
+  margin-bottom: 12rpx;
+}
+
+.empty-desc {
+  font-size: 26rpx;
+  color: #B2B2B2;
+  margin-bottom: 30rpx;
+}
+
+.primary-btn {
+  background: #576B95;
+  color: white;
+  border-radius: 4rpx;
+  padding: 12rpx 40rpx;
+  font-size: 28rpx;
+  font-weight: normal;
+  border: none;
+  box-shadow: none;
+}
+
+/* 发布按钮 - 微信风格 */
+.create-post-btn {
+  position: fixed;
+  right: 40rpx;
+  bottom: 40rpx;
+  width: 100rpx;
+  height: 100rpx;
+  background: #576B95;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4rpx 8rpx rgba(0, 0, 0, 0.1);
+  z-index: 9;
+}
+
+.create-post-btn .icon-edit {
+  font-size: 44rpx;
+  color: white;
+} 
+ 

@@ -1,19 +1,10 @@
 "use strict";
-var __spreadArray = (this && this.__spreadArray) || function (to, from, pack) {
-    if (pack || arguments.length === 2) for (var i = 0, l = from.length, ar; i < l; i++) {
-        if (ar || !(i in from)) {
-            if (!ar) ar = Array.prototype.slice.call(from, 0, i);
-            ar[i] = from[i];
-        }
-    }
-    return to.concat(ar || Array.prototype.slice.call(from));
-};
-exports.__esModule = true;
+Object.defineProperty(exports, "__esModule", { value: true });
 /**
  * 创建小组页面
  */
-var api_1 = require("../../../../services/api");
-var use_auth_1 = require("../../../../utils/use-auth");
+const api_1 = require("../../../../services/api");
+const use_auth_1 = require("../../../../utils/use-auth");
 Page({
     /**
      * 页面的初始数据
@@ -50,7 +41,7 @@ Page({
     /**
      * 生命周期函数--监听页面加载
      */
-    onLoad: function () {
+    onLoad() {
         // 使用useAuth工具获取全局登录状态
         (0, use_auth_1.useAuth)(this);
         // 检查登录状态
@@ -58,8 +49,8 @@ Page({
             wx.showToast({
                 title: '请先登录',
                 icon: 'none',
-                success: function () {
-                    setTimeout(function () {
+                success: () => {
+                    setTimeout(() => {
                         wx.navigateBack();
                     }, 1500);
                 }
@@ -70,33 +61,32 @@ Page({
     /**
      * 返回上一页
      */
-    goBack: function () {
+    goBack() {
         wx.navigateBack();
     },
     /**
      * 选择头像
      */
-    chooseAvatar: function () {
-        var _this = this;
+    chooseAvatar() {
         wx.chooseImage({
             count: 1,
             sizeType: ['compressed'],
             sourceType: ['album', 'camera'],
-            success: function (res) {
-                var tempFilePath = res.tempFilePaths[0];
+            success: (res) => {
+                const tempFilePath = res.tempFilePaths[0];
                 // 更新表单数据
-                _this.setData({
+                this.setData({
                     'formData.avatar': tempFilePath
                 });
                 // 验证表单
-                _this.validateForm();
+                this.validateForm();
             }
         });
     },
     /**
      * 输入名称
      */
-    inputName: function (e) {
+    inputName(e) {
         this.setData({
             'formData.name': e.detail.value,
             nameError: ''
@@ -107,8 +97,8 @@ Page({
     /**
      * 切换类型
      */
-    typeChange: function (e) {
-        var index = parseInt(e.detail.value);
+    typeChange(e) {
+        const index = parseInt(e.detail.value);
         this.setData({
             typeIndex: index,
             'formData.type': this.data.typeOptions[index].value
@@ -119,7 +109,7 @@ Page({
     /**
      * 输入描述
      */
-    inputDescription: function (e) {
+    inputDescription(e) {
         this.setData({
             'formData.description': e.detail.value,
             descriptionError: ''
@@ -130,17 +120,17 @@ Page({
     /**
      * 显示标签选择器
      */
-    showTagSelector: function () {
+    showTagSelector() {
         // 复制当前标签到临时标签
         this.setData({
-            tempTags: __spreadArray([], this.data.formData.tags, true),
+            tempTags: [...this.data.formData.tags],
             showTagSelector: true
         });
     },
     /**
      * 隐藏标签选择器
      */
-    hideTagSelector: function () {
+    hideTagSelector() {
         this.setData({
             showTagSelector: false
         });
@@ -148,16 +138,16 @@ Page({
     /**
      * 阻止冒泡
      */
-    preventBubble: function () {
+    preventBubble() {
         // 阻止点击事件冒泡
     },
     /**
      * 切换标签选择状态
      */
-    toggleTag: function (e) {
-        var tag = e.currentTarget.dataset.tag;
-        var tempTags = __spreadArray([], this.data.tempTags, true);
-        var index = tempTags.indexOf(tag);
+    toggleTag(e) {
+        const tag = e.currentTarget.dataset.tag;
+        const tempTags = [...this.data.tempTags];
+        const index = tempTags.indexOf(tag);
         if (index > -1) {
             // 已选中，取消选择
             tempTags.splice(index, 1);
@@ -174,13 +164,13 @@ Page({
             tempTags.push(tag);
         }
         this.setData({
-            tempTags: tempTags
+            tempTags
         });
     },
     /**
      * 输入新标签
      */
-    inputNewTag: function (e) {
+    inputNewTag(e) {
         this.setData({
             newTag: e.detail.value
         });
@@ -188,8 +178,8 @@ Page({
     /**
      * 添加自定义标签
      */
-    addCustomTag: function () {
-        var _a = this.data, newTag = _a.newTag, tempTags = _a.tempTags;
+    addCustomTag() {
+        const { newTag, tempTags } = this.data;
         if (!newTag.trim()) {
             return;
         }
@@ -208,14 +198,14 @@ Page({
             return;
         }
         this.setData({
-            tempTags: __spreadArray(__spreadArray([], tempTags, true), [newTag.trim()], false),
+            tempTags: [...tempTags, newTag.trim()],
             newTag: ''
         });
     },
     /**
      * 确认标签选择
      */
-    confirmTags: function () {
+    confirmTags() {
         this.setData({
             'formData.tags': this.data.tempTags,
             showTagSelector: false
@@ -224,9 +214,9 @@ Page({
     /**
      * 删除标签
      */
-    removeTag: function (e) {
-        var index = e.currentTarget.dataset.index;
-        var tags = __spreadArray([], this.data.formData.tags, true);
+    removeTag(e) {
+        const index = e.currentTarget.dataset.index;
+        const tags = [...this.data.formData.tags];
         tags.splice(index, 1);
         this.setData({
             'formData.tags': tags
@@ -235,7 +225,7 @@ Page({
     /**
      * 切换私密状态
      */
-    switchPrivate: function (e) {
+    switchPrivate(e) {
         this.setData({
             'formData.isPrivate': e.detail.value
         });
@@ -243,7 +233,7 @@ Page({
     /**
      * 提交表单
      */
-    submitForm: function (e) {
+    submitForm(e) {
         // 验证表单
         if (!this.validateForm()) {
             return;
@@ -251,13 +241,13 @@ Page({
         wx.showLoading({
             title: '创建中'
         });
-        var formData = this.data.formData;
+        const { formData } = this.data;
         // 如果有头像，先上传头像
-        var uploadAvatarPromise = formData.avatar
+        const uploadAvatarPromise = formData.avatar
             ? this.uploadAvatar(formData.avatar)
             : Promise.resolve('');
         uploadAvatarPromise
-            .then(function (avatarUrl) {
+            .then((avatarUrl) => {
             // 创建小组
             return api_1.communityAPI.createGroup({
                 name: formData.name,
@@ -268,24 +258,25 @@ Page({
                 type: formData.type // 确保传递type字段
             });
         })
-            .then(function (group) {
+            .then((group) => {
             wx.hideLoading();
             wx.showToast({
                 title: '创建成功',
                 icon: 'success'
             });
             // 返回上一页并刷新
-            setTimeout(function () {
+            setTimeout(() => {
                 // 返回并传递刷新标志
-                var pages = getCurrentPages();
-                var prevPage = pages[pages.length - 2];
+                const pages = getCurrentPages();
+                const prevPage = pages[pages.length - 2];
                 if (prevPage) {
                     // 调用上一页的刷新方法
                     prevPage.refreshData && prevPage.refreshData();
                 }
                 wx.navigateBack();
             }, 1500);
-        })["catch"](function (error) {
+        })
+            .catch((error) => {
             console.error('创建小组失败:', error);
             wx.hideLoading();
             wx.showToast({
@@ -297,14 +288,15 @@ Page({
     /**
      * 上传头像
      */
-    uploadAvatar: function (filePath) {
-        return new Promise(function (resolve, reject) {
+    uploadAvatar(filePath) {
+        return new Promise((resolve, reject) => {
             // 如果是临时文件路径，需要上传
             if (filePath.startsWith('wxfile://') || filePath.startsWith('http://tmp')) {
                 api_1.communityAPI.uploadImage(filePath)
-                    .then(function (result) {
+                    .then(result => {
                     resolve(result.url);
-                })["catch"](function (error) {
+                })
+                    .catch(error => {
                     console.error('上传头像失败:', error);
                     reject(error);
                 });
@@ -318,10 +310,10 @@ Page({
     /**
      * 验证表单
      */
-    validateForm: function () {
-        var formData = this.data.formData;
-        var isValid = true;
-        var updates = {};
+    validateForm() {
+        const { formData } = this.data;
+        let isValid = true;
+        const updates = {};
         // 验证名称
         if (!formData.name.trim()) {
             updates.nameError = '请输入小组名称';

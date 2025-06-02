@@ -57,13 +57,14 @@ Page({
         // 检查登录状态，可能在其他页面已经登录/登出
         const app = getApp();
         const isLoggedIn = app.globalData.hasLogin;
+        const previousLoginState = this.data.hasLogin;
         // 更新登录状态
         this.setData({
             userInfo: app.globalData.userInfo,
             hasLogin: isLoggedIn
         });
-        // 如果挑战ID存在，重新加载挑战详情
-        if (this.challengeId) {
+        // 只有当登录状态发生变化时，才重新加载挑战详情
+        if (this.challengeId && previousLoginState !== isLoggedIn) {
             this.loadChallenge();
         }
     },
@@ -85,10 +86,10 @@ Page({
                 ...challenge,
                 // 确保id字段存在
                 id: challenge.id || challenge._id,
-                // 确保participantsCount字段存在
-                participantsCount: challenge.participantsCount || challenge.participants || 0,
+                // 确保participantsCount字段存在，如果为0且有创建者，则设为1（至少包含创建者）
+                participantsCount: challenge.participantsCount || challenge.participants || (challenge.creator ? 1 : 0),
                 // 确保participants字段存在
-                participants: challenge.participants || challenge.participantsCount || 0,
+                participants: challenge.participants || challenge.participantsCount || (challenge.creator ? 1 : 0),
                 // 确保isJoined和isParticipating字段存在
                 isJoined: challenge.isJoined || challenge.isParticipating || false,
                 isParticipating: challenge.isParticipating || challenge.isJoined || false
@@ -142,8 +143,35 @@ Page({
         api_1.communityAPI.getChallengeParticipants(challengeId, { limit: 5 })
             .then(result => {
             console.log('获取到参与者列表:', result);
+            let participants = result.participants || [];
+            // 检查创建者是否在参与者列表中
+            const { challenge } = this.data;
+            if (challenge && challenge.creator) {
+                // 检查创建者是否已经在列表中
+                const creatorExists = participants.some((p) => p.user && (p.user._id === challenge.creator._id || p.user.id === challenge.creator._id));
+                // 如果创建者不在列表中，添加创建者
+                if (!creatorExists) {
+                    participants = [
+                        {
+                            user: challenge.creator,
+                            isCreator: true,
+                            joinDate: challenge.createdAt || new Date().toISOString()
+                        },
+                        ...participants
+                    ];
+                }
+                else {
+                    // 如果创建者在列表中，标记为创建者
+                    participants = participants.map((p) => {
+                        if (p.user && (p.user._id === challenge.creator._id || p.user.id === challenge.creator._id)) {
+                            return { ...p, isCreator: true };
+                        }
+                        return p;
+                    });
+                }
+            }
             this.setData({
-                participants: result.participants || [],
+                participants,
                 participantsLoading: false
             });
         })
@@ -180,7 +208,7 @@ Page({
             .then(() => {
             // 更新本地状态
             const newParticipantsCount = isJoined
-                ? Math.max(0, challenge.participantsCount - 1)
+                ? Math.max(1, challenge.participantsCount - 1) // 确保至少有1人（创建者）
                 : challenge.participantsCount + 1;
             this.setData({
                 isJoined: !isJoined,

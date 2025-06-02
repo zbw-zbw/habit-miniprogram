@@ -23,11 +23,20 @@
         <van-loading size="24px" color="#4F7CFF">加载中...</van-loading>
       </view>
 
-      <!-- 空状态 -->
-      <view class="empty-container" wx:elif="{{friends.length === 0 && !loading}}">
+      <!-- 空状态 - 无好友 -->
+      <view class="empty-container" wx:elif="{{friends.length === 0 && !loading && !isSearching}}">
         <van-empty description="暂无好友" image="search">
           <van-button round type="info" size="small" bind:tap="goToFindFriends" custom-class="find-btn">
             寻找好友
+          </van-button>
+        </van-empty>
+      </view>
+
+      <!-- 空状态 - 搜索无结果 -->
+      <view class="empty-container" wx:elif="{{friends.length === 0 && !loading && isSearching}}">
+        <van-empty description="未找到相关用户" image="search">
+          <van-button round type="info" size="small" bind:tap="onSearchCancel" custom-class="find-btn">
+            返回好友列表
           </van-button>
         </van-empty>
       </view>

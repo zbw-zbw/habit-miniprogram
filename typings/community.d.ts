@@ -14,6 +14,7 @@ interface IPost {
   images: string[];
   tags: string[];
   likes: number;
+  likeCount?: number;
   comments: number;
   isLiked: boolean;
   createdAt: string;

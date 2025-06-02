@@ -230,7 +230,7 @@ Page<IPageData, IPageMethods>({
                 title: '删除失败',
                 icon: 'none'
               });
-            });
+      });
         }
       }
     });
@@ -263,9 +263,9 @@ Page<IPageData, IPageMethods>({
       case 'like':
       case 'comment':
         if (notification.relatedPost) {
-          wx.navigateTo({
+        wx.navigateTo({
             url: `/pages/community/post-detail/post-detail?id=${notification.relatedPost._id}`
-          });
+        });
         }
         break;
       case 'follow':
@@ -284,9 +284,9 @@ Page<IPageData, IPageMethods>({
         break;
       case 'habit':
         if (notification.relatedHabit) {
-          wx.navigateTo({
+        wx.navigateTo({
             url: `/pages/habits/detail/detail?id=${notification.relatedHabit._id}`
-          });
+        });
         }
         break;
       case 'system':

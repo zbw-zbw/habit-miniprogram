@@ -56,4 +56,10 @@ router.post('/:groupId/leave', authMiddleware, groupController.leaveGroup);
 // 获取小组成员
 router.get('/:groupId/members', authMiddleware, groupController.getGroupMembers);
 
+// 获取小组动态
+router.get('/:groupId/posts', authMiddleware, groupController.getGroupPosts);
+
+// 解散小组
+router.delete('/:groupId/dismiss', authMiddleware, groupController.checkGroupOwner, checkResourceOwner, groupController.dismissGroup);
+
 module.exports = router; 

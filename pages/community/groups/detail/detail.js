@@ -67,9 +67,19 @@ Page({
         // 调用API获取小组详情
         api_1.communityAPI.getGroupDetail(groupId)
             .then(result => {
+            var _a, _b;
+            // 获取当前用户ID
+            const app = getApp();
+            const currentUserId = (_b = (_a = app === null || app === void 0 ? void 0 : app.globalData) === null || _a === void 0 ? void 0 : _a.userInfo) === null || _b === void 0 ? void 0 : _b.id;
+            // 检查是否是创建者
+            const isCreator = result.creator &&
+                (result.creator._id === currentUserId || result.creator.id === currentUserId);
             // 更新小组详情
             this.setData({
-                group: result,
+                group: {
+                    ...result,
+                    isCreator: isCreator // 添加创建者标识
+                },
                 loading: false
             });
             // 加载初始数据
@@ -192,6 +202,11 @@ Page({
             return;
         }
         const { groupId, group } = this.data;
+        // 如果是创建者，则解散小组
+        if (group.isCreator) {
+            this.dismissGroup();
+            return;
+        }
         const isJoined = group.isJoined;
         // 显示加载中
         wx.showLoading({
@@ -230,6 +245,48 @@ Page({
         })
             .finally(() => {
             wx.hideLoading();
+        });
+    },
+    /**
+     * 解散小组
+     */
+    dismissGroup() {
+        const { groupId } = this.data;
+        // 显示确认对话框
+        wx.showModal({
+            title: '解散小组',
+            content: '确定要解散该小组吗？解散后无法恢复，所有成员将自动退出。',
+            confirmText: '确定解散',
+            confirmColor: '#F56C6C',
+            success: (res) => {
+                if (res.confirm) {
+                    wx.showLoading({
+                        title: '处理中...'
+                    });
+                    // 调用API解散小组
+                    api_1.communityAPI.dismissGroup(groupId)
+                        .then(() => {
+                        wx.showToast({
+                            title: '小组已解散',
+                            icon: 'success'
+                        });
+                        // 返回上一页
+                        setTimeout(() => {
+                            wx.navigateBack();
+                        }, 1500);
+                    })
+                        .catch(error => {
+                        console.error('解散小组失败:', error);
+                        wx.showToast({
+                            title: '解散小组失败',
+                            icon: 'none'
+                        });
+                    })
+                        .finally(() => {
+                        wx.hideLoading();
+                    });
+                }
+            }
         });
     },
     /**
@@ -348,7 +405,7 @@ Page({
     onShareAppMessage() {
         const { group, groupId } = this.data;
         return {
-            title: `${group.name} - 习惯打卡小组`,
+            title: group.name,
             path: `/pages/community/groups/detail/detail?id=${groupId}`
         };
     }
