@@ -57,9 +57,12 @@ Page({
     debugApiRequest: async function (url, method = 'GET', data = null) {
         this.setData({ loading: true });
         try {
+            // 获取API基础URL
+            const app = getApp();
+            const apiBaseUrl = app.globalData.apiBaseUrl;
             // 构建请求选项
             const options = {
-                url: `http://localhost:3000${url}`,
+                url: `${apiBaseUrl}${url}`,
                 method,
                 header: {
                     'content-type': 'application/json'

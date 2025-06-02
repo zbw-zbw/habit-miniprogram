@@ -225,11 +225,22 @@ Page({
         };
         // 调用API创建动态
         api_1.communityAPI.createPost(postData)
-            .then(() => {
+            .then((result) => {
             wx.showToast({
                 title: '发布成功',
                 icon: 'success'
             });
+            // 如果是在小组内发布，尝试刷新小组详情页面的动态列表
+            if (this.data.groupId) {
+                // 获取页面栈
+                const pages = getCurrentPages();
+                // 查找小组详情页面
+                const groupDetailPage = pages.find(page => page.route && page.route.includes('pages/community/groups/detail/detail'));
+                if (groupDetailPage) {
+                    // 调用小组详情页面的刷新方法
+                    groupDetailPage.loadPosts(true);
+                }
+            }
             // 返回上一页
             setTimeout(() => {
                 wx.navigateBack();

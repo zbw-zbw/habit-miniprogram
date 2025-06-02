@@ -2,4 +2,4 @@
 /**
  * 全局类型定义
  */
-exports.__esModule = true;
+Object.defineProperty(exports, "__esModule", { value: true });

@@ -1,6 +1,6 @@
 /* 小组详情页面样式 */
 .container {
-  background-color: #F5F7FA;
+  background-color: #f5f7fa;
   min-height: 100vh;
   padding-bottom: 120rpx;
 }
@@ -36,18 +36,20 @@
 }
 
 .retry-button {
+  display: flex;
+  justify-content: center;
+  align-items: center;
   width: 200rpx;
   height: 80rpx;
-  line-height: 80rpx;
-  background-color: #4F7CFF;
-  color: #FFFFFF;
+  background-color: #4f7cff;
+  color: #ffffff;
   font-size: 28rpx;
   border-radius: 40rpx;
 }
 
 /* 小组头部 */
 .group-header {
-  background-color: #FFFFFF;
+  background-color: #ffffff;
   margin-bottom: 20rpx;
 }
 
@@ -110,30 +112,32 @@
   position: absolute;
   right: 32rpx;
   bottom: 32rpx;
+  display: flex;
+  justify-content: center;
+  align-items: center;
   width: 160rpx;
   height: 64rpx;
-  line-height: 64rpx;
-  background-color: #4F7CFF;
-  color: #FFFFFF;
+  background-color: #4f7cff;
+  color: #ffffff;
   font-size: 26rpx;
   border-radius: 32rpx;
   padding: 0;
 }
 
 .join-button.joined {
-  background-color: #F5F7FA;
+  background-color: #f5f7fa;
   color: #606266;
-  border: 1px solid #DCDFE6;
+  border: 1px solid #dcdfe6;
 }
 
 .join-button.creator {
-  background-color: #F56C6C;
-  color: #FFFFFF;
+  background-color: #f56c6c;
+  color: #ffffff;
 }
 
 /* 小组描述 */
 .group-description {
-  background-color: #FFFFFF;
+  background-color: #ffffff;
   padding: 32rpx;
   margin-bottom: 20rpx;
 }
@@ -154,7 +158,7 @@
 
 /* 小组管理员 */
 .group-admin {
-  background-color: #FFFFFF;
+  background-color: #ffffff;
   padding: 32rpx;
   margin-bottom: 20rpx;
 }
@@ -186,7 +190,7 @@
 }
 
 .arrow-icon {
-  color: #C0C4CC;
+  color: #c0c4cc;
 }
 
 /* 标签页内容 */
@@ -216,18 +220,20 @@
 }
 
 .create-button {
+  display: flex;
+  justify-content: center;
+  align-items: center;
   width: 240rpx;
   height: 80rpx;
-  line-height: 80rpx;
-  background-color: #4F7CFF;
-  color: #FFFFFF;
+  background-color: #4f7cff;
+  color: #ffffff;
   font-size: 28rpx;
   border-radius: 40rpx;
 }
 
 /* 动态列表 */
 .post-item {
-  background-color: #FFFFFF;
+  background-color: #ffffff;
   border-radius: 16rpx;
   padding: 32rpx;
   margin-bottom: 20rpx;
@@ -295,7 +301,7 @@
   right: 16rpx;
   bottom: 16rpx;
   background-color: rgba(0, 0, 0, 0.5);
-  color: #FFFFFF;
+  color: #ffffff;
   font-size: 24rpx;
   padding: 4rpx 12rpx;
   border-radius: 16rpx;
@@ -318,7 +324,7 @@
 }
 
 .action-item .liked {
-  color: #F56C6C;
+  color: #f56c6c;
 }
 
 /* 成员列表 */
@@ -326,7 +332,7 @@
   display: flex;
   align-items: center;
   padding: 24rpx 0;
-  border-bottom: 1px solid #EBEEF5;
+  border-bottom: 1px solid #ebeef5;
 }
 
 .member-avatar {
@@ -348,7 +354,7 @@
 
 .member-role {
   font-size: 24rpx;
-  color: #4F7CFF;
+  color: #4f7cff;
 }
 
 /* 加载更多 */
@@ -372,7 +378,7 @@
   bottom: 32rpx;
   width: 100rpx;
   height: 100rpx;
-  background-color: #4F7CFF;
+  background-color: #4f7cff;
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -382,7 +388,7 @@
 
 .float-button .van-icon {
   font-size: 48rpx;
-  color: #FFFFFF;
+  color: #ffffff;
 }
 
 /* 操作按钮 */
@@ -390,44 +396,45 @@
   display: flex;
   margin-top: 20rpx;
   gap: 20rpx;
+  width: 100%;
+  justify-content: space-between;
 }
 
 .action-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
   flex: 1;
   height: 70rpx;
-  line-height: 70rpx;
   border-radius: 35rpx;
   font-size: 28rpx;
   margin: 0;
   padding: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
 }
 
 .action-btn.join {
-  background-color: #4F7CFF;
-  color: #FFFFFF;
+  background-color: #4f7cff;
+  color: #ffffff;
 }
 
 .action-btn.quit {
-  background-color: #F5F7FA;
+  background-color: #f5f7fa;
   color: #606266;
-  border: 1px solid #DCDFE6;
+  border: 1px solid #dcdfe6;
 }
 
 .action-btn.creator {
-  background-color: #F56C6C;
-  color: #FFFFFF;
+  background-color: #f56c6c;
+  color: #ffffff;
 }
 
 .action-btn.share {
-  background-color: #F5F7FA;
+  background-color: #f5f7fa;
   color: #606266;
-  border: 1px solid #DCDFE6;
+  border: 1px solid #dcdfe6;
 }
 
 .action-btn .iconfont {
   margin-right: 6rpx;
   font-size: 28rpx;
-} 
+}

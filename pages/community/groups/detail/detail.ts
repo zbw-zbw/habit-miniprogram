@@ -104,6 +104,7 @@ interface IPageMethods {
   likePost(e: any): void;
   commentPost(e: any): void;
   createPost(): void;
+  sharePost(e: any): void;
 }
 
 Page<IPageData, IPageMethods>({
@@ -146,9 +147,12 @@ Page<IPageData, IPageMethods>({
    * 生命周期函数--监听页面加载
    */
   onLoad(options) {
+    console.log('小组详情页onLoad，options:', options);
+    
     // 获取小组ID
     const groupId = options.id;
     if (!groupId) {
+      console.error('未指定小组ID，options:', options);
       this.setData({
         loading: false,
         error: '未指定小组ID'
@@ -156,6 +160,8 @@ Page<IPageData, IPageMethods>({
       return;
     }
 
+    console.log('获取到小组ID:', groupId);
+    
     // 设置小组ID
     this.setData({ groupId });
 
@@ -168,10 +174,30 @@ Page<IPageData, IPageMethods>({
   },
 
   /**
+   * 生命周期函数--监听页面显示
+   */
+  onShow() {
+    // 获取页面栈
+    const pages = getCurrentPages();
+    // 如果是从发布动态页面返回
+    if (pages.length > 1) {
+      const prevPage = pages[pages.length - 2];
+      if (prevPage.route && prevPage.route.includes('pages/community/create-post/create-post')) {
+        // 刷新动态列表
+        if (this.data.activeTab === 'posts') {
+          this.loadPosts(true);
+        }
+      }
+    }
+  },
+
+  /**
    * 加载小组详情
    */
   loadGroupDetail() {
     const { groupId } = this.data;
+    
+    console.log('开始加载小组详情，groupId:', groupId);
     
     // 显示加载中
     this.setData({
@@ -182,6 +208,13 @@ Page<IPageData, IPageMethods>({
     // 调用API获取小组详情
     communityAPI.getGroupDetail(groupId)
       .then(result => {
+        console.log('获取小组详情成功，结果:', result);
+        
+        // 如果返回的数据中没有id字段但有_id字段，则添加id字段
+        if (!result.id && result._id) {
+          result.id = result._id;
+        }
+        
         // 获取当前用户ID
         const app = getApp<IAppOption>();
         const currentUserId = app?.globalData?.userInfo?.id;
@@ -300,9 +333,20 @@ Page<IPageData, IPageMethods>({
       .then(result => {
         const { members, pagination } = result;
         
+        // 处理成员数据，确保有id字段
+        const processedMembers = members.map((member: any) => {
+          return {
+            ...member,
+            id: member.id || member._id, // 确保有id字段
+            avatar: member.avatar || member.avatarUrl || '/assets/images/default-avatar.png' // 确保有头像
+          };
+        });
+        
+        console.log('处理后的成员数据:', processedMembers);
+        
         // 更新数据
         this.setData({
-          members: isRefresh ? members : [...this.data.members, ...members],
+          members: isRefresh ? processedMembers : [...this.data.members, ...processedMembers],
           membersPage: page + 1,
           hasMoreMembers: page < pagination.pages,
           loadingMembers: false,
@@ -444,9 +488,52 @@ Page<IPageData, IPageMethods>({
    * 查看用户资料
    */
   viewUserProfile(e) {
-    const { id } = e.currentTarget.dataset;
+    console.log('viewUserProfile被调用, 事件对象:', e);
+    
+    // 输出关键数据，帮助调试
+    if (e.currentTarget && e.currentTarget.dataset) {
+      console.log('currentTarget.dataset:', JSON.stringify(e.currentTarget.dataset));
+    }
+    
+    // 直接从currentTarget.dataset获取id
+    let finalUserId = null;
+    
+    if (e.currentTarget && e.currentTarget.dataset) {
+      finalUserId = e.currentTarget.dataset.id;
+      console.log('从currentTarget.dataset直接获取到的ID:', finalUserId);
+    }
+    
+    // 如果上面没获取到，再尝试从detail中获取
+    if (!finalUserId && e.detail) {
+      finalUserId = e.detail.userId || e.detail.id;
+      console.log('从e.detail获取到的ID:', finalUserId);
+    }
+    
+    // 如果是从成员列表点击，尝试直接获取成员数据
+    if (!finalUserId && e.currentTarget && e.currentTarget.dataset && e.currentTarget.dataset.index !== undefined) {
+      const index = e.currentTarget.dataset.index;
+      console.log('尝试从成员列表获取，索引:', index);
+      const member = this.data.members[index];
+      if (member) {
+        console.log('成员数据:', JSON.stringify(member));
+        finalUserId = member.id || member._id;
+        console.log('从成员数据中获取用户ID:', finalUserId);
+      }
+    }
+    
+    if (!finalUserId) {
+      console.error('未找到用户ID，完整事件对象:', JSON.stringify(e));
+      wx.showToast({
+        title: '无法查看用户资料',
+        icon: 'none'
+      });
+      return;
+    }
+    
+    console.log('准备跳转到用户资料页, userId:', finalUserId);
+    
     wx.navigateTo({
-      url: `/pages/community/user-profile/user-profile?id=${id}`
+      url: `/pages/community/user-profile/user-profile?id=${finalUserId}`
     });
   },
 
@@ -454,10 +541,13 @@ Page<IPageData, IPageMethods>({
    * 查看帖子详情
    */
   viewPostDetail(e) {
-    const { id } = e.currentTarget.dataset;
-    wx.navigateTo({
-      url: `/pages/community/post-detail/post-detail?id=${id}`
-    });
+    const { id, postId } = e.detail || e.currentTarget.dataset;
+    const postId2 = postId || id;
+    if (postId2) {
+      wx.navigateTo({
+        url: `/pages/community/post-detail/post-detail?id=${postId2}`
+      });
+    }
   },
 
   /**
@@ -472,7 +562,7 @@ Page<IPageData, IPageMethods>({
       return;
     }
     
-    const { id, index } = e.currentTarget.dataset;
+    const { id, index } = e.detail || e.currentTarget.dataset;
     const post = this.data.posts[index];
     const isLiked = post.isLiked;
     
@@ -491,7 +581,14 @@ Page<IPageData, IPageMethods>({
     this.setData({ posts });
     
     // 发送请求
-    apiCall.catch(error => {
+    apiCall.then(response => {
+      // 使用服务器返回的实际点赞数和点赞状态
+      const posts = [...this.data.posts];
+      posts[index].isLiked = response.isLiked;
+      posts[index].likes = response.likeCount;
+      
+      this.setData({ posts });
+    }).catch(error => {
       console.error('点赞操作失败:', error);
       
       // 恢复原状态
@@ -515,7 +612,7 @@ Page<IPageData, IPageMethods>({
    * 评论帖子
    */
   commentPost(e) {
-    const { id } = e.currentTarget.dataset;
+    const { id } = e.detail || e.currentTarget.dataset;
     wx.navigateTo({
       url: `/pages/community/post-detail/post-detail?id=${id}&focus=comment`
     });
@@ -576,5 +673,16 @@ Page<IPageData, IPageMethods>({
       title: group.name,
       path: `/pages/community/groups/detail/detail?id=${groupId}`
     };
+  },
+
+  /**
+   * 分享帖子
+   */
+  sharePost(e) {
+    const { id } = e.detail || e.currentTarget.dataset;
+    wx.showShareMenu({
+      withShareTicket: true,
+      menus: ['shareAppMessage', 'shareTimeline']
+    });
   }
 }); 

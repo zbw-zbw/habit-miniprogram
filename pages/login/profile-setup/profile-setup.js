@@ -74,8 +74,10 @@ Page({
                 avatarUrl: avatarUrl,
                 createdAt: new Date().toISOString()
             };
+            // 获取API基础URL
+            const app = getApp();
+            const apiBaseUrl = app.globalData.apiBaseUrl;
             // 调用后端API进行登录
-            const apiBaseUrl = wx.getStorageSync('apiBaseUrl') || 'http://localhost:3000';
             return new Promise((resolve, reject) => {
                 wx.request({
                     url: `${apiBaseUrl}/api/auth/wx-login`,
@@ -150,7 +152,9 @@ Page({
     // 上传头像
     uploadAvatar(filePath) {
         return new Promise((resolve, reject) => {
-            const apiBaseUrl = wx.getStorageSync('apiBaseUrl') || 'http://localhost:3000';
+            // 获取API基础URL
+            const app = getApp();
+            const apiBaseUrl = app.globalData.apiBaseUrl;
             wx.uploadFile({
                 url: `${apiBaseUrl}/api/media/upload`,
                 filePath,

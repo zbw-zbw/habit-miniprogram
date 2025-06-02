@@ -265,9 +265,20 @@ Page({
                     groups = response.groups;
                 }
             }
-            console.log('处理后的小组数据:', groups);
-            this.setData({ groups });
-            return groups;
+            // 确保每个小组对象都有id字段
+            const processedGroups = groups.map(group => {
+                // 如果没有id字段但有_id字段，则使用_id作为id
+                if (!group.id && group._id) {
+                    return {
+                        ...group,
+                        id: group._id
+                    };
+                }
+                return group;
+            });
+            console.log('处理后的小组数据:', processedGroups);
+            this.setData({ groups: processedGroups });
+            return processedGroups;
         })
             .catch((error) => {
             console.error('加载小组列表失败:', error);
@@ -281,7 +292,33 @@ Page({
     loadFriends() {
         return api_1.communityAPI
             .getFriends()
-            .then((friends) => {
+            .then((response) => {
+            console.log('好友列表API返回数据:', response);
+            // 处理API返回的数据
+            let friends = [];
+            if (response && response.data && Array.isArray(response.data)) {
+                // 处理 {success: true, data: [...]} 格式
+                friends = response.data.map((friend) => ({
+                    _id: friend._id,
+                    username: friend.username || '',
+                    nickname: friend.nickname || friend.username || '用户',
+                    avatar: friend.avatar || '/assets/images/default-avatar.png',
+                    status: friend.status || '',
+                    followedAt: friend.followedAt
+                }));
+            }
+            else if (Array.isArray(response)) {
+                // 处理直接返回数组的格式
+                friends = response.map((friend) => ({
+                    _id: friend._id,
+                    username: friend.username || '',
+                    nickname: friend.nickname || friend.username || '用户',
+                    avatar: friend.avatar || '/assets/images/default-avatar.png',
+                    status: friend.status || '',
+                    followedAt: friend.followedAt
+                }));
+            }
+            console.log('处理后的好友数据:', friends);
             this.setData({ friends });
             return friends;
         })
@@ -389,8 +426,9 @@ Page({
             console.error('缺少用户ID');
             return;
         }
+        console.log('查看用户资料，ID:', userId);
         wx.navigateTo({
-            url: `/pages/profile/user-profile/user-profile?id=${userId}`,
+            url: `/pages/community/user-profile/user-profile?id=${userId}`,
         });
     },
     /**
@@ -888,8 +926,61 @@ Page({
      */
     viewGroupDetail(e) {
         const id = e.currentTarget.dataset.id;
+        const index = e.currentTarget.dataset.index;
+        console.log('viewGroupDetail被调用，dataset:', e.currentTarget.dataset);
+        // 尝试从index获取小组数据
+        let groupData = null;
+        if (typeof index === 'number' && this.data.groups[index]) {
+            groupData = this.data.groups[index];
+            console.log('通过index找到小组数据:', groupData);
+        }
+        else {
+            // 尝试通过id在groups数组中查找
+            groupData = this.data.groups.find(group => group.id === id);
+            console.log('通过id查找小组数据:', groupData);
+        }
+        if (!id) {
+            console.error('缺少小组ID，dataset:', e.currentTarget.dataset);
+            console.log('当前小组列表数据:', this.data.groups);
+            wx.showToast({
+                title: '无法查看小组详情',
+                icon: 'none'
+            });
+            return;
+        }
+        console.log('跳转到小组详情页，ID:', id);
         wx.navigateTo({
             url: `/pages/community/groups/detail/detail?id=${id}`,
+            fail: (err) => {
+                console.error('跳转到小组详情页失败:', err);
+                wx.showToast({
+                    title: '跳转失败',
+                    icon: 'none'
+                });
+            }
+        });
+    },
+    /**
+     * 发送消息给好友
+     */
+    sendMessage(e) {
+        // 使用catchtap阻止事件冒泡，不需要显式调用stopPropagation
+        const { id } = e.currentTarget.dataset;
+        console.log('发送消息给用户:', id);
+        if (!id) {
+            console.error('缺少用户ID');
+            return;
+        }
+        // 跳转到聊天页面
+        wx.navigateTo({
+            url: `/pages/message/chat/chat?userId=${id}`,
+            fail: (err) => {
+                console.error('跳转到聊天页面失败:', err);
+                wx.showToast({
+                    title: '聊天功能暂未实现',
+                    icon: 'none'
+                });
+            }
         });
     },
 });

@@ -1,5 +1,5 @@
 "use strict";
-exports.__esModule = true;
+Object.defineProperty(exports, "__esModule", { value: true });
 exports.dashboardAPI = void 0;
 /**
  * 仪表盘数据API服务
@@ -10,8 +10,8 @@ exports.dashboardAPI = void 0;
  * 2. `/api/habits/all` - 获取所有习惯数据
  * 3. `/api/analytics` - 获取分析数据
  */
-var request_1 = require("../../utils/request");
-var date_1 = require("../../utils/date");
+const request_1 = require("../../utils/request");
+const date_1 = require("../../utils/date");
 /**
  * 仪表盘API
  */
@@ -23,19 +23,17 @@ exports.dashboardAPI = {
      * @param options 附加选项
      * @returns 仪表盘数据
      */
-    getDashboard: function (date, options) {
-        if (date === void 0) { date = (0, date_1.getCurrentDate)(); }
-        if (options === void 0) { options = {}; }
-        var _a = options.includeCheckins, includeCheckins = _a === void 0 ? true : _a, _b = options.days, days = _b === void 0 ? 7 : _b;
+    getDashboard: (date = (0, date_1.getCurrentDate)(), options = {}) => {
+        const { includeCheckins = true, days = 7 } = options;
         // 使用后端聚合API
         return (0, request_1.request)({
             url: '/api/dashboard',
             method: 'GET',
             data: {
-                date: date,
+                date,
                 days: includeCheckins ? days : 0
             }
-        }).then(function (response) {
+        }).then(response => {
             // 确保返回的数据符合接口定义
             // 这里已经得到的是response.data，因为request模块已经处理过了
             if (typeof response === 'object' && response !== null) {
@@ -50,20 +48,19 @@ exports.dashboardAPI = {
      * @param options 可选参数
      * @returns 所有习惯及相关数据
      */
-    getAllHabits: function (options) {
-        if (options === void 0) { options = {}; }
-        var _a = options.includeArchived, includeArchived = _a === void 0 ? true : _a, _b = options.includeStats, includeStats = _b === void 0 ? true : _b, _c = options.includeCheckins, includeCheckins = _c === void 0 ? false : _c, _d = options.days, days = _d === void 0 ? 7 : _d;
+    getAllHabits: (options = {}) => {
+        const { includeArchived = true, includeStats = true, includeCheckins = false, days = 7 } = options;
         // 使用后端聚合API
         return (0, request_1.request)({
             url: '/api/habits',
             method: 'GET',
             data: {
-                includeArchived: includeArchived,
-                includeStats: includeStats,
-                includeCheckins: includeCheckins,
-                days: days
+                includeArchived,
+                includeStats,
+                includeCheckins,
+                days
             }
-        }).then(function (response) {
+        }).then(response => {
             // 确保返回的数据符合接口定义
             if (typeof response === 'object' && response !== null) {
                 return response.data || response;
@@ -76,19 +73,18 @@ exports.dashboardAPI = {
      * @param options 可选参数
      * @returns 分析数据
      */
-    getAnalytics: function (options) {
-        if (options === void 0) { options = {}; }
-        var _a = options.startDate, startDate = _a === void 0 ? (0, date_1.formatDate)(new Date(new Date().setMonth(new Date().getMonth() - 1))) : _a, _b = options.endDate, endDate = _b === void 0 ? (0, date_1.getCurrentDate)() : _b, _c = options.timeRange, timeRange = _c === void 0 ? 'month' : _c;
+    getAnalytics: (options = {}) => {
+        const { startDate = (0, date_1.formatDate)(new Date(new Date().setMonth(new Date().getMonth() - 1))), endDate = (0, date_1.getCurrentDate)(), timeRange = 'month' } = options;
         // 使用后端聚合API
         return (0, request_1.request)({
             url: '/api/analytics',
             method: 'GET',
             data: {
-                startDate: startDate,
-                endDate: endDate,
-                timeRange: timeRange
+                startDate,
+                endDate,
+                timeRange
             }
-        }).then(function (response) {
+        }).then(response => {
             // 确保返回的数据符合接口定义
             if (typeof response === 'object' && response !== null) {
                 return response.data || response;

@@ -1,0 +1,51 @@
+<!--聊天列表页面-->
+<view class="container">
+  <!-- 搜索框 -->
+  <view class="search-container">
+    <van-search
+      value="{{ searchValue }}"
+      placeholder="搜索聊天"
+      bind:change="onSearchChange"
+      bind:search="onSearch"
+      shape="round"
+      show-action="{{searchValue.length > 0}}"
+      action-text="搜索"
+      bind:cancel="onSearchCancel"
+    />
+  </view>
+
+  <!-- 加载中 -->
+  <view class="loading-container" wx:if="{{loading}}">
+    <van-loading size="24px" color="#4F7CFF">加载中...</van-loading>
+  </view>
+
+  <!-- 空状态 -->
+  <view class="empty-container" wx:elif="{{isEmpty}}">
+    <van-empty description="{{isSearching ? '未找到相关聊天' : '暂无聊天'}}" image="search" />
+  </view>
+
+  <!-- 会话列表 -->
+  <view class="session-list" wx:else>
+    <view class="session-item" wx:for="{{isSearching ? searchResults : sessions}}" wx:key="id" bindtap="gotoChat" data-id="{{item.id}}" data-userid="{{item.userId}}">
+      <view class="avatar-container">
+        <image class="avatar" src="{{item.avatar || '/assets/images/default-avatar.png'}}" mode="aspectFill"></image>
+        <view class="online-status {{item.online ? 'online' : ''}}" wx:if="{{item.online}}"></view>
+      </view>
+      <view class="session-info">
+        <view class="session-header">
+          <text class="nickname">{{item.nickname || item.username}}</text>
+          <text class="time">{{item.lastTime}}</text>
+        </view>
+        <view class="session-footer">
+          <text class="last-message">{{item.lastMessage}}</text>
+          <view class="unread-badge" wx:if="{{item.unreadCount > 0}}">{{item.unreadCount > 99 ? '99+' : item.unreadCount}}</view>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 新建聊天按钮 -->
+  <view class="float-btn" bindtap="goToFindFriends">
+    <van-icon name="chat-o" />
+  </view>
+</view> 

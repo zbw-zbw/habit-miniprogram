@@ -28,10 +28,14 @@ export const userAPI = {
    * @returns Promise<{avatarUrl: string}>
    */
   updateAvatar: (avatarFile: WechatMiniprogram.UploadFileOption['filePath']) => {
+    // 获取API基础URL
+    const app = getApp<IAppOption>();
+    const apiBaseUrl = app.globalData.apiBaseUrl;
+    
     // 使用wx.uploadFile上传文件
     return new Promise<{ avatarUrl: string }>((resolve, reject) => {
       wx.uploadFile({
-        url: 'http://localhost:3000/api/users/me/avatar',
+        url: `${apiBaseUrl}/api/users/me/avatar`,
         filePath: avatarFile,
         name: 'avatar',
         header: {

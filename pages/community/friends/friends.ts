@@ -157,12 +157,28 @@ Page({
     });
     
     // 使用真实API获取关注列表
-    communityAPI.getFollowing ? communityAPI.getFollowing().then(result => {
-      // 确保result是数组
-      const following = Array.isArray(result) ? result : [];
+    communityAPI.getFollowing ? communityAPI.getFollowing().then((result: any) => {
+      console.log('获取关注列表结果:', result);
+      
+      let followingUsers: any[] = [];
+      
+      // 处理不同的数据结构
+      if (result && typeof result === 'object' && result.data && typeof result.data === 'object' && 
+          result.data.following && Array.isArray(result.data.following)) {
+        // 处理 {success: true, data: {following: [...]}} 格式
+        followingUsers = result.data.following;
+      } else if (result && typeof result === 'object' && Array.isArray(result.following)) {
+        // 处理 {following: [...]} 格式
+        followingUsers = result.following;
+      } else if (Array.isArray(result)) {
+        // 处理直接返回数组的格式
+        followingUsers = result;
+      }
+      
+      console.log('处理后的关注用户:', followingUsers);
       
       // 处理数据
-      const processedFollowing = following.map(user => ({
+      const processedFollowing = followingUsers.map(user => ({
         _id: user._id || user.id || '',
         username: user.username || '',
         nickname: user.nickname || user.username || '未命名用户',

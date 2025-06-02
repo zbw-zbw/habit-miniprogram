@@ -1,7 +1,5 @@
 {
   "navigationBarTitleText": "习惯分析详情",
-  "navigationBarBackgroundColor": "#4F7CFF",
-  "navigationBarTextStyle": "white",
   "usingComponents": {
     "habit-analysis-assistant": "/components/habit-analysis-assistant/habit-analysis-assistant"
   },

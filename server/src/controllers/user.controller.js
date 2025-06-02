@@ -286,45 +286,49 @@ exports.getUserStats = async (req, res) => {
  */
 exports.getUserPublicProfile = async (req, res) => {
   try {
-    const userId = req.params.userId;
-
+    const { userId } = req.params;
+    
+    // 查询数据库获取用户资料
+    const User = require('../models/user.model');
     const user = await User.findById(userId);
-
+    
     if (!user) {
       return res.status(404).json({
         success: false,
-        message: '用户不存在',
+        message: '用户不存在'
       });
     }
-
-    // 检查用户隐私设置
-    if (!user.settings.privacy.shareData) {
-      return res.status(403).json({
-        success: false,
-        message: '该用户已设置资料不公开',
-      });
+    
+    // 检查当前登录用户是否关注了该用户
+    let isFollowing = false;
+    if (req.user) {
+      isFollowing = req.user.following && req.user.following.includes(userId);
     }
-
-    // 返回公开资料
-    const publicProfile = {
-      id: user._id,
+    
+    // 构建用户公开资料
+    const userProfile = {
+      _id: user._id,
       username: user.username,
-      nickname: user.nickname,
-      avatar: user.avatar,
-      totalHabits: user.totalHabits,
-      completedCheckins: user.completedCheckins,
-      achievements: user.achievements,
+      nickname: user.nickname || `用户${user._id.toString().substring(0, 4)}`,
+      avatar: user.avatar || 'https://thirdwx.qlogo.cn/mmopen/vi_32/POgEwh4mIHO4nibH0KlMECNjjGxQUq24ZEaGT4poC6icRiccVGKSyXwibcPq4BWmiaIGuG1icwxaQX6grC9VemZoJ8rg/132',
+      coverImage: user.coverImage || '/assets/images/default-avatar.png',
+      bio: user.bio || '这位用户很懒，还没有填写个人简介',
+      postsCount: user.postsCount || 0,
+      followingCount: user.following ? user.following.length : 0,
+      followersCount: user.followers ? user.followers.length : 0,
+      isFollowing
     };
-
-    res.status(200).json({
+    
+    res.json({
       success: true,
-      data: publicProfile,
+      data: userProfile
     });
   } catch (error) {
-    console.error('获取用户公开资料错误:', error);
+    console.error('获取用户公开资料失败:', error);
     res.status(500).json({
       success: false,
-      message: '服务器错误，获取用户公开资料失败',
+      message: '获取用户公开资料失败',
+      error: error.message
     });
   }
 };
@@ -698,6 +702,121 @@ exports.getUserAchievements = async (req, res) => {
     res.status(500).json({
       success: false,
       message: '服务器错误，获取用户成就数据失败',
+    });
+  }
+};
+
+/**
+ * 获取用户习惯
+ * @route GET /api/users/:userId/habits
+ */
+exports.getUserHabits = async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const { page = 1, limit = 10 } = req.query;
+    
+    // 查询数据库获取用户习惯
+    const Habit = require('../models/habit.model');
+    
+    // 查询用户的习惯，并按更新时间排序
+    const habits = await Habit.find({ user: userId, isPrivate: false })
+      .sort({ updatedAt: -1 })
+      .skip((parseInt(page) - 1) * parseInt(limit))
+      .limit(parseInt(limit));
+    
+    // 获取总数
+    const total = await Habit.countDocuments({ user: userId, isPrivate: false });
+    
+    // 分页信息
+    const pagination = {
+      total,
+      page: parseInt(page),
+      limit: parseInt(limit),
+      pages: Math.ceil(total / parseInt(limit))
+    };
+    
+    res.json({
+      success: true,
+      data: {
+        habits,
+        pagination
+      }
+    });
+  } catch (error) {
+    console.error('获取用户习惯失败:', error);
+    res.status(500).json({
+      success: false,
+      message: '获取用户习惯失败',
+      error: error.message
+    });
+  }
+};
+
+/**
+ * 获取用户成就
+ * @route GET /api/users/:userId/achievements
+ */
+exports.getUserAchievements = async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const { page = 1, limit = 10 } = req.query;
+    
+    // 查询数据库获取用户成就
+    const User = require('../models/user.model');
+    const user = await User.findById(userId);
+    
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: '用户不存在'
+      });
+    }
+    
+    // 获取用户的成就
+    let achievements = [];
+    if (user.achievements && Array.isArray(user.achievements)) {
+      achievements = user.achievements.map(achievement => {
+        // 格式化日期
+        const earnedAt = achievement.unlockedAt 
+          ? new Date(achievement.unlockedAt).toISOString().split('T')[0]
+          : new Date().toISOString().split('T')[0];
+          
+        return {
+          _id: achievement.id || achievement._id,
+          name: achievement.name,
+          description: achievement.description,
+          icon: achievement.icon || '/assets/images/achievement.png',
+          earnedAt
+        };
+      });
+    }
+    
+    // 分页处理
+    const startIndex = (parseInt(page) - 1) * parseInt(limit);
+    const endIndex = startIndex + parseInt(limit);
+    const paginatedAchievements = achievements.slice(startIndex, endIndex);
+    
+    // 分页信息
+    const pagination = {
+      total: achievements.length,
+      page: parseInt(page),
+      limit: parseInt(limit),
+      pages: Math.ceil(achievements.length / parseInt(limit))
+    };
+    
+    res.json({
+      success: true,
+      data: {
+        achievements: paginatedAchievements,
+        pagination
+      }
+    });
+  } catch (error) {
+    console.error('获取用户成就失败:', error);
+    res.status(500).json({
+      success: false,
+      message: '获取用户成就失败',
+      error: error.message
     });
   }
 };

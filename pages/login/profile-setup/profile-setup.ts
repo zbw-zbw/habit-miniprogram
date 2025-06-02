@@ -103,8 +103,11 @@ Page<IPageData, IPageMethods>({
           createdAt: new Date().toISOString()
         };
         
+        // 获取API基础URL
+        const app = getApp<any>();
+        const apiBaseUrl = app.globalData.apiBaseUrl;
+        
         // 调用后端API进行登录
-        const apiBaseUrl = wx.getStorageSync('apiBaseUrl') || 'http://localhost:3000';
         return new Promise<any>((resolve, reject) => {
           wx.request({
             url: `${apiBaseUrl}/api/auth/wx-login`,
@@ -180,7 +183,9 @@ Page<IPageData, IPageMethods>({
   // 上传头像
   uploadAvatar(filePath: string): Promise<string> {
     return new Promise((resolve, reject) => {
-      const apiBaseUrl = wx.getStorageSync('apiBaseUrl') || 'http://localhost:3000';
+      // 获取API基础URL
+      const app = getApp<any>();
+      const apiBaseUrl = app.globalData.apiBaseUrl;
       
       wx.uploadFile({
         url: `${apiBaseUrl}/api/media/upload`,

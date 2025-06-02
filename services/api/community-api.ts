@@ -653,4 +653,24 @@ export const communityAPI = {
   dismissGroup: (id: string): Promise<{ success: boolean }> => {
     return del(`/api/groups/${id}/dismiss`).then(() => ({ success: true }));
   },
+
+  /**
+   * 获取用户习惯
+   * @param userId 用户ID
+   * @param params 查询参数
+   * @returns Promise<{habits: any[], pagination: any}>
+   */
+  getUserHabits: (userId: string, params?: { page?: number; limit?: number }) => {
+    return get(`/api/users/${userId}/habits`, params);
+  },
+
+  /**
+   * 获取用户成就
+   * @param userId 用户ID
+   * @param params 查询参数
+   * @returns Promise<{achievements: any[], pagination: any}>
+   */
+  getUserAchievements: (userId: string, params?: { page?: number; limit?: number }) => {
+    return get(`/api/users/${userId}/achievements`, params);
+  },
 };

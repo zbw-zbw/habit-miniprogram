@@ -2,7 +2,7 @@
 /**
  * 图片处理工具函数
  */
-exports.__esModule = true;
+Object.defineProperty(exports, "__esModule", { value: true });
 exports.getThumbnailUrl = exports.getFullImageUrl = void 0;
 /**
  * 处理图片URL，确保它包含完整的URL路径
@@ -21,7 +21,7 @@ function getFullImageUrl(url) {
         return url;
     }
     // 如果是相对路径，添加baseURL
-    var baseUrl = getBaseUrl();
+    const baseUrl = getBaseUrl();
     if (url.startsWith('/')) {
         return baseUrl + url;
     }
@@ -49,10 +49,8 @@ function getBaseUrl() {
  * @param height 高度
  * @returns 缩略图URL
  */
-function getThumbnailUrl(url, width, height) {
-    if (width === void 0) { width = 200; }
-    if (height === void 0) { height = 200; }
-    var fullUrl = getFullImageUrl(url);
+function getThumbnailUrl(url, width = 200, height = 200) {
+    const fullUrl = getFullImageUrl(url);
     // 如果是本地资源，直接返回
     if (fullUrl.startsWith('/assets/')) {
         return fullUrl;

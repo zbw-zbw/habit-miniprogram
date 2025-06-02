@@ -189,4 +189,18 @@ router.delete(
  */
 router.get('/:userId', authMiddleware, userController.getUserPublicProfile);
 
+/**
+ * @route GET /api/users/:userId/habits
+ * @desc 获取指定用户的习惯
+ * @access Private
+ */
+router.get('/:userId/habits', authMiddleware, userController.getUserHabits);
+
+/**
+ * @route GET /api/users/:userId/achievements
+ * @desc 获取指定用户的成就
+ * @access Private
+ */
+router.get('/:userId/achievements', authMiddleware, userController.getUserAchievements);
+
 module.exports = router; 

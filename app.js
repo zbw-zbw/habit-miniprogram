@@ -13,7 +13,7 @@ App({
     version: '0.1.0',
     unlockedAchievement: null,
     showAchievementUnlock: false,
-    apiBaseUrl: 'http://localhost:3002', // API服务基础URL
+    apiBaseUrl: 'http://localhost:3000', // API服务基础URL
     apiAvailable: false, // API服务是否可用
     token: null, // 用户认证令牌
     refreshToken: null // 刷新令牌

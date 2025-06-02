@@ -1,0 +1,240 @@
+/* 聊天页面样式 */
+.container {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  background-color: #f5f7fa;
+  position: relative;
+}
+
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 300rpx;
+  margin-top: 100rpx;
+}
+
+/* 调试信息样式 */
+.debug-info {
+  padding: 10rpx 20rpx;
+  background-color: #fff3cd;
+  border: 1px solid #ffeeba;
+  color: #856404;
+  font-size: 24rpx;
+  margin: 10rpx;
+  border-radius: 8rpx;
+  white-space: pre-wrap;
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 100;
+  opacity: 0.9;
+}
+
+.message-list {
+  flex: 1;
+  padding: 30rpx;
+  padding-bottom: 150rpx;
+  padding-top: 80rpx; /* 为调试信息留出空间 */
+  overflow-y: auto;
+}
+
+.message-date {
+  text-align: center;
+  font-size: 24rpx;
+  color: #909399;
+  margin: 20rpx 0;
+  padding: 0 20rpx;
+}
+
+.message-item {
+  display: flex;
+  margin-bottom: 30rpx;
+  align-items: flex-start;
+}
+
+.message-item.self {
+  flex-direction: row-reverse;
+}
+
+.avatar-container {
+  margin: 0 20rpx;
+}
+
+.avatar {
+  width: 80rpx;
+  height: 80rpx;
+  border-radius: 50%;
+  background-color: #eee;
+}
+
+.message-content {
+  max-width: 60%;
+  position: relative;
+}
+
+.text-message {
+  padding: 20rpx;
+  border-radius: 10rpx;
+  word-break: break-all;
+  font-size: 28rpx;
+  line-height: 1.5;
+}
+
+.message-item.other .text-message {
+  background-color: #fff;
+  color: #303133;
+  border-top-left-radius: 0;
+}
+
+.message-item.self .text-message {
+  background-color: #4F7CFF;
+  color: #fff;
+  border-top-right-radius: 0;
+}
+
+.image-message {
+  border-radius: 10rpx;
+  overflow: hidden;
+  background-color: #f5f5f5;
+  max-width: 400rpx;
+  position: relative;
+}
+
+.image-message image {
+  width: 100%;
+  max-width: 400rpx;
+  min-width: 200rpx;
+  min-height: 150rpx;
+  display: block;
+  border-radius: 10rpx;
+}
+
+/* 图片加载中或失败时的样式 */
+.image-message::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.1);
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.image-message.loading::before {
+  content: "加载中...";
+  color: #606266;
+}
+
+.image-message.failed::before {
+  content: "加载失败";
+  color: #F56C6C;
+}
+
+.unsupported-message {
+  padding: 20rpx;
+  border-radius: 10rpx;
+  background-color: #f5f5f5;
+  color: #909399;
+  font-size: 28rpx;
+}
+
+.message-status {
+  position: absolute;
+  right: -40rpx;
+  bottom: 0;
+  font-size: 24rpx;
+  color: #909399;
+}
+
+.message-item.self .message-status {
+  right: auto;
+  left: -40rpx;
+}
+
+.input-area {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background-color: #fff;
+  border-top: 1rpx solid #eaeaea;
+  z-index: 100;
+}
+
+.input-box {
+  display: flex;
+  align-items: center;
+  padding: 20rpx;
+}
+
+.message-input {
+  flex: 1;
+  height: 80rpx;
+  background-color: #f5f7fa;
+  border-radius: 40rpx;
+  padding: 0 30rpx;
+  font-size: 28rpx;
+}
+
+.action-btn, .send-btn {
+  width: 80rpx;
+  height: 80rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-left: 20rpx;
+  border-radius: 50%;
+}
+
+.action-btn {
+  background-color: #f5f7fa;
+  color: #606266;
+}
+
+.send-btn {
+  background-color: #e0e0e0;
+  color: #fff;
+}
+
+.send-btn.active {
+  background-color: #4F7CFF;
+}
+
+.action-panel {
+  display: flex;
+  padding: 30rpx;
+  background-color: #f5f7fa;
+}
+
+.action-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-right: 60rpx;
+}
+
+.action-icon {
+  width: 100rpx;
+  height: 100rpx;
+  background-color: #fff;
+  border-radius: 20rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 10rpx;
+  font-size: 50rpx;
+  color: #4F7CFF;
+}
+
+.action-text {
+  font-size: 24rpx;
+  color: #606266;
+} 

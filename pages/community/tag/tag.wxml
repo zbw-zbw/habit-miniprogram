@@ -118,7 +118,7 @@
                 catchtap="joinChallenge" 
                 data-id="{{item.id}}"
                 data-index="{{index}}">
-            <text class="iconfont {{item.isJoined ? 'icon-check' : 'icon-plus'}}"></text>
+            <text class="iconfont {{item.isJoined ? 'icon-check' : 'icon-add'}}"></text>
           </view>
         </view>
       </view>

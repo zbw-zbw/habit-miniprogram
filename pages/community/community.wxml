@@ -46,7 +46,8 @@
                 wx:for="{{groups}}" 
                 wx:key="id" 
                 bindtap="viewGroupDetail"
-                data-id="{{item.id}}">
+                data-id="{{item.id}}"
+                data-index="{{index}}">
             <image class="group-avatar" src="{{item.avatar}}" mode="aspectFill"></image>
             <view class="group-info">
               <text class="group-name">{{item.name}}</text>
@@ -97,7 +98,7 @@
                   catchtap="joinChallenge" 
                   data-challenge-id="{{item.id}}"
                   data-index="{{index}}">
-              <text class="iconfont {{item.isJoined ? 'icon-check' : 'icon-plus'}}"></text>
+              <text class="iconfont {{item.isJoined ? 'icon-check' : 'icon-add'}}"></text>
             </view>
           </view>
         </view>
@@ -178,11 +179,14 @@
         </view>
         
         <view class="friends-grid" wx:if="{{friends.length > 0}}">
-          <view class="friend-item-large" wx:for="{{friends}}" wx:key="id" bindtap="viewUserProfile" data-id="{{item.id}}">
+          <view class="friend-item-large" wx:for="{{friends}}" wx:key="_id" bindtap="viewUserProfile" data-id="{{item._id}}">
             <image class="friend-avatar-large" src="{{item.avatar}}" mode="aspectFill"></image>
             <view class="friend-info">
-              <text class="friend-name">{{item.name}}</text>
+              <text class="friend-name">{{item.nickname || item.username}}</text>
               <text class="friend-status">{{item.status || '暂无状态'}}</text>
+            </view>
+            <view class="friend-actions" catchtap="sendMessage" data-id="{{item._id}}">
+              <text class="iconfont icon-comment"></text>
             </view>
           </view>
         </view>

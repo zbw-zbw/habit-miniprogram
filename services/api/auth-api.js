@@ -1,17 +1,17 @@
 "use strict";
-exports.__esModule = true;
+Object.defineProperty(exports, "__esModule", { value: true });
 exports.authAPI = void 0;
 /**
  * 认证相关API
  */
-var request_1 = require("../../utils/request");
+const request_1 = require("../../utils/request");
 exports.authAPI = {
     /**
      * 用户注册
      * @param userData 用户数据
      * @returns Promise
      */
-    register: function (userData) {
+    register: (userData) => {
         return (0, request_1.post)('/api/auth/register', userData);
     },
     /**
@@ -19,7 +19,7 @@ exports.authAPI = {
      * @param credentials 登录凭证
      * @returns Promise
      */
-    login: function (credentials) {
+    login: (credentials) => {
         return (0, request_1.post)('/api/auth/login', credentials);
     },
     /**
@@ -27,7 +27,7 @@ exports.authAPI = {
      * @param wxData 微信登录数据
      * @returns Promise
      */
-    wxLogin: function (wxData) {
+    wxLogin: (wxData) => {
         return (0, request_1.post)('/api/auth/wx-login', wxData);
     },
     /**
@@ -35,14 +35,14 @@ exports.authAPI = {
      * @param refreshToken 刷新令牌
      * @returns Promise
      */
-    refreshToken: function (refreshToken) {
-        return (0, request_1.post)('/api/auth/refresh-token', { refreshToken: refreshToken });
+    refreshToken: (refreshToken) => {
+        return (0, request_1.post)('/api/auth/refresh-token', { refreshToken });
     },
     /**
      * 登出
      * @returns Promise
      */
-    logout: function () {
+    logout: () => {
         return (0, request_1.post)('/api/auth/logout');
     }
 };

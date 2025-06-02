@@ -57,7 +57,7 @@
             <text class="tag-remove" data-index="{{index}}" bindtap="removeTag">×</text>
           </view>
           <view class="tag-add" bindtap="showTagSelector" wx:if="{{formData.tags.length < 5}}">
-            <text class="iconfont icon-plus"></text>
+            <text class="iconfont icon-add"></text>
             <text>添加标签</text>
           </view>
         </view>

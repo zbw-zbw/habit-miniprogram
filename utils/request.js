@@ -1,6 +1,8 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.del = exports.put = exports.post = exports.get = exports.request = void 0;
+exports.upload = exports.del = exports.put = exports.post = exports.get = exports.request = void 0;
+// 基础URL
+const BASE_URL = 'http://localhost:3001';
 /**
  * 生成UUID
  * @returns UUID字符串
@@ -424,3 +426,56 @@ const del = (url, data, options) => {
     });
 };
 exports.del = del;
+/**
+ * 上传文件
+ * @param url 上传地址
+ * @param filePath 文件路径
+ * @param options 其他选项
+ * @returns Promise
+ */
+const upload = (url, filePath, options) => {
+    // 获取全局应用实例
+    const app = getApp();
+    // 构建请求头
+    const header = {
+        ...((options === null || options === void 0 ? void 0 : options.header) || {}),
+    };
+    // 添加token
+    if (app && app.globalData && app.globalData.token) {
+        header.Authorization = `Bearer ${app.globalData.token}`;
+    }
+    return new Promise((resolve, reject) => {
+        wx.uploadFile({
+            url: BASE_URL + url,
+            filePath,
+            name: (options === null || options === void 0 ? void 0 : options.name) || 'file',
+            header,
+            formData: options === null || options === void 0 ? void 0 : options.formData,
+            timeout: options === null || options === void 0 ? void 0 : options.timeout,
+            success: (res) => {
+                if (res.statusCode >= 200 && res.statusCode < 300) {
+                    try {
+                        const data = JSON.parse(res.data);
+                        resolve(data);
+                    }
+                    catch (error) {
+                        resolve(res.data);
+                    }
+                }
+                else {
+                    reject({
+                        statusCode: res.statusCode,
+                        message: res.errMsg
+                    });
+                }
+            },
+            fail: (err) => {
+                reject({
+                    statusCode: -1,
+                    message: err.errMsg
+                });
+            }
+        });
+    });
+};
+exports.upload = upload;

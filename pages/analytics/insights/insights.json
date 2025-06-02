@@ -1,8 +1,5 @@
 {
   "navigationBarTitleText": "习惯洞察",
-  "navigationBarBackgroundColor": "#4F7CFF",
-  "navigationBarTextStyle": "white",
   "enablePullDownRefresh": true,
-  "backgroundColor": "#F5F7FA",
   "usingComponents": {}
 }

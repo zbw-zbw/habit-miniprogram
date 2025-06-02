@@ -37,7 +37,7 @@
   
   <!-- 无通知 -->
   <view class="empty-state" wx:if="{{!loading && notifications.length === 0}}">
-    <image class="empty-icon" src="/assets/images/empty-notification.png" mode="aspectFit"></image>
+    <image class="empty-icon" src="/assets/images/empty.png" mode="aspectFit"></image>
     <text class="empty-text">暂无{{tabName}}消息</text>
     <text class="empty-tips">与社区互动，参与话题讨论，获取更多消息通知</text>
   </view>

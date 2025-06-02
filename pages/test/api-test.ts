@@ -97,9 +97,13 @@ Page<PageData, PageInstance>({
   debugApiRequest: async function (url: string, method: 'GET' | 'POST' | 'PUT' | 'DELETE' = 'GET', data: any = null) {
     this.setData({ loading: true });
     try {
+      // 获取API基础URL
+      const app = getApp<IAppOption>();
+      const apiBaseUrl = app.globalData.apiBaseUrl;
+      
       // 构建请求选项
       const options: WechatMiniprogram.RequestOption = {
-        url: `http://localhost:3000${url}`,
+        url: `${apiBaseUrl}${url}`,
         method,
         header: {
           'content-type': 'application/json'

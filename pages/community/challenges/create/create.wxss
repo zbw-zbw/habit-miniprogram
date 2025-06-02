@@ -175,9 +175,11 @@
 }
 
 .cancel-btn {
+  display: flex;
+  justify-content: center;
+  align-items: center;
   width: 45%;
   height: 88rpx;
-  line-height: 88rpx;
   background-color: #F5F7FA;
   color: #606266;
   font-size: 30rpx;
@@ -187,9 +189,11 @@
 }
 
 .submit-btn {
+  display: flex;
+  justify-content: center;
+  align-items: center;
   width: 45%;
   height: 88rpx;
-  line-height: 88rpx;
   background: linear-gradient(135deg, #4F7CFF, #4169E1);
   color: #FFFFFF;
   font-size: 30rpx;

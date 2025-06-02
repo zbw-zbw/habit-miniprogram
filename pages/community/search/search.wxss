@@ -327,9 +327,11 @@
 
 /* 增加按钮样式的权重 */
 .user-item .follow-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
   width: 120rpx !important;
   height: 56rpx;
-  line-height: 56rpx;
   border-radius: 22rpx;
   background: #4f7cff;
   color: white;
@@ -471,9 +473,11 @@
 
 /* 增加按钮样式的权重 */
 .challenge-item .join-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
   width: 120rpx !important;
   height: 56rpx;
-  line-height: 56rpx;
   border-radius: 22rpx;
   background: #4f7cff;
   color: white;

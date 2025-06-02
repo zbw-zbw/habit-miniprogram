@@ -14,6 +14,9 @@ type Method =
 // 引入存储模块
 import * as storage from './storage';
 
+// 基础URL
+const BASE_URL = 'http://localhost:3001';
+
 /**
  * 生成UUID
  * @returns UUID字符串
@@ -558,5 +561,68 @@ export const del = <T>(
     method: 'DELETE',
     data,
     ...options,
+  });
+};
+
+/**
+ * 上传文件
+ * @param url 上传地址
+ * @param filePath 文件路径
+ * @param options 其他选项
+ * @returns Promise
+ */
+export const upload = <T>(
+  url: string,
+  filePath: string,
+  options?: {
+    name?: string;
+    header?: Record<string, any>;
+    formData?: Record<string, any>;
+    timeout?: number;
+  }
+): Promise<T> => {
+  // 获取全局应用实例
+  const app = getApp<IAppOption>();
+
+  // 构建请求头
+  const header = {
+    ...(options?.header || {}),
+  };
+
+  // 添加token
+  if (app && app.globalData && app.globalData.token) {
+    header.Authorization = `Bearer ${app.globalData.token}`;
+  }
+
+  return new Promise<T>((resolve, reject) => {
+    wx.uploadFile({
+      url: BASE_URL + url,
+      filePath,
+      name: options?.name || 'file',
+      header,
+      formData: options?.formData,
+      timeout: options?.timeout,
+      success: (res) => {
+        if (res.statusCode >= 200 && res.statusCode < 300) {
+          try {
+            const data = JSON.parse(res.data);
+            resolve(data);
+          } catch (error) {
+            resolve(res.data as unknown as T);
+          }
+        } else {
+          reject({
+            statusCode: res.statusCode,
+            message: res.errMsg
+          });
+        }
+      },
+      fail: (err) => {
+        reject({
+          statusCode: -1,
+          message: err.errMsg
+        });
+      }
+    });
   });
 };

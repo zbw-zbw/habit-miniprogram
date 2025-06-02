@@ -35,7 +35,9 @@
     "pages/profile/privacy/privacy",
     "pages/profile/about/about",
     "pages/profile/feedback/feedback",
-    "pages/test/api-test"
+    "pages/test/api-test",
+    "pages/message/chat-list/chat-list",
+    "pages/message/chat/chat"
   ],
   "window": {
     "backgroundTextStyle": "light",

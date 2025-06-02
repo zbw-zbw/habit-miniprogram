@@ -21,6 +21,7 @@ const friendsRoutes = require('./routes/friends.routes');
 const dashboardRoutes = require('./routes/dashboard.routes');
 const groupRoutes = require('./routes/group.routes');
 const mediaRoutes = require('./routes/media.routes');
+const uploadRoutes = require('./routes/upload.routes');
 
 // 导入控制器
 const postController = require('./controllers/post.controller');
@@ -52,6 +53,7 @@ app.use('/api/settings', settingsRoutes);
 app.use('/api/friends', friendsRoutes);
 app.use('/api/groups', groupRoutes);
 app.use('/api/media', mediaRoutes);
+app.use('/api/upload', uploadRoutes);
 
 // 聚合API路由
 app.use('/api', dashboardRoutes);
@@ -84,6 +86,9 @@ app.post('/api/challenges/:challengeId/dismiss', authMiddleware, (req, res, next
   req.resource = { creator: req.user._id };
   next();
 }, challengeController.deleteChallenge); // 使用deleteChallenge作为解散挑战的处理函数
+
+// 消息相关路由
+app.use('/api/messages', require('./routes/message.routes'));
 
 // 根路由
 app.get('/', (req, res) => {

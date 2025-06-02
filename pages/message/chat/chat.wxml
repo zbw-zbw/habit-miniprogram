@@ -1,0 +1,133 @@
+<!--聊天页面-->
+<view class="container">
+  <!-- 加载中 -->
+  <view class="loading-container" wx:if="{{loading}}">
+    <van-loading size="24px" color="#4F7CFF">加载中...</van-loading>
+  </view>
+  
+  <!-- 调试信息 -->
+  <view class="debug-info" wx:if="{{debugInfo}}">
+    <text>{{debugInfo}}</text>
+  </view>
+  
+  <!-- 消息列表 -->
+  <view class="message-list" id="message-list" wx:if="{{!loading}}">
+    <view class="message-date" wx:if="{{messages.length > 0}}">{{messages[0].timestamp ? formatTime(messages[0].timestamp) : '今天'}}</view>
+    
+    <block wx:for="{{messages}}" wx:key="id">
+      <!-- 日期分隔线 -->
+      <view class="message-date" wx:if="{{index > 0 && (item.timestamp - messages[index-1].timestamp > 3600000)}}">
+        {{formatTime(item.timestamp)}}
+      </view>
+      
+      <!-- 消息气泡 -->
+      <view class="message-item {{item.isSelf ? 'self' : 'other'}}">
+        <!-- 头像 -->
+        <view class="avatar-container" bindtap="viewUserProfile" wx:if="{{!item.isSelf}}">
+          <image class="avatar" src="{{targetUser.avatar || '/assets/images/default-avatar.png'}}" mode="aspectFill"></image>
+        </view>
+        
+        <!-- 消息内容 -->
+        <view class="message-content">
+          <!-- 文本消息 -->
+          <view class="text-message" wx:if="{{item.type === 'text'}}">
+            {{item.content}}
+          </view>
+          
+          <!-- 图片消息 -->
+          <view class="image-message {{item.status === 'sending' ? 'loading' : (item.status === 'failed' ? 'failed' : '')}}" wx:elif="{{item.type === 'image'}}" bindtap="previewImage" data-url="{{item.content}}">
+            <image src="{{item.content}}" mode="widthFix" binderror="onImageError" data-index="{{index}}"></image>
+          </view>
+          
+          <!-- 其他类型消息 -->
+          <view class="unsupported-message" wx:else>
+            [不支持的消息类型]
+          </view>
+          
+          <!-- 发送状态 -->
+          <view class="message-status" wx:if="{{item.isSelf}}">
+            <van-icon name="success" wx:if="{{item.status === 'sent'}}" />
+            <van-loading size="12px" wx:elif="{{item.status === 'sending'}}" />
+            <van-icon name="warning-o" wx:elif="{{item.status === 'failed'}}" bindtap="resendMessage" data-index="{{index}}" />
+          </view>
+        </view>
+        
+        <!-- 头像 -->
+        <view class="avatar-container" wx:if="{{item.isSelf}}">
+          <image class="avatar" src="{{userInfo.avatar || '/assets/images/default-avatar.png'}}" mode="aspectFill"></image>
+        </view>
+      </view>
+    </block>
+  </view>
+  
+  <!-- 底部输入区域 -->
+  <view class="input-area" style="padding-bottom: {{safeAreaBottom}}px">
+    <!-- 输入框 -->
+    <view class="input-box">
+      <input class="message-input" value="{{inputValue}}" bindinput="onInputChange" placeholder="输入消息..." confirm-type="send" bindconfirm="sendTextMessage" />
+      <view class="action-btn" bindtap="toggleActionPanel">
+        <van-icon name="{{showActionPanel ? 'close' : 'plus'}}" />
+      </view>
+      <view class="send-btn {{inputValue ? 'active' : ''}}" bindtap="sendTextMessage">
+        <van-icon name="arrow-up" />
+      </view>
+    </view>
+    
+    <!-- 更多操作面板 -->
+    <view class="action-panel" wx:if="{{showActionPanel}}">
+      <view class="action-item" bindtap="sendImageMessage">
+        <view class="action-icon">
+          <van-icon name="photo-o" />
+        </view>
+        <view class="action-text">图片</view>
+      </view>
+    </view>
+  </view>
+</view>
+
+<!-- wxs 模块用于格式化日期 -->
+<wxs module="formatTime">
+  function formatTime(timestamp) {
+    var date = getDate(timestamp);
+    var now = getDate();
+    var year = date.getFullYear();
+    var month = date.getMonth() + 1;
+    var day = date.getDate();
+    var hour = date.getHours();
+    var minute = date.getMinutes();
+    
+    // 补零
+    if (month < 10) month = '0' + month;
+    if (day < 10) day = '0' + day;
+    if (hour < 10) hour = '0' + hour;
+    if (minute < 10) minute = '0' + minute;
+    
+    // 今天
+    if (date.getFullYear() === now.getFullYear() && 
+        date.getMonth() === now.getMonth() && 
+        date.getDate() === now.getDate()) {
+      return hour + ':' + minute;
+    }
+    
+    // 昨天
+    var yesterday = getDate(now);
+    yesterday.setDate(now.getDate() - 1);
+    if (date.getFullYear() === yesterday.getFullYear() && 
+        date.getMonth() === yesterday.getMonth() && 
+        date.getDate() === yesterday.getDate()) {
+      return '昨天 ' + hour + ':' + minute;
+    }
+    
+    // 一周内
+    var weekDays = ['日', '一', '二', '三', '四', '五', '六'];
+    var dayDiff = Math.floor((now - date) / (24 * 3600 * 1000));
+    if (dayDiff < 7) {
+      return '星期' + weekDays[date.getDay()] + ' ' + hour + ':' + minute;
+    }
+    
+    // 其他
+    return year + '-' + month + '-' + day;
+  }
+  
+  module.exports = formatTime;
+</wxs> 

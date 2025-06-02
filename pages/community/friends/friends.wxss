@@ -105,9 +105,11 @@
 }
 
 .action-btn {
+  display: flex;
+  justify-content: center;
+  align-items: center;
   min-width: auto;
   height: 64rpx;
-  line-height: 64rpx;
   padding: 0 24rpx;
   margin: 0 0 0 16rpx;
   font-size: 28rpx;

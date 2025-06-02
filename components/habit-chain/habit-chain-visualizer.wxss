@@ -90,10 +90,12 @@
 }
 
 .order-btn {
+  display: flex;
+  justify-content: center;
+  align-items: center;
   min-width: 48rpx !important;
   height: 48rpx !important;
   padding: 0 !important;
-  line-height: 48rpx !important;
   font-size: 24rpx !important;
   margin: 0 !important;
 }

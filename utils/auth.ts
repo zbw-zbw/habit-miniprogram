@@ -67,9 +67,10 @@ function getUserProfile(
         nickName: res.userInfo.nickName, // 确保使用正确的属性名
       } as IUserInfo;
 
+      // 获取API基础URL
+      const apiBaseUrl = app.globalData.apiBaseUrl || '';
+      
       // 调用后端API进行登录
-      const apiBaseUrl =
-        wx.getStorageSync('apiBaseUrl') || 'http://localhost:3000';
       wx.request({
         url: `${apiBaseUrl}/api/auth/wx-login`,
         method: 'POST',

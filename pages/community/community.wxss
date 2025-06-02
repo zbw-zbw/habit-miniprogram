@@ -756,18 +756,18 @@
 .friends-grid {
   display: flex;
   flex-direction: column;
-  padding: 0 30rpx;
+  gap: 20rpx;
+  padding: 16rpx 0;
 }
 
 .friend-item-large {
   display: flex;
   align-items: center;
-  padding: 16rpx 0;
-  border-bottom: 1px solid var(--divider-color);
-}
-
-.friend-item-large:last-child {
-  border-bottom: none;
+  padding: 16rpx;
+  background-color: #fff;
+  border-radius: 12rpx;
+  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.05);
+  position: relative;
 }
 
 .friend-avatar-large {
@@ -775,24 +775,47 @@
   height: 100rpx;
   border-radius: 50%;
   margin-right: 20rpx;
-  border: 2px solid #fff;
+  border: 2rpx solid #fff;
   box-shadow: 0 2rpx 6rpx rgba(0, 0, 0, 0.1);
 }
 
 .friend-info {
   flex: 1;
+  overflow: hidden;
 }
 
 .friend-name {
-  font-size: 28rpx;
-  font-weight: 500;
+  font-size: 30rpx;
+  font-weight: 600;
   color: var(--title-color);
-  margin-bottom: 4rpx;
+  margin-bottom: 6rpx;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .friend-status {
   font-size: 24rpx;
   color: var(--text-color-secondary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.friend-actions {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 80rpx;
+  height: 80rpx;
+}
+
+.friend-actions .iconfont {
+  font-size: 40rpx;
+  color: #4F7CFF;
+  padding: 16rpx;
+  border-radius: 50%;
+  background-color: rgba(79, 124, 255, 0.1);
 }
 
 /* 网格布局 */

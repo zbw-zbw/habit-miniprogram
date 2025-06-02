@@ -12,6 +12,7 @@ import { communityAPI } from './community-api';
 import { notificationAPI } from './notification-api';
 import { settingsAPI } from './settings-api';
 import { dashboardAPI } from './dashboard';
+import { messageAPI } from './message-api';
 
 export {
   authAPI,
@@ -22,7 +23,8 @@ export {
   communityAPI,
   notificationAPI,
   settingsAPI,
-  dashboardAPI
+  dashboardAPI,
+  messageAPI
 };
 
 export default {
@@ -34,7 +36,8 @@ export default {
   community: communityAPI,
   notification: notificationAPI,
   settings: settingsAPI,
-  dashboard: dashboardAPI
+  dashboard: dashboardAPI,
+  message: messageAPI
 }; 
 
 // 导出API服务

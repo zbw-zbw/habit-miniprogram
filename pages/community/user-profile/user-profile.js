@@ -76,30 +76,43 @@ Page({
             loading: true,
             error: ''
         });
+        // 获取API基础URL
+        const app = getApp();
+        const apiBaseUrl = app.globalData.apiBaseUrl;
         // 调用API获取用户资料
-        // 注意：由于API中没有获取其他用户资料的方法，这里使用模拟数据
-        // 实际项目中应该有对应的API
-        // 模拟获取用户资料
-        const mockUserInfo = {
-            _id: userId,
-            username: '用户' + userId.substring(0, 4),
-            nickname: '昵称' + userId.substring(0, 4),
-            avatar: '/assets/images/default-avatar.png',
-            coverImage: '/assets/images/default-cover.jpg',
-            bio: '这是用户的个人简介',
-            postsCount: 12,
-            followingCount: 45,
-            followersCount: 23,
-            isFollowing: false
-        };
-        setTimeout(() => {
-            this.setData({
-                userInfo: mockUserInfo,
-                loading: false
-            });
-            // 加载初始数据
-            this.loadPosts(true);
-        }, 500);
+        wx.request({
+            url: `${apiBaseUrl}/api/users/${userId}`,
+            method: 'GET',
+            header: {
+                'Authorization': `Bearer ${wx.getStorageSync('token')}`
+            },
+            success: (res) => {
+                const { success, data, message } = res.data;
+                if (success && data) {
+                    console.log('获取用户资料成功:', data);
+                    this.setData({
+                        userInfo: data,
+                        loading: false
+                    });
+                    // 加载初始数据
+                    this.loadPosts(true);
+                }
+                else {
+                    console.error('获取用户资料失败:', message);
+                    this.setData({
+                        loading: false,
+                        error: message || '获取用户资料失败'
+                    });
+                }
+            },
+            fail: (error) => {
+                console.error('获取用户资料请求失败:', error);
+                this.setData({
+                    loading: false,
+                    error: '网络请求失败，请检查网络连接'
+                });
+            }
+        });
     },
     /**
      * 切换标签页
@@ -135,11 +148,24 @@ Page({
         api_1.communityAPI.getPosts({ userId, page, pageSize: postsLimit })
             .then(result => {
             const { posts, hasMore } = result;
-            // 处理时间格式
-            const formattedPosts = posts.map(post => ({
-                ...post,
-                createdAt: (0, util_1.formatTimeAgo)(post.createdAt)
-            }));
+            // 处理返回的帖子数据，确保格式正确
+            const formattedPosts = posts.map((post) => {
+                // 将API返回的数据格式转换为页面使用的格式
+                return {
+                    id: post.id || post._id,
+                    userId: post.userId || (post.user ? post.user._id : ''),
+                    userAvatar: post.userAvatar || (post.user ? post.user.avatar : '/assets/images/default-avatar.png'),
+                    userName: post.userName || (post.user ? (post.user.nickname || post.user.username) : '用户'),
+                    content: post.content || '',
+                    images: post.images || (post.media ? post.media.map((m) => m.url) : []),
+                    tags: post.tags || [],
+                    likes: typeof post.likes === 'number' ? post.likes : (post.likeCount || 0),
+                    comments: typeof post.comments === 'number' ? post.comments : (post.commentCount || 0),
+                    isLiked: post.isLiked || false,
+                    createdAt: (0, util_1.formatTimeAgo)(post.createdAt),
+                    habitName: post.habitName || (post.habit ? post.habit.name : '')
+                };
+            });
             // 更新数据
             this.setData({
                 posts: isRefresh ? formattedPosts : [...this.data.posts, ...formattedPosts],
@@ -167,7 +193,6 @@ Page({
      */
     loadHabits(isRefresh = false) {
         const { userId, habitsPage, habitsLimit } = this.data;
-        const { isCurrentUser } = this.data;
         // 如果是刷新，重置页码
         const page = isRefresh ? 1 : habitsPage;
         // 显示加载中
@@ -175,31 +200,58 @@ Page({
             loadingHabits: this.data.habits.length === 0,
             loadingMoreHabits: this.data.habits.length > 0
         });
-        // 模拟获取用户习惯数据
-        // 注意：由于API中没有获取其他用户习惯的方法，这里使用模拟数据
-        setTimeout(() => {
-            const mockHabits = Array(5).fill(0).map((_, index) => ({
-                _id: `habit_${index}`,
-                name: `习惯 ${index + 1}`,
-                icon: '/assets/images/habits.png',
-                currentStreak: Math.floor(Math.random() * 30),
-                completionRate: Math.floor(Math.random() * 100)
-            }));
-            const mockPagination = {
-                total: 10,
+        // 获取API基础URL
+        const app = getApp();
+        const apiBaseUrl = app.globalData.apiBaseUrl;
+        // 调用API获取用户习惯
+        wx.request({
+            url: `${apiBaseUrl}/api/users/${userId}/habits`,
+            method: 'GET',
+            header: {
+                'Authorization': `Bearer ${wx.getStorageSync('token')}`
+            },
+            data: {
                 page,
-                limit: habitsLimit,
-                pages: 2
-            };
-            // 更新数据
-            this.setData({
-                habits: isRefresh ? mockHabits : [...this.data.habits, ...mockHabits],
-                habitsPage: page + 1,
-                hasMoreHabits: page < mockPagination.pages,
-                loadingHabits: false,
-                loadingMoreHabits: false
-            });
-        }, 500);
+                limit: habitsLimit
+            },
+            success: (res) => {
+                const { success, data, message } = res.data;
+                if (success && data) {
+                    console.log('获取用户习惯成功:', data);
+                    const { habits = [], pagination = {} } = data;
+                    // 更新数据
+                    this.setData({
+                        habits: isRefresh ? habits : [...this.data.habits, ...habits],
+                        habitsPage: page + 1,
+                        hasMoreHabits: page < pagination.pages,
+                        loadingHabits: false,
+                        loadingMoreHabits: false
+                    });
+                }
+                else {
+                    console.error('获取用户习惯失败:', message);
+                    this.setData({
+                        loadingHabits: false,
+                        loadingMoreHabits: false
+                    });
+                    wx.showToast({
+                        title: message || '获取习惯失败',
+                        icon: 'none'
+                    });
+                }
+            },
+            fail: (error) => {
+                console.error('获取用户习惯请求失败:', error);
+                this.setData({
+                    loadingHabits: false,
+                    loadingMoreHabits: false
+                });
+                wx.showToast({
+                    title: '网络请求失败',
+                    icon: 'none'
+                });
+            }
+        });
     },
     /**
      * 加载用户成就
@@ -213,31 +265,58 @@ Page({
             loadingAchievements: this.data.achievements.length === 0,
             loadingMoreAchievements: this.data.achievements.length > 0
         });
-        // 模拟获取用户成就数据
-        // 注意：由于API中没有获取其他用户成就的方法，这里使用模拟数据
-        setTimeout(() => {
-            const mockAchievements = Array(5).fill(0).map((_, index) => ({
-                _id: `achievement_${index}`,
-                name: `成就 ${index + 1}`,
-                description: `完成了某项任务获得的成就`,
-                icon: '/assets/images/achievements.png',
-                earnedAt: '2023-05-15'
-            }));
-            const mockPagination = {
-                total: 10,
+        // 获取API基础URL
+        const app = getApp();
+        const apiBaseUrl = app.globalData.apiBaseUrl;
+        // 调用API获取用户成就
+        wx.request({
+            url: `${apiBaseUrl}/api/users/${userId}/achievements`,
+            method: 'GET',
+            header: {
+                'Authorization': `Bearer ${wx.getStorageSync('token')}`
+            },
+            data: {
                 page,
-                limit: achievementsLimit,
-                pages: 2
-            };
-            // 更新数据
-            this.setData({
-                achievements: isRefresh ? mockAchievements : [...this.data.achievements, ...mockAchievements],
-                achievementsPage: page + 1,
-                hasMoreAchievements: page < mockPagination.pages,
-                loadingAchievements: false,
-                loadingMoreAchievements: false
-            });
-        }, 500);
+                limit: achievementsLimit
+            },
+            success: (res) => {
+                const { success, data, message } = res.data;
+                if (success && data) {
+                    console.log('获取用户成就成功:', data);
+                    const { achievements = [], pagination = {} } = data;
+                    // 更新数据
+                    this.setData({
+                        achievements: isRefresh ? achievements : [...this.data.achievements, ...achievements],
+                        achievementsPage: page + 1,
+                        hasMoreAchievements: page < pagination.pages,
+                        loadingAchievements: false,
+                        loadingMoreAchievements: false
+                    });
+                }
+                else {
+                    console.error('获取用户成就失败:', message);
+                    this.setData({
+                        loadingAchievements: false,
+                        loadingMoreAchievements: false
+                    });
+                    wx.showToast({
+                        title: message || '获取成就失败',
+                        icon: 'none'
+                    });
+                }
+            },
+            fail: (error) => {
+                console.error('获取用户成就请求失败:', error);
+                this.setData({
+                    loadingAchievements: false,
+                    loadingMoreAchievements: false
+                });
+                wx.showToast({
+                    title: '网络请求失败',
+                    icon: 'none'
+                });
+            }
+        });
     },
     /**
      * 关注/取消关注用户
@@ -296,9 +375,19 @@ Page({
      * 查看帖子详情
      */
     viewPostDetail(e) {
-        const { id } = e.currentTarget.dataset;
+        var _a;
+        // 从组件事件的detail中获取postId，或者从dataset中获取id（兼容直接点击的情况）
+        const postId = ((_a = e.detail) === null || _a === void 0 ? void 0 : _a.postId) || e.currentTarget.dataset.id;
+        if (!postId) {
+            console.error('无法获取帖子ID:', e);
+            wx.showToast({
+                title: '无法查看帖子详情',
+                icon: 'none'
+            });
+            return;
+        }
         wx.navigateTo({
-            url: `/pages/community/post-detail/post-detail?id=${id}`
+            url: `/pages/community/post-detail/post-detail?id=${postId}`
         });
     },
     /**
@@ -314,6 +403,7 @@ Page({
      * 点赞帖子
      */
     likePost(e) {
+        var _a, _b;
         if (!this.data.hasLogin) {
             wx.showToast({
                 title: '请先登录',
@@ -321,13 +411,23 @@ Page({
             });
             return;
         }
-        const { id, index } = e.currentTarget.dataset;
+        // 从组件事件的detail中获取postId和index，或者从dataset中获取（兼容直接点击的情况）
+        const postId = ((_a = e.detail) === null || _a === void 0 ? void 0 : _a.postId) || e.currentTarget.dataset.id;
+        const index = ((_b = e.detail) === null || _b === void 0 ? void 0 : _b.index) !== undefined ? e.detail.index : e.currentTarget.dataset.index;
+        if (postId === undefined || index === undefined) {
+            console.error('无法获取帖子ID或索引:', e);
+            wx.showToast({
+                title: '操作失败',
+                icon: 'none'
+            });
+            return;
+        }
         const post = this.data.posts[index];
         const isLiked = post.isLiked;
         // 调用API
         const apiCall = isLiked
-            ? api_1.communityAPI.unlikePost(id)
-            : api_1.communityAPI.likePost(id);
+            ? api_1.communityAPI.unlikePost(postId)
+            : api_1.communityAPI.likePost(postId);
         // 乐观更新UI
         const posts = [...this.data.posts];
         posts[index].isLiked = !isLiked;
@@ -335,8 +435,14 @@ Page({
             ? Math.max(0, posts[index].likes - 1)
             : posts[index].likes + 1;
         this.setData({ posts });
-        // 发送请求
-        apiCall.catch(error => {
+        // 发送请求并使用服务器返回的实际点赞数更新UI
+        apiCall.then(response => {
+            // 使用服务器返回的实际点赞数和点赞状态
+            const posts = [...this.data.posts];
+            posts[index].isLiked = response.isLiked;
+            posts[index].likes = response.likeCount;
+            this.setData({ posts });
+        }).catch(error => {
             console.error('点赞操作失败:', error);
             // 恢复原状态
             const posts = [...this.data.posts];
@@ -356,9 +462,19 @@ Page({
      * 评论帖子
      */
     commentPost(e) {
-        const { id } = e.currentTarget.dataset;
+        var _a;
+        // 从组件事件的detail中获取postId，或者从dataset中获取id（兼容直接点击的情况）
+        const postId = ((_a = e.detail) === null || _a === void 0 ? void 0 : _a.postId) || e.currentTarget.dataset.id;
+        if (!postId) {
+            console.error('无法获取帖子ID:', e);
+            wx.showToast({
+                title: '无法评论帖子',
+                icon: 'none'
+            });
+            return;
+        }
         wx.navigateTo({
-            url: `/pages/community/post-detail/post-detail?id=${id}&focus=comment`
+            url: `/pages/community/post-detail/post-detail?id=${postId}&focus=comment`
         });
     },
     /**
@@ -401,5 +517,42 @@ Page({
             title: `${userInfo.nickname || userInfo.username}的个人主页`,
             path: `/pages/community/user-profile/user-profile?id=${userId}`
         };
-    }
+    },
+    /**
+     * 预览图片
+     */
+    previewImage(e) {
+        const { urls, current } = e.currentTarget.dataset;
+        wx.previewImage({
+            urls,
+            current
+        });
+    },
+    /**
+     * 查看用户资料
+     */
+    viewUserProfile(e) {
+        const { userId } = e.detail || e.currentTarget.dataset;
+        if (userId) {
+            wx.navigateTo({
+                url: `/pages/community/user-profile/user-profile?id=${userId}`
+            });
+        }
+    },
+    /**
+     * 分享帖子
+     */
+    sharePost(e) {
+        var _a;
+        // 从组件事件的detail中获取postId，或者从dataset中获取id（兼容直接点击的情况）
+        const postId = ((_a = e.detail) === null || _a === void 0 ? void 0 : _a.postId) || e.currentTarget.dataset.id;
+        if (!postId) {
+            console.error('无法获取帖子ID:', e);
+            return;
+        }
+        wx.showShareMenu({
+            withShareTicket: true,
+            menus: ['shareAppMessage', 'shareTimeline']
+        });
+    },
 });

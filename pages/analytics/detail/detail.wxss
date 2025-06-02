@@ -461,9 +461,11 @@
 
 .retry-button {
   margin-top: 20rpx;
+  display: flex;
+  justify-content: center;
+  align-items: center;
   width: 200rpx;
   height: 80rpx;
-  line-height: 80rpx;
   background-color: #4F7CFF;
   color: #fff;
   font-size: 28rpx;

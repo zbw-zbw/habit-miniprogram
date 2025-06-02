@@ -500,4 +500,22 @@ exports.communityAPI = {
     dismissGroup: (id) => {
         return (0, request_1.del)(`/api/groups/${id}/dismiss`).then(() => ({ success: true }));
     },
+    /**
+     * 获取用户习惯
+     * @param userId 用户ID
+     * @param params 查询参数
+     * @returns Promise<{habits: any[], pagination: any}>
+     */
+    getUserHabits: (userId, params) => {
+        return (0, request_1.get)(`/api/users/${userId}/habits`, params);
+    },
+    /**
+     * 获取用户成就
+     * @param userId 用户ID
+     * @param params 查询参数
+     * @returns Promise<{achievements: any[], pagination: any}>
+     */
+    getUserAchievements: (userId, params) => {
+        return (0, request_1.get)(`/api/users/${userId}/achievements`, params);
+    },
 };

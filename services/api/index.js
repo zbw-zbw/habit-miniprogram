@@ -4,7 +4,7 @@
  * 导出所有API模块
  */
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.dashboardAPI = exports.settingsAPI = exports.notificationAPI = exports.communityAPI = exports.analyticsAPI = exports.checkinAPI = exports.habitAPI = exports.userAPI = exports.authAPI = void 0;
+exports.messageAPI = exports.dashboardAPI = exports.settingsAPI = exports.notificationAPI = exports.communityAPI = exports.analyticsAPI = exports.checkinAPI = exports.habitAPI = exports.userAPI = exports.authAPI = void 0;
 const auth_api_1 = require("./auth-api");
 Object.defineProperty(exports, "authAPI", { enumerable: true, get: function () { return auth_api_1.authAPI; } });
 const user_api_1 = require("./user-api");
@@ -23,6 +23,8 @@ const settings_api_1 = require("./settings-api");
 Object.defineProperty(exports, "settingsAPI", { enumerable: true, get: function () { return settings_api_1.settingsAPI; } });
 const dashboard_1 = require("./dashboard");
 Object.defineProperty(exports, "dashboardAPI", { enumerable: true, get: function () { return dashboard_1.dashboardAPI; } });
+const message_api_1 = require("./message-api");
+Object.defineProperty(exports, "messageAPI", { enumerable: true, get: function () { return message_api_1.messageAPI; } });
 exports.default = {
     auth: auth_api_1.authAPI,
     user: user_api_1.userAPI,
@@ -32,7 +34,8 @@ exports.default = {
     community: community_api_1.communityAPI,
     notification: notification_api_1.notificationAPI,
     settings: settings_api_1.settingsAPI,
-    dashboard: dashboard_1.dashboardAPI
+    dashboard: dashboard_1.dashboardAPI,
+    message: message_api_1.messageAPI
 };
 // 导出API服务
 // export * from './habit';

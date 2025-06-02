@@ -505,9 +505,18 @@ Page({
 
   // 查看动态详情
   viewPostDetail(e: WechatMiniprogram.TouchEvent) {
-    const id = e.currentTarget.dataset.id;
+    // 从组件事件的detail中获取postId，或者从dataset中获取id（兼容直接点击的情况）
+    const postId = e.detail?.postId || e.currentTarget.dataset.id;
+    if (!postId) {
+      console.error('无法获取帖子ID:', e);
+      wx.showToast({
+        title: '无法查看帖子详情',
+        icon: 'none'
+      });
+      return;
+    }
     wx.navigateTo({
-      url: `/pages/community/post-detail/post-detail?id=${id}`
+      url: `/pages/community/post-detail/post-detail?id=${postId}`
     });
   },
 
@@ -789,5 +798,109 @@ Page({
   // 返回
   goBack() {
     wx.navigateBack();
-  }
+  },
+
+  /**
+   * 点赞动态
+   */
+  likePost(e: WechatMiniprogram.TouchEvent) {
+    if (!this.data.hasLogin) {
+      wx.showToast({
+        title: '请先登录',
+        icon: 'none'
+      });
+      return;
+    }
+
+    // 从组件事件的detail中获取postId和index，或者从dataset中获取（兼容直接点击的情况）
+    const postId = e.detail?.postId || e.currentTarget.dataset.id;
+    const index = e.detail?.index !== undefined ? e.detail.index : e.currentTarget.dataset.index;
+    
+    if (postId === undefined || index === undefined) {
+      console.error('无法获取帖子ID或索引:', e);
+      wx.showToast({
+        title: '操作失败',
+        icon: 'none'
+      });
+      return;
+    }
+    
+    const post = this.data.postResults[index];
+    const isLiked = post.isLiked;
+    
+    // 乐观更新UI
+    const postResults = [...this.data.postResults];
+    postResults[index].isLiked = !isLiked;
+    postResults[index].likes = isLiked 
+      ? Math.max(0, postResults[index].likes - 1)
+      : postResults[index].likes + 1;
+    
+    this.setData({ postResults });
+    
+    // 调用API
+    const apiCall = isLiked 
+      ? communityAPI.unlikePost(postId)
+      : communityAPI.likePost(postId);
+    
+    apiCall.then(response => {
+      // 使用服务器返回的实际点赞数和点赞状态
+      const postResults = [...this.data.postResults];
+      postResults[index].isLiked = response.isLiked;
+      postResults[index].likes = response.likeCount;
+      
+      this.setData({ postResults });
+    }).catch(error => {
+      console.error('点赞操作失败:', error);
+      
+      // 恢复原状态
+      const postResults = [...this.data.postResults];
+      postResults[index].isLiked = isLiked;
+      postResults[index].likes = isLiked 
+        ? postResults[index].likes + 1
+        : Math.max(0, postResults[index].likes - 1);
+      
+      this.setData({ postResults });
+      
+      wx.showToast({
+        title: '操作失败',
+        icon: 'none'
+      });
+    });
+  },
+
+  /**
+   * 评论动态
+   */
+  commentPost(e: WechatMiniprogram.TouchEvent) {
+    // 从组件事件的detail中获取postId，或者从dataset中获取id（兼容直接点击的情况）
+    const postId = e.detail?.postId || e.currentTarget.dataset.id;
+    if (!postId) {
+      console.error('无法获取帖子ID:', e);
+      wx.showToast({
+        title: '无法评论帖子',
+        icon: 'none'
+      });
+      return;
+    }
+    wx.navigateTo({
+      url: `/pages/community/post-detail/post-detail?id=${postId}&focus=comment`
+    });
+  },
+
+  /**
+   * 分享动态
+   */
+  sharePost(e: WechatMiniprogram.TouchEvent) {
+    // 从组件事件的detail中获取postId，或者从dataset中获取id（兼容直接点击的情况）
+    const postId = e.detail?.postId || e.currentTarget.dataset.id;
+    if (!postId) {
+      console.error('无法获取帖子ID:', e);
+      return;
+    }
+    
+    wx.showShareMenu({
+      withShareTicket: true,
+      menus: ['shareAppMessage', 'shareTimeline']
+    });
+  },
 }); 

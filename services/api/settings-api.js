@@ -1,16 +1,16 @@
 "use strict";
-exports.__esModule = true;
+Object.defineProperty(exports, "__esModule", { value: true });
 exports.settingsAPI = void 0;
 /**
  * 设置相关API
  */
-var request_1 = require("../../utils/request");
+const request_1 = require("../../utils/request");
 exports.settingsAPI = {
     /**
      * 获取用户设置
      * @returns Promise<{theme: 'light' | 'dark' | 'system'; language: 'zh_CN' | 'en_US'; notification: boolean; sound: boolean; vibration: boolean;}>
      */
-    getSettings: function () {
+    getSettings: () => {
         return (0, request_1.get)('/api/settings');
     },
     /**
@@ -18,7 +18,7 @@ exports.settingsAPI = {
      * @param settings 设置数据
      * @returns Promise<{ success: boolean }>
      */
-    updateSettings: function (settings) {
+    updateSettings: (settings) => {
         return (0, request_1.put)('/api/settings', settings);
     }
 };
