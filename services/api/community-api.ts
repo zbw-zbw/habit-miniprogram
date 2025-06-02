@@ -223,7 +223,8 @@ export const communityAPI = {
    * @param id 挑战ID
    * @returns Promise<IChallenge>
    */
-  getChallenge: (id: string): Promise<IChallenge> => {
+  getChallenge: (id: string): Promise<any> => {
+    // 直接使用正确的API路径
     return get(`/api/community/challenges/${id}`);
   },
   
@@ -279,11 +280,12 @@ export const communityAPI = {
    */
   uploadImage: (filePath: string): Promise<{url: string}> => {
     return new Promise((resolve, reject) => {
-      // 获取token
+      // 获取token和baseURL
       const token = wx.getStorageSync('token');
+      const baseUrl = wx.getStorageSync('apiBaseUrl') || '';
       
       wx.uploadFile({
-        url: wx.getStorageSync('apiBaseUrl') + '/api/media/upload',
+        url: baseUrl + '/api/media/upload',
         filePath,
         name: 'file',
         header: {
@@ -293,7 +295,13 @@ export const communityAPI = {
           try {
             const data = JSON.parse(res.data);
             if (data.success) {
-              resolve({ url: data.url });
+              // 检查返回的URL是否已包含baseURL
+              let imageUrl = data.url;
+              if (imageUrl && imageUrl.startsWith('/')) {
+                // 如果是相对路径，添加baseURL
+                imageUrl = baseUrl + imageUrl;
+              }
+              resolve({ url: imageUrl });
             } else {
               reject(new Error(data.message || '上传失败'));
             }
