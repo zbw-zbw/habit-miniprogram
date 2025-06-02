@@ -233,10 +233,10 @@ export const communityAPI = {
     console.log('认证令牌:', token ? '存在' : '不存在');
     console.log('API基础URL:', baseUrl);
     
-    // 尝试不同的API路径
-    return get(`/api/challenges/${id}`)
+    // 使用正确的API路径，注意参数名应该是challengeId
+    return get(`/api/community/challenges/${id}`)
       .then(response => {
-        console.log('挑战详情API响应(路径1):', response);
+        console.log('挑战详情API响应:', response);
         
         // 检查响应格式，使用类型断言
         const typedResponse = response as { success?: boolean; data?: any };
@@ -247,37 +247,18 @@ export const communityAPI = {
         return response;
       })
       .catch(error => {
-        console.error('路径1获取挑战详情失败:', error);
+        console.error('获取挑战详情失败:', error);
+        console.error('错误状态码:', error.statusCode);
+        console.error('错误信息:', error.message);
         
-        // 如果第一个路径失败，尝试第二个路径
-        console.log('尝试备用API路径');
-        return get(`/api/community/challenges/${id}`)
-          .then(response => {
-            console.log('挑战详情API响应(路径2):', response);
-            
-            // 检查响应格式，使用类型断言
-            const typedResponse = response as { success?: boolean; data?: any };
-            if (typedResponse && typedResponse.success === true && typedResponse.data) {
-              return typedResponse.data;
-            }
-            
-            return response;
-          })
-          .catch(error2 => {
-            console.error('路径2获取挑战详情失败:', error2);
-            
-            // 如果第二个路径也失败，尝试第三个路径
-            console.log('尝试第三个API路径');
-            return get(`/api/challenges/${id}/detail`)
-              .then(response => {
-                console.log('挑战详情API响应(路径3):', response);
-                return response;
-              })
-              .catch(error3 => {
-                console.error('所有API路径都失败:', error3);
-                throw error3;
-              });
-          });
+        // 如果是404错误，可能是参数名不匹配
+        if (error.statusCode === 404) {
+          console.log('尝试使用备用API路径');
+          // 尝试使用不同的参数名
+          return get(`/api/challenges/${id}`);
+        }
+        
+        throw error;
       });
   },
   

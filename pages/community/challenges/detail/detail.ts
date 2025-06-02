@@ -123,39 +123,45 @@ Page<IPageData, IPageMethods>({
     
     this.setData({ loading: true });
     
-    // 先尝试从挑战列表API获取挑战详情
-    communityAPI.getChallenges({ limit: 20 })
-      .then(result => {
-        console.log('尝试从挑战列表获取挑战详情');
-        
-        // 从挑战列表中查找指定ID的挑战
-        const challenges = result.challenges || [];
-        const challenge = challenges.find((c: any) => 
-          (c.id === challengeId || c._id === challengeId)
-        );
-        
-        if (challenge) {
-          console.log('从挑战列表中找到了挑战详情:', challenge);
-          this.processChallenge(challenge);
-        } else {
-          console.log('挑战列表中未找到该挑战，尝试使用挑战详情API');
-          // 如果挑战列表中没有找到，再使用挑战详情API
-          return communityAPI.getChallenge(challengeId)
-            .then(challenge => {
-              console.log('使用挑战详情API获取到挑战详情:', challenge);
-              this.processChallenge(challenge);
-            });
-        }
+    // 直接使用挑战详情API
+    communityAPI.getChallenge(challengeId)
+      .then(challenge => {
+        console.log('获取到挑战详情:', challenge);
+        this.processChallenge(challenge);
       })
       .catch(error => {
         console.error('获取挑战详情失败:', error);
         
-        wx.showToast({
-          title: '获取挑战详情失败',
-          icon: 'none'
-        });
-        
-        this.setData({ loading: false });
+        // 如果挑战详情API失败，尝试从挑战列表获取
+        console.log('尝试从挑战列表获取挑战详情');
+        return communityAPI.getChallenges({ limit: 20 })
+          .then(result => {
+            // 从挑战列表中查找指定ID的挑战
+            const challenges = result.challenges || [];
+            const challenge = challenges.find((c: any) => 
+              (c.id === challengeId || c._id === challengeId)
+            );
+            
+            if (challenge) {
+              console.log('从挑战列表中找到了挑战详情:', challenge);
+              this.processChallenge(challenge);
+            } else {
+              // 如果都失败了，显示错误提示
+              wx.showToast({
+                title: '获取挑战详情失败',
+                icon: 'none'
+              });
+              this.setData({ loading: false });
+            }
+          })
+          .catch(error2 => {
+            console.error('从挑战列表获取挑战详情也失败:', error2);
+            wx.showToast({
+              title: '获取挑战详情失败',
+              icon: 'none'
+            });
+            this.setData({ loading: false });
+          });
       });
   },
   
