@@ -224,8 +224,41 @@ export const communityAPI = {
    * @returns Promise<IChallenge>
    */
   getChallenge: (id: string): Promise<any> => {
+    console.log('正在请求挑战详情，ID:', id);
+    
+    // 获取token和baseURL
+    const token = wx.getStorageSync('token');
+    const baseUrl = wx.getStorageSync('apiBaseUrl') || '';
+    
+    console.log('认证令牌:', token ? '存在' : '不存在');
+    console.log('API基础URL:', baseUrl);
+    
     // 直接使用正确的API路径
-    return get(`/api/community/challenges/${id}`);
+    return get(`/api/community/challenges/${id}`)
+      .then(response => {
+        console.log('挑战详情API响应:', response);
+        
+        // 检查响应格式，使用类型断言
+        const typedResponse = response as { success?: boolean; data?: any };
+        if (typedResponse && typedResponse.success === true && typedResponse.data) {
+          return typedResponse.data;
+        }
+        
+        return response;
+      })
+      .catch(error => {
+        console.error('获取挑战详情失败:', error);
+        console.error('错误状态码:', error.statusCode);
+        console.error('错误信息:', error.message);
+        
+        // 尝试刷新令牌
+        if (error.statusCode === 401) {
+          console.log('尝试刷新认证令牌');
+          // 这里可以添加刷新令牌的逻辑
+        }
+        
+        throw error;
+      });
   },
   
   /**
