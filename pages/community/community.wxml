@@ -186,7 +186,7 @@
               <text class="friend-status">{{item.status || '暂无状态'}}</text>
             </view>
             <view class="friend-actions" catchtap="sendMessage" data-id="{{item._id}}">
-              <text class="iconfont icon-comment"></text>
+              <text class="iconfont icon-message"></text>
             </view>
           </view>
         </view>
@@ -208,7 +208,7 @@
   </view>
   
   <!-- 发布按钮 -->
-  <view class="create-post-btn" bindtap="showCreatePost" wx:if="{{activeTab === 'posts' && hasLogin}}">
+  <view class="create-post-btn" bindtap="createPost" wx:if="{{activeTab === 'posts' && hasLogin}}">
     <text class="iconfont icon-edit"></text>
   </view>
   

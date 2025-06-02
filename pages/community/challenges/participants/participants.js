@@ -110,11 +110,24 @@ Page({
      */
     viewUserProfile(e) {
         const userId = e.currentTarget.dataset.id;
+        console.log('查看用户资料, userId:', userId);
         if (!userId) {
+            console.error('未找到用户ID:', e.currentTarget.dataset);
+            wx.showToast({
+                title: '无法查看用户资料',
+                icon: 'none'
+            });
             return;
         }
         wx.navigateTo({
-            url: `/pages/profile/user-profile/user-profile?id=${userId}`
+            url: `/pages/community/user-profile/user-profile?id=${userId}`,
+            fail: (err) => {
+                console.error('跳转到用户资料页失败:', err);
+                wx.showToast({
+                    title: '跳转失败',
+                    icon: 'none'
+                });
+            }
         });
     },
     /**
@@ -144,6 +157,37 @@ Page({
     formatJoinTime(time) {
         if (!time)
             return '未知时间';
-        return (0, util_1.formatDate)(new Date(time), 'yyyy-MM-dd HH:mm');
+        try {
+            const date = new Date(time);
+            // 检查日期是否有效
+            if (isNaN(date.getTime())) {
+                return '未知时间';
+            }
+            // 获取当前时间
+            const now = new Date();
+            const diffDays = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60 * 24));
+            // 如果是今天
+            if (diffDays === 0) {
+                return `今天 ${(0, util_1.formatDate)(date, 'HH:mm')} 加入`;
+            }
+            // 如果是昨天
+            if (diffDays === 1) {
+                return `昨天 ${(0, util_1.formatDate)(date, 'HH:mm')} 加入`;
+            }
+            // 如果是7天内
+            if (diffDays < 7) {
+                return `${diffDays}天前加入`;
+            }
+            // 如果是今年
+            if (date.getFullYear() === now.getFullYear()) {
+                return `${(0, util_1.formatDate)(date, 'MM月dd日')} 加入`;
+            }
+            // 其他情况
+            return `${(0, util_1.formatDate)(date, 'yyyy年MM月dd日')} 加入`;
+        }
+        catch (error) {
+            console.error('日期格式化错误:', error);
+            return '未知时间';
+        }
     }
 });

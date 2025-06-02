@@ -439,12 +439,37 @@ Page({
         if (!this.data.hasLogin) {
             return this.login();
         }
-        const { id, index } = e.detail || e.currentTarget.dataset;
-        if (!id) {
-            console.error('缺少动态ID');
+        // 从事件对象中获取动态ID和索引
+        let postId, index;
+        // 先尝试从detail中获取
+        if (e.detail) {
+            postId = e.detail.postId;
+            index = e.detail.index;
+            console.log('从detail获取动态ID:', postId, '索引:', index);
+        }
+        // 如果detail中没有，则尝试从dataset中获取
+        if (!postId && e.currentTarget && e.currentTarget.dataset) {
+            postId = e.currentTarget.dataset.id;
+            index = e.currentTarget.dataset.index;
+            console.log('从dataset获取动态ID:', postId, '索引:', index);
+        }
+        if (!postId || index === undefined) {
+            console.error('缺少动态ID或索引:', e);
+            wx.showToast({
+                title: '操作失败',
+                icon: 'none',
+            });
             return;
         }
         const post = this.data.posts[index];
+        if (!post) {
+            console.error('未找到对应索引的动态:', index);
+            wx.showToast({
+                title: '操作失败',
+                icon: 'none',
+            });
+            return;
+        }
         // 乐观更新UI
         post.isLiked = !post.isLiked;
         post.likes = post.isLiked ? post.likes + 1 : Math.max(0, post.likes - 1);
@@ -455,8 +480,8 @@ Page({
         });
         // 调用API
         const apiCall = post.isLiked
-            ? api_1.communityAPI.likePost(id)
-            : api_1.communityAPI.unlikePost(id);
+            ? api_1.communityAPI.likePost(postId)
+            : api_1.communityAPI.unlikePost(postId);
         apiCall.catch((error) => {
             console.error('点赞操作失败:', error);
             // 发生错误时回滚UI更新
@@ -934,12 +959,17 @@ Page({
             groupData = this.data.groups[index];
             console.log('通过index找到小组数据:', groupData);
         }
-        else {
+        else if (id) {
             // 尝试通过id在groups数组中查找
-            groupData = this.data.groups.find(group => group.id === id);
+            groupData = this.data.groups.find(group => group.id === id || group._id === id);
             console.log('通过id查找小组数据:', groupData);
         }
-        if (!id) {
+        // 确保有有效的小组ID
+        let finalId = id;
+        if (!finalId && groupData) {
+            finalId = groupData.id || groupData._id;
+        }
+        if (!finalId) {
             console.error('缺少小组ID，dataset:', e.currentTarget.dataset);
             console.log('当前小组列表数据:', this.data.groups);
             wx.showToast({
@@ -948,9 +978,9 @@ Page({
             });
             return;
         }
-        console.log('跳转到小组详情页，ID:', id);
+        console.log('跳转到小组详情页，ID:', finalId);
         wx.navigateTo({
-            url: `/pages/community/groups/detail/detail?id=${id}`,
+            url: `/pages/community/groups/detail/detail?id=${finalId}`,
             fail: (err) => {
                 console.error('跳转到小组详情页失败:', err);
                 wx.showToast({
@@ -980,6 +1010,26 @@ Page({
                     title: '聊天功能暂未实现',
                     icon: 'none'
                 });
+            }
+        });
+    },
+    /**
+     * 创建动态
+     */
+    createPost() {
+        if (!this.data.hasLogin) {
+            wx.showToast({
+                title: '请先登录',
+                icon: 'none'
+            });
+            return;
+        }
+        wx.navigateTo({
+            url: '/pages/community/create-post/create-post',
+            fail: (err) => {
+                console.error('跳转到发布动态页面失败:', err);
+                // 如果跳转失败，回退到使用弹窗方式
+                this.showCreatePost();
             }
         });
     },

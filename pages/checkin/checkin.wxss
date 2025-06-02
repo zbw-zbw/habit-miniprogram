@@ -468,12 +468,13 @@
 
 .success-stats {
   display: flex;
-  justify-content: space-around;
+  justify-content: center;
   margin-bottom: 40rpx;
 }
 
 .stats-item {
   text-align: center;
+  min-width: 120rpx;
 }
 
 .stats-value {
@@ -491,6 +492,7 @@
 .success-actions {
   display: flex;
   justify-content: space-between;
+  gap: 20rpx;
 }
 
 .success-btn {
@@ -501,6 +503,7 @@
   align-items: center;
   justify-content: center;
   font-size: 28rpx;
+  margin: 0;
 }
 
 .success-btn.share {

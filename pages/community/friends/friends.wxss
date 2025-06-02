@@ -4,6 +4,8 @@
   background-color: #f5f7fa;
   padding-bottom: 100rpx;
   position: relative;
+  width: 100%;
+  overflow-x: hidden;
 }
 
 /* 搜索框容器 */
@@ -35,6 +37,8 @@
 /* 好友列表 */
 .friends-list {
   padding: 0 30rpx;
+  box-sizing: border-box;
+  width: 100%;
 }
 
 /* 好友项 */
@@ -43,17 +47,22 @@
   align-items: center;
   padding: 30rpx 0;
   border-bottom: 1rpx solid #ebedf0;
+  width: 100%;
+  box-sizing: border-box;
+  flex-wrap: nowrap;
+  position: relative;
 }
 
 /* 好友头像 */
 .friend-avatar {
   position: relative;
   margin-right: 20rpx;
+  flex-shrink: 0;
 }
 
 .friend-avatar image {
-  width: 100rpx;
-  height: 100rpx;
+  width: 80rpx;
+  height: 80rpx;
   border-radius: 50%;
   background-color: #f2f2f2;
 }
@@ -78,10 +87,12 @@
 .friend-info {
   flex: 1;
   overflow: hidden;
+  margin-right: 20rpx;
+  max-width: calc(100% - 230rpx);
 }
 
 .friend-name {
-  font-size: 32rpx;
+  font-size: 28rpx;
   font-weight: 500;
   color: #303133;
   margin-bottom: 6rpx;
@@ -91,61 +102,87 @@
 }
 
 .friend-bio {
-  font-size: 26rpx;
+  font-size: 24rpx;
   color: #909399;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  margin-bottom: 4rpx;
+}
+
+.friend-follow-time {
+  font-size: 22rpx;
+  color: #c0c4cc;
 }
 
 /* 好友操作按钮 */
 .friend-actions {
   display: flex;
   align-items: center;
+  flex-shrink: 0;
+  margin-left: auto;
+  gap: 12rpx;
 }
 
 .action-btn {
   display: flex;
   justify-content: center;
   align-items: center;
-  min-width: auto;
-  height: 64rpx;
-  padding: 0 24rpx;
-  margin: 0 0 0 16rpx;
-  font-size: 28rpx;
-  border-radius: 32rpx;
+  height: 56rpx;
+  font-size: 24rpx;
+  border-radius: 28rpx;
   background-color: #f2f2f2;
   color: #606266;
-  border: none;
-}
-
-.action-btn::after {
-  border: none;
+  line-height: 1;
+  box-sizing: border-box;
+  white-space: nowrap;
+  padding: 0 20rpx;
+  margin: 0;
+  min-width: 56rpx !important;
+  width: auto;
 }
 
 .message-btn {
+  width: 56rpx !important;
+  padding: 0;
+  flex-shrink: 0;
+}
+
+.unfollow-btn {
   background-color: #f2f2f2;
-  color: #606266;
+  color: #909399;
+  width: 80rpx;
+  padding: 0;
+  font-size: 22rpx;
+  min-width: 80rpx;
 }
 
 .follow-btn {
   background-color: #4f7cff;
   color: #ffffff;
+  min-width: 80rpx;
 }
 
 .following-btn {
   background-color: #f2f2f2;
   color: #606266;
+  min-width: 100rpx;
 }
 
 .add-btn {
   background-color: #4f7cff;
   color: #ffffff;
+  width: 64rpx;
+  min-width: 64rpx;
+  padding: 0;
 }
 
 .added-btn {
   background-color: #f2f2f2;
   color: #606266;
+  width: 64rpx;
+  min-width: 64rpx;
+  padding: 0;
 }
 
 /* 加载更多 */
@@ -164,21 +201,125 @@
 
 /* 浮动按钮 */
 .float-btn {
-  position: fixed;
-  right: 40rpx;
-  bottom: 40rpx;
-  width: 100rpx;
-  height: 100rpx;
-  border-radius: 50%;
-  background-color: #4f7cff;
-  color: #ffffff;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  box-shadow: 0 6rpx 16rpx rgba(79, 124, 255, 0.3);
-  z-index: 99;
+  display: none;
 }
 
 .float-btn .van-icon {
   font-size: 48rpx;
+}
+
+/* 关注列表特定样式 */
+.following-friends-list {
+  padding: 0 30rpx;
+  box-sizing: border-box;
+  width: 100%;
+  overflow-x: hidden;
+}
+
+.following-friend-item {
+  display: flex;
+  align-items: center;
+  padding: 30rpx 0;
+  border-bottom: 1rpx solid #ebedf0;
+  width: 100%;
+  box-sizing: border-box;
+  flex-wrap: nowrap;
+  position: relative;
+}
+
+.following-friend-avatar {
+  position: relative;
+  margin-right: 20rpx;
+  flex-shrink: 0;
+}
+
+.following-friend-avatar image {
+  width: 80rpx;
+  height: 80rpx;
+  border-radius: 50%;
+  background-color: #f2f2f2;
+}
+
+.following-friend-info {
+  flex: 1;
+  overflow: hidden;
+  margin-right: 20rpx;
+  max-width: calc(100% - 230rpx);
+}
+
+.following-friend-name {
+  font-size: 28rpx;
+  font-weight: 500;
+  color: #303133;
+  margin-bottom: 6rpx;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.following-friend-bio {
+  font-size: 24rpx;
+  color: #909399;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  margin-bottom: 4rpx;
+}
+
+.following-friend-time {
+  font-size: 22rpx;
+  color: #c0c4cc;
+}
+
+.following-friend-actions {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+  margin-left: auto;
+  gap: 12rpx;
+}
+
+.following-action-btn {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 56rpx;
+  font-size: 24rpx;
+  border-radius: 28rpx;
+  background-color: #f2f2f2;
+  color: #606266;
+  line-height: 1;
+  box-sizing: border-box;
+  white-space: nowrap;
+  padding: 0 20rpx;
+  margin: 0;
+  min-width: 56rpx;
+  width: auto;
+}
+
+.following-message-btn {
+  width: 56rpx;
+  padding: 0;
+  flex-shrink: 0;
+}
+
+.following-unfollow-btn {
+  background-color: #f2f2f2;
+  color: #909399;
+  width: 80rpx;
+  padding: 0;
+  font-size: 22rpx;
+  min-width: 80rpx;
+}
+
+.following-loading-more {
+  text-align: center;
+  padding: 30rpx 0;
+}
+
+.following-no-more {
+  text-align: center;
+  padding: 30rpx 0;
+  font-size: 24rpx;
+  color: #909399;
 } 

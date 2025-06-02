@@ -88,36 +88,36 @@
       </view>
 
       <!-- 关注列表 -->
-      <view class="friends-list" wx:else>
-        <view class="friend-item" wx:for="{{following}}" wx:key="_id" bindtap="viewUserProfile" data-id="{{item._id}}">
-          <view class="friend-avatar">
+      <view class="following-friends-list" wx:else>
+        <view class="following-friend-item" wx:for="{{following}}" wx:key="_id" bindtap="viewUserProfile" data-id="{{item._id}}">
+          <view class="following-friend-avatar">
             <image src="{{item.avatar || '/assets/images/default-avatar.png'}}" mode="aspectFill"></image>
           </view>
-          <view class="friend-info">
-            <view class="friend-name">{{item.nickname || item.username}}</view>
-            <view class="friend-bio" wx:if="{{item.bio}}">{{item.bio}}</view>
+          <view class="following-friend-info">
+            <view class="following-friend-name">{{item.nickname || item.username || '用户'}}</view>
+            <view class="following-friend-bio" wx:if="{{item.bio}}">{{item.bio}}</view>
+            <view class="following-friend-time" wx:if="{{item.followedAt}}">关注于 {{item.followedAt}}</view>
           </view>
-          <view class="friend-actions">
-            <button class="action-btn {{item.isFriend ? 'added-btn' : 'add-btn'}}" 
-                    catchtap="addFriend" 
+          <view class="following-friend-actions">
+            <button class="following-action-btn following-unfollow-btn" 
+                    catchtap="toggleFollow" 
                     data-id="{{item._id}}" 
-                    data-index="{{index}}"
-                    wx:if="{{!item.isFriend}}">
-              <van-icon name="plus" />
+                    data-index="{{index}}">
+              取消
             </button>
-            <button class="action-btn message-btn" catchtap="sendMessage" data-id="{{item._id}}">
+            <button class="following-action-btn following-message-btn" catchtap="sendMessage" data-id="{{item._id}}">
               <van-icon name="chat" />
             </button>
           </view>
         </view>
 
         <!-- 加载更多 -->
-        <view class="loading-more" wx:if="{{loadingMoreFollowing}}">
+        <view class="following-loading-more" wx:if="{{loadingMoreFollowing}}">
           <van-loading size="20px">加载中...</van-loading>
         </view>
         
         <!-- 没有更多 -->
-        <view class="no-more" wx:if="{{!hasMoreFollowing && following.length > 0}}">
+        <view class="following-no-more" wx:if="{{!hasMoreFollowing && following.length > 0}}">
           <text>没有更多了</text>
         </view>
       </view>
@@ -172,7 +172,5 @@
   </van-tabs>
 
   <!-- 浮动按钮 -->
-  <view class="float-btn" bindtap="goToFindFriends">
-    <van-icon name="plus" />
-  </view>
+  <!-- 已移除浮动按钮 -->
 </view> 

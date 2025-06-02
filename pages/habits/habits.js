@@ -7,6 +7,7 @@ const auth_1 = require("../../utils/auth");
 const api_1 = require("../../services/api");
 const dashboard_1 = require("../../services/api/dashboard");
 const use_auth_1 = require("../../utils/use-auth");
+const date_1 = require("../../utils/date");
 Page({
     /**
      * 页面的初始数据
@@ -154,36 +155,42 @@ Page({
                     }
                     else if (apiResponse.data &&
                         typeof apiResponse.data === 'object' &&
-                        'habits' in apiResponse.data) {
+                        'habits' in apiResponse.data &&
+                        Array.isArray(apiResponse.data.habits)) {
                         habits = apiResponse.data.habits;
+                        habitStats = apiResponse.data.habitStats || {};
                     }
                 }
             }
-            console.log('解析后的习惯数据:', habits);
-            // 确保每个习惯都有分类属性
+            // 处理习惯数据，确保每个习惯都有ID
             habits = habits.map((habit) => {
-                // 如果没有分类，则默认为"other"
-                if (!habit.category) {
-                    console.log(`习惯[${habit.name}]没有分类，设置为默认分类"other"`);
-                    return { ...habit, category: 'other' };
-                }
-                return habit;
+                // 确保每个习惯都有id属性，优先使用_id
+                const id = habit._id || habit.id;
+                return { ...habit, id };
             });
-            // 更新分类列表（如果后端提供了）
-            if (response.categories && Array.isArray(response.categories)) {
-                // 始终添加"all"类别
-                const categories = ['all', ...response.categories];
-                const categoryLabels = categories.map((category) => this.data.categoryMap[category] || category);
-                this.setData({
-                    categories,
-                    categoryLabels,
-                });
-            }
+            // 确保habitStats中的日期格式正确
+            const today = (0, date_1.getCurrentDate)();
+            Object.keys(habitStats).forEach(habitId => {
+                const stats = habitStats[habitId];
+                if (stats && stats.lastCompletedDate) {
+                    // 处理lastCompletedDate，确保格式一致
+                    const lastCompletedDate = typeof stats.lastCompletedDate === 'string'
+                        ? stats.lastCompletedDate.split('T')[0] // 处理ISO格式日期
+                        : '';
+                    // 比较日期字符串，确定是否今天已完成
+                    const isCompletedToday = lastCompletedDate === today;
+                    // 添加调试日志
+                    console.log(`习惯[${habitId}] 最后完成日期: ${lastCompletedDate}, 今天: ${today}, 是否完成: ${isCompletedToday}`);
+                    // 更新统计数据中的lastCompletedDate格式
+                    stats.lastCompletedDate = lastCompletedDate;
+                }
+            });
             // 根据当前标签筛选习惯
             const filteredHabits = this.filterHabits(habits);
             console.log('筛选后的习惯列表:', filteredHabits);
             // 根据当前排序方式排序习惯
             const sortedHabits = this.sortHabits(filteredHabits, habitStats);
+            console.log('排序后的习惯列表:', sortedHabits);
             // 更新数据
             this.setData({
                 habits: sortedHabits,
@@ -196,7 +203,7 @@ Page({
             console.log('更新后的habitStats:', habitStats);
         })
             .catch((error) => {
-            console.error('强制刷新习惯数据失败:', error);
+            console.error('获取习惯数据失败:', error);
             // 设置加载失败状态，确保loading被重置
             this.setData({
                 loading: false,

@@ -330,7 +330,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 120rpx !important;
+  width: 120rpx;
   height: 56rpx;
   border-radius: 22rpx;
   background: #4f7cff;
@@ -402,7 +402,7 @@
 
 /* 增加按钮样式的权重 */
 .group-item .join-btn {
-  width: 120rpx !important;
+  width: 120rpx;
   height: 56rpx;
   line-height: 56rpx;
   border-radius: 22rpx;
@@ -476,7 +476,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 120rpx !important;
+  width: 120rpx;
   height: 56rpx;
   border-radius: 22rpx;
   background: #4f7cff;

@@ -93,14 +93,16 @@
           <view class="stats-value">{{successMessage.streak}}</view>
           <view class="stats-label">连续天数</view>
         </view>
+        <!-- 暂时移除积分显示，后续可添加回来
         <view class="stats-item">
           <view class="stats-value">+{{successMessage.points}}</view>
           <view class="stats-label">积分</view>
         </view>
+        -->
       </view>
       
       <view class="success-actions">
-        <button class="success-btn share" bindtap="shareCheckin">分享</button>
+        <button class="success-btn share" open-type="share">分享</button>
         <button class="success-btn close" bindtap="closeSuccessPopup">确定</button>
       </view>
     </view>

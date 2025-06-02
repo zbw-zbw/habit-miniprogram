@@ -5,7 +5,10 @@
     <view class="back-btn" bindtap="goBack">
       <text class="iconfont icon-arrow-left"></text>
     </view>
-    <view class="page-title">{{challengeName}} - 参与者</view>
+    <view class="page-title">
+      <text class="challenge-name">{{challengeName}}</text>
+      <text class="subtitle">参与者</text>
+    </view>
   </view>
   
   <!-- 参与者列表 -->
@@ -30,11 +33,16 @@
           data-id="{{item.user._id}}">
       <image class="participant-avatar" src="{{item.user.avatar || '/assets/images/default-avatar.png'}}" mode="aspectFill"></image>
       <view class="participant-info">
-        <view class="participant-name">{{item.user.nickname || item.user.username || '匿名用户'}}</view>
-        <view class="participant-meta">
-          <text class="participant-date">加入于 {{item.joinedAt}}</text>
+        <view class="participant-name-row">
+          <text class="participant-name">{{item.user.nickname || item.user.username || '匿名用户'}}</text>
           <text class="participant-progress" wx:if="{{item.progress}}">进度: {{item.progress.completionRate || 0}}%</text>
         </view>
+        <view class="participant-meta">
+          <text class="participant-date">{{item.joinedAt}}</text>
+        </view>
+      </view>
+      <view class="arrow-right">
+        <text class="iconfont icon-arrow-right"></text>
       </view>
     </view>
     
@@ -50,3 +58,4 @@
     </view>
   </view>
 </view> 
+

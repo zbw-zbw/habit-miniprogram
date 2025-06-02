@@ -803,9 +803,6 @@
 }
 
 .friend-actions {
-  display: flex;
-  align-items: center;
-  justify-content: center;
   width: 80rpx;
   height: 80rpx;
 }

@@ -59,9 +59,23 @@ Component({
      * 点赞动态
      */
     likePost() {
-      const { id, isLiked } = this.data.post;
+      const post = this.data.post;
       const { index } = this.data;
-      this.triggerEvent('like', { postId: id, index, isLiked });
+      
+      // 获取动态ID，兼容不同的数据结构
+      const postId = post.id || post._id;
+      
+      if (!postId) {
+        console.error('无法获取动态ID:', post);
+        wx.showToast({
+          title: '操作失败',
+          icon: 'none'
+        });
+        return;
+      }
+      
+      console.log('点赞动态，ID:', postId, '索引:', index);
+      this.triggerEvent('like', { postId, index, isLiked: post.isLiked });
     },
 
     /**

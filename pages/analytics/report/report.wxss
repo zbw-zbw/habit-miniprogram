@@ -1,12 +1,12 @@
 /* page/analytics/report/report.wxss */
 
 /* 引入图标字体 */
-@import "/styles/iconfont.wxss";
+@import '/styles/iconfont.wxss';
 
 /* 报告容器 */
 .report-container {
   min-height: 100vh;
-  background-color: #F5F7FA;
+  background-color: #f5f7fa;
   padding: 16px;
 }
 
@@ -22,16 +22,20 @@
 .loading-icon {
   width: 40px;
   height: 40px;
-  border: 3px solid #E4E7ED;
-  border-top: 3px solid #4F7CFF;
+  border: 3px solid #e4e7ed;
+  border-top: 3px solid #4f7cff;
   border-radius: 50%;
   animation: spin 1s linear infinite;
   margin-bottom: 16px;
 }
 
 @keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
 }
 
 /* 内容区域 */
@@ -61,14 +65,14 @@
 .section {
   margin-bottom: 16px;
   border-radius: 12px;
-  background-color: #FFFFFF;
+  background-color: #ffffff;
   overflow: hidden;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
 }
 
 .section-header {
   padding: 16px;
-  border-bottom: 1px solid #E4E7ED;
+  border-bottom: 1px solid #e4e7ed;
 }
 
 .section-title {
@@ -91,14 +95,14 @@
   align-items: center;
   justify-content: center;
   padding: 16px;
-  background-color: #F5F7FA;
+  background-color: #f5f7fa;
   border-radius: 8px;
 }
 
 .overview-value {
   font-size: 24px;
   font-weight: 600;
-  color: #4F7CFF;
+  color: #4f7cff;
   margin-bottom: 8px;
 }
 
@@ -117,7 +121,7 @@
   align-items: center;
   padding: 16px;
   margin-bottom: 16px;
-  background-color: #F5F7FA;
+  background-color: #f5f7fa;
   border-radius: 8px;
 }
 
@@ -165,7 +169,7 @@
 .stat-value {
   font-size: 14px;
   font-weight: 500;
-  color: #4F7CFF;
+  color: #4f7cff;
 }
 
 .stat-label {
@@ -183,7 +187,7 @@
 }
 
 .habit-arrow {
-  color: #C0C4CC;
+  color: #c0c4cc;
 }
 
 /* 趋势卡片 */
@@ -216,7 +220,7 @@
 
 .chart-bar {
   width: 30px;
-  background-color: #4F7CFF;
+  background-color: #4f7cff;
   border-radius: 4px 4px 0 0;
 }
 
@@ -240,6 +244,9 @@
 
 .action-btn {
   flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   height: 40px;
   text-align: center;
   border-radius: 20px;
@@ -247,13 +254,13 @@
 }
 
 .save-btn {
-  background-color: #4F7CFF;
-  color: #FFFFFF;
+  background-color: #4f7cff;
+  color: #ffffff;
 }
 
 .share-btn {
-  background-color: #FFFFFF;
-  color: #4F7CFF;
-  border: 1px solid #4F7CFF;
+  background-color: #ffffff;
+  color: #4f7cff;
+  border: 1px solid #4f7cff;
   margin-right: 8px !important;
 }

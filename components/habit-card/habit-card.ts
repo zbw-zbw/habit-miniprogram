@@ -131,8 +131,16 @@ Component({
       const stats = this.properties.stats || {};
       
       if (stats.lastCompletedDate) {
-        const lastCompletedDate = stats.lastCompletedDate.split('T')[0]; // 处理可能的ISO格式日期
-        isCompleted = lastCompletedDate === today;
+        // 修复日期比较逻辑，确保正确处理日期格式
+        const lastCompletedDateStr = typeof stats.lastCompletedDate === 'string' 
+          ? stats.lastCompletedDate.split('T')[0] // 处理ISO格式日期
+          : '';
+          
+        // 比较日期字符串，而不是对象
+        isCompleted = lastCompletedDateStr === today;
+        
+        // 添加调试日志
+        console.log(`习惯[${habit.name}] 最后完成日期: ${lastCompletedDateStr}, 今天: ${today}, 是否完成: ${isCompleted}`);
       }
       
       // 获取分类的中文名称
