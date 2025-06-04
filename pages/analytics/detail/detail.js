@@ -88,7 +88,6 @@ Page({
             });
         }
         catch (error) {
-            console.error('加载习惯数据失败:', error);
             this.setData({
                 loading: false,
                 error: '加载数据失败，请稍后重试'
@@ -134,7 +133,6 @@ Page({
             });
         }
         catch (error) {
-            console.error('加载打卡记录失败:', error);
             this.setData({
                 loading: false,
                 error: '加载数据失败，请稍后重试'

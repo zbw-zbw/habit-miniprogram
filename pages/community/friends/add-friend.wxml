@@ -1,26 +1,16 @@
 <!--pages/community/friends/add-friend.wxml-->
 <view class="container">
-  <view class="navbar">
-    <view class="navbar-left" bindtap="goBack">
-      <text class="iconfont icon-left"></text>
-    </view>
-    <view class="navbar-title">添加好友</view>
-    <view class="navbar-right"></view>
-  </view>
-
   <!-- 搜索框 -->
   <view class="search-bar">
-    <view class="search-input-wrapper">
-      <text class="iconfont icon-search"></text>
-      <input class="search-input" 
-             placeholder="搜索用户名或ID" 
-             value="{{searchKeyword}}" 
-             bindinput="inputKeyword"
-             bindconfirm="searchUsers"
-             confirm-type="search" />
-      <text class="iconfont icon-close" bindtap="clearKeyword" wx:if="{{searchKeyword}}"></text>
-    </view>
-    <view class="search-btn" bindtap="searchUsers">搜索</view>
+    <search-box 
+      placeholder="搜索用户名或ID" 
+      value="{{searchKeyword}}" 
+      bind:input="inputKeyword"
+      bind:search="searchUsers"
+      bind:clear="clearKeyword"
+      showSearchButton="{{true}}"
+      style="width:100%"
+    ></search-box>
   </view>
 
   <!-- 搜索结果 -->
@@ -41,7 +31,7 @@
         <view class="user-info" bindtap="viewUserProfile" data-id="{{item.id}}">
           <image class="user-avatar" src="{{item.avatar}}" mode="aspectFill"></image>
           <view class="user-detail">
-            <view class="user-name">{{item.name}}</view>
+            <view class="user-name">{{item.nickname}}</view>
             <view class="user-bio">{{item.bio || '这个人很懒，什么都没留下'}}</view>
           </view>
         </view>
@@ -82,7 +72,7 @@
         <view class="user-info" bindtap="viewUserProfile" data-id="{{item.id}}">
           <image class="user-avatar" src="{{item.avatar}}" mode="aspectFill"></image>
           <view class="user-detail">
-            <view class="user-name">{{item.name}}</view>
+            <view class="user-name">{{item.nickname}}</view>
             <view class="user-bio">{{item.bio || '这个人很懒，什么都没留下'}}</view>
           </view>
         </view>
@@ -105,11 +95,11 @@
     </view>
   </view>
 
-  <!-- 扫码添加 -->
-  <view class="scan-section">
-    <button class="scan-btn" bindtap="scanQRCode">
-      <text class="iconfont icon-scan"></text>
-      <text>扫码添加好友</text>
-    </button>
-  </view>
+  <!-- 扫码添加浮动按钮 -->
+  <fab-button 
+    icon="scan" 
+    type="primary" 
+    position="bottom-right" 
+    bind:click="scanQRCode"
+  />
 </view> 

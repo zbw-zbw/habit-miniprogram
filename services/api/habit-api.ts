@@ -2,6 +2,7 @@
  * 习惯相关API
  */
 import { get, post, put, del } from '../../utils/request';
+import { IHabit, IHabitStats, IHabitWithStats } from '../../utils/types';
 
 export const habitAPI = {
   /**
@@ -9,7 +10,7 @@ export const habitAPI = {
    * @param params 查询参数
    * @returns Promise<IHabit[]>
    */
-  getHabits: (params?: { category?: string; isArchived?: boolean }): Promise<IHabit[]> => {
+  getHabits: (params?: { category?: string; includeArchived?: boolean }): Promise<IHabit[]> => {
     return get('/api/habits', params);
   },
 
@@ -20,6 +21,29 @@ export const habitAPI = {
    */
   getHabit: (habitId: string): Promise<IHabit> => {
     return get(`/api/habits/${habitId}`);
+  },
+
+  /**
+   * 获取习惯详情及统计数据（聚合API）
+   * @param habitId 习惯ID
+   * @returns Promise<{habit: IHabit, stats: IHabitStats}>
+   */
+  getHabitWithStats: (habitId: string): Promise<{habit: IHabit, stats: IHabitStats}> => {
+    return get(`/api/habits/${habitId}/with-stats`);
+  },
+
+  /**
+   * 获取多个习惯及其统计数据（聚合API）
+   * @param params 查询参数
+   * @returns Promise<{habits: IHabitWithStats[]}>
+   */
+  getHabitsWithStats: (params?: {
+    date?: string;
+    category?: string;
+    includeArchived?: boolean;
+    excludeHabitId?: string;
+  }): Promise<{habits: IHabitWithStats[]}> => {
+    return get('/api/habits/with-stats', params);
   },
 
   /**

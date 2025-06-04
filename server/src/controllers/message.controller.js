@@ -65,7 +65,7 @@ exports.getChatSessions = async (req, res) => {
     
     res.json(validSessions);
   } catch (error) {
-    console.error('获取聊天会话列表失败:', error);
+    
     res.status(500).json({ success: false, message: '获取聊天会话列表失败' });
   }
 };
@@ -79,18 +79,18 @@ exports.getChatMessages = async (req, res) => {
     const { targetId } = req.params;
     const userId = req.user._id;
     
-    console.log(`获取聊天消息 - 当前用户ID: ${userId}, 目标用户ID: ${targetId}`);
+    
     
     // 查询或创建会话
     let session = await findOrCreateSession(userId, targetId);
-    console.log(`会话ID: ${session._id}`);
+    
     
     // 获取消息列表
     const messages = await Message.find({
       sessionId: session._id
     }).sort({ createdAt: 1 });
     
-    console.log(`找到 ${messages.length} 条消息`);
+    
     
     // 处理消息数据
     const processedMessages = messages.map(message => ({
@@ -111,7 +111,7 @@ exports.getChatMessages = async (req, res) => {
     
     res.json(processedMessages);
   } catch (error) {
-    console.error('获取聊天消息失败:', error);
+    
     res.status(500).json({ success: false, message: '获取聊天消息失败' });
   }
 };
@@ -126,11 +126,11 @@ exports.getNewMessages = async (req, res) => {
     const { lastTime } = req.query;
     const userId = req.user._id;
     
-    console.log(`获取新消息 - 当前用户ID: ${userId}, 目标用户ID: ${targetId}, 最后时间: ${lastTime}`);
+    
     
     // 查询会话
     let session = await findOrCreateSession(userId, targetId);
-    console.log(`会话ID: ${session._id}`);
+    
     
     // 获取新消息
     const messages = await Message.find({
@@ -138,7 +138,7 @@ exports.getNewMessages = async (req, res) => {
       createdAt: { $gt: new Date(parseInt(lastTime)) }
     }).sort({ createdAt: 1 });
     
-    console.log(`找到 ${messages.length} 条新消息`);
+    
     
     // 处理消息数据
     const processedMessages = messages.map(message => ({
@@ -159,7 +159,7 @@ exports.getNewMessages = async (req, res) => {
     
     res.json(processedMessages);
   } catch (error) {
-    console.error('获取新消息失败:', error);
+    
     res.status(500).json({ success: false, message: '获取新消息失败' });
   }
 };
@@ -173,12 +173,12 @@ exports.sendMessage = async (req, res) => {
     const { receiverId, type, content, sessionId } = req.body;
     const senderId = req.user._id;
     
-    console.log(`发送消息 - 发送者ID: ${senderId}, 接收者ID: ${receiverId}, 类型: ${type}, 内容: ${content}`);
+    
     
     // 验证接收者是否存在
     const receiver = await User.findById(receiverId);
     if (!receiver) {
-      console.error(`接收者不存在: ${receiverId}`);
+      
       return res.status(404).json({ success: false, message: '接收者不存在' });
     }
     
@@ -187,14 +187,14 @@ exports.sendMessage = async (req, res) => {
     if (sessionId) {
       session = await ChatSession.findById(sessionId);
       if (!session) {
-        console.error(`会话不存在: ${sessionId}`);
+        
         return res.status(404).json({ success: false, message: '会话不存在' });
       }
     } else {
       session = await findOrCreateSession(senderId, receiverId);
     }
     
-    console.log(`会话ID: ${session._id}`);
+    
     
     // 创建消息
     const message = new Message({
@@ -207,7 +207,7 @@ exports.sendMessage = async (req, res) => {
     });
     
     await message.save();
-    console.log(`消息已保存, ID: ${message._id}`);
+    
     
     // 更新会话时间
     session.updatedAt = Date.now();
@@ -223,7 +223,7 @@ exports.sendMessage = async (req, res) => {
       status: 'sent'
     });
   } catch (error) {
-    console.error('发送消息失败:', error);
+    
     res.status(500).json({ success: false, message: '发送消息失败' });
   }
 };
@@ -248,7 +248,7 @@ exports.markAsRead = async (req, res) => {
     
     res.json({ success: true });
   } catch (error) {
-    console.error('标记消息为已读失败:', error);
+    
     res.status(500).json({ success: false, message: '标记消息为已读失败' });
   }
 };
@@ -282,7 +282,7 @@ exports.deleteSession = async (req, res) => {
     
     res.json({ success: true });
   } catch (error) {
-    console.error('删除会话失败:', error);
+    
     res.status(500).json({ success: false, message: '删除会话失败' });
   }
 };

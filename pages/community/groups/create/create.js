@@ -277,7 +277,6 @@ Page({
             }, 1500);
         })
             .catch((error) => {
-            console.error('创建小组失败:', error);
             wx.hideLoading();
             wx.showToast({
                 title: (error === null || error === void 0 ? void 0 : error.message) || '创建失败',
@@ -297,7 +296,6 @@ Page({
                     resolve(result.url);
                 })
                     .catch(error => {
-                    console.error('上传头像失败:', error);
                     reject(error);
                 });
             }

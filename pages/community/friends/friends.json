@@ -1,5 +1,5 @@
 {
-  "navigationBarTitleText": "我的好友",
+  "navigationBarTitleText": "好友列表",
   "enablePullDownRefresh": true,
   "usingComponents": {
     "van-button": "@vant/weapp/button/index",
@@ -8,6 +8,7 @@
     "van-empty": "@vant/weapp/empty/index",
     "van-loading": "@vant/weapp/loading/index",
     "van-tab": "@vant/weapp/tab/index",
-    "van-tabs": "@vant/weapp/tabs/index"
+    "van-tabs": "@vant/weapp/tabs/index",
+    "fab-button": "/components/fab-button/fab-button"
   }
 } 

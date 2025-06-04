@@ -13,7 +13,7 @@ const mongoose = require('mongoose');
  */
 exports.getChallenges = async (req, res) => {
   try {
-    console.log('获取挑战列表请求参数:', req.query);
+    
     const { page = 1, limit = 10, sort, keyword, joined, created, status } = req.query;
     const skip = (page - 1) * limit;
     
@@ -56,8 +56,8 @@ exports.getChallenges = async (req, res) => {
       sortOption = { createdAt: -1 };
     }
     
-    console.log('挑战列表查询条件:', query);
-    console.log('挑战列表排序条件:', sortOption);
+    
+    
     
     // 查询挑战
     const challenges = await Challenge.find(query)
@@ -66,7 +66,7 @@ exports.getChallenges = async (req, res) => {
       .skip(skip)
       .limit(parseInt(limit));
     
-    console.log('挑战列表查询结果数量:', challenges.length);
+    
     
     // 查询总数
     const total = await Challenge.countDocuments(query);
@@ -106,7 +106,7 @@ exports.getChallenges = async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('获取挑战列表失败:', error);
+    
     return res.status(500).json({
       success: false,
       message: '获取挑战列表失败',
@@ -135,7 +135,7 @@ exports.createChallenge = async (req, res) => {
       needsApproval = false
     } = req.body;
     
-    console.log('创建挑战请求数据:', req.body);
+    
     
     // 数据验证
     if (!title || title.length < 5) {
@@ -235,7 +235,7 @@ exports.createChallenge = async (req, res) => {
       data: challenge
     });
   } catch (error) {
-    console.error('创建挑战错误:', error);
+    
     res.status(500).json({
       success: false,
       message: '服务器错误，创建挑战失败'
@@ -265,7 +265,7 @@ exports.checkChallengeOwner = async (req, res, next) => {
     
     next();
   } catch (error) {
-    console.error('检查挑战所有者错误:', error);
+    
     res.status(500).json({
       success: false,
       message: '服务器错误'
@@ -335,7 +335,7 @@ exports.getChallenge = async (req, res) => {
       data: result
     });
   } catch (error) {
-    console.error('获取挑战详情错误:', error);
+    
     res.status(500).json({
       success: false,
       message: '服务器错误，获取挑战详情失败'
@@ -397,7 +397,7 @@ exports.updateChallenge = async (req, res) => {
       data: challenge
     });
   } catch (error) {
-    console.error('更新挑战错误:', error);
+    
     res.status(500).json({
       success: false,
       message: '服务器错误，更新挑战失败'
@@ -438,7 +438,7 @@ exports.deleteChallenge = async (req, res) => {
       message: '挑战删除成功'
     });
   } catch (error) {
-    console.error('删除挑战错误:', error);
+    
     res.status(500).json({
       success: false,
       message: '服务器错误，删除挑战失败'
@@ -536,7 +536,7 @@ exports.joinChallenge = async (req, res) => {
       data: participant
     });
   } catch (error) {
-    console.error('参与挑战错误:', error);
+    
     res.status(500).json({
       success: false,
       message: '服务器错误，参与挑战失败'
@@ -602,7 +602,7 @@ exports.leaveChallenge = async (req, res) => {
       message: '成功退出挑战'
     });
   } catch (error) {
-    console.error('退出挑战错误:', error);
+    
     res.status(500).json({
       success: false,
       message: '服务器错误，退出挑战失败'
@@ -661,7 +661,7 @@ exports.getChallengeParticipants = async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('获取挑战参与者列表错误:', error);
+    
     res.status(500).json({
       success: false,
       message: '服务器错误，获取挑战参与者列表失败'
@@ -712,7 +712,7 @@ exports.getChallengeLeaderboard = async (req, res) => {
       data: leaderboardWithRank
     });
   } catch (error) {
-    console.error('获取挑战排行榜错误:', error);
+    
     res.status(500).json({
       success: false,
       message: '服务器错误，获取挑战排行榜失败'
@@ -790,7 +790,7 @@ exports.getUserChallenges = async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('获取用户挑战列表错误:', error);
+    
     res.status(500).json({
       success: false,
       message: '服务器错误，获取用户挑战列表失败'

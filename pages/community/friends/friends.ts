@@ -127,7 +127,7 @@ Page({
         });
       })
       .catch(error => {
-        console.error('获取好友列表失败:', error);
+        
         
         this.setData({
           loading: false,
@@ -158,7 +158,7 @@ Page({
     
     // 使用真实API获取关注列表
     communityAPI.getFollowing ? communityAPI.getFollowing().then((result: any) => {
-      console.log('获取关注列表结果:', result);
+      
       
       let followingUsers: any[] = [];
       
@@ -175,7 +175,7 @@ Page({
         followingUsers = result;
       }
       
-      console.log('处理后的关注用户:', followingUsers);
+      
       
       // 处理数据
       const processedFollowing = followingUsers.map(user => ({
@@ -197,7 +197,7 @@ Page({
         loadingMoreFollowing: false
       });
     }).catch(error => {
-      console.error('获取关注列表失败:', error);
+      
       
       // 使用模拟数据作为备选
       this.loadMockFollowing(isRefresh, currentPage);
@@ -272,7 +272,7 @@ Page({
         loadingMoreFollowers: false
       });
     }).catch(error => {
-      console.error('获取粉丝列表失败:', error);
+      
       
       // 使用模拟数据作为备选
       this.loadMockFollowers(isRefresh, currentPage);
@@ -351,10 +351,10 @@ Page({
         }
       })
       .catch(error => {
-        console.error('搜索用户失败:', error);
+        
         
         // 如果API调用失败，使用模拟数据
-        console.log('使用模拟数据作为备选');
+        
         const searchResults = Array(3).fill(0).map((_, index) => ({
           _id: `search_${index}`,
           username: `${searchValue}_${index}`,
@@ -419,11 +419,11 @@ Page({
   sendMessage(e) {
     const { id } = e.currentTarget.dataset;
     
-    console.log('发送消息给用户:', id);
+    
     
     // 检查id是否有效
     if (!id) {
-      console.error('无效的用户ID');
+      
       return;
     }
     
@@ -431,7 +431,7 @@ Page({
     wx.navigateTo({
       url: `/pages/message/chat/chat?userId=${id}`,
       fail: (err) => {
-        console.error('跳转到聊天页面失败:', err);
+        
         
         // 如果页面不存在，显示提示
         wx.showToast({
@@ -490,7 +490,7 @@ Page({
         });
       })
       .catch(error => {
-        console.error('添加好友失败:', error);
+        
         
         // 显示错误提示
         let errorMsg = '添加好友失败';
@@ -537,7 +537,7 @@ Page({
         });
       })
       .catch(error => {
-        console.error('操作失败:', error);
+        
         
         // 显示错误提示
         wx.showToast({

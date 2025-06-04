@@ -1,8 +1,20 @@
+/* 引入图标字体 */
+@import '/styles/iconfont.wxss';
+
 /* 社区动态列表页面样式 - 微信朋友圈风格 */
 .container {
   padding: 0;
   background-color: #F7F7F7;
   min-height: 100vh;
+}
+
+/* 头部固定区域 */
+.sticky-header {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background-color: #FFFFFF;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
 }
 
 /* 搜索栏 - 微信风格 */
@@ -11,11 +23,6 @@
   align-items: center;
   padding: 16rpx 24rpx;
   background-color: #FFFFFF;
-  position: sticky;
-  top: 0;
-  z-index: 10;
-  box-shadow: 0 1px 1px rgba(0, 0, 0, 0.05);
-  border-bottom: 1rpx solid #F2F2F2;
 }
 
 .search-input-wrap {
@@ -54,34 +61,6 @@
   color: #576B95;
 }
 
-/* 标签筛选 - 微信风格 */
-.tags-scroll {
-  white-space: nowrap;
-  padding: 16rpx 0;
-  background-color: #FFFFFF;
-  border-bottom: 1rpx solid #F2F2F2;
-}
-
-.tags-list {
-  padding: 0 24rpx;
-  display: inline-block;
-}
-
-.tag-item {
-  display: inline-block;
-  padding: 8rpx 20rpx;
-  background-color: #F7F7F7;
-  border-radius: 4rpx;
-  margin-right: 16rpx;
-  font-size: 26rpx;
-  color: #333333;
-}
-
-.tag-item.active {
-  background-color: #576B95;
-  color: white;
-}
-
 /* 动态列表 */
 .posts-list {
   padding: 0;
@@ -101,7 +80,7 @@
   width: 48rpx;
   height: 48rpx;
   border: 3rpx solid #EEEEEE;
-  border-top-color: #576B95;
+  border-top-color: #4F7CFF;
   border-radius: 50%;
   animation: spin 0.8s linear infinite;
 }
@@ -155,7 +134,7 @@
 }
 
 .primary-btn {
-  background: #576B95;
+  background: #4F7CFF;
   color: white;
   border-radius: 4rpx;
   padding: 12rpx 40rpx;
@@ -172,7 +151,7 @@
   bottom: 40rpx;
   width: 100rpx;
   height: 100rpx;
-  background: #576B95;
+  background: #4F7CFF;
   border-radius: 50%;
   display: flex;
   align-items: center;

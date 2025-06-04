@@ -8,7 +8,7 @@
     </view>
     <view class="login-modal-body">
       <view class="login-modal-icon">
-        <image src="/assets/images/lock.png" mode="aspectFit" />
+        <image class="login-modal-image" src="/assets/images/lock.png" mode="aspectFit" />
       </view>
       <view class="login-modal-message">{{message || '请先登录以使用此功能'}}</view>
     </view>

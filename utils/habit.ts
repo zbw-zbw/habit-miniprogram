@@ -169,7 +169,7 @@ export const calculateCompletionRate = (
  * @returns 习惯统计数据
  */
 export const generateHabitStats = (habit: IHabit, checkins: ICheckin[]): IHabitStats => {
-  console.log(`生成习惯[${habit.name}]统计数据，打卡记录数量:`, checkins.length);
+  
   
   // 获取习惯ID (兼容不同格式)
   const habitId = habit._id || habit.id;
@@ -181,7 +181,7 @@ export const generateHabitStats = (habit: IHabit, checkins: ICheckin[]): IHabitS
     return c.isCompleted && checkinHabitId === habitId;
   });
   
-  console.log(`习惯[${habit.name}]已完成打卡记录数量:`, completedCheckins.length);
+  
   
   // 总完成次数
   const totalCompletions = completedCheckins.length;
@@ -224,7 +224,7 @@ export const generateHabitStats = (habit: IHabit, checkins: ICheckin[]): IHabitS
     longestStreak: currentStreak // 暂时使用currentStreak作为longestStreak
   };
   
-  console.log(`习惯[${habit.name}]统计结果:`, stats);
+  
   
   return stats;
 };

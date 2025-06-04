@@ -1,7 +1,10 @@
+/* 引入图标字体 */
+@import '/styles/iconfont.wxss';
+
 /* 社区通知页面样式 */
 .container {
   padding: 0;
-  background-color: var(--background-color);
+  background-color: #F5F7FA;
   min-height: 100vh;
 }
 
@@ -57,8 +60,8 @@
 .loading-spinner {
   width: 60rpx;
   height: 60rpx;
-  border: 4rpx solid var(--divider-color);
-  border-top-color: var(--primary-color);
+  border: 4rpx solid #DCDFE6;
+  border-top-color: #4F7CFF;
   border-radius: 50%;
   animation: spin 0.8s linear infinite;
 }
@@ -70,7 +73,7 @@
 .loading-text {
   margin-top: 20rpx;
   font-size: 28rpx;
-  color: var(--text-color-secondary);
+  color: #909399;
 }
 
 /* 空状态 */
@@ -90,14 +93,14 @@
 
 .empty-text {
   font-size: 32rpx;
-  color: var(--title-color);
+  color: #303133;
   margin-bottom: 16rpx;
   font-weight: 500;
 }
 
 .empty-tips {
   font-size: 28rpx;
-  color: var(--text-color-secondary);
+  color: #909399;
   text-align: center;
   max-width: 80%;
 }
@@ -105,13 +108,13 @@
 /* 通知列表 */
 .notification-list {
   padding: 0;
-  background-color: var(--card-background);
+  background-color: #FFFFFF;
 }
 
 .notification-item {
   padding: 32rpx;
-  border-bottom: 1px solid var(--divider-color);
-  background-color: var(--card-background);
+  border-bottom: 1px solid #E4E7ED;
+  background-color: #FFFFFF;
   transition: background-color 0.2s ease;
   position: relative;
 }
@@ -129,7 +132,7 @@
   width: 8rpx;
   height: 8rpx;
   border-radius: 50%;
-  background-color: var(--primary-color);
+  background-color: #4F7CFF;
 }
 
 .notification-content {
@@ -159,7 +162,7 @@
 
 .system-icon .iconfont {
   font-size: 48rpx;
-  color: var(--primary-color);
+  color: #4F7CFF;
 }
 
 .content {
@@ -169,36 +172,36 @@
 
 .title {
   font-size: 28rpx;
-  color: var(--text-color);
+  color: #606266;
   margin-bottom: 8rpx;
   line-height: 1.4;
 }
 
 .username {
   font-weight: 600;
-  color: var(--title-color);
+  color: #303133;
   margin-right: 8rpx;
 }
 
 .system-title {
   font-weight: 600;
-  color: var(--title-color);
+  color: #303133;
 }
 
 .time {
   font-size: 24rpx;
-  color: var(--text-color-secondary);
+  color: #909399;
   margin-bottom: 8rpx;
 }
 
 .post-preview, .comment-preview, .user-bio, .system-message {
   font-size: 26rpx;
-  color: var(--text-color);
+  color: #606266;
   line-height: 1.5;
   margin-top: 8rpx;
-  background-color: var(--background-color);
+  background-color: #F5F7FA;
   padding: 16rpx;
-  border-radius: var(--radius-medium);
+  border-radius: 8rpx;
   word-break: break-all;
   display: -webkit-box;
   -webkit-line-clamp: 2;
@@ -208,7 +211,7 @@
 }
 
 .comment-preview {
-  color: var(--primary-color);
+  color: #4F7CFF;
   background-color: rgba(79, 124, 255, 0.05);
   font-weight: 500;
 }
@@ -222,13 +225,13 @@
 .preview-image {
   width: 100rpx;
   height: 100rpx;
-  border-radius: var(--radius-medium);
+  border-radius: 8rpx;
   object-fit: cover;
 }
 
 .like-icon {
   font-size: 48rpx;
-  color: var(--error-color);
+  color: #F56C6C;
 }
 
 .follow-btn {
@@ -236,7 +239,7 @@
   height: 56rpx;
   line-height: 56rpx;
   border-radius: 28rpx;
-  background: var(--primary-gradient);
+  background: linear-gradient(135deg, #4F7CFF, #4169E1);
   color: white;
   font-size: 24rpx;
   padding: 0 24rpx;
@@ -244,26 +247,30 @@
 }
 
 .follow-btn.following {
-  background: var(--divider-color);
-  color: var(--text-color);
+  background: #F5F7FA;
+  color: #606266;
+  border: 1rpx solid #DCDFE6;
 }
 
-/* 加载更多与没有更多 */
+/* 加载更多 */
 .load-more {
   text-align: center;
-  padding: 32rpx 0;
+  padding: 30rpx 0;
+  color: #4F7CFF;
   font-size: 28rpx;
-  color: var(--primary-color);
+  background-color: #FFFFFF;
 }
 
+/* 没有更多 */
 .no-more {
   text-align: center;
-  padding: 32rpx 0;
-  font-size: 28rpx;
-  color: var(--text-color-secondary);
+  padding: 30rpx 0;
+  color: #909399;
+  font-size: 26rpx;
+  background-color: #FFFFFF;
 }
 
 /* 底部间距 */
 .bottom-space {
-  height: 32rpx;
+  height: 30rpx;
 } 

@@ -127,14 +127,12 @@ exports.communityAPI = {
      */
     getChallenges: (params) => {
         return (0, request_1.get)('/api/challenges', params).then((response) => {
-            console.log('挑战列表原始响应:', response);
             // 处理不同的响应格式
             if (response && typeof response === 'object') {
                 // 标准格式: { success: true, data: { challenges: [], pagination: {} } }
                 if (response.success === true &&
                     response.data &&
                     response.data.challenges) {
-                    console.log('返回标准格式数据');
                     // 处理挑战数据，确保字段一致性
                     if (Array.isArray(response.data.challenges)) {
                         response.data.challenges = response.data.challenges.map((challenge) => ({
@@ -150,7 +148,6 @@ exports.communityAPI = {
                 }
                 // 直接返回数据对象: { challenges: [], pagination: {} }
                 if (response.challenges && Array.isArray(response.challenges)) {
-                    console.log('返回数据对象');
                     // 处理挑战数据，确保字段一致性
                     response.challenges = response.challenges.map((challenge) => ({
                         ...challenge,
@@ -165,7 +162,6 @@ exports.communityAPI = {
             }
             // 如果是数组，直接返回
             if (Array.isArray(response)) {
-                console.log('返回数组');
                 // 处理挑战数据，确保字段一致性
                 const processedChallenges = response.map((challenge) => ({
                     ...challenge,
@@ -186,7 +182,6 @@ exports.communityAPI = {
                 };
             }
             // 默认返回空数据
-            console.log('返回默认空数据');
             return {
                 challenges: [],
                 pagination: {
@@ -298,7 +293,6 @@ exports.communityAPI = {
                     }
                 },
                 fail: (error) => {
-                    console.error('上传图片失败:', error);
                     reject(error);
                 },
             });
@@ -336,23 +330,19 @@ exports.communityAPI = {
      */
     getGroupPosts: (groupId, params) => {
         return (0, request_1.get)(`/api/groups/${groupId}/posts`, params).then((response) => {
-            console.log('获取小组动态响应:', response);
             // 处理不同的响应格式
             if (response && typeof response === 'object') {
                 // 标准格式: { success: true, data: { posts: [], pagination: {} } }
                 if (response.success === true && response.data && response.data.posts) {
-                    console.log('返回标准格式数据');
                     return response.data;
                 }
                 // 直接返回数据对象: { posts: [], pagination: {} }
                 if (response.posts && Array.isArray(response.posts)) {
-                    console.log('返回数据对象');
                     return response;
                 }
             }
             // 如果是数组，直接返回
             if (Array.isArray(response)) {
-                console.log('返回数组');
                 return {
                     posts: response,
                     pagination: {
@@ -364,7 +354,6 @@ exports.communityAPI = {
                 };
             }
             // 默认返回空数据
-            console.log('返回默认空数据');
             return {
                 posts: [],
                 pagination: {
@@ -424,9 +413,7 @@ exports.communityAPI = {
             ...params,
             userId: currentUserId
         };
-        console.log('搜索请求参数:', requestParams);
         return (0, request_1.get)('/api/community/search', requestParams).then((response) => {
-            console.log('搜索响应:', response);
             return response;
         });
     },

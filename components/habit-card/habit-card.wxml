@@ -25,6 +25,9 @@
         <block wx:if="{{habit.duration && habit.duration.enabled}}">
           {{habit.duration.format || '00:00:00'}}
         </block>
+        <block wx:elif="{{habit.goal && habit.goal.value && habit.goal.unit}}">
+          {{habit.goal.value}}{{habit.goal.unit}}
+        </block>
         <block wx:elif="{{habit.targetValue && habit.unit}}">
           {{habit.targetValue}}{{habit.unit}}
         </block>
@@ -57,7 +60,7 @@
     </view>
     
     <view class="more-btn" catchtap="showActions">
-      <text class="iconfont icon-more"></text>
+      <text class="iconfont icon-right"></text>
     </view>
   </view>
   
@@ -66,15 +69,15 @@
     <view class="action-menu-content" catchtap="stopPropagation">
       <view class="action-item" catchtap="onViewDetail">
         <text class="iconfont icon-detail"></text>
-        <text>查看详情</text>
+        <text class="action-item-text">查看详情</text>
       </view>
       <view class="action-item" catchtap="onEdit">
         <text class="iconfont icon-edit"></text>
-        <text>编辑</text>
+        <text class="action-item-text">编辑</text>
       </view>
       <view class="action-item delete" catchtap="onDelete">
         <text class="iconfont icon-delete"></text>
-        <text>删除</text>
+        <text class="action-item-text">删除</text>
       </view>
     </view>
   </view>

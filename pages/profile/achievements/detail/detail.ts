@@ -86,7 +86,7 @@ Page<IPageData, IPageMethods>({
         loading: false
       });
     } catch (error) {
-      console.error('加载成就详情失败:', error);
+      
       
       this.setData({
         loading: false,

@@ -22,39 +22,42 @@
       
       <!-- 消息气泡 -->
       <view class="message-item {{item.isSelf ? 'self' : 'other'}}">
-        <!-- 头像 -->
-        <view class="avatar-container" bindtap="viewUserProfile" wx:if="{{!item.isSelf}}">
-          <image class="avatar" src="{{targetUser.avatar || '/assets/images/default-avatar.png'}}" mode="aspectFill"></image>
-        </view>
-        
-        <!-- 消息内容 -->
-        <view class="message-content">
-          <!-- 文本消息 -->
-          <view class="text-message" wx:if="{{item.type === 'text'}}">
-            {{item.content}}
+        <!-- 消息容器 -->
+        <view class="message-wrapper">
+          <!-- 对方头像 -->
+          <view class="avatar-container other-avatar" bindtap="viewUserProfile" wx:if="{{!item.isSelf}}">
+            <image class="avatar" src="{{targetUser.avatar || '/assets/images/default-avatar.png'}}" mode="aspectFill"></image>
           </view>
           
-          <!-- 图片消息 -->
-          <view class="image-message {{item.status === 'sending' ? 'loading' : (item.status === 'failed' ? 'failed' : '')}}" wx:elif="{{item.type === 'image'}}" bindtap="previewImage" data-url="{{item.content}}">
-            <image src="{{item.content}}" mode="widthFix" binderror="onImageError" data-index="{{index}}"></image>
+          <!-- 自己头像 -->
+          <view class="avatar-container self-avatar" wx:if="{{item.isSelf}}">
+            <image class="avatar" src="{{userInfo.avatar || '/assets/images/default-avatar.png'}}" mode="aspectFill"></image>
           </view>
           
-          <!-- 其他类型消息 -->
-          <view class="unsupported-message" wx:else>
-            [不支持的消息类型]
+          <!-- 消息内容 -->
+          <view class="message-content {{item.isSelf ? 'self-content' : 'other-content'}}">
+            <!-- 文本消息 -->
+            <view class="text-message" wx:if="{{item.type === 'text'}}">
+              {{item.content}}
+            </view>
+            
+            <!-- 图片消息 -->
+            <view class="image-message {{item.status === 'sending' ? 'loading' : (item.status === 'failed' ? 'failed' : '')}}" wx:elif="{{item.type === 'image'}}" bindtap="previewImage" data-url="{{item.content}}">
+              <image src="{{item.content}}" mode="widthFix" binderror="onImageError" data-index="{{index}}"></image>
+            </view>
+            
+            <!-- 其他类型消息 -->
+            <view class="unsupported-message" wx:else>
+              [不支持的消息类型]
+            </view>
+            
+            <!-- 发送状态 -->
+            <view class="message-status" wx:if="{{item.isSelf}}">
+              <van-icon name="success" wx:if="{{item.status === 'sent'}}" />
+              <van-loading size="12px" wx:elif="{{item.status === 'sending'}}" />
+              <van-icon name="warning-o" wx:elif="{{item.status === 'failed'}}" bindtap="resendMessage" data-index="{{index}}" />
+            </view>
           </view>
-          
-          <!-- 发送状态 -->
-          <view class="message-status" wx:if="{{item.isSelf}}">
-            <van-icon name="success" wx:if="{{item.status === 'sent'}}" />
-            <van-loading size="12px" wx:elif="{{item.status === 'sending'}}" />
-            <van-icon name="warning-o" wx:elif="{{item.status === 'failed'}}" bindtap="resendMessage" data-index="{{index}}" />
-          </view>
-        </view>
-        
-        <!-- 头像 -->
-        <view class="avatar-container" wx:if="{{item.isSelf}}">
-          <image class="avatar" src="{{userInfo.avatar || '/assets/images/default-avatar.png'}}" mode="aspectFill"></image>
         </view>
       </view>
     </block>
@@ -64,12 +67,24 @@
   <view class="input-area" style="padding-bottom: {{safeAreaBottom}}px">
     <!-- 输入框 -->
     <view class="input-box">
+      <view class="action-btn emoji-btn" bindtap="toggleEmojiPanel">
+        <van-icon name="smile-o" />
+      </view>
       <input class="message-input" value="{{inputValue}}" bindinput="onInputChange" placeholder="输入消息..." confirm-type="send" bindconfirm="sendTextMessage" />
       <view class="action-btn" bindtap="toggleActionPanel">
         <van-icon name="{{showActionPanel ? 'close' : 'plus'}}" />
       </view>
       <view class="send-btn {{inputValue ? 'active' : ''}}" bindtap="sendTextMessage">
         <van-icon name="arrow-up" />
+      </view>
+    </view>
+    
+    <!-- 表情面板 -->
+    <view class="emoji-panel" wx:if="{{showEmojiPanel}}">
+      <view class="emoji-list">
+        <view class="emoji-item" wx:for="{{['😊', '😂', '😍', '🤔', '👍', '🎉', '❤️', '😭', '🙏', '🤣', '😅', '😘', '😁', '🥰', '😎', '🤗', '😴', '🤩', '😇']}}" wx:key="*this" bindtap="selectEmoji" data-emoji="{{item}}">
+          {{item}}
+        </view>
       </view>
     </view>
     

@@ -1,7 +1,12 @@
 {
-  "navigationBarTitleText": "习惯挑战",
+  "navigationBarTitleText": "挑战列表",
   "navigationStyle": "default",
   "enablePullDownRefresh": true,
   "backgroundColor": "#F5F7FA",
-  "usingComponents": {}
-} 
+  "usingComponents": {
+    "van-icon": "@vant/weapp/icon/index",
+    "search-box": "/components/search-box/search-box",
+    "tab-bar": "/components/tab-bar/tab-bar",
+    "fab-button": "/components/fab-button/fab-button"
+  }
+}

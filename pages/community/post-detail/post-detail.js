@@ -83,7 +83,7 @@ Page({
           post.userId = post.user.id;
         }
         
-        console.log('加载的动态详情:', post);
+        
         
         this.setData({ 
           post,
@@ -91,7 +91,7 @@ Page({
         });
       })
       .catch(error => {
-        console.error('获取动态详情失败:', error);
+        
         
         wx.showToast({
           title: '获取动态详情失败',
@@ -168,7 +168,7 @@ Page({
               // 确保点赞数据正确
               reply.likes = reply.likeCount || reply.likes?.length || 0;
               
-              console.log('回复数据:', reply);
+              
             });
           }
         });
@@ -181,7 +181,7 @@ Page({
         });
       })
       .catch(error => {
-        console.error('获取评论失败:', error);
+        
         
         wx.showToast({
           title: '获取评论失败',
@@ -225,7 +225,7 @@ Page({
         this.setData({ post });
       })
       .catch(error => {
-        console.error('点赞操作失败:', error);
+        
         
         wx.showToast({
           title: '操作失败',
@@ -245,7 +245,7 @@ Page({
     const commentId = comment.id || comment._id;
     
     if (!commentId) {
-      console.error('评论ID不存在:', comment);
+      
       wx.showToast({
         title: '操作失败：评论ID不存在',
         icon: 'none'
@@ -253,7 +253,7 @@ Page({
       return;
     }
     
-    console.log('点赞评论:', { commentId, comment });
+    
     
     // 直接使用API路径
     const apiUrl = `/api/comments/${commentId}/${comment.isLiked ? 'unlike' : 'like'}`;
@@ -268,7 +268,7 @@ Page({
       data: {},
       success: (res) => {
         if (res.statusCode === 200) {
-          console.log('点赞评论成功:', res.data);
+          
           // 处理嵌套的数据结构
           const responseData = res.data.data || res.data;
           const likeCount = responseData.likeCount || responseData.likes?.length || 0;
@@ -280,7 +280,7 @@ Page({
         
         this.setData({ comments });
         } else {
-          console.error('点赞评论失败:', res);
+          
           wx.showToast({
             title: res.data.message || '操作失败',
             icon: 'none'
@@ -288,7 +288,7 @@ Page({
         }
       },
       fail: (error) => {
-        console.error('点赞评论请求失败:', error);
+        
         wx.showToast({
           title: '网络请求失败',
           icon: 'none'
@@ -412,13 +412,13 @@ Page({
       }
     }
     
-    console.log('提交评论数据:', commentData);
+    
     
     // 调用API提交评论
     const sendComment = (retryCount = 0) => {
     communityAPI.addComment(this.data.postId, commentData)
         .then(result => {
-          console.log('评论成功:', result);
+          
           // 获取返回的评论数据
           const comment = result;
           
@@ -467,7 +467,7 @@ Page({
         });
       })
       .catch(error => {
-        console.error('提交评论失败:', error);
+        
           
           let errorMessage = '评论失败';
           if (error.message) {
@@ -478,7 +478,7 @@ Page({
           
           // 如果是服务器错误且重试次数小于2，尝试重试
           if (retryCount < 2 && (errorMessage.includes('服务器错误') || errorMessage.includes('500'))) {
-            console.log(`评论失败，正在重试(${retryCount + 1})...`);
+            
             setTimeout(() => sendComment(retryCount + 1), 1000);
             return;
           }
@@ -589,7 +589,7 @@ Page({
     const post = this.data.post;
     
     return {
-      title: `${post.userName}的习惯分享：${post.habitName}`,
+      title: `${post.userName}的动态`,
       path: `/pages/community/post-detail/post-detail?id=${post.id}&share=true`,
       imageUrl: post.images && post.images.length > 0 ? post.images[0] : ''
     };
@@ -603,13 +603,13 @@ Page({
     const comment = this.data.comments[commentIndex];
     const reply = comment.replies[replyIndex];
     
-    console.log('点赞回复 - 原始数据:', JSON.stringify(reply));
+    
     
     // 检查回复ID
     const replyId = reply.id || reply._id;
     
     if (!replyId) {
-      console.error('回复ID不存在:', reply);
+      
       wx.showToast({
         title: '操作失败：回复ID不存在',
         icon: 'none'
@@ -617,7 +617,7 @@ Page({
       return;
     }
     
-    console.log('点赞回复:', { replyId, reply });
+    
     
     // 直接使用API路径
     const apiUrl = `/api/comments/${replyId}/${reply.isLiked ? 'unlike' : 'like'}`;
@@ -632,7 +632,7 @@ Page({
       data: {},
       success: (res) => {
         if (res.statusCode === 200) {
-          console.log('点赞回复成功:', res.data);
+          
           // 处理嵌套的数据结构
           const responseData = res.data.data || res.data;
           const likeCount = responseData.likeCount || responseData.likes?.length || 0;
@@ -644,7 +644,7 @@ Page({
           
           this.setData({ comments });
         } else {
-          console.error('点赞回复失败:', res);
+          
           wx.showToast({
             title: res.data.message || '操作失败',
             icon: 'none'
@@ -652,7 +652,7 @@ Page({
         }
       },
       fail: (error) => {
-        console.error('点赞回复请求失败:', error);
+        
         wx.showToast({
           title: '网络请求失败',
           icon: 'none'

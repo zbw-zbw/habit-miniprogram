@@ -1,3 +1,6 @@
+/* 引入图标字体 */
+@import "/styles/iconfont.wxss";
+
 /**
  * 习惯卡片组件样式
  */
@@ -236,7 +239,7 @@
   color: var(--primary-color);
 }
 
-.action-item text {
+.action-item-text {
   font-size: 32rpx;
   color: var(--title-color);
 }
@@ -245,7 +248,7 @@
   color: var(--error-color);
 }
 
-.action-item.delete text {
+.action-item.delete .action-item-text {
   color: var(--error-color);
 }
 

@@ -76,7 +76,7 @@ export function setupLoginCheck(page: IPageWithLoginCheck): void {
   
   if (!page.onLoginFail) {
     page.onLoginFail = function() {
-      console.log('用户登录失败或取消');
+      
     };
   }
   

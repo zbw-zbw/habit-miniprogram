@@ -1,0 +1,27 @@
+<view class="search-box">
+  <view class="search-input-wrapper">
+    <view class="search-icon">
+      <text class="iconfont icon-search"></text>
+    </view>
+    <input 
+      class="search-input" 
+      type="text" 
+      placeholder="{{placeholder}}" 
+      placeholder-class="placeholder"
+      value="{{inputValue}}"
+      bindinput="onInput"
+      bindfocus="onFocus"
+      bindblur="onBlur"
+      bindtap="onClick"
+      disabled="{{disabled}}"
+      focus="{{focus}}"
+      maxlength="{{maxLength}}"
+    />
+    <view class="clear-icon" wx:if="{{inputValue.length > 0}}" catchtap="onClear">
+      <text class="iconfont icon-close-circle"></text>
+    </view>
+  </view>
+  <view class="search-button" wx:if="{{showSearchButton}}" bindtap="onSearch">
+    搜索
+  </view>
+</view> 

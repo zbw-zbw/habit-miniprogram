@@ -1,7 +1,27 @@
+/* 引入图标字体 */
+@import '/styles/iconfont.wxss';
+
 /* 社区搜索页面样式 */
 .container {
   padding: 0;
   background-color: #f7f7f7;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+}
+
+/* 头部固定区域 */
+.sticky-header {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background-color: #ffffff;
+  box-shadow: 0 1px 1px rgba(0, 0, 0, 0.05);
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 
 /* 搜索头部 */
@@ -10,10 +30,9 @@
   align-items: center;
   padding: 16rpx 24rpx;
   background-color: #ffffff;
-  position: sticky;
-  top: 0;
-  z-index: 10;
-  box-shadow: 0 1px 1px rgba(0, 0, 0, 0.05);
+  width: 100%;
+  box-sizing: border-box;
+  max-width: 750rpx;
 }
 
 .search-box {
@@ -66,16 +85,12 @@
   color: #ffffff;
 }
 
-.cancel-btn {
-  margin-left: 24rpx;
-  font-size: 28rpx;
-  color: #576b95;
-  white-space: nowrap;
-}
-
 /* 搜索历史 */
 .search-history {
   margin: 32rpx;
+  width: 100%;
+  max-width: 700rpx;
+  box-sizing: border-box;
 }
 
 .history-header {
@@ -114,6 +129,9 @@
 /* 热门搜索 */
 .hot-search {
   margin: 32rpx;
+  width: 100%;
+  max-width: 700rpx;
+  box-sizing: border-box;
 }
 
 .hot-header {
@@ -152,6 +170,11 @@
   font-weight: 600;
 }
 
+/* 修改前三个热门搜索的序号颜色为主色调 */
+.hot-tag:nth-child(-n+3) .hot-rank {
+  background: #4F7CFF;
+}
+
 .hot-text {
   font-size: 28rpx;
   color: #333333;
@@ -160,6 +183,8 @@
 /* 搜索结果 */
 .search-results {
   padding-bottom: 32rpx;
+  width: 100%;
+  max-width: 750rpx;
 }
 
 /* 标签页 */

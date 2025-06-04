@@ -109,7 +109,7 @@ app.get('/api/health', (req, res) => {
 
 // 错误处理中间件
 app.use((err, req, res, next) => {
-  console.error(err.stack);
+  
   res.status(err.statusCode || 500).json({
     success: false,
     message: err.message || '服务器内部错误',
@@ -123,14 +123,14 @@ mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/habit-tra
   useUnifiedTopology: true
 })
 .then(() => {
-  console.log('数据库连接成功');
+  
   // 启动服务器
   app.listen(PORT, () => {
-    console.log(`服务器运行在端口 ${PORT}`);
+    
   });
 })
 .catch((err) => {
-  console.error('数据库连接失败:', err);
+  
   process.exit(1);
 });
 

@@ -98,7 +98,7 @@ Page<IPageData, IPageMethods>({
     // 调用API获取参与者列表
     communityAPI.getChallengeParticipants(challengeId, params)
       .then(result => {
-        console.log('获取到参与者列表:', result);
+        
         
         // 获取参与者数据
         const participants = result.participants || [];
@@ -128,7 +128,7 @@ Page<IPageData, IPageMethods>({
         });
       })
       .catch(error => {
-        console.error('获取参与者列表失败:', error);
+        
         
         wx.showToast({
           title: '获取参与者列表失败',
@@ -145,10 +145,10 @@ Page<IPageData, IPageMethods>({
   viewUserProfile(e: WechatMiniprogram.TouchEvent) {
     const userId = e.currentTarget.dataset.id;
     
-    console.log('查看用户资料, userId:', userId);
+    
     
     if (!userId) {
-      console.error('未找到用户ID:', e.currentTarget.dataset);
+      
       wx.showToast({
         title: '无法查看用户资料',
         icon: 'none'
@@ -159,7 +159,7 @@ Page<IPageData, IPageMethods>({
     wx.navigateTo({
       url: `/pages/community/user-profile/user-profile?id=${userId}`,
       fail: (err) => {
-        console.error('跳转到用户资料页失败:', err);
+        
         wx.showToast({
           title: '跳转失败',
           icon: 'none'
@@ -233,7 +233,7 @@ Page<IPageData, IPageMethods>({
       // 其他情况
       return `${formatDate(date, 'yyyy年MM月dd日')} 加入`;
     } catch (error) {
-      console.error('日期格式化错误:', error);
+      
       return '未知时间';
     }
   }

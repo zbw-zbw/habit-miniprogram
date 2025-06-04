@@ -115,7 +115,6 @@ Page({
             const dashboardData = await dashboard_1.dashboardAPI.getDashboard(undefined, {
                 days: 180,
             }); // 获取半年数据用于热图
-            console.log('获取仪表盘数据成功:', dashboardData);
             // 查找当前习惯
             const habit = dashboardData.todayHabits.find((h) => h.id === this.data.habitId || h._id === this.data.habitId);
             // 如果找不到习惯，尝试单独获取
@@ -181,9 +180,27 @@ Page({
             // 获取习惯统计数据
             const stats = dashboardData.habitStats[this.data.habitId];
             if (stats) {
+                // 确保完成率是有效数字
+                let completionRate = stats.completionRate;
+                if (isNaN(completionRate) || completionRate === null || completionRate === undefined) {
+                    completionRate = 0;
+                }
+                // 处理百分比格式
+                if (completionRate > 1 && completionRate <= 100) {
+                    // 已经是百分比，保持不变
+                }
+                else if (completionRate > 0 && completionRate <= 1) {
+                    // 小数形式，转为百分比
+                    completionRate = completionRate * 100;
+                }
+                // 格式化完成率
+                const completionRateFormatted = Math.round(completionRate).toString();
                 this.setData({
-                    stats,
-                    completionRateFormatted: Math.round(stats.completionRate).toString(),
+                    stats: {
+                        ...stats,
+                        completionRate
+                    },
+                    completionRateFormatted,
                     'loading.stats': false,
                 });
             }
@@ -199,7 +216,11 @@ Page({
             this.updateCalendar();
         }
         catch (error) {
-            console.error('使用仪表盘API加载数据失败:', error);
+            console.error('加载习惯详情失败:', error);
+            // 单独加载每个部分的数据
+            await this.loadHabitDetail();
+            await this.loadCheckins();
+            await this.loadStats();
         }
     },
     // 加载习惯详情（作为备选）
@@ -223,7 +244,6 @@ Page({
             this.updateCalendar();
         }
         catch (error) {
-            console.error('加载习惯详情失败:', error);
             this.setData({
                 'loading.habit': false,
                 'error.habit': '加载习惯详情失败',
@@ -264,7 +284,6 @@ Page({
             this.generateHeatmapData();
         }
         catch (error) {
-            console.error('加载打卡记录失败:', error);
             this.setData({
                 'loading.checkins': false,
                 'error.checkins': '加载打卡记录失败',
@@ -279,10 +298,26 @@ Page({
         });
         try {
             const stats = await api_1.habitAPI.getHabitStats(this.data.habitId);
-            // 确保完成率是正确的百分比值（0-100）
-            // 如果 completionRate 已经是百分比形式（0-100），不需要再乘以100
-            // 如果 completionRate 是小数形式（0-1），则需要乘以100
-            let completionRate = stats.completionRate;
+            // 确保stats不为null
+            if (!stats) {
+                this.setData({
+                    stats: {
+                        totalDays: 0,
+                        completedDays: 0,
+                        completionRate: 0,
+                        currentStreak: 0,
+                        longestStreak: 0,
+                        lastCompletedDate: null,
+                        totalCompletions: 0
+                    },
+                    completionRateFormatted: '0',
+                    'loading.stats': false,
+                });
+                return;
+            }
+            // 确保完成率是有效数字
+            let completionRate = isNaN(stats.completionRate) ? 0 : stats.completionRate;
+            // 正规化完成率值
             if (completionRate > 1 && completionRate <= 100) {
                 // 已经是百分比形式，保持不变
                 completionRate = Math.min(completionRate, 100); // 限制最大值为100%
@@ -296,7 +331,7 @@ Page({
                 completionRate = 100;
             }
             // 预先计算格式化的完成率
-            const completionRateFormatted = Math.round(completionRate).toString();
+            const completionRateFormatted = Math.round(completionRate || 0).toString();
             // 更新统计数据
             this.setData({
                 stats: {
@@ -306,12 +341,20 @@ Page({
                 completionRateFormatted,
                 'loading.stats': false,
             });
-            console.log('习惯统计数据：', stats);
-            console.log('格式化后的完成率：', completionRateFormatted);
         }
         catch (error) {
-            console.error('加载统计数据失败:', error);
             this.setData({
+                // 当发生错误时，初始化默认数据而不是留空
+                stats: {
+                    totalDays: 0,
+                    completedDays: 0,
+                    completionRate: 0,
+                    currentStreak: 0,
+                    longestStreak: 0,
+                    lastCompletedDate: null,
+                    totalCompletions: 0
+                },
+                completionRateFormatted: '0',
                 'loading.stats': false,
                 'error.stats': '加载统计数据失败',
             });
@@ -432,7 +475,6 @@ Page({
     // 处理应用建议
     handleApplySuggestion(e) {
         const { suggestion } = e.detail;
-        console.log('应用建议:', suggestion);
         wx.showToast({
             title: '已应用建议',
             icon: 'success',
@@ -582,7 +624,6 @@ Page({
             });
         })
             .catch(error => {
-            console.error(`${actionText}习惯失败:`, error);
             wx.hideLoading();
             wx.showToast({
                 title: `${actionText}失败`,
@@ -620,7 +661,6 @@ Page({
                         }, 1500);
                     }
                     catch (error) {
-                        console.error('删除习惯失败:', error);
                         wx.hideLoading();
                         wx.showToast({
                             title: '删除失败',

@@ -12,7 +12,7 @@
     "test:frontend": "jest --testPathIgnorePatterns=server/",
     "test:backend": "cd server && npm test",
     "build": "tsc && miniprogram-ci build",
-    "update-iconfont": "node update-iconfont.mjs"
+    "update-iconfont": "node scripts/update-iconfont.mjs"
   },
   "keywords": [
     "微信小程序",
@@ -67,6 +67,7 @@
   },
   "dependencies": {
     "@vant/weapp": "1.11.7",
+    "fetch-blob": "2.1.2",
     "fs-extra": "11.3.0",
     "multer": "2.0.0",
     "node-fetch": "3.3.2",

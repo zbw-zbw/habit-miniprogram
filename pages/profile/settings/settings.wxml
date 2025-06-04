@@ -1,9 +1,5 @@
 <!-- 个人中心-设置页面 -->
-<view class="settings-container">
-  <!-- 页面标题 -->
-  <view class="page-header">
-    <text class="header-title">设置</text>
-  </view>
+<view class="settings-container {{darkMode ? 'dark-mode' : ''}}">
 
   <!-- 基本设置 -->
   <view class="settings-group">
@@ -15,7 +11,7 @@
         <text class="iconfont icon-notification"></text>
         <text>接收通知</text>
       </view>
-      <switch class="item-switch" checked="{{settings.notification}}" data-key="notification" bindchange="switchSetting" color="#4F7CFF" />
+      <switch class="item-switch" checked="{{settings.notification}}" data-key="notification" bindchange="switchSetting" color="{{darkMode ? '#5e72e4' : '#4F7CFF'}}" />
     </view>
     
     <!-- 主题设置 -->
@@ -51,18 +47,27 @@
     <view class="settings-item">
       <view class="item-label">
         <text class="iconfont icon-sound"></text>
-        <text>声音提醒</text>
+        <text style="margin-left: 10rpx;">声音提醒</text>
       </view>
-      <switch class="item-switch" checked="{{settings.sound}}" data-key="sound" bindchange="switchSetting" color="#4F7CFF" />
+      <switch class="item-switch" checked="{{settings.sound}}" data-key="sound" bindchange="switchSetting" color="{{darkMode ? '#5e72e4' : '#4F7CFF'}}" />
     </view>
     
     <!-- 震动提醒 -->
     <view class="settings-item">
       <view class="item-label">
         <text class="iconfont icon-vibration"></text>
-        <text>震动提醒</text>
+        <text style="margin-left: 10rpx;">震动提醒</text>
       </view>
-      <switch class="item-switch" checked="{{settings.vibration}}" data-key="vibration" bindchange="switchSetting" color="#4F7CFF" />
+      <switch class="item-switch" checked="{{settings.vibration}}" data-key="vibration" bindchange="switchSetting" color="{{darkMode ? '#5e72e4' : '#4F7CFF'}}" />
+    </view>
+    
+    <!-- 测试通知 -->
+    <view class="settings-item" bindtap="testNotification">
+      <view class="item-label">
+        <text class="iconfont icon-test"></text>
+        <text style="margin-left: 10rpx;">测试通知</text>
+      </view>
+      <view class="item-arrow"></view>
     </view>
   </view>
   
@@ -76,7 +81,7 @@
         <text class="iconfont icon-leftup"></text>
         <text>自动备份</text>
       </view>
-      <switch class="item-switch" checked="{{settings.autoBackup}}" data-key="autoBackup" bindchange="switchSetting" color="#4F7CFF" />
+      <switch class="item-switch" checked="{{settings.autoBackup}}" data-key="autoBackup" bindchange="switchSetting" color="{{darkMode ? '#5e72e4' : '#4F7CFF'}}" />
     </view>
     
     <!-- 清除缓存 -->
@@ -113,10 +118,10 @@
   </view>
   
   <!-- 退出登录 - 只在已登录状态下显示 -->
-  <view class="logout-button" bindtap="showLogoutModal" wx:if="{{hasLogin}}">退出登录</view>
+  <view class="logout-button {{darkMode ? 'logout-button-dark' : ''}}" bindtap="showLogoutModal" wx:if="{{hasLogin}}">退出登录</view>
   
   <!-- 主题选择模态框 -->
-  <view class="modal theme-modal {{showThemeModal ? 'show' : ''}}" catchtouchmove="true">
+  <view class="modal theme-modal {{showThemeModal ? 'show' : ''}} {{darkMode ? 'dark-mode' : ''}}" catchtouchmove="true">
     <view class="modal-mask" bindtap="hideThemeModal"></view>
     <view class="modal-content">
       <view class="modal-header">
@@ -140,7 +145,7 @@
   </view>
   
   <!-- 语言选择模态框 -->
-  <view class="modal language-modal {{showLanguageModal ? 'show' : ''}}" catchtouchmove="true">
+  <view class="modal language-modal {{showLanguageModal ? 'show' : ''}} {{darkMode ? 'dark-mode' : ''}}" catchtouchmove="true">
     <view class="modal-mask" bindtap="hideLanguageModal"></view>
     <view class="modal-content">
       <view class="modal-header">
@@ -163,7 +168,7 @@
   </view>
   
   <!-- 清除缓存确认模态框 -->
-  <view class="modal confirm-modal {{showClearModal ? 'show' : ''}}" catchtouchmove="true">
+  <view class="modal confirm-modal {{showClearModal ? 'show' : ''}} {{darkMode ? 'dark-mode' : ''}}" catchtouchmove="true">
     <view class="modal-mask" bindtap="hideClearModal"></view>
     <view class="modal-content">
       <view class="modal-header">
@@ -181,7 +186,7 @@
   </view>
   
   <!-- 退出登录确认模态框 -->
-  <view class="modal confirm-modal {{showLogoutModal ? 'show' : ''}}" catchtouchmove="true">
+  <view class="modal confirm-modal {{showLogoutModal ? 'show' : ''}} {{darkMode ? 'dark-mode' : ''}}" catchtouchmove="true">
     <view class="modal-mask" bindtap="hideLogoutModal"></view>
     <view class="modal-content">
       <view class="modal-header">

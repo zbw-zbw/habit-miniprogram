@@ -1,25 +1,28 @@
 <!--社区搜索页面-->
 <view class="container">
-  <!-- 搜索框 -->
-  <view class="search-header">
-    <view class="search-box">
-      <text class="iconfont icon-search"></text>
-      <input 
-        class="search-input" 
-        placeholder="搜索用户、小组、挑战或内容" 
-        placeholder-class="placeholder"
-        bindinput="onSearchInput"
-        bindconfirm="onSearch"
+  <!-- 头部固定区域 -->
+  <view class="sticky-header">
+    <!-- 搜索框 -->
+    <view class="search-header">
+      <search-box 
+        placeholder="搜索用户、小组、挑战或内容"
         value="{{keyword}}"
-        confirm-type="search"
         focus="{{true}}"
-      />
-      <text class="clear-btn iconfont icon-close" wx:if="{{keyword}}" bindtap="clearSearch"></text>
+        bind:input="onSearchInput"
+        bind:search="onSearch"
+        bind:clear="clearSearch"
+        showSearchButton="{{true}}"
+        style="width:100%"
+      ></search-box>
     </view>
-    <view class="search-btn" bindtap="onSearch">
-      <text class="iconfont icon-search"></text>
-    </view>
-    <view class="cancel-btn" bindtap="goBack">取消</view>
+    
+    <!-- 搜索结果标签页 -->
+    <tab-bar 
+      wx:if="{{isSearched}}"
+      tabs="{{['全部', '动态', '挑战', '小组', '用户']}}" 
+      activeTab="{{tabIndex}}"
+      bind:tabchange="onTabChange"
+    ></tab-bar>
   </view>
   
   <!-- 搜索历史 -->
@@ -62,35 +65,6 @@
   
   <!-- 搜索结果 -->
   <view class="search-results" wx:if="{{isSearched}}">
-    <!-- 切换标签 -->
-    <view class="result-tabs">
-      <view 
-        class="tab-item {{activeTab === 'all' ? 'active' : ''}}" 
-        bindtap="switchTab" 
-        data-tab="all"
-      >全部</view>
-      <view 
-        class="tab-item {{activeTab === 'posts' ? 'active' : ''}}" 
-        bindtap="switchTab" 
-        data-tab="posts"
-      >动态</view>
-      <view 
-        class="tab-item {{activeTab === 'challenges' ? 'active' : ''}}" 
-        bindtap="switchTab" 
-        data-tab="challenges"
-      >挑战</view>
-      <view 
-        class="tab-item {{activeTab === 'groups' ? 'active' : ''}}" 
-        bindtap="switchTab" 
-        data-tab="groups"
-      >小组</view>
-      <view 
-        class="tab-item {{activeTab === 'users' ? 'active' : ''}}" 
-        bindtap="switchTab" 
-        data-tab="users"
-      >用户</view>
-    </view>
-    
     <!-- 加载中 -->
     <view class="loading" wx:if="{{loading}}">
       <view class="loading-spinner"></view>
@@ -105,7 +79,7 @@
     </view>
     
     <!-- 全部标签下的内容顺序：动态、挑战、小组、用户 -->
-    <block wx:if="{{activeTab === 'all'}}">
+    <block wx:if="{{tabIndex === 'all'}}">
       <!-- 动态列表 -->
       <view class="result-list post-list" wx:if="{{!loading && postResults.length > 0}}">
         <view class="category-title">动态</view>
@@ -116,11 +90,10 @@
             bind:viewDetail="viewPostDetail"
             bind:viewUser="viewUserProfile"
             bind:like="likePost"
-            bind:comment="commentPost"
-            bind:share="sharePost">
+            bind:comment="commentPost">
           </post-card>
         </block>
-        <view class="view-more" wx:if="{{postResults.length > 3}}" bindtap="switchTab" data-tab="posts">查看更多动态</view>
+        <view class="view-more" wx:if="{{postResults.length > 3}}" bindtap="onTabChange" data-tab="posts">查看更多动态</view>
       </view>
       
       <!-- 挑战列表 -->
@@ -141,7 +114,7 @@
             参与
           </button>
         </view>
-        <view class="view-more" wx:if="{{challengeResults.length > 3}}" bindtap="switchTab" data-tab="challenges">查看更多挑战</view>
+        <view class="view-more" wx:if="{{challengeResults.length > 3}}" bindtap="onTabChange" data-tab="challenges">查看更多挑战</view>
       </view>
       
       <!-- 小组列表 -->
@@ -162,7 +135,7 @@
             加入
           </button>
         </view>
-        <view class="view-more" wx:if="{{groupResults.length > 3}}" bindtap="switchTab" data-tab="groups">查看更多小组</view>
+        <view class="view-more" wx:if="{{groupResults.length > 3}}" bindtap="onTabChange" data-tab="groups">查看更多小组</view>
       </view>
       
       <!-- 用户列表 -->
@@ -178,12 +151,12 @@
             {{item.isFollowing ? '已关注' : '关注'}}
           </button>
         </view>
-        <view class="view-more" wx:if="{{userResults.length > 3}}" bindtap="switchTab" data-tab="users">查看更多用户</view>
+        <view class="view-more" wx:if="{{userResults.length > 3}}" bindtap="onTabChange" data-tab="users">查看更多用户</view>
       </view>
     </block>
     
     <!-- 动态列表 -->
-    <view class="result-list post-list" wx:if="{{!loading && activeTab === 'posts' && postResults.length > 0}}">
+    <view class="result-list post-list" wx:if="{{!loading && tabIndex === 'posts' && postResults.length > 0}}">
       <block wx:for="{{postResults}}" wx:key="id">
         <post-card 
           post="{{item}}" 
@@ -191,14 +164,13 @@
           bind:viewDetail="viewPostDetail"
           bind:viewUser="viewUserProfile"
           bind:like="likePost"
-          bind:comment="commentPost"
-          bind:share="sharePost">
+          bind:comment="commentPost">
         </post-card>
       </block>
     </view>
     
     <!-- 挑战列表 -->
-    <view class="result-list challenge-list" wx:if="{{!loading && activeTab === 'challenges' && challengeResults.length > 0}}">
+    <view class="result-list challenge-list" wx:if="{{!loading && tabIndex === 'challenges' && challengeResults.length > 0}}">
       <view class="challenge-item" wx:for="{{challengeResults}}" wx:key="id" bindtap="viewChallengeDetail" data-id="{{item.id}}">
         <image class="challenge-image" src="{{item.image || '/assets/images/challenge.png'}}" mode="aspectFill"></image>
         <view class="challenge-info">
@@ -217,7 +189,7 @@
     </view>
     
     <!-- 小组列表 -->
-    <view class="result-list group-list" wx:if="{{!loading && activeTab === 'groups' && groupResults.length > 0}}">
+    <view class="result-list group-list" wx:if="{{!loading && tabIndex === 'groups' && groupResults.length > 0}}">
       <view class="group-item" wx:for="{{groupResults}}" wx:key="id" bindtap="viewGroupDetail" data-id="{{item.id}}">
         <image class="group-avatar" src="{{item.avatar || '/assets/images/default-group.png'}}" mode="aspectFill"></image>
         <view class="group-info">
@@ -236,7 +208,7 @@
     </view>
     
     <!-- 用户列表 -->
-    <view class="result-list user-list" wx:if="{{!loading && activeTab === 'users' && userResults.length > 0}}">
+    <view class="result-list user-list" wx:if="{{!loading && tabIndex === 'users' && userResults.length > 0}}">
       <view class="user-item" wx:for="{{userResults}}" wx:key="id" bindtap="viewUserProfile" data-id="{{item.id}}">
         <image class="user-avatar" src="{{item.avatar || '/assets/images/default-avatar.png'}}" mode="aspectFill"></image>
         <view class="user-info">
@@ -250,12 +222,12 @@
     </view>
     
     <!-- 加载更多 -->
-    <view class="load-more" wx:if="{{!loading && hasMore && activeTab !== 'all'}}" bindtap="loadMore">
+    <view class="load-more" wx:if="{{!loading && hasMore && tabIndex !== 'all'}}" bindtap="loadMore">
       <text>加载更多</text>
     </view>
     
     <!-- 没有更多 -->
-    <view class="no-more" wx:if="{{!loading && !hasMore && results.length > 0 && activeTab !== 'all'}}">
+    <view class="no-more" wx:if="{{!loading && !hasMore && results.length > 0 && tabIndex !== 'all'}}">
       <text>没有更多了</text>
     </view>
   </view>

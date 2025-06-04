@@ -1,3 +1,6 @@
+/* 引入图标字体 */
+@import '/styles/iconfont.wxss';
+
 /* pages/community/groups/groups.wxss */
 page {
   background-color: #F5F7FA;
@@ -8,6 +11,16 @@ page {
   display: flex;
   flex-direction: column;
   min-height: 100%;
+  padding: 0;
+}
+
+/* 头部固定区域 */
+.sticky-header {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background-color: #FFFFFF;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
 }
 
 /* 搜索栏 */
@@ -17,10 +30,8 @@ page {
   align-items: center;
   padding: 10px 12px;
   background-color: #FFFFFF;
-  position: sticky;
-  top: 0;
-  z-index: 100;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .search-bar.active {
@@ -115,6 +126,7 @@ page {
 .groups-list {
   display: flex;
   flex-direction: column;
+  margin-top: 24rpx;
   padding: 0 30rpx;
   gap: 30rpx;
   padding-bottom: 24px;
@@ -336,4 +348,31 @@ page {
   padding: 16px 0;
   font-size: 14px;
   color: #909399;
+}
+
+/* 创建小组按钮 */
+.create-post-btn {
+  position: fixed;
+  bottom: 60rpx;
+  right: 32rpx;
+  width: 110rpx;
+  height: 110rpx;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #4F7CFF, #4169E1);
+  color: #FFFFFF;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 8rpx 16rpx rgba(79, 124, 255, 0.4);
+  transition: transform 0.2s ease;
+  z-index: 100;
+}
+
+.create-post-btn:active {
+  transform: scale(0.95);
+}
+
+.create-post-btn .iconfont {
+  font-size: 50rpx;
+  color: #FFFFFF;
 } 

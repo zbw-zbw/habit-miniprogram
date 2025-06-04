@@ -154,7 +154,7 @@ exports.search = async (req, res) => {
       data: searchResults
     });
   } catch (error) {
-    console.error('搜索错误:', error);
+    
     res.status(500).json({
       success: false,
       message: '服务器错误，搜索失败'
@@ -187,7 +187,7 @@ exports.getHotSearches = async (req, res) => {
       data: hotSearches
     });
   } catch (error) {
-    console.error('获取热门搜索词错误:', error);
+    
     res.status(500).json({
       success: false,
       message: '服务器错误，获取热门搜索词失败'
@@ -241,7 +241,7 @@ exports.getHotTopics = async (req, res) => {
       data: hotTopics
     });
   } catch (error) {
-    console.error('获取热门话题错误:', error);
+    
     res.status(500).json({
       success: false,
       message: '服务器错误，获取热门话题失败'

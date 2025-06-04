@@ -5,9 +5,19 @@ import { getCurrentDate, formatDate } from '../../utils/date';
 import { shouldDoHabitOnDate } from '../../utils/habit';
 import { habitAPI, checkinAPI } from '../../services/api';
 import { dashboardAPI } from '../../services/api/dashboard';
-import { IHabit, ICheckin, IHabitStats, IUserInfo, IAppOption } from '../../utils/types';
+import {
+  IHabit,
+  ICheckin,
+  IHabitStats,
+  IUserInfo,
+  IAppOption,
+} from '../../utils/types';
 import { login } from '../../utils/auth';
-import { checkLogin, setupLoginCheck, IPageWithLoginCheck } from '../../utils/auth-check';
+import {
+  checkLogin,
+  setupLoginCheck,
+  IPageWithLoginCheck,
+} from '../../utils/auth-check';
 import { useAuth } from '../../utils/use-auth';
 
 // 修改默认习惯数据以符合新的类型定义
@@ -138,7 +148,7 @@ Page<IPageData, IPageMethods>({
     apiAvailable: true,
     loginModal: {
       show: false,
-      message: '请先登录以使用此功能'
+      message: '请先登录以使用此功能',
     },
   },
 
@@ -147,24 +157,24 @@ Page<IPageData, IPageMethods>({
    */
   onLoad() {
     const app = getApp<ExtendedApp>();
-    
+
     // 获取当前日期和星期
     const today = getCurrentDate();
     const weekdayNames = ['日', '一', '二', '三', '四', '五', '六'];
     const weekday = weekdayNames[new Date(today).getDay()];
-    
+
     // 获取随机格言
     const motto = this.getRandomMotto();
-    
+
     // 设置基础数据
     this.setData({
       today,
       weekday,
       userInfo: app.globalData.userInfo,
       hasLogin: app.globalData.hasLogin,
-      apiAvailable: app.apiAvailable || true
+      apiAvailable: app.apiAvailable || true,
     });
-    
+
     // 使用useAuth工具获取全局登录状态
     useAuth(this);
 
@@ -229,7 +239,6 @@ Page<IPageData, IPageMethods>({
     dashboardAPI
       .getDashboard(today, { days: 30 })
       .then((dashboardData) => {
-        console.log('获取仪表盘数据成功:', dashboardData);
         // 处理数据并更新UI
         this.processDashboardData(dashboardData);
       })
@@ -272,7 +281,6 @@ Page<IPageData, IPageMethods>({
         if (habitStat && habitStat.currentStreak > 0) {
           // 使用最大的连续打卡天数
           currentStreak = Math.max(currentStreak, habitStat.currentStreak || 0);
-          console.log(`从习惯统计更新连续打卡天数: ${habitStat.currentStreak}`);
         }
       });
     }
@@ -282,14 +290,9 @@ Page<IPageData, IPageMethods>({
       todayHabits.forEach((habit) => {
         if (habit.stats && habit.stats.currentStreak > 0) {
           currentStreak = Math.max(currentStreak, habit.stats.currentStreak);
-          console.log(
-            `从习惯自身更新连续打卡天数: ${habit.stats.currentStreak}`
-          );
         }
       });
     }
-
-    console.log('当前连续打卡天数:', currentStreak);
 
     // 设置数据
     this.setData({
@@ -332,11 +335,11 @@ Page<IPageData, IPageMethods>({
 
     const randomIndex = Math.floor(Math.random() * mottos.length);
     const motto = mottos[randomIndex];
-    
+
     this.setData({
       motto: motto,
     });
-    
+
     return motto;
   },
 
@@ -346,31 +349,33 @@ Page<IPageData, IPageMethods>({
   onCheckin(e: any) {
     const { habitId } = e.detail;
     if (!habitId) return;
-    
+
     // 检查用户是否已登录
-    if (!checkLogin(this as IPageWithLoginCheck, '请先登录后再打卡', () => {
-      // 登录成功后的回调，继续打卡操作
-      const habit = this.data.todayHabits.find(
-        (h) => h.id === habitId || (h as any)._id === habitId
-      );
-      if (!habit) return;
-      
-      // 跳转到打卡页面
-      wx.navigateTo({
-        url: `/pages/checkin/checkin?habitId=${habitId}&habitName=${encodeURIComponent(
-          habit.name
-        )}`,
-      });
-    })) {
+    if (
+      !checkLogin(this as IPageWithLoginCheck, '请先登录后再打卡', () => {
+        // 登录成功后的回调，继续打卡操作
+        const habit = this.data.todayHabits.find(
+          (h) => h.id === habitId || (h as any)._id === habitId
+        );
+        if (!habit) return;
+
+        // 跳转到打卡页面
+        wx.navigateTo({
+          url: `/pages/checkin/checkin?habitId=${habitId}&habitName=${encodeURIComponent(
+            habit.name
+          )}`,
+        });
+      })
+    ) {
       return; // 未登录，函数终止
     }
-    
+
     // 已登录，直接执行打卡操作
     const habit = this.data.todayHabits.find(
       (h) => h.id === habitId || (h as any)._id === habitId
     );
     if (!habit) return;
-    
+
     // 跳转到打卡页面
     wx.navigateTo({
       url: `/pages/checkin/checkin?habitId=${habitId}&habitName=${encodeURIComponent(
@@ -400,15 +405,17 @@ Page<IPageData, IPageMethods>({
    */
   goToCreateHabit() {
     // 检查用户是否已登录
-    if (!checkLogin(this as IPageWithLoginCheck, '请先登录后再创建习惯', () => {
-      // 登录成功后的回调，继续创建习惯
-      wx.navigateTo({
-        url: '/pages/habits/create/create',
-      });
-    })) {
+    if (
+      !checkLogin(this as IPageWithLoginCheck, '请先登录后再创建习惯', () => {
+        // 登录成功后的回调，继续创建习惯
+        wx.navigateTo({
+          url: '/pages/habits/create/create',
+        });
+      })
+    ) {
       return; // 未登录，函数终止
     }
-    
+
     // 已登录，直接跳转
     wx.navigateTo({
       url: '/pages/habits/create/create',
@@ -490,7 +497,7 @@ Page<IPageData, IPageMethods>({
           userInfo: app.globalData.userInfo,
           hasLogin: true,
         });
-        
+
         // 重新加载数据
         this.loadData();
       }
@@ -504,8 +511,6 @@ Page<IPageData, IPageMethods>({
     userInfo: IUserInfo | null;
     hasLogin: boolean;
   }) {
-    console.log('首页接收到登录状态变化:', loginState.hasLogin);
-
     this.setData({
       userInfo: loginState.userInfo,
       hasLogin: loginState.hasLogin,
@@ -524,7 +529,7 @@ Page<IPageData, IPageMethods>({
         totalCount: 0,
         completionRate: 0,
         completionRateDisplay: '0',
-        currentStreak: 0
+        currentStreak: 0,
       });
     }
   },
@@ -548,7 +553,7 @@ Page<IPageData, IPageMethods>({
       'loginModal.show': false,
     });
   },
-  
+
   /**
    * 登录成功事件
    */
@@ -558,11 +563,10 @@ Page<IPageData, IPageMethods>({
       this.loginSuccess();
     }
   },
-  
+
   /**
    * 登录失败事件
    */
   onLoginFail() {
-    console.log('用户登录失败或取消');
   },
 });

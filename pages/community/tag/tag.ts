@@ -155,7 +155,7 @@ Page<IPageData, {
     
     dataPromise
       .catch(error => {
-        console.error(`加载${activeTab}数据失败:`, error);
+        
       })
       .finally(() => {
         this.setData({ loading: false });
@@ -201,7 +201,7 @@ Page<IPageData, {
         return result;
       })
       .catch(error => {
-        console.error('加载标签动态失败:', error);
+        
         wx.showToast({
           title: '加载动态失败',
           icon: 'none'
@@ -224,7 +224,7 @@ Page<IPageData, {
         return challenges;
       })
       .catch(error => {
-        console.error('加载标签挑战失败:', error);
+        
         this.setData({ challenges: [] });
         return Promise.reject(error);
       });
@@ -244,7 +244,7 @@ Page<IPageData, {
         return groups;
       })
       .catch(error => {
-        console.error('加载标签小组失败:', error);
+        
         this.setData({ groups: [] });
         return Promise.reject(error);
       });
@@ -331,7 +331,7 @@ Page<IPageData, {
   viewUserProfile(e: WechatMiniprogram.TouchEvent) {
     const { id } = e.currentTarget.dataset;
     wx.navigateTo({
-      url: `/pages/profile/user/user?id=${id}`
+      url: `/pages/community/user-profile/user-profile?id=${id}`
     });
   },
 
@@ -356,7 +356,7 @@ Page<IPageData, {
     // 调用API更新服务端状态
     (isLiked ? communityAPI.unlikePost(id) : communityAPI.likePost(id))
       .catch(error => {
-        console.error('点赞失败:', error);
+        
         // 恢复原状态
         this.setData({
           [`posts[${index}].isLiked`]: isLiked,
@@ -413,7 +413,7 @@ Page<IPageData, {
         });
       })
       .catch(error => {
-        console.error('参加挑战失败:', error);
+        
         wx.showToast({
           title: '参加失败',
           icon: 'none'

@@ -60,7 +60,6 @@ Page({
             this.setData({ habits });
         })
             .catch(error => {
-            console.error('获取习惯列表失败:', error);
         });
     },
     /**
@@ -247,7 +246,6 @@ Page({
             }, 1500);
         })
             .catch(error => {
-            console.error('发布动态失败:', error);
             wx.showToast({
                 title: '发布失败',
                 icon: 'none'

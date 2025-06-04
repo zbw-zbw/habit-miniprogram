@@ -89,7 +89,6 @@ Page({
             success: (res) => {
                 const { success, data, message } = res.data;
                 if (success && data) {
-                    console.log('获取用户资料成功:', data);
                     this.setData({
                         userInfo: data,
                         loading: false
@@ -98,7 +97,6 @@ Page({
                     this.loadPosts(true);
                 }
                 else {
-                    console.error('获取用户资料失败:', message);
                     this.setData({
                         loading: false,
                         error: message || '获取用户资料失败'
@@ -106,7 +104,6 @@ Page({
                 }
             },
             fail: (error) => {
-                console.error('获取用户资料请求失败:', error);
                 this.setData({
                     loading: false,
                     error: '网络请求失败，请检查网络连接'
@@ -176,7 +173,6 @@ Page({
             });
         })
             .catch(error => {
-            console.error('获取用户动态失败:', error);
             this.setData({
                 loadingPosts: false,
                 loadingMorePosts: false
@@ -217,7 +213,6 @@ Page({
             success: (res) => {
                 const { success, data, message } = res.data;
                 if (success && data) {
-                    console.log('获取用户习惯成功:', data);
                     const { habits = [], pagination = {} } = data;
                     // 更新数据
                     this.setData({
@@ -229,7 +224,6 @@ Page({
                     });
                 }
                 else {
-                    console.error('获取用户习惯失败:', message);
                     this.setData({
                         loadingHabits: false,
                         loadingMoreHabits: false
@@ -241,7 +235,6 @@ Page({
                 }
             },
             fail: (error) => {
-                console.error('获取用户习惯请求失败:', error);
                 this.setData({
                     loadingHabits: false,
                     loadingMoreHabits: false
@@ -282,7 +275,6 @@ Page({
             success: (res) => {
                 const { success, data, message } = res.data;
                 if (success && data) {
-                    console.log('获取用户成就成功:', data);
                     const { achievements = [], pagination = {} } = data;
                     // 更新数据
                     this.setData({
@@ -294,7 +286,6 @@ Page({
                     });
                 }
                 else {
-                    console.error('获取用户成就失败:', message);
                     this.setData({
                         loadingAchievements: false,
                         loadingMoreAchievements: false
@@ -306,7 +297,6 @@ Page({
                 }
             },
             fail: (error) => {
-                console.error('获取用户成就请求失败:', error);
                 this.setData({
                     loadingAchievements: false,
                     loadingMoreAchievements: false
@@ -352,7 +342,6 @@ Page({
             });
         })
             .catch(error => {
-            console.error('操作失败:', error);
             // 显示错误提示
             wx.showToast({
                 title: '操作失败',
@@ -379,7 +368,6 @@ Page({
         // 从组件事件的detail中获取postId，或者从dataset中获取id（兼容直接点击的情况）
         const postId = ((_a = e.detail) === null || _a === void 0 ? void 0 : _a.postId) || e.currentTarget.dataset.id;
         if (!postId) {
-            console.error('无法获取帖子ID:', e);
             wx.showToast({
                 title: '无法查看帖子详情',
                 icon: 'none'
@@ -415,7 +403,6 @@ Page({
         const postId = ((_a = e.detail) === null || _a === void 0 ? void 0 : _a.postId) || e.currentTarget.dataset.id;
         const index = ((_b = e.detail) === null || _b === void 0 ? void 0 : _b.index) !== undefined ? e.detail.index : e.currentTarget.dataset.index;
         if (postId === undefined || index === undefined) {
-            console.error('无法获取帖子ID或索引:', e);
             wx.showToast({
                 title: '操作失败',
                 icon: 'none'
@@ -443,7 +430,6 @@ Page({
             posts[index].likes = response.likeCount;
             this.setData({ posts });
         }).catch(error => {
-            console.error('点赞操作失败:', error);
             // 恢复原状态
             const posts = [...this.data.posts];
             posts[index].isLiked = isLiked;
@@ -466,7 +452,6 @@ Page({
         // 从组件事件的detail中获取postId，或者从dataset中获取id（兼容直接点击的情况）
         const postId = ((_a = e.detail) === null || _a === void 0 ? void 0 : _a.postId) || e.currentTarget.dataset.id;
         if (!postId) {
-            console.error('无法获取帖子ID:', e);
             wx.showToast({
                 title: '无法评论帖子',
                 icon: 'none'
@@ -547,7 +532,6 @@ Page({
         // 从组件事件的detail中获取postId，或者从dataset中获取id（兼容直接点击的情况）
         const postId = ((_a = e.detail) === null || _a === void 0 ? void 0 : _a.postId) || e.currentTarget.dataset.id;
         if (!postId) {
-            console.error('无法获取帖子ID:', e);
             return;
         }
         wx.showShareMenu({

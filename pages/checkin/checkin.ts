@@ -2,12 +2,39 @@ import { formatDate, getCurrentDate, formatTime } from '../../utils/date';
 import { habitAPI, checkinAPI } from '../../services/api';
 import { communityAPI } from '../../services/api';
 import { shouldDoHabitOnDate } from '../../utils/habit';
-import { ICheckin, IHabit } from '../../utils/types';
+import { ICheckin, IHabit, IHabitStats } from '../../utils/types';
+
+// 扩展的习惯类型，包含统计数据
+interface IHabitWithStats extends IHabit {
+  stats?: IHabitStats;
+}
+
+// 应用类型定义
+interface IAppOption {
+  globalData: {
+    userInfo: any | null;
+    hasLogin: boolean;
+    systemInfo?: WechatMiniprogram.SystemInfo;
+    theme?: 'light' | 'dark' | 'system';
+    unlockedAchievement?: any | null;
+    habitService?: any;
+    checkinService?: any;
+    habitChainService?: any;
+    achievementService?: any;
+    token?: string;
+    refreshToken?: string;
+    apiBaseUrl?: string;
+  };
+  login: (userInfo: any, callback: (success: boolean) => void) => void;
+  logout: (callback: () => void) => void;
+  onLoginStateChange: (callback: (loginState: { userInfo: any | null; hasLogin: boolean; }) => void) => void;
+  notifyLoginStateChanged: () => void;
+}
 
 interface IPageData {
   habitId: string;
   habitName: string;
-  habit: IHabit | null;
+  habit: IHabitWithStats | null;
   showForm: boolean;
   formData: {
     date: string;
@@ -24,7 +51,7 @@ interface IPageData {
     selectedIndex: number[];
   };
   timer: {
-    active: boolean;
+    active: boolean | number | null;
     startTime: number;
     elapsedTime: number;
     displayTime: string;
@@ -37,7 +64,7 @@ interface IPageData {
     isCompleted: boolean;
     isDisabled: boolean;
   }>;
-  completedHabits: IHabit[];
+  completedHabits: IHabitWithStats[];
   date: string;
   time: string;
   duration: number;
@@ -56,7 +83,7 @@ interface IPageData {
     points: number;
   };
   photos: string[];
-  todayHabits: IHabit[];
+  todayHabits: IHabitWithStats[];
 }
 
 interface IPageMethods {
@@ -85,6 +112,7 @@ interface IPageMethods {
   loadTodayHabits(): Promise<void>;
   navigateToCheckin(e: WechatMiniprogram.TouchEvent): void;
   onDurationChange(e: WechatMiniprogram.PickerChange): void;
+  parseTimeStringToSeconds(timeString: string): number;
 }
 
 Page<IPageData, IPageMethods>({
@@ -107,9 +135,9 @@ Page<IPageData, IPageMethods>({
       values: [
         Array.from({ length: 24 }, (_, i) => String(i).padStart(2, '0')), // 小时 0-23
         Array.from({ length: 60 }, (_, i) => String(i).padStart(2, '0')), // 分钟 0-59
-        Array.from({ length: 60 }, (_, i) => String(i).padStart(2, '0'))  // 秒钟 0-59
+        Array.from({ length: 60 }, (_, i) => String(i).padStart(2, '0')), // 秒钟 0-59
       ],
-      selectedIndex: [0, 0, 0] // 默认选中 00:00:00
+      selectedIndex: [0, 0, 0], // 默认选中 00:00:00
     },
     timer: {
       active: false,
@@ -138,31 +166,28 @@ Page<IPageData, IPageMethods>({
       points: 0,
     },
     photos: [],
-    todayHabits: []
+    todayHabits: [],
   },
 
   onLoad(options) {
     const today = getCurrentDate();
-    
+
     this.setData({
       habitId: options.habitId || '',
       habitName: options.habitName ? decodeURIComponent(options.habitName) : '',
       date: today,
       today,
-      time: this.getCurrentTime()
+      time: this.getCurrentTime(),
     });
-    
+
     if (this.data.habitId) {
-      this.loadHabit().then(() => {
-        // 在习惯加载完成后，加载今日所有习惯
-        this.loadTodayHabits();
-      });
+      this.loadHabit();
     } else {
       wx.showToast({
         title: '习惯ID不存在',
-        icon: 'error'
+        icon: 'error',
       });
-      
+
       setTimeout(() => {
         wx.navigateBack();
       }, 1500);
@@ -180,32 +205,29 @@ Page<IPageData, IPageMethods>({
   async loadHabit() {
     try {
       wx.showLoading({ title: '加载中' });
-      const habit = await habitAPI.getHabit(this.data.habitId);
       
+      // 使用聚合API获取习惯详情和统计数据
+      const response = await habitAPI.getHabitWithStats(this.data.habitId);
+      const habit = {
+        ...response.habit,
+        stats: response.stats
+      };
+
       if (habit) {
-        // 获取习惯统计数据
-        try {
-          const stats = await habitAPI.getHabitStats(this.data.habitId);
-          habit.stats = stats; // 将统计数据添加到习惯对象中
-        } catch (statsError) {
-          console.error('获取习惯统计数据失败:', statsError);
-          habit.stats = { currentStreak: 0, completedDays: 0, totalDays: 0 };
-        }
-        
         this.setData({
           habit,
-          habitName: habit.name || this.data.habitName
+          habitName: habit.name || this.data.habitName,
         });
-        
+
         // 更新导航栏标题
         wx.setNavigationBarTitle({
-          title: habit.name || '打卡'
+          title: habit.name || '打卡',
         });
-        
+
         // 检查今天是否应该打卡
         const today = getCurrentDate();
         const shouldDoToday = shouldDoHabitOnDate(habit, today);
-        
+
         // 如果今天不是打卡日，显示提示
         if (!shouldDoToday) {
           wx.showModal({
@@ -214,16 +236,16 @@ Page<IPageData, IPageMethods>({
             showCancel: false,
             success: () => {
               wx.navigateBack();
-            }
+            },
           });
         }
       }
       wx.hideLoading();
     } catch (error) {
       console.error('加载习惯失败:', error);
-      
+
       // 创建一个默认的习惯对象，以防API调用失败
-      const defaultHabit: IHabit = {
+      const defaultHabit: IHabitWithStats = {
         id: this.data.habitId,
         name: this.data.habitName || '习惯',
         description: '',
@@ -231,28 +253,35 @@ Page<IPageData, IPageMethods>({
         icon: 'star',
         color: '#5E72E4',
         frequency: {
-          type: 'daily'
+          type: 'daily',
         },
         reminder: {
           enabled: false,
-          time: '07:00'
+          time: '07:00',
         },
         isArchived: false,
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
         startDate: new Date().toISOString().split('T')[0],
-        stats: { currentStreak: 0, completedDays: 0, totalDays: 0 } // 添加默认统计数据
+        stats: { 
+          currentStreak: 0, 
+          completionRate: 0,
+          totalCompletions: 0,
+          totalDays: 0,
+          longestStreak: 0,
+          lastCompletedDate: null
+        }
       };
-      
+
       this.setData({
         habit: defaultHabit,
-        habitName: defaultHabit.name
+        habitName: defaultHabit.name,
       });
-      
+
       wx.hideLoading();
       wx.showToast({
         title: '加载失败',
-        icon: 'error'
+        icon: 'error',
       });
     }
   },
@@ -264,16 +293,16 @@ Page<IPageData, IPageMethods>({
       const checkins = await checkinAPI.getCheckins({
         habitId: this.data.habitId,
         startDate: today,
-        endDate: today
+        endDate: today,
       });
-      
+
       this.setData({
-        todayCheckins: checkins
+        todayCheckins: checkins,
       });
     } catch (error) {
       console.error('加载今日打卡记录失败:', error);
       this.setData({
-        todayCheckins: []
+        todayCheckins: [],
       });
     }
   },
@@ -284,53 +313,38 @@ Page<IPageData, IPageMethods>({
       const today = formatDate(new Date());
       const checkins = await checkinAPI.getCheckins({
         startDate: today,
-        endDate: today
+        endDate: today,
       });
-      
+
       // 获取已完成打卡的习惯ID
       const completedHabitIds = checkins
-        .filter(checkin => checkin.isCompleted)
-        .map(checkin => checkin.habitId);
-      
+        .filter((checkin) => checkin.isCompleted)
+        .map((checkin) => checkin.habitId);
+
       // 如果有已完成的习惯，获取习惯详情
       if (completedHabitIds.length > 0) {
-        const habits = await habitAPI.getHabits();
-        const completedHabits = habits.filter(habit => 
-          completedHabitIds.includes(habit.id)
+        // 使用聚合API获取已完成习惯及其统计数据
+        const response = await habitAPI.getHabitsWithStats({
+          includeArchived: false
+        });
+        
+        // 筛选出已完成的习惯
+        const completedHabits = response.habits.filter((habit) =>
+          completedHabitIds.includes(habit.id) || completedHabitIds.includes(habit._id || '')
         );
-        
-        // 为每个已完成习惯添加统计数据
-        const habitsWithStats = await Promise.all(completedHabits.map(async habit => {
-          try {
-            const habitId = habit._id || habit.id;
-            if (!habitId) return habit;
-            
-            const stats = await habitAPI.getHabitStats(habitId);
-            return {
-              ...habit,
-              stats
-            };
-          } catch (error) {
-            console.error(`获取习惯${habit.name}统计数据失败:`, error);
-            return {
-              ...habit,
-              stats: { currentStreak: 0, completedDays: 0, totalDays: 0 }
-            };
-          }
-        }));
-        
+
         this.setData({
-          completedHabits: habitsWithStats
+          completedHabits,
         });
       } else {
         this.setData({
-          completedHabits: []
+          completedHabits: [],
         });
       }
     } catch (error) {
       console.error('加载已完成习惯失败:', error);
       this.setData({
-        completedHabits: []
+        completedHabits: [],
       });
     }
   },
@@ -341,35 +355,35 @@ Page<IPageData, IPageMethods>({
     const dayOfWeek = today.getDay(); // 0是周日，1是周一
     const weekStart = new Date(today);
     weekStart.setDate(today.getDate() - (dayOfWeek === 0 ? 6 : dayOfWeek - 1)); // 调整到本周一
-    
+
     const weekDays = [];
     const weekdayNames = ['一', '二', '三', '四', '五', '六', '日'];
-    
+
     for (let i = 0; i < 7; i++) {
       const date = new Date(weekStart);
       date.setDate(weekStart.getDate() + i);
-      
+
       const isToday = date.toDateString() === today.toDateString();
       const isPast = date < today;
-      
+
       weekDays.push({
         day: date.getDate(),
         weekday: weekdayNames[i],
         isToday,
         isCompleted: isPast && !isToday, // 模拟数据：过去的日期都已完成
-        isDisabled: date > today
+        isDisabled: date > today,
       });
     }
-    
+
     this.setData({
-      weekDays
+      weekDays,
     });
   },
 
   // 切换打卡表单显示
   toggleForm() {
     this.setData({
-      showForm: !this.data.showForm
+      showForm: !this.data.showForm,
     });
   },
 
@@ -386,9 +400,8 @@ Page<IPageData, IPageMethods>({
     }, 1000);
 
     this.setData({
-      'timer.active': true,
       'timer.startTime': now - this.data.timer.elapsedTime,
-      'timer.active': intervalId
+      'timer.active': intervalId,
     });
   },
 
@@ -399,18 +412,17 @@ Page<IPageData, IPageMethods>({
     }
 
     this.setData({
-      'timer.active': false,
-      'timer.active': null
+      'timer.active': null,
     });
   },
 
   // 重置计时器
   resetTimer() {
     this.stopTimer();
-    
+
     this.setData({
       'timer.elapsedTime': 0,
-      'timer.displayTime': '00:00:00'
+      'timer.displayTime': '00:00:00',
     });
   },
 
@@ -418,41 +430,48 @@ Page<IPageData, IPageMethods>({
   updateTimerDisplay() {
     const now = Date.now();
     const elapsed = now - this.data.timer.startTime;
-    
+
     // 格式化时间显示
     const totalSeconds = Math.floor(elapsed / 1000);
     const hours = Math.floor(totalSeconds / 3600);
     const minutes = Math.floor((totalSeconds % 3600) / 60);
     const seconds = totalSeconds % 60;
-    
-    const displayTime = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
-    
+
+    const displayTime = `${hours.toString().padStart(2, '0')}:${minutes
+      .toString()
+      .padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+
     this.setData({
       'timer.elapsedTime': elapsed,
       'timer.displayTime': displayTime,
-      'formData.duration': displayTime
+      'formData.duration': displayTime,
     });
   },
 
   // 输入内容
   inputContent(e: WechatMiniprogram.Input) {
     this.setData({
-      'formData.content': e.detail.value
+      'formData.content': e.detail.value,
     });
   },
 
   // 输入笔记
   inputNote(e: WechatMiniprogram.Input) {
     this.setData({
-      'formData.note': e.detail.value
+      'formData.note': e.detail.value,
     });
   },
 
   // 选择心情
   selectMood(e: WechatMiniprogram.TouchEvent) {
-    const mood = e.currentTarget.dataset.mood as 'great' | 'good' | 'neutral' | 'bad' | 'terrible';
+    const mood = e.currentTarget.dataset.mood as
+      | 'great'
+      | 'good'
+      | 'neutral'
+      | 'bad'
+      | 'terrible';
     this.setData({
-      'formData.mood': mood
+      'formData.mood': mood,
     });
   },
 
@@ -465,9 +484,9 @@ Page<IPageData, IPageMethods>({
       success: (res) => {
         const photos = [...this.data.formData.photos, ...res.tempFilePaths];
         this.setData({
-          'formData.photos': photos
+          'formData.photos': photos,
         });
-      }
+      },
     });
   },
 
@@ -477,14 +496,14 @@ Page<IPageData, IPageMethods>({
     const photos = this.data.formData.photos;
     photos.splice(index, 1);
     this.setData({
-      'formData.photos': photos
+      'formData.photos': photos,
     });
   },
 
   // 查看每周进度
   viewWeeklyProgress() {
     wx.navigateTo({
-      url: '/pages/analytics/analytics'
+      url: '/pages/analytics/analytics',
     });
   },
 
@@ -496,10 +515,10 @@ Page<IPageData, IPageMethods>({
     if (this.data.submitting) {
       return;
     }
-    
+
     // 设置提交状态
     this.setData({ submitting: true });
-    
+
     try {
       // 准备打卡数据
       const checkinData = {
@@ -510,9 +529,11 @@ Page<IPageData, IPageMethods>({
         note: this.data.formData.note,
         mood: this.data.formData.mood,
         content: this.data.formData.content,
-        duration: this.data.formData.duration ? this.parseTimeStringToSeconds(this.data.formData.duration) : 0
+        duration: this.data.formData.duration
+          ? this.parseTimeStringToSeconds(this.data.formData.duration)
+          : 0,
       };
-      
+
       // 如果有图片，先上传图片
       if (this.data.formData.photos && this.data.formData.photos.length > 0) {
         try {
@@ -523,7 +544,7 @@ Page<IPageData, IPageMethods>({
           wx.showToast({
             title: '上传图片失败，将只保存打卡记录',
             icon: 'none',
-            duration: 2000
+            duration: 2000,
           });
           // 即使图片上传失败，也继续创建打卡记录
           this.createCheckin(checkinData);
@@ -534,12 +555,12 @@ Page<IPageData, IPageMethods>({
       }
     } catch (error) {
       console.error('打卡准备失败:', error);
-      
+
       this.setData({ submitting: false });
-      
+
       wx.showToast({
         title: '打卡失败，请重试',
-        icon: 'none'
+        icon: 'none',
       });
     }
   },
@@ -551,15 +572,15 @@ Page<IPageData, IPageMethods>({
    */
   parseTimeStringToSeconds(timeString: string): number {
     if (!timeString) return 0;
-    
+
     const parts = timeString.split(':');
     if (parts.length !== 3) return 0;
-    
+
     const hours = parseInt(parts[0], 10);
     const minutes = parseInt(parts[1], 10);
     const seconds = parseInt(parts[2], 10);
-    
-    return (hours * 3600) + (minutes * 60) + seconds;
+
+    return hours * 3600 + minutes * 60 + seconds;
   },
 
   /**
@@ -571,7 +592,7 @@ Page<IPageData, IPageMethods>({
       2: 'bad',
       3: 'neutral',
       4: 'good',
-      5: 'great'
+      5: 'great',
     };
     return moodMap[mood] || 'neutral'; // 默认返回neutral
   },
@@ -590,17 +611,17 @@ Page<IPageData, IPageMethods>({
    * 上传照片
    */
   uploadPhotos(photos: string[], checkinData: any) {
-    const uploadPromises = photos.map(photo => {
+    const uploadPromises = photos.map((photo) => {
       return new Promise<string>((resolve, reject) => {
         // 获取token
         const token = wx.getStorageSync('token');
-        
+
         wx.uploadFile({
           url: getApp<IAppOption>().globalData.apiBaseUrl + '/api/media/upload',
           filePath: photo,
           name: 'file',
           header: {
-            'Authorization': `Bearer ${token}`
+            Authorization: `Bearer ${token}`,
           },
           success: (res) => {
             try {
@@ -617,27 +638,27 @@ Page<IPageData, IPageMethods>({
           fail: (error) => {
             console.error('上传图片失败:', error);
             reject(error);
-          }
+          },
         });
       });
     });
-    
+
     Promise.all(uploadPromises)
-      .then(photoUrls => {
+      .then((photoUrls) => {
         // 添加上传后的图片URL
         checkinData.photos = photoUrls;
-        
+
         // 创建打卡记录
         this.createCheckin(checkinData);
       })
-      .catch(error => {
+      .catch((error) => {
         console.error('上传图片失败:', error);
-        
+
         this.setData({ submitting: false });
-        
+
         wx.showToast({
           title: '上传图片失败',
-          icon: 'none'
+          icon: 'none',
         });
       });
   },
@@ -648,111 +669,76 @@ Page<IPageData, IPageMethods>({
   createCheckin(checkinData: any) {
     // 防止重复提交
     if (!this.data.submitting) {
-      console.log('createCheckin被调用，但submitting为false，可能是重复调用');
       return;
     }
-    
-    console.log('开始创建打卡记录:', checkinData);
-    
+
     // 处理图片字段，将photos改为media
-    const media = checkinData.photos || [];
-    
-    checkinAPI.createCheckin({
-      habit: this.data.habitId,
-      date: checkinData.date,
-      time: checkinData.time,
-      isCompleted: true,
-      value: 1,
-      duration: checkinData.duration,
-      note: checkinData.note,
-      mood: checkinData.mood || undefined,
-      difficulty: checkinData.difficulty || undefined,
-      media: media, // 使用media字段而不是photos
-      isPublic: false
-    })
-      .then(result => {
-        console.log('打卡成功:', result);
-        
-        // 构建成功信息
-        let streak = 0;
-        
-        // 获取当前习惯的统计数据
-        habitAPI.getHabitStats(this.data.habitId)
-          .then(stats => {
-            streak = stats.currentStreak || 0;
-            
+    const media = checkinData.photos?.map((url: string) => ({
+      type: 'image' as const,
+      url
+    })) || [];
+
+    checkinAPI
+      .createCheckinWithDetails({
+        habit: this.data.habitId,
+        date: checkinData.date,
+        time: checkinData.time,
+        isCompleted: true,
+        duration: checkinData.duration,
+        note: checkinData.note,
+        mood: checkinData.mood || undefined,
+        difficulty: checkinData.difficulty || undefined,
+        media,
+        isPublic: false,
+      })
+      .then((result) => {
+        // 从聚合API结果中获取统计数据
+        const { stats, habit } = result;
+        const streak = stats.currentStreak || 0;
+
             // 显示成功弹窗
-            this.setData({ 
+            this.setData({
               submitting: false,
               showSuccessPopup: true,
               successMessage: {
                 title: '打卡成功',
-                subtitle: streak > 1 ? `已连续坚持${streak}天` : '开始养成好习惯',
+                subtitle:
+                  streak > 1 ? `已连续坚持${streak}天` : '开始养成好习惯',
                 streak: streak,
-                points: 5
-              }
-            });
-          })
-          .catch(error => {
-            console.error('获取习惯统计数据失败:', error);
-            
-            // 使用默认值
-            this.setData({ 
-              submitting: false,
-              showSuccessPopup: true,
-              successMessage: {
-                title: '打卡成功',
-                subtitle: '坚持的力量不可小觑',
-                streak: 1,
-                points: 5
-              }
-            });
-          })
-          .finally(() => {
-            // 通知首页刷新数据
-            const pages = getCurrentPages();
-            const indexPage = pages.find(page => page.route === 'pages/index/index');
-            if (indexPage && typeof indexPage.loadData === 'function') {
-              indexPage.loadData();
-            }
-            
-            // 通知习惯详情页刷新数据
-            const detailPage = pages.find(page => page.route === 'pages/habits/detail/detail');
-            if (detailPage) {
-              if (typeof detailPage.loadCheckins === 'function') {
-                detailPage.loadCheckins();
-              }
-              if (typeof detailPage.loadStats === 'function') {
-                detailPage.loadStats();
-              }
-            }
-            
+                points: 5,
+              },
+          // 更新习惯数据
+          habit: {
+            ...habit,
+            stats
+          }
+        });
+
             // 清空本地存储
             wx.removeStorage({
               key: `checkin_draft_${this.data.habitId}`,
-            });
           });
       })
-      .catch(error => {
+      .catch((error) => {
         console.error('打卡失败:', error);
-        
+
         this.setData({ submitting: false });
-        
+
         // 根据错误类型显示不同提示
         let errorMsg = '打卡失败，请稍后再试';
-        
+
         if (error.message && error.message.includes('网络')) {
           errorMsg = '网络连接失败，请检查网络后重试';
         } else if (error.message && error.message.includes('习惯ID')) {
           errorMsg = '习惯信息有误，请返回重试';
         }
-        
+
         wx.showToast({
           title: errorMsg,
           icon: 'none',
-          duration: 2000
+          duration: 2000,
         });
-        
+
         wx.hideLoading();
       });
   },
@@ -762,10 +748,10 @@ Page<IPageData, IPageMethods>({
    */
   closeSuccessPopup() {
     this.setData({ showSuccessPopup: false });
-    
+
     // 返回上一页
     wx.navigateBack({
-      delta: 1
+      delta: 1,
     });
   },
 
@@ -777,10 +763,10 @@ Page<IPageData, IPageMethods>({
   shareCheckin() {
     // 关闭弹窗
     this.setData({ showSuccessPopup: false });
-    
+
     // 返回上一页
     wx.navigateBack({
-      delta: 1
+      delta: 1,
     });
   },
 
@@ -789,9 +775,11 @@ Page<IPageData, IPageMethods>({
    */
   onShareAppMessage() {
     return {
-      title: `我完成了「${this.data.habitName}」的打卡，已坚持${this.data.habit?.stats?.currentStreak || 0}天`,
+      title: `我完成了「${this.data.habitName}」的打卡，已坚持${
+        this.data.habit?.stats?.currentStreak || 0
+      }天`,
       path: '/pages/index/index',
-      imageUrl: '/assets/images/share-checkin.png'
+      imageUrl: '/assets/images/share-checkin.png',
     };
   },
 
@@ -801,43 +789,25 @@ Page<IPageData, IPageMethods>({
   async loadTodayHabits() {
     try {
       const today = getCurrentDate();
-      const habits = await habitAPI.getHabits();
       
-      // 过滤出今日需要执行的习惯，并排除当前正在打卡的习惯
-      const todayHabits = habits.filter(habit => {
-        const habitId = habit._id || habit.id;
-        return !habit.isArchived && 
-               shouldDoHabitOnDate(habit, today) && 
-               habitId !== this.data.habitId; // 排除当前正在打卡的习惯
+      // 使用聚合API获取习惯及其统计数据
+      const response = await habitAPI.getHabitsWithStats({
+        date: today,
+        excludeHabitId: this.data.habitId
       });
-      
-      // 为每个习惯添加统计数据
-      const habitsWithStats = await Promise.all(todayHabits.map(async habit => {
-        try {
-          const habitId = habit._id || habit.id;
-          if (!habitId) return habit;
-          
-          const stats = await habitAPI.getHabitStats(habitId);
-          return {
-            ...habit,
-            stats
-          };
-        } catch (error) {
-          console.error(`获取习惯${habit.name}统计数据失败:`, error);
-          return {
-            ...habit,
-            stats: { currentStreak: 0 }
-          };
-        }
-      }));
-      
+
+      // 过滤出今日需要执行的习惯，并排除当前正在打卡的习惯
+      const todayHabits = response.habits.filter((habit) => {
+        return !habit.isArchived && shouldDoHabitOnDate(habit, today);
+      });
+
       this.setData({
-        todayHabits: habitsWithStats
+        todayHabits
       });
     } catch (error) {
       console.error('加载今日习惯失败:', error);
       this.setData({
-        todayHabits: []
+        todayHabits: [],
       });
     }
   },
@@ -848,14 +818,16 @@ Page<IPageData, IPageMethods>({
   navigateToCheckin(e) {
     const habitId = e.currentTarget.dataset.id;
     if (!habitId) return;
-    
+
     // 获取习惯名称
-    const habit = this.data.todayHabits.find(h => (h._id || h.id) === habitId);
+    const habit = this.data.todayHabits.find(
+      (h) => (h._id || h.id) === habitId
+    );
     const habitName = habit ? encodeURIComponent(habit.name) : '';
-    
+
     // 导航到该习惯的打卡页面
     wx.redirectTo({
-      url: `/pages/checkin/checkin?habitId=${habitId}&habitName=${habitName}`
+      url: `/pages/checkin/checkin?habitId=${habitId}&habitName=${habitName}`,
     });
   },
 
@@ -867,12 +839,12 @@ Page<IPageData, IPageMethods>({
     const hours = this.data.durationArray.values[0][selectedIndex[0]];
     const minutes = this.data.durationArray.values[1][selectedIndex[1]];
     const seconds = this.data.durationArray.values[2][selectedIndex[2]];
-    
+
     const durationString = `${hours}:${minutes}:${seconds}`;
-    
+
     this.setData({
       'formData.duration': durationString,
-      'durationArray.selectedIndex': selectedIndex
+      'durationArray.selectedIndex': selectedIndex,
     });
-  }
+  },
 });

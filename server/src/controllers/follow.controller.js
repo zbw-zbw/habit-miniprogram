@@ -40,7 +40,7 @@ exports.getFollowing = async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('获取关注列表错误:', error);
+    
     res.status(500).json({
       success: false,
       message: '服务器错误，获取关注列表失败'
@@ -83,7 +83,7 @@ exports.getFollowers = async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('获取粉丝列表错误:', error);
+    
     res.status(500).json({
       success: false,
       message: '服务器错误，获取粉丝列表失败'
@@ -154,7 +154,7 @@ exports.followUser = async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('关注用户错误:', error);
+    
     res.status(500).json({
       success: false,
       message: '服务器错误，关注失败'
@@ -198,7 +198,7 @@ exports.unfollowUser = async (req, res) => {
       message: '取消关注成功'
     });
   } catch (error) {
-    console.error('取消关注用户错误:', error);
+    
     
     // 处理特定错误
     if (error.message === '未关注此用户') {
@@ -263,7 +263,7 @@ exports.getUserFollowing = async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('获取用户关注列表错误:', error);
+    
     res.status(500).json({
       success: false,
       message: '服务器错误，获取关注列表失败'
@@ -319,7 +319,7 @@ exports.getUserFollowers = async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('获取用户粉丝列表错误:', error);
+    
     res.status(500).json({
       success: false,
       message: '服务器错误，获取粉丝列表失败'
@@ -352,7 +352,7 @@ exports.getFriends = async (req, res) => {
       data: friends
     });
   } catch (error) {
-    console.error('获取好友列表错误:', error);
+    
     res.status(500).json({
       success: false,
       message: '服务器错误，获取好友列表失败'
@@ -441,7 +441,7 @@ exports.toggleFollow = async (req, res) => {
     
     res.status(200).json(result);
   } catch (error) {
-    console.error('关注/取消关注用户错误:', error);
+    
     res.status(500).json({
       success: false,
       message: '服务器错误，操作失败'
@@ -488,7 +488,7 @@ exports.getRecommendUsers = async (req, res) => {
       data: processedUsers
     });
   } catch (error) {
-    console.error('获取推荐用户错误:', error);
+    
     res.status(500).json({
       success: false,
       message: '服务器错误，获取推荐用户失败'
@@ -542,10 +542,76 @@ exports.searchUsers = async (req, res) => {
       data: processedUsers
     });
   } catch (error) {
-    console.error('搜索用户错误:', error);
+    
     res.status(500).json({
       success: false,
       message: '服务器错误，搜索用户失败'
+    });
+  }
+}; 
+
+/**
+ * 添加好友（本质上是关注用户）
+ * @route POST /api/friends/:userId/add
+ */
+exports.addFriend = async (req, res) => {
+  try {
+    const followerId = req.user._id;
+    const followingId = req.params.userId;
+    
+    // 检查是否添加自己
+    if (followerId.toString() === followingId) {
+      return res.status(400).json({
+        success: false,
+        message: '不能添加自己为好友'
+      });
+    }
+    
+    // 检查被添加用户是否存在
+    const followingUser = await User.findById(followingId);
+    
+    if (!followingUser) {
+      return res.status(404).json({
+        success: false,
+        message: '用户不存在'
+      });
+    }
+    
+    // 检查是否已经是好友
+    const existingFollow = await Follow.findOne({
+      follower: followerId,
+      following: followingId
+    });
+    
+    if (existingFollow) {
+      return res.status(200).json({
+        success: true,
+        message: '已经是好友',
+        isFollowing: true
+      });
+    }
+    
+    // 使用事务进行添加好友操作
+    const session = await mongoose.startSession();
+    let follow;
+    
+    await session.withTransaction(async () => {
+      // 创建关注关系
+      follow = await Follow.followUser(followerId, followingId);
+    });
+    
+    session.endSession();
+    
+    res.status(200).json({
+      success: true,
+      message: '添加好友成功',
+      isFollowing: true
+    });
+  } catch (error) {
+    console.error('添加好友失败:', error);
+    res.status(500).json({
+      success: false,
+      message: '服务器错误，添加好友失败'
     });
   }
 }; 

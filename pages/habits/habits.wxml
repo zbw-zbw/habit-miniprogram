@@ -9,6 +9,13 @@
 
   <!-- 添加已归档习惯的开关 -->
   <view class="filter-bar">
+    <view class="filter-item {{sortType !== 'default' ? 'active' : ''}}" bindtap="openSortModal">
+      <text class="iconfont icon-sort"></text>
+      <text>{{sortType === 'default' ? '排序' : 
+             sortType === 'name' ? (sortOrder === 'asc' ? '名称 A-Z' : '名称 Z-A') : 
+             sortType === 'createdAt' ? (sortOrder === 'desc' ? '最新创建' : '最早创建') :
+             sortType === 'completionRate' ? (sortOrder === 'desc' ? '完成率高→低' : '完成率低→高') : '排序'}}</text>
+    </view>
     <view class="filter-item">
       <text>查看已归档习惯</text>
       <switch checked="{{showArchived}}" bindchange="toggleArchived" color="#4F7CFF" />

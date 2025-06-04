@@ -9,9 +9,6 @@
     <!-- 挑战封面 -->
     <view class="challenge-cover">
       <image class="cover-image" src="{{challenge.coverImage || '/assets/images/challenge.png'}}" mode="aspectFill"></image>
-      <view class="back-btn" bindtap="goBack">
-        <van-icon name="arrow-left" size="20px" color="#fff" />
-      </view>
       <view class="challenge-status {{statusClass}}">{{statusText}}</view>
     </view>
 
@@ -47,24 +44,6 @@
         <image class="creator-avatar" src="{{challenge.creator.avatar || '/assets/images/default-avatar.png'}}" mode="aspectFill"></image>
         <text class="creator-name">{{challenge.creator.nickname || challenge.creator.username || '匿名用户'}}</text>
         <text class="creator-label">发起者</text>
-      </view>
-      
-      <!-- 参与按钮 -->
-      <view class="action-btn" wx:if="{{challenge.status !== 'completed' && challenge.status !== 'cancelled'}}">
-        <van-button 
-          wx:if="{{isCreator}}"
-          type="danger" 
-          block 
-          custom-class="join-btn" 
-          bindtap="dismissChallenge"
-        >解散挑战</van-button>
-        <van-button 
-          wx:else
-          type="{{isJoined ? 'default' : 'primary'}}" 
-          block 
-          custom-class="join-btn" 
-          bindtap="toggleJoinChallenge"
-        >{{isJoined ? '退出挑战' : '参加挑战'}}</van-button>
       </view>
       
       <!-- 进度信息 -->
@@ -143,11 +122,11 @@
         >查看排行榜</van-button>
       </view>
       
-      <!-- 分享按钮 -->
-      <view class="share-section">
+      <!-- 操作按钮区域 -->
+      <view class="action-buttons">
+        <!-- 分享按钮 -->
         <van-button 
           type="default" 
-          block 
           custom-class="share-btn" 
           bindtap="shareChallenge"
           open-type="share"
@@ -155,6 +134,20 @@
           <van-icon name="share-o" />
           <text>分享挑战</text>
         </van-button>
+        
+        <!-- 参与/解散按钮 -->
+        <van-button 
+          wx:if="{{challenge.status !== 'completed' && challenge.status !== 'cancelled' && isCreator}}"
+          type="danger" 
+          custom-class="dismiss-btn" 
+          bindtap="dismissChallenge"
+        >解散挑战</van-button>
+        <van-button 
+          wx:elif="{{challenge.status !== 'completed' && challenge.status !== 'cancelled'}}"
+          type="{{isJoined ? 'default' : 'primary'}}" 
+          custom-class="join-btn" 
+          bindtap="toggleJoinChallenge"
+        >{{isJoined ? '退出挑战' : '参加挑战'}}</van-button>
       </view>
     </view>
   </view>

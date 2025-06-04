@@ -77,7 +77,6 @@ exports.messageAPI = {
                 return result.data;
             }
             // 如果无法获取URL，返回原始临时路径
-            console.warn('无法从上传结果中获取图片URL，使用临时路径', result);
             return filePath;
         });
     },

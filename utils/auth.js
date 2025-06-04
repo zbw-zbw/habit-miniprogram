@@ -28,7 +28,6 @@ function login(callback) {
             }
         },
         fail: (err) => {
-            console.error('微信登录失败:', err);
             wx.hideLoading();
             wx.showToast({
                 title: '登录失败',
@@ -86,7 +85,6 @@ function getUserProfile(code, callback) {
                             wx.setStorageSync('userInfo', app.globalData.userInfo);
                         }
                         catch (e) {
-                            console.error('保存登录状态失败', e);
                         }
                         // 通知登录状态变化
                         app.notifyLoginStateChanged();
@@ -94,12 +92,13 @@ function getUserProfile(code, callback) {
                             title: '登录成功',
                             icon: 'success',
                         });
+                        // 刷新当前页面数据
+                        app.refreshCurrentPageData && app.refreshCurrentPageData();
                         if (callback) {
                             callback(true);
                         }
                     }
                     else {
-                        console.error('登录失败:', res.statusCode, res.data);
                         wx.showToast({
                             title: '登录失败',
                             icon: 'error',
@@ -110,7 +109,6 @@ function getUserProfile(code, callback) {
                     }
                 },
                 fail: (err) => {
-                    console.error('登录请求失败:', err);
                     wx.showToast({
                         title: '登录失败',
                         icon: 'error',

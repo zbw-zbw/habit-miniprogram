@@ -3,7 +3,7 @@
   display: flex;
   flex-direction: column;
   height: 100vh;
-  background-color: #f5f7fa;
+  background-color: #ededed;
   position: relative;
 }
 
@@ -50,49 +50,81 @@
   padding: 0 20rpx;
 }
 
+/* 消息项目 */
 .message-item {
-  display: flex;
   margin-bottom: 30rpx;
-  align-items: flex-start;
+  width: 100%;
+  clear: both;
 }
 
-.message-item.self {
-  flex-direction: row-reverse;
+/* 消息包装器 */
+.message-wrapper {
+  position: relative;
+  min-height: 80rpx;
 }
 
+/* 头像容器 */
 .avatar-container {
-  margin: 0 20rpx;
+  position: absolute;
+  top: 0;
+  width: 80rpx;
+  height: 80rpx;
+}
+
+/* 对方头像 */
+.other-avatar {
+  left: 0;
+}
+
+/* 自己头像 */
+.self-avatar {
+  right: 0;
 }
 
 .avatar {
   width: 80rpx;
   height: 80rpx;
-  border-radius: 50%;
+  border-radius: 8rpx;
   background-color: #eee;
 }
 
+/* 消息内容 */
 .message-content {
-  max-width: 60%;
   position: relative;
+  max-width: 60%;
+  display: inline-block;
+}
+
+/* 自己的消息内容 */
+.self-content {
+  float: right;
+  margin-right: 100rpx;  /* 为头像留出空间 */
+}
+
+/* 对方的消息内容 */
+.other-content {
+  float: left;
+  margin-left: 100rpx;  /* 为头像留出空间 */
 }
 
 .text-message {
-  padding: 20rpx;
+  padding: 18rpx 24rpx;
   border-radius: 10rpx;
   word-break: break-all;
-  font-size: 28rpx;
-  line-height: 1.5;
+  font-size: 32rpx;
+  line-height: 1.4;
+  display: inline-block;
 }
 
 .message-item.other .text-message {
   background-color: #fff;
-  color: #303133;
+  color: #000;
   border-top-left-radius: 0;
 }
 
 .message-item.self .text-message {
-  background-color: #4F7CFF;
-  color: #fff;
+  background-color: #95ec69;
+  color: #000;
   border-top-right-radius: 0;
 }
 
@@ -148,15 +180,10 @@
 
 .message-status {
   position: absolute;
-  right: -40rpx;
+  left: -30rpx;
   bottom: 0;
   font-size: 24rpx;
   color: #909399;
-}
-
-.message-item.self .message-status {
-  right: auto;
-  left: -40rpx;
 }
 
 .input-area {
@@ -164,39 +191,43 @@
   bottom: 0;
   left: 0;
   right: 0;
-  background-color: #fff;
-  border-top: 1rpx solid #eaeaea;
+  background-color: #f6f6f6;
+  border-top: 1rpx solid #ddd;
   z-index: 100;
 }
 
 .input-box {
   display: flex;
   align-items: center;
-  padding: 20rpx;
+  padding: 16rpx;
 }
 
 .message-input {
   flex: 1;
-  height: 80rpx;
-  background-color: #f5f7fa;
-  border-radius: 40rpx;
-  padding: 0 30rpx;
-  font-size: 28rpx;
+  height: 72rpx;
+  background-color: #fff;
+  border-radius: 8rpx;
+  padding: 0 20rpx;
+  font-size: 32rpx;
+  margin: 0 16rpx;
 }
 
 .action-btn, .send-btn {
-  width: 80rpx;
-  height: 80rpx;
+  width: 72rpx;
+  height: 72rpx;
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-left: 20rpx;
-  border-radius: 50%;
+  border-radius: 8rpx;
 }
 
 .action-btn {
-  background-color: #f5f7fa;
-  color: #606266;
+  background-color: transparent;
+  color: #7f7f7f;
+}
+
+.emoji-btn {
+  margin-right: -8rpx;
 }
 
 .send-btn {
@@ -205,13 +236,14 @@
 }
 
 .send-btn.active {
-  background-color: #4F7CFF;
+  background-color: #07c160;
 }
 
 .action-panel {
   display: flex;
   padding: 30rpx;
-  background-color: #f5f7fa;
+  background-color: #f6f6f6;
+  border-top: 1rpx solid #ddd;
 }
 
 .action-item {
@@ -231,10 +263,38 @@
   justify-content: center;
   margin-bottom: 10rpx;
   font-size: 50rpx;
-  color: #4F7CFF;
+  color: #07c160;
 }
 
 .action-text {
   font-size: 24rpx;
   color: #606266;
+}
+
+/* 表情面板样式 */
+.emoji-panel {
+  background-color: #fff;
+  padding: 20rpx 10rpx;
+  border-top: 1rpx solid #ddd;
+  max-height: 400rpx;
+}
+
+.emoji-list {
+  display: flex;
+  flex-wrap: wrap;
+}
+
+.emoji-item {
+  width: calc(100% / 8);
+  height: 80rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 40rpx;
+  transition: all 0.2s;
+}
+
+.emoji-item:active {
+  background-color: #f0f0f0;
+  border-radius: 8rpx;
 } 

@@ -105,7 +105,7 @@ page {
 }
 
 /* 暗黑模式变量 */
-page.dark {
+page[data-theme="dark"], page.dark {
   --primary-color: #5e72e4;
   --primary-light: #7b88e9;
   --primary-dark: #4a5bd0;
@@ -124,6 +124,38 @@ page.dark {
   --shadow-medium: 0 4rpx 16rpx rgba(0, 0, 0, 0.3);
   --shadow-dark: 0 8rpx 24rpx rgba(0, 0, 0, 0.4);
   --shadow-button: 0 4rpx 12rpx rgba(94, 114, 228, 0.35);
+}
+
+/* 深色模式下的特定样式 */
+.dark-mode {
+  background-color: var(--background-color);
+  color: var(--text-color);
+}
+
+.dark-mode .card {
+  background-color: var(--card-background);
+  border-color: var(--border-color);
+}
+
+.dark-mode .input {
+  background-color: var(--card-background);
+  border-color: var(--border-color);
+  color: var(--text-color);
+}
+
+.dark-mode .header {
+  background-color: var(--card-background);
+  border-color: var(--border-color);
+}
+
+.dark-mode .tab-bar {
+  background-color: var(--card-background);
+  border-color: var(--border-color);
+}
+
+.dark-mode .list-item {
+  background-color: var(--card-background);
+  border-color: var(--border-color);
 }
 
 /* 布局类 */

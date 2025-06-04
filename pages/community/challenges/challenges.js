@@ -14,24 +14,36 @@ Page({
         loading: true,
         hasMore: true,
         activeTab: 'all',
+        tabIndex: 0,
         challenges: [],
         page: 1,
         limit: 10,
         searchKeyword: '',
-        hasLogin: false
+        hasLogin: false,
     },
     /**
      * 生命周期函数--监听页面加载
      */
     onLoad(options) {
         // 如果有标签参数，设置初始标签
-        if (options.tab && ['all', 'joined', 'created', 'popular', 'new'].includes(options.tab)) {
-            this.setData({ activeTab: options.tab });
+        if (options.tab &&
+            ['all', 'joined', 'created', 'popular', 'new'].includes(options.tab)) {
+            const tabMapping = {
+                'all': 0,
+                'joined': 1,
+                'created': 2,
+                'popular': 3,
+                'new': 4
+            };
+            this.setData({
+                activeTab: options.tab,
+                tabIndex: tabMapping[options.tab]
+            });
         }
         // 如果有标签参数，直接搜索该标签
         if (options.tag) {
             this.setData({
-                searchKeyword: options.tag
+                searchKeyword: options.tag,
             });
         }
         // 加载挑战数据
@@ -47,12 +59,12 @@ Page({
         // 设置加载状态
         this.setData({
             loading: this.data.challenges.length === 0,
-            loadingMore: this.data.challenges.length > 0
+            loadingMore: this.data.challenges.length > 0,
         });
         // 构建查询参数
         const params = {
             page: currentPage,
-            limit
+            limit,
         };
         // 根据activeTab设置不同的查询参数
         switch (activeTab) {
@@ -80,11 +92,10 @@ Page({
         if (searchKeyword) {
             params.keyword = searchKeyword;
         }
-        console.log('请求挑战列表参数:', params);
         // 调用API获取挑战列表
-        api_1.communityAPI.getChallenges(params)
-            .then(result => {
-            console.log('挑战列表:', result);
+        api_1.communityAPI
+            .getChallenges(params)
+            .then((result) => {
             // 获取挑战列表
             const challenges = result.challenges || [];
             // 处理挑战数据
@@ -95,7 +106,8 @@ Page({
                 const currentUserId = (_b = (_a = app === null || app === void 0 ? void 0 : app.globalData) === null || _a === void 0 ? void 0 : _a.userInfo) === null || _b === void 0 ? void 0 : _b.id;
                 // 检查是否是创建者
                 const isCreator = challenge.creator &&
-                    (challenge.creator._id === currentUserId || challenge.creator.id === currentUserId);
+                    (challenge.creator._id === currentUserId ||
+                        challenge.creator.id === currentUserId);
                 // 处理图片URL
                 if (challenge.image) {
                     challenge.image = (0, image_1.getFullImageUrl)(challenge.image);
@@ -110,36 +122,41 @@ Page({
                     id: challenge.id || challenge._id,
                     name: challenge.name || challenge.title,
                     description: challenge.description,
-                    image: challenge.image || challenge.coverImage || '/assets/images/challenge.png',
-                    coverImage: challenge.coverImage || challenge.image || '/assets/images/challenge.png',
-                    participantsCount: adjustedParticipantsCount,
+                    image: challenge.image ||
+                        challenge.coverImage ||
+                        '/assets/images/challenge.png',
+                    coverImage: challenge.coverImage ||
+                        challenge.image ||
+                        '/assets/images/challenge.png',
+                    participantsCount: challenge.participantCount,
                     participants: adjustedParticipantsCount,
                     isJoined: challenge.isJoined || challenge.isParticipating || false,
                     isCreator: isCreator,
                     startDate: challenge.startDate,
                     endDate: challenge.endDate,
                     status: challenge.status || 'active',
-                    tags: challenge.tags || []
+                    tags: challenge.tags || [],
                 };
             });
             // 更新数据
             this.setData({
-                challenges: isRefresh ? processedChallenges : [...this.data.challenges, ...processedChallenges],
+                challenges: isRefresh
+                    ? processedChallenges
+                    : [...this.data.challenges, ...processedChallenges],
                 page: currentPage + 1,
                 hasMore: challenges.length === limit,
                 loading: false,
-                loadingMore: false
+                loadingMore: false,
             });
         })
-            .catch(error => {
-            console.error('获取挑战列表失败:', error);
+            .catch((error) => {
             this.setData({
                 loading: false,
-                loadingMore: false
+                loadingMore: false,
             });
             wx.showToast({
                 title: '获取挑战列表失败',
-                icon: 'none'
+                icon: 'none',
             });
         });
     },
@@ -149,14 +166,41 @@ Page({
     switchTab(e) {
         const tab = e.currentTarget.dataset.tab;
         if (tab !== this.data.activeTab) {
+            const tabMapping = {
+                'all': 0,
+                'joined': 1,
+                'created': 2,
+                'popular': 3,
+                'new': 4
+            };
             this.setData({
                 activeTab: tab,
+                tabIndex: tabMapping[tab],
                 page: 1,
                 challenges: [],
-                hasMore: true
+                hasMore: true,
             });
             // 重新加载数据
-            this.loadChallenges();
+            this.loadChallenges(true);
+        }
+    },
+    /**
+     * 处理tab-bar组件的标签切换事件
+     */
+    onTabChange(e) {
+        const index = e.detail.index;
+        const tabMapping = ['all', 'joined', 'created', 'new'];
+        const tab = tabMapping[index];
+        if (tab !== this.data.activeTab) {
+            this.setData({
+                activeTab: tab,
+                tabIndex: index,
+                page: 1,
+                challenges: [],
+                hasMore: true,
+            });
+            // 重新加载数据
+            this.loadChallenges(true);
         }
     },
     /**
@@ -165,7 +209,7 @@ Page({
     viewChallengeDetail(e) {
         const id = e.currentTarget.dataset.id;
         wx.navigateTo({
-            url: `/pages/community/challenges/detail/detail?id=${id}`
+            url: `/pages/community/challenges/detail/detail?id=${id}`,
         });
     },
     /**
@@ -190,38 +234,38 @@ Page({
                 success: (res) => {
                     if (res.confirm) {
                         wx.showLoading({
-                            title: '处理中...'
+                            title: '处理中...',
                         });
                         // 调用API解散挑战
-                        api_1.communityAPI.dismissChallenge(id)
+                        api_1.communityAPI
+                            .dismissChallenge(id)
                             .then(() => {
                             // 从列表中移除该挑战
                             challenges.splice(index, 1);
                             this.setData({ challenges });
                             wx.showToast({
                                 title: '挑战已解散',
-                                icon: 'success'
+                                icon: 'success',
                             });
                         })
-                            .catch(error => {
-                            console.error('解散挑战失败:', error);
+                            .catch((error) => {
                             wx.showToast({
                                 title: '解散挑战失败',
-                                icon: 'none'
+                                icon: 'none',
                             });
                         })
                             .finally(() => {
                             wx.hideLoading();
                         });
                     }
-                }
+                },
             });
             return;
         }
         const isJoined = challenge.isJoined || challenge.isParticipating;
         // 显示加载中
         wx.showLoading({
-            title: isJoined ? '退出中...' : '参加中...'
+            title: isJoined ? '退出中...' : '参加中...',
         });
         // 调用API
         const apiCall = isJoined
@@ -245,15 +289,14 @@ Page({
             // 显示成功提示
             wx.showToast({
                 title: isJoined ? '已退出挑战' : '已参加挑战',
-                icon: 'success'
+                icon: 'success',
             });
         })
-            .catch(error => {
-            console.error('操作失败:', error);
+            .catch((error) => {
             // 显示错误提示
             wx.showToast({
                 title: '操作失败',
-                icon: 'none'
+                icon: 'none',
             });
         })
             .finally(() => {
@@ -265,7 +308,7 @@ Page({
      */
     inputSearch(e) {
         this.setData({
-            searchKeyword: e.detail.value
+            searchKeyword: e.detail.value,
         });
     },
     /**
@@ -280,14 +323,13 @@ Page({
      */
     createChallenge() {
         wx.navigateTo({
-            url: '/pages/community/challenges/create/create'
+            url: '/pages/community/challenges/create/create',
         });
     },
     /**
      * 刷新数据
      */
     refreshData() {
-        console.log('刷新挑战列表数据');
         this.loadChallenges(true);
     },
     /**
@@ -298,7 +340,7 @@ Page({
         // 防止事件冒泡
         // 在微信小程序中，TouchEvent没有stopPropagation方法，使用catchtap替代
         wx.navigateTo({
-            url: `/pages/community/tag/tag?name=${tag}`
+            url: `/pages/community/tag/tag?name=${tag}`,
         });
     },
     /**
@@ -322,7 +364,7 @@ Page({
     onShareAppMessage() {
         return {
             title: '一起来参加习惯挑战，培养好习惯！',
-            path: '/pages/community/challenges/challenges'
+            path: '/pages/community/challenges/challenges',
         };
-    }
+    },
 });

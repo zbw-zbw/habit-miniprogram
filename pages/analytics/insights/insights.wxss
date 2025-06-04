@@ -1,3 +1,6 @@
+/* 引入图标字体 */
+@import '/styles/iconfont.wxss';
+
 /* pages/analytics/insights/insights.wxss */
 
 /* 数据分析-洞察页面样式 */

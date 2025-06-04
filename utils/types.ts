@@ -19,6 +19,11 @@ export interface IHabit {
     dates?: number[];
     interval?: number;
   };
+  goal?: {
+    type: string;
+    value: number;
+    unit: string;
+  };
   targetValue?: number;
   unit?: string;
   duration?: {
@@ -37,6 +42,18 @@ export interface IHabit {
   completionRate?: number;
   streak?: number;
   stats?: any;
+  reminder?: {
+    enabled: boolean;
+    time: string;
+    days?: number[];
+  };
+}
+
+/**
+ * 扩展的习惯类型，包含统计数据
+ */
+export interface IHabitWithStats extends IHabit {
+  stats: IHabitStats;
 }
 
 /**
@@ -54,6 +71,15 @@ export interface ICheckin {
   note?: string;
   mood?: 'great' | 'good' | 'neutral' | 'bad' | 'terrible';
   images?: string[];
+  media?: Array<{
+    type: 'image' | 'video' | 'audio';
+    url: string;
+    thumbnail?: string;
+    duration?: number;
+  }>;
+  duration?: number;
+  difficulty?: number;
+  isPublic?: boolean;
   location?: {
     latitude: number;
     longitude: number;

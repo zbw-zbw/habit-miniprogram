@@ -40,7 +40,7 @@
             </view>
           </view>
           <view class="post-more">
-            <text class="iconfont icon-more"></text>
+            <text class="iconfont icon-right"></text>
           </view>
         </view>
         

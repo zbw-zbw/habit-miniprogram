@@ -101,7 +101,7 @@ Page<IPageData, IPageMethods>({
         });
       })
       .catch(error => {
-        console.error('获取报告数据失败:', error);
+        
         
         // 如果API失败，回退到本地数据生成
         Promise.all([
@@ -113,7 +113,7 @@ Page<IPageData, IPageMethods>({
             this.setData({ loading: false });
           })
           .catch(err => {
-            console.error('加载本地数据失败:', err);
+            
             this.setData({ loading: false });
             
             wx.showToast({

@@ -1,3 +1,6 @@
+/* 引入图标字体 */
+@import "/styles/iconfont.wxss";
+
 /* 习惯分析助手组件样式 */
 
 /* 主容器 */
@@ -430,23 +433,3 @@
   outline: none;
 }
 
-/* 图标样式 */
-.icon {
-  font-family: "iconfont";
-}
-
-.icon-trophy:before { content: "\e6c9"; }
-.icon-fire:before { content: "\e6a0"; }
-.icon-thumbs-up:before { content: "\e6c8"; }
-.icon-info:before { content: "\e6a2"; }
-.icon-warning:before { content: "\e6cb"; }
-.icon-calendar:before { content: "\e695"; }
-.icon-pattern:before { content: "\e6a6"; }
-.icon-time:before { content: "\e6c7"; }
-.icon-chart:before { content: "\e696"; }
-.icon-target:before { content: "\e6c6"; }
-.icon-refresh:before { content: "\e6b5"; }
-.icon-bulb:before { content: "\e694"; }
-.icon-up:before { content: "\e6ca"; }
-.icon-down:before { content: "\e69f"; }
-.icon-clock:before { content: "\e698"; } 

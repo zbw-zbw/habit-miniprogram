@@ -23,7 +23,6 @@ class HabitChainService {
             }
         }
         catch (error) {
-            console.error('获取习惯链失败', error);
         }
         return [];
     }
@@ -43,7 +42,6 @@ class HabitChainService {
             }
         }
         catch (error) {
-            console.error('获取习惯链详情失败', error);
         }
         return null;
     }
@@ -65,7 +63,6 @@ class HabitChainService {
             }
         }
         catch (error) {
-            console.error('保存习惯链失败', error);
             return null;
         }
     }
@@ -85,7 +82,6 @@ class HabitChainService {
             return true;
         }
         catch (error) {
-            console.error('删除习惯链失败', error);
         }
         return false;
     }

@@ -73,7 +73,7 @@ exports.getPosts = async (req, res) => {
       },
     });
   } catch (error) {
-    console.error('获取动态列表错误:', error);
+    
     res.status(500).json({
       success: false,
       message: '服务器错误，获取动态列表失败',
@@ -180,7 +180,7 @@ exports.createPost = async (req, res) => {
       data: post,
     });
   } catch (error) {
-    console.error('创建动态错误:', error);
+    
     res.status(500).json({
       success: false,
       message: '服务器错误，创建动态失败',
@@ -210,7 +210,7 @@ exports.checkPostOwner = async (req, res, next) => {
 
     next();
   } catch (error) {
-    console.error('检查动态所有者错误:', error);
+    
     res.status(500).json({
       success: false,
       message: '服务器错误',
@@ -275,7 +275,7 @@ exports.getPost = async (req, res) => {
       data: post,
     });
   } catch (error) {
-    console.error('获取动态详情错误:', error);
+    
     res.status(500).json({
       success: false,
       message: '服务器错误，获取动态详情失败',
@@ -317,7 +317,7 @@ exports.updatePost = async (req, res) => {
       data: post,
     });
   } catch (error) {
-    console.error('更新动态错误:', error);
+    
     res.status(500).json({
       success: false,
       message: '服务器错误，更新动态失败',
@@ -368,7 +368,7 @@ exports.deletePost = async (req, res) => {
       message: '动态删除成功',
     });
   } catch (error) {
-    console.error('删除动态错误:', error);
+    
     res.status(500).json({
       success: false,
       message: '服务器错误，删除动态失败',
@@ -419,7 +419,7 @@ exports.likePost = async (req, res) => {
       },
     });
   } catch (error) {
-    console.error('点赞动态错误:', error);
+    
     res.status(500).json({
       success: false,
       message: '服务器错误，点赞失败',
@@ -470,7 +470,7 @@ exports.unlikePost = async (req, res) => {
       },
     });
   } catch (error) {
-    console.error('取消点赞动态错误:', error);
+    
     res.status(500).json({
       success: false,
       message: '服务器错误，取消点赞失败',

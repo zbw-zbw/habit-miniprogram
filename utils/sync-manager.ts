@@ -54,7 +54,7 @@ export class SyncManager {
                 const result = await communityAPI.uploadImage(photoPath);
                 return result.url;
               } catch (error) {
-                console.error('上传图片失败:', error);
+                
                 return null;
               }
             });
@@ -74,7 +74,7 @@ export class SyncManager {
           
           return true;
         } catch (error) {
-          console.error('同步打卡记录失败:', error);
+          
           return false;
         }
       });
@@ -92,7 +92,7 @@ export class SyncManager {
       // 返回是否还有待同步的记录
       return newPendingCheckins.length > 0;
     } catch (error) {
-      console.error('同步打卡记录失败:', error);
+      
       this.isSyncing = false;
       return true; // 仍有数据需要同步
     }

@@ -139,7 +139,7 @@ Component({
       
       // 确保日期有效
       if (isNaN(start.getTime()) || isNaN(end.getTime())) {
-        console.error('无效的日期格式');
+        
         return;
       }
       

@@ -171,6 +171,11 @@
     </van-tab>
   </van-tabs>
 
-  <!-- 浮动按钮 -->
-  <!-- 已移除浮动按钮 -->
+  <!-- 添加好友浮动按钮 -->
+  <fab-button 
+    icon="add" 
+    type="primary" 
+    position="bottom-right" 
+    bind:click="goToFindFriends"
+  />
 </view> 

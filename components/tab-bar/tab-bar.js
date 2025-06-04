@@ -16,7 +16,7 @@ Component({
 
   observers: {
     'tabs': function(tabs) {
-      console.log('tab-bar组件接收到tabs:', tabs);
+      // 可以在这里添加tabs变化时的处理逻辑
     }
   },
 

@@ -1,4 +1,8 @@
 {
-  "usingComponents": {},
-  "navigationBarTitleText": "消息通知"
+  "usingComponents": {
+    "tab-bar": "/components/tab-bar/tab-bar"
+  },
+  "navigationBarTitleText": "消息通知",
+  "enablePullDownRefresh": true,
+  "backgroundColor": "#F5F7FA"
 } 

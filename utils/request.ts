@@ -238,7 +238,7 @@ const handleUnauthorized = <T>(options: RequestOptions): Promise<T> => {
 
   // 检查API服务是否可用
   if (app && app.globalData && !app.globalData.apiAvailable) {
-    console.log('API服务不可用，使用本地数据模式处理未授权错误');
+    
 
     // 清除认证数据
     if (app && typeof app.clearAuthData === 'function') {
@@ -303,7 +303,7 @@ const handleUnauthorized = <T>(options: RequestOptions): Promise<T> => {
               wx.setStorageSync('refreshToken', res.data.refreshToken);
             }
           } catch (e) {
-            console.error('保存令牌失败:', e);
+            
           }
 
           // 重新发送所有等待的请求
@@ -346,7 +346,7 @@ const handleUnauthorized = <T>(options: RequestOptions): Promise<T> => {
           // 如果有用户信息，尝试使用本地模式登录
           if (app.globalData.userInfo && typeof app.mockLogin === 'function') {
             app.mockLogin(app.globalData.userInfo, () => {
-              console.log('令牌刷新失败，已自动切换到本地模式登录');
+              
             });
           }
         }
@@ -392,7 +392,7 @@ export const request = <T>(options: RequestOptions): Promise<T> => {
   options = requestInterceptor(options);
 
   // 记录请求日志
-  console.log(`[API请求] ${options.method || 'GET'} ${url}`, options.data);
+  
 
   // 是否显示加载提示
   if (options.showLoading) {
@@ -409,18 +409,18 @@ export const request = <T>(options: RequestOptions): Promise<T> => {
       timeout: options.timeout || 30000,
       success: (res: any) => {
         // 记录响应日志
-        console.log(`[API响应] ${options.method || 'GET'} ${url}`, res.data);
+        
 
         // 请求成功，应用响应拦截器
         responseInterceptor(res, options)
           .then((data: any) => resolve(data as T))
           .catch((error) => {
-            console.error(`[API错误] ${options.method || 'GET'} ${url}`, error);
+            
             reject(error);
           });
       },
       fail: (error) => {
-        console.error(`[API失败] ${options.method || 'GET'} ${url}`, error);
+        
 
         // 检查是否为网络错误
         if (

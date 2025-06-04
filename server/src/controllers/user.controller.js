@@ -19,7 +19,7 @@ exports.getProfile = async (req, res) => {
       data: user,
     });
   } catch (error) {
-    console.error('获取用户资料错误:', error);
+    
     res.status(500).json({
       success: false,
       message: '服务器错误，获取用户资料失败',
@@ -57,7 +57,7 @@ exports.updateProfile = async (req, res) => {
       data: user,
     });
   } catch (error) {
-    console.error('更新用户资料错误:', error);
+    
     res.status(500).json({
       success: false,
       message: '服务器错误，更新用户资料失败',
@@ -100,7 +100,7 @@ exports.uploadAvatar = async (req, res) => {
       },
     });
   } catch (error) {
-    console.error('上传头像错误:', error);
+    
     res.status(500).json({
       success: false,
       message: '服务器错误，头像上传失败',
@@ -146,7 +146,7 @@ exports.changePassword = async (req, res) => {
       message: '密码修改成功',
     });
   } catch (error) {
-    console.error('修改密码错误:', error);
+    
     res.status(500).json({
       success: false,
       message: '服务器错误，密码修改失败',
@@ -167,7 +167,7 @@ exports.getSettings = async (req, res) => {
       data: user.settings,
     });
   } catch (error) {
-    console.error('获取用户设置错误:', error);
+    
     res.status(500).json({
       success: false,
       message: '服务器错误，获取用户设置失败',
@@ -222,7 +222,7 @@ exports.updateSettings = async (req, res) => {
       data: user.settings,
     });
   } catch (error) {
-    console.error('更新用户设置错误:', error);
+    
     res.status(500).json({
       success: false,
       message: '服务器错误，更新用户设置失败',
@@ -243,7 +243,7 @@ exports.getAchievements = async (req, res) => {
       data: user.achievements,
     });
   } catch (error) {
-    console.error('获取用户成就错误:', error);
+    
     res.status(500).json({
       success: false,
       message: '服务器错误，获取用户成就失败',
@@ -272,7 +272,7 @@ exports.getUserStats = async (req, res) => {
       data: stats,
     });
   } catch (error) {
-    console.error('获取用户统计数据错误:', error);
+    
     res.status(500).json({
       success: false,
       message: '服务器错误，获取用户统计数据失败',
@@ -324,7 +324,7 @@ exports.getUserPublicProfile = async (req, res) => {
       data: userProfile
     });
   } catch (error) {
-    console.error('获取用户公开资料失败:', error);
+    
     res.status(500).json({
       success: false,
       message: '获取用户公开资料失败',
@@ -364,7 +364,7 @@ exports.getAllUsers = async (req, res) => {
       },
     });
   } catch (error) {
-    console.error('获取所有用户错误:', error);
+    
     res.status(500).json({
       success: false,
       message: '服务器错误，获取所有用户失败',
@@ -408,7 +408,7 @@ exports.adminUpdateUser = async (req, res) => {
       data: user,
     });
   } catch (error) {
-    console.error('管理员更新用户信息错误:', error);
+    
     res.status(500).json({
       success: false,
       message: '服务器错误，更新用户信息失败',
@@ -449,7 +449,7 @@ exports.adminDeleteUser = async (req, res) => {
       message: '用户删除成功',
     });
   } catch (error) {
-    console.error('管理员删除用户错误:', error);
+    
     res.status(500).json({
       success: false,
       message: '服务器错误，删除用户失败',
@@ -469,15 +469,15 @@ exports.getProfileAll = async (req, res) => {
     const Habit = require('../models/habit.model');
     const Checkin = require('../models/checkin.model');
 
-    console.log('开始获取用户聚合数据，用户ID:', user._id);
+    
 
     // 获取用户的所有习惯
     const habits = await Habit.find({ user: user._id });
-    console.log(`找到用户习惯: ${habits.length}个`);
+    
 
     // 获取今日日期
     const today = new Date().toISOString().split('T')[0];
-    console.log('今日日期:', today);
+    
 
     // 获取今日完成的打卡记录
     const todayCheckins = await Checkin.find({
@@ -485,14 +485,14 @@ exports.getProfileAll = async (req, res) => {
       date: today,
       isCompleted: true,
     });
-    console.log(`今日完成打卡: ${todayCheckins.length}个`);
+    
 
     // 获取所有打卡记录
     const allCheckins = await Checkin.find({
       user: user._id,
       isCompleted: true,
     });
-    console.log(`总完成打卡: ${allCheckins.length}个`);
+    
 
     // 从习惯中获取当前最长连续打卡天数
     let maxCurrentStreak = 0;
@@ -524,7 +524,7 @@ exports.getProfileAll = async (req, res) => {
     }
 
     // 处理成就数据
-    console.log('开始处理用户成就数据');
+    
 
     let achievements = [];
 
@@ -533,7 +533,7 @@ exports.getProfileAll = async (req, res) => {
       Array.isArray(user.achievements) &&
       user.achievements.length > 0
     ) {
-      console.log('用户有成就数据，数量:', user.achievements.length);
+      
       achievements = user.achievements.map((achievement) => ({
         id: achievement.id,
         title: achievement.name || '未命名成就',
@@ -543,10 +543,10 @@ exports.getProfileAll = async (req, res) => {
         isCompleted: !!achievement.unlockedAt,
       }));
     } else {
-      console.log('用户没有成就数据，使用默认成就');
+      
     }
 
-    console.log('处理后成就数量:', achievements.length);
+    
 
     // 构建响应数据
     const profileData = {
@@ -574,7 +574,7 @@ exports.getProfileAll = async (req, res) => {
       data: profileData,
     });
   } catch (error) {
-    console.error('获取用户聚合数据错误:', error);
+    
     res.status(500).json({
       success: false,
       message: '服务器错误，获取用户聚合数据失败',
@@ -666,7 +666,7 @@ exports.getUserAchievements = async (req, res) => {
     const Habit = require('../models/habit.model');
     const Checkin = require('../models/checkin.model');
 
-    console.log('开始获取用户成就数据，用户ID:', user._id);
+    
 
     // 获取用户的所有习惯
     const habits = await Habit.find({ user: user._id });
@@ -691,14 +691,14 @@ exports.getUserAchievements = async (req, res) => {
       }));
     }
 
-    console.log('处理后成就数量:', achievements.length);
+    
 
     res.status(200).json({
       success: true,
       data: achievements,
     });
   } catch (error) {
-    console.error('获取用户成就数据错误:', error);
+    
     res.status(500).json({
       success: false,
       message: '服务器错误，获取用户成就数据失败',
@@ -743,7 +743,7 @@ exports.getUserHabits = async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('获取用户习惯失败:', error);
+    
     res.status(500).json({
       success: false,
       message: '获取用户习惯失败',
@@ -812,7 +812,7 @@ exports.getUserAchievements = async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('获取用户成就失败:', error);
+    
     res.status(500).json({
       success: false,
       message: '获取用户成就失败',

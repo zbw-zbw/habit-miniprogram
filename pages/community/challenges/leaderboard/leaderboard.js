@@ -52,7 +52,6 @@ Page({
         // 调用API获取排行榜
         api_1.communityAPI.getChallengeLeaderboard(challengeId)
             .then(result => {
-            console.log('获取到排行榜:', result);
             // 获取排行榜数据
             const leaderboard = result.leaderboard || [];
             // 获取我的排名
@@ -67,7 +66,6 @@ Page({
             });
         })
             .catch(error => {
-            console.error('获取排行榜失败:', error);
             wx.showToast({
                 title: '获取排行榜失败',
                 icon: 'none'

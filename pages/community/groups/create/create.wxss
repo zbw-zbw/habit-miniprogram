@@ -7,46 +7,9 @@
   padding-bottom: 40rpx;
 }
 
-/* 导航栏 */
-.navbar {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 20rpx 30rpx;
-  background-color: #FFFFFF;
-  position: relative;
-}
-
-.navbar-left {
-  width: 60rpx;
-  height: 60rpx;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.navbar-left .iconfont {
-  font-size: 40rpx;
-  color: #303133;
-}
-
-.navbar-title {
-  position: absolute;
-  left: 50%;
-  transform: translateX(-50%);
-  font-size: 32rpx;
-  font-weight: 500;
-  color: #303133;
-}
-
-.navbar-right {
-  width: 60rpx;
-}
-
 /* 表单容器 */
 .form-container {
   background-color: #FFFFFF;
-  margin: 20rpx;
   border-radius: 12rpx;
   padding: 30rpx;
   box-shadow: 0 2rpx 10rpx rgba(0, 0, 0, 0.05);

@@ -96,7 +96,6 @@ async function executeRequest(state, apiCall, setStateFn, defaultData, cacheKey,
             }
         }
         catch (error) {
-            console.error('读取缓存失败:', error);
         }
     }
     // 如果有有效缓存，先使用缓存数据
@@ -117,12 +116,10 @@ async function executeRequest(state, apiCall, setStateFn, defaultData, cacheKey,
                 });
             }
             catch (error) {
-                console.error('保存缓存失败:', error);
             }
         }
     }
     catch (error) {
-        console.error('API请求失败:', error);
         // 设置错误状态
         const errorMessage = error instanceof Error ? error.message : '请求失败';
         setStateFn(requestFailure(state, errorMessage));
@@ -189,7 +186,6 @@ function useApiRequest(apiCall, options = {}) {
             }
         })
             .catch(error => {
-            console.error('API请求失败:', error);
             // 处理错误响应
             const errorMessage = error.message || '请求失败';
             const updateData = {
@@ -255,7 +251,6 @@ function createApiRequests(requests) {
             })
                 .catch(error => {
                 var _a, _b;
-                console.error(`API请求失败 [${key}]:`, error);
                 // 更新错误状态
                 const errorMessage = error.message || '请求失败';
                 const updateData = {

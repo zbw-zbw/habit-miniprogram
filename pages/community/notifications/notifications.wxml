@@ -1,33 +1,11 @@
 <!--社区通知页面-->
 <view class="container">
   <!-- 顶部标签页 -->
-  <view class="tabs">
-    <view 
-      class="tab-item {{activeTab === 'all' ? 'active' : ''}}" 
-      bindtap="switchTab" 
-      data-tab="all"
-    >全部</view>
-    <view 
-      class="tab-item {{activeTab === 'like' ? 'active' : ''}}" 
-      bindtap="switchTab" 
-      data-tab="like"
-    >点赞</view>
-    <view 
-      class="tab-item {{activeTab === 'comment' ? 'active' : ''}}" 
-      bindtap="switchTab" 
-      data-tab="comment"
-    >评论</view>
-    <view 
-      class="tab-item {{activeTab === 'follow' ? 'active' : ''}}" 
-      bindtap="switchTab" 
-      data-tab="follow"
-    >关注</view>
-    <view 
-      class="tab-item {{activeTab === 'system' ? 'active' : ''}}" 
-      bindtap="switchTab" 
-      data-tab="system"
-    >系统</view>
-  </view>
+  <tab-bar 
+    tabs="{{['全部', '点赞', '评论', '关注', '系统']}}" 
+    activeTab="{{tabIndex}}"
+    bind:tabchange="onTabChange"
+  ></tab-bar>
   
   <!-- 加载中 -->
   <view class="loading" wx:if="{{loading}}">

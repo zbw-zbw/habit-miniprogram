@@ -45,7 +45,6 @@ Page({
             this.filterAchievements();
         }
         catch (error) {
-            console.error('加载成就列表失败:', error);
             this.setData({
                 loading: false,
                 allAchievements: [],

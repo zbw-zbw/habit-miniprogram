@@ -1,5 +1,5 @@
 <view class="tabs">
-  <scroll-view class="tabs-scroll" scroll-x="{{scrollable}}" scroll-with-animation>
+  <scroll-view class="tabs-scroll" scroll-x="{{scrollable}}" scroll-with-animation enable-flex="true">
     <view class="tabs-content">
       <view 
         wx:for="{{tabs}}" 

@@ -97,6 +97,31 @@ router.post(
 );
 
 /**
+ * @route POST /api/checkins/with-details
+ * @desc 创建打卡记录并返回详细信息（聚合API）
+ * @access Private
+ */
+router.post(
+  '/with-details',
+  authMiddleware,
+  [
+    body('habit')
+      .notEmpty()
+      .withMessage('习惯ID不能为空'),
+    body('date')
+      .notEmpty()
+      .withMessage('打卡日期不能为空')
+      .matches(/^\d{4}-\d{2}-\d{2}$/)
+      .withMessage('日期格式应为YYYY-MM-DD'),
+    body('isCompleted')
+      .optional()
+      .isBoolean()
+      .withMessage('完成状态必须是布尔值')
+  ],
+  checkinController.createCheckinWithDetails
+);
+
+/**
  * @route GET /api/checkins/:checkinId
  * @desc 获取指定打卡记录详情
  * @access Private

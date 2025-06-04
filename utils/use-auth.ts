@@ -3,6 +3,20 @@
  * 提供在组件和页面中方便使用全局登录状态的方法
  */
 
+// 使用app.d.ts中的类型定义
+type IUserInfo = any; // 使用any类型避免类型冲突
+interface IAppOption {
+  globalData: {
+    userInfo: IUserInfo | null;
+    hasLogin: boolean;
+    [key: string]: any;
+  };
+  onLoginStateChange: (callback: (loginState: { userInfo: IUserInfo | null; hasLogin: boolean }) => void) => void;
+  login: (userInfo: any, callback: (success: boolean) => void) => void;
+  logout: (callback: () => void) => void;
+  [key: string]: any;
+}
+
 /**
  * 获取当前登录状态
  * @returns 包含登录状态的对象
@@ -32,16 +46,28 @@ export function useAuth(
   const app = getApp<IAppOption>();
   const { onChange, autoUpdate = true } = options;
   
+  // 存储初始登录状态，用于比较变化
+  const initialLoginState = app.globalData.hasLogin;
+  
+  // 为页面或组件添加一个属性来跟踪上一次的登录状态
+  (page as any).__previousLoginState = initialLoginState;
+  
   // 初始化页面或组件的登录状态数据
   if (autoUpdate && typeof (page as any).setData === 'function') {
     (page as any).setData({
-      hasLogin: app.globalData.hasLogin,
+      hasLogin: initialLoginState,
       userInfo: app.globalData.userInfo
     });
   }
   
   // 注册登录状态变化监听
   const callback = (authState: { hasLogin: boolean; userInfo: IUserInfo | null }) => {
+    // 获取上一次的登录状态
+    const previousLoginState = (page as any).__previousLoginState;
+    
+    // 更新页面或组件的登录状态跟踪
+    (page as any).__previousLoginState = authState.hasLogin;
+    
     // 自动更新页面或组件的数据
     if (autoUpdate && typeof (page as any).setData === 'function') {
       (page as any).setData({
@@ -50,8 +76,9 @@ export function useAuth(
       });
     }
     
-    // 调用自定义回调
-    if (onChange) {
+    // 只有在登录状态从未登录变为已登录时才调用自定义回调
+    // 或者从已登录变为未登录时
+    if (onChange && ((!previousLoginState && authState.hasLogin) || (previousLoginState && !authState.hasLogin))) {
       onChange(authState);
     }
   };

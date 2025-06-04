@@ -47,7 +47,6 @@ class SyncManager {
                                 return result.url;
                             }
                             catch (error) {
-                                console.error('上传图片失败:', error);
                                 return null;
                             }
                         });
@@ -63,7 +62,6 @@ class SyncManager {
                     return true;
                 }
                 catch (error) {
-                    console.error('同步打卡记录失败:', error);
                     return false;
                 }
             });
@@ -78,7 +76,6 @@ class SyncManager {
             return newPendingCheckins.length > 0;
         }
         catch (error) {
-            console.error('同步打卡记录失败:', error);
             this.isSyncing = false;
             return true; // 仍有数据需要同步
         }

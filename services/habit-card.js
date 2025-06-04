@@ -12,7 +12,6 @@ const getHabitCardData = async (habitId) => {
     try {
         // 记录开始时间
         const startTime = Date.now();
-        console.log(`开始获取习惯[${habitId}]数据...`);
         // 并行获取习惯详情、统计数据和今日打卡记录
         const [habit, stats, todayCheckins] = await Promise.all([
             api_1.habitAPI.getHabit(habitId),
@@ -38,14 +37,9 @@ const getHabitCardData = async (habitId) => {
         };
         // 记录完成时间
         const endTime = Date.now();
-        console.log(`习惯[${habitId}]数据获取完成，耗时: ${endTime - startTime}ms`);
-        console.log('习惯详情:', habit);
-        console.log('统计数据:', stats);
-        console.log('今日打卡状态:', isCompletedToday);
         return result;
     }
     catch (error) {
-        console.error(`获取习惯[${habitId}]数据失败:`, error);
         throw error;
     }
 };
@@ -58,10 +52,8 @@ const getAllHabitCardsData = async () => {
     try {
         // 记录开始时间
         const startTime = Date.now();
-        console.log('开始获取所有习惯卡片数据...');
         // 获取所有习惯
         const habits = await api_1.habitAPI.getHabits();
-        console.log(`获取到${habits.length}个习惯`);
         // 获取今日日期
         const today = (0, date_1.getCurrentDate)();
         // 获取今日所有打卡记录
@@ -69,7 +61,6 @@ const getAllHabitCardsData = async () => {
             startDate: today,
             endDate: today
         });
-        console.log(`获取到${todayCheckins.length}条今日打卡记录`);
         // 创建已完成习惯ID的集合
         const completedHabitIds = new Set();
         todayCheckins.forEach(checkin => {
@@ -81,7 +72,6 @@ const getAllHabitCardsData = async () => {
                 }
             }
         });
-        console.log('今日已完成习惯IDs:', [...completedHabitIds]);
         // 为每个习惯获取统计数据
         const habitsWithStats = await Promise.all(habits.map(async (habit) => {
             const habitId = habit._id;
@@ -104,7 +94,6 @@ const getAllHabitCardsData = async () => {
                 };
             }
             catch (error) {
-                console.error(`获取习惯[${habitId}]统计数据失败:`, error);
                 return null;
             }
         }));
@@ -112,11 +101,9 @@ const getAllHabitCardsData = async () => {
         const validHabitsWithStats = habitsWithStats.filter(Boolean);
         // 记录完成时间
         const endTime = Date.now();
-        console.log(`所有习惯卡片数据获取完成，耗时: ${endTime - startTime}ms`);
         return validHabitsWithStats;
     }
     catch (error) {
-        console.error('获取所有习惯卡片数据失败:', error);
         throw error;
     }
 };

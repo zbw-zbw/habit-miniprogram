@@ -16,6 +16,7 @@ Page({
         searchHistory: [],
         hotSearches: [],
         activeTab: 'all',
+        tabIndex: 0,
         loading: false,
         results: [],
         userResults: [],
@@ -26,7 +27,7 @@ Page({
         page: 1,
         pageSize: 10,
         hasLogin: false,
-        isSearched: false // 标记是否已经执行过搜索
+        isSearched: false, // 标记是否已经执行过搜索
     },
     /**
      * 生命周期函数--监听页面加载
@@ -37,28 +38,29 @@ Page({
         // 获取搜索历史
         const searchHistory = wx.getStorageSync('searchHistory') || [];
         this.setData({
-            searchHistory
+            searchHistory,
         });
         // 加载热门搜索词
         this.loadHotSearches();
     },
     // 加载热门搜索词
     loadHotSearches() {
-        api_1.communityAPI.getHotSearches()
-            .then(hotSearches => {
+        api_1.communityAPI
+            .getHotSearches()
+            .then((hotSearches) => {
             this.setData({ hotSearches });
         })
             .catch(() => {
             // 加载失败时使用默认热门搜索
             this.setData({
-                hotSearches: ['习惯养成', '早起', '阅读', '运动健身', '冥想']
+                hotSearches: ['习惯养成', '早起', '阅读', '运动健身', '冥想'],
             });
         });
     },
     // 输入搜索内容
     onSearchInput(e) {
         this.setData({
-            keyword: e.detail.value
+            keyword: e.detail.value,
         });
         // 移除输入过程中的过滤操作，只在用户回车或点击搜索按钮时触发搜索
         if (!e.detail.value) {
@@ -67,7 +69,7 @@ Page({
                 userResults: [],
                 groupResults: [],
                 challengeResults: [],
-                postResults: []
+                postResults: [],
             });
         }
     },
@@ -77,7 +79,7 @@ Page({
         if (!keyword || !keyword.trim()) {
             wx.showToast({
                 title: '请输入搜索内容',
-                icon: 'none'
+                icon: 'none',
             });
             return;
         }
@@ -86,6 +88,7 @@ Page({
         // 重置页码和搜索结果
         this.setData({
             activeTab: 'all',
+            tabIndex: 0,
             loading: true,
             results: [],
             userResults: [],
@@ -93,7 +96,7 @@ Page({
             challengeResults: [],
             postResults: [],
             page: 1,
-            isSearched: true // 标记已执行搜索
+            isSearched: true, // 标记已执行搜索
         });
         // 执行搜索
         this.fetchSearchResults();
@@ -102,7 +105,7 @@ Page({
     saveSearchHistory(keyword) {
         let { searchHistory } = this.data;
         // 如果已经存在，先移除
-        searchHistory = searchHistory.filter(item => item !== keyword);
+        searchHistory = searchHistory.filter((item) => item !== keyword);
         // 添加到头部
         searchHistory.unshift(keyword);
         // 最多保存10条
@@ -121,7 +124,7 @@ Page({
             groupResults: [],
             challengeResults: [],
             postResults: [],
-            isSearched: false // 重置搜索状态
+            isSearched: false, // 重置搜索状态
         });
     },
     // 重置搜索结果
@@ -135,7 +138,7 @@ Page({
             page: 1,
             hasMore: false,
             loading: false,
-            isSearched: false // 重置搜索状态
+            isSearched: false, // 重置搜索状态
         });
     },
     // 使用历史关键词
@@ -153,7 +156,29 @@ Page({
     // 切换标签
     switchTab(e) {
         const tab = e.currentTarget.dataset.tab;
-        this.setData({ activeTab: tab });
+        const tabMapping = {
+            all: 0,
+            posts: 1,
+            challenges: 2,
+            groups: 3,
+            users: 4,
+        };
+        this.setData({
+            activeTab: tab,
+            tabIndex: tabMapping[tab],
+        });
+    },
+    /**
+     * 处理tab-bar组件的标签切换事件
+     */
+    onTabChange(e) {
+        const index = e.detail.index;
+        const tabMapping = ['all', 'posts', 'challenges', 'groups', 'users'];
+        const tab = tabMapping[index];
+        this.setData({
+            activeTab: tab,
+            tabIndex: index,
+        });
     },
     // 获取搜索结果
     fetchSearchResults() {
@@ -162,53 +187,47 @@ Page({
             return;
         }
         this.setData({ loading: true });
-        api_1.communityAPI.search({
+        api_1.communityAPI
+            .search({
             keyword,
             type: activeTab,
             page,
-            limit: pageSize
+            limit: pageSize,
         })
-            .then(results => {
+            .then((results) => {
             if (activeTab === 'all') {
                 // 处理图片URL和时间格式化
-                const processedUsers = (results.users || []).map(user => ({
+                const processedUsers = (results.users || []).map((user) => ({
                     ...user,
-                    avatar: (0, image_1.getFullImageUrl)(user.avatar)
+                    avatar: (0, image_1.getFullImageUrl)(user.avatar),
                 }));
-                const processedGroups = (results.groups || []).map(group => {
+                const processedGroups = (results.groups || []).map((group) => {
                     var _a, _b;
                     // 获取当前用户ID
                     const app = getApp();
                     const currentUserId = (_b = (_a = app === null || app === void 0 ? void 0 : app.globalData) === null || _a === void 0 ? void 0 : _a.userInfo) === null || _b === void 0 ? void 0 : _b.id;
-                    console.log('处理小组数据:', group);
-                    console.log('当前用户ID:', currentUserId);
                     // 如果当前用户是创建者，则标记为已加入
                     const isCreator = group.creator &&
-                        (group.creator._id === currentUserId || group.creator.id === currentUserId);
-                    console.log('是否是创建者:', isCreator);
-                    console.log('原始isJoined:', group.isJoined);
+                        (group.creator._id === currentUserId ||
+                            group.creator.id === currentUserId);
                     return {
                         ...group,
                         avatar: (0, image_1.getFullImageUrl)(group.avatar),
                         // 如果用户是创建者或服务端返回了已加入字段，则标记为已加入
-                        isJoined: isCreator || group.isJoined || false
+                        isJoined: isCreator || group.isJoined || false,
                     };
                 });
                 // 处理挑战数据，确保 isJoined 和 isParticipating 字段存在
-                const processedChallenges = (results.challenges || []).map(challenge => {
+                const processedChallenges = (results.challenges || []).map((challenge) => {
                     var _a, _b;
                     // 获取当前用户ID
                     const app = getApp();
                     const currentUserId = (_b = (_a = app === null || app === void 0 ? void 0 : app.globalData) === null || _a === void 0 ? void 0 : _a.userInfo) === null || _b === void 0 ? void 0 : _b.id;
-                    console.log('处理挑战数据:', challenge);
-                    console.log('当前用户ID:', currentUserId);
                     // 检查挑战是否已参与的逻辑
                     // 如果当前用户是创建者，则标记为已参与
                     const isCreator = challenge.creator &&
-                        (challenge.creator._id === currentUserId || challenge.creator.id === currentUserId);
-                    console.log('是否是创建者:', isCreator);
-                    console.log('原始isJoined:', challenge.isJoined);
-                    console.log('原始isParticipating:', challenge.isParticipating);
+                        (challenge.creator._id === currentUserId ||
+                            challenge.creator.id === currentUserId);
                     // 确保参与人数至少为1（如果有创建者）
                     const participantsCount = challenge.participantsCount || challenge.participants || 0;
                     const adjustedParticipantsCount = isCreator && participantsCount === 0 ? 1 : participantsCount;
@@ -216,93 +235,98 @@ Page({
                         ...challenge,
                         image: (0, image_1.getFullImageUrl)(challenge.image),
                         // 如果用户是创建者或服务端返回了这些字段，则标记为已参与
-                        isJoined: isCreator || challenge.isJoined || challenge.isParticipating || false,
-                        isParticipating: isCreator || challenge.isJoined || challenge.isParticipating || false,
+                        isJoined: isCreator ||
+                            challenge.isJoined ||
+                            challenge.isParticipating ||
+                            false,
+                        isParticipating: isCreator ||
+                            challenge.isJoined ||
+                            challenge.isParticipating ||
+                            false,
                         isCreator: isCreator,
                         // 确保 participantsCount 字段存在
                         participantsCount: adjustedParticipantsCount,
-                        participants: adjustedParticipantsCount
+                        participants: adjustedParticipantsCount,
                     };
                 });
-                const processedPosts = (results.posts || []).map(post => ({
+                const processedPosts = (results.posts || []).map((post) => ({
                     ...post,
                     userAvatar: (0, image_1.getFullImageUrl)(post.userAvatar),
-                    images: (post.images || []).map(img => (0, image_1.getFullImageUrl)(img)),
+                    images: (post.images || []).map((img) => (0, image_1.getFullImageUrl)(img)),
                     createdAt: (0, util_1.formatRelativeTime)(post.createdAt || new Date()),
-                    likes: post.likeCount || post.likes || 0
+                    likes: post.likeCount || post.likes || 0,
                 }));
                 // 计算总结果数量
-                const totalResults = processedUsers.length + processedGroups.length +
-                    processedChallenges.length + processedPosts.length;
+                const totalResults = processedUsers.length +
+                    processedGroups.length +
+                    processedChallenges.length +
+                    processedPosts.length;
                 this.setData({
                     userResults: processedUsers,
                     groupResults: processedGroups,
                     challengeResults: processedChallenges,
                     postResults: processedPosts,
                     loading: false,
-                    results: totalResults > 0 ? [1] : [] // 用于判断是否有搜索结果
+                    results: totalResults > 0 ? [1] : [], // 用于判断是否有搜索结果
                 });
             }
             else if (activeTab === 'users') {
                 const users = results.users || [];
-                const processedUsers = users.map(user => ({
+                const processedUsers = users.map((user) => ({
                     ...user,
-                    avatar: (0, image_1.getFullImageUrl)(user.avatar)
+                    avatar: (0, image_1.getFullImageUrl)(user.avatar),
                 }));
-                const newUsers = page === 1 ? processedUsers : [...this.data.userResults, ...processedUsers];
+                const newUsers = page === 1
+                    ? processedUsers
+                    : [...this.data.userResults, ...processedUsers];
                 this.setData({
                     userResults: newUsers,
                     loading: false,
                     hasMore: users && users.length === pageSize,
-                    results: newUsers.length > 0 ? [1] : [] // 用于判断是否有搜索结果
+                    results: newUsers.length > 0 ? [1] : [], // 用于判断是否有搜索结果
                 });
             }
             else if (activeTab === 'groups') {
                 const groups = results.groups || [];
-                const processedGroups = groups.map(group => {
+                const processedGroups = groups.map((group) => {
                     var _a, _b;
                     // 获取当前用户ID
                     const app = getApp();
                     const currentUserId = (_b = (_a = app === null || app === void 0 ? void 0 : app.globalData) === null || _a === void 0 ? void 0 : _a.userInfo) === null || _b === void 0 ? void 0 : _b.id;
-                    console.log('处理小组数据(tab):', group);
-                    console.log('当前用户ID(tab):', currentUserId);
                     // 如果当前用户是创建者，则标记为已加入
                     const isCreator = group.creator &&
-                        (group.creator._id === currentUserId || group.creator.id === currentUserId);
-                    console.log('是否是创建者(tab):', isCreator);
-                    console.log('原始isJoined(tab):', group.isJoined);
+                        (group.creator._id === currentUserId ||
+                            group.creator.id === currentUserId);
                     return {
                         ...group,
                         avatar: (0, image_1.getFullImageUrl)(group.avatar),
                         // 如果用户是创建者或服务端返回了已加入字段，则标记为已加入
-                        isJoined: isCreator || group.isJoined || false
+                        isJoined: isCreator || group.isJoined || false,
                     };
                 });
-                const newGroups = page === 1 ? processedGroups : [...this.data.groupResults, ...processedGroups];
+                const newGroups = page === 1
+                    ? processedGroups
+                    : [...this.data.groupResults, ...processedGroups];
                 this.setData({
                     groupResults: newGroups,
                     loading: false,
                     hasMore: groups && groups.length === pageSize,
-                    results: newGroups.length > 0 ? [1] : [] // 用于判断是否有搜索结果
+                    results: newGroups.length > 0 ? [1] : [], // 用于判断是否有搜索结果
                 });
             }
             else if (activeTab === 'challenges') {
                 const challenges = results.challenges || [];
                 // 处理挑战数据，确保 isJoined 和 isParticipating 字段存在
-                const processedChallenges = challenges.map(challenge => {
+                const processedChallenges = challenges.map((challenge) => {
                     var _a, _b;
                     // 获取当前用户ID
                     const app = getApp();
                     const currentUserId = (_b = (_a = app === null || app === void 0 ? void 0 : app.globalData) === null || _a === void 0 ? void 0 : _a.userInfo) === null || _b === void 0 ? void 0 : _b.id;
-                    console.log('处理挑战数据(tab):', challenge);
-                    console.log('当前用户ID(tab):', currentUserId);
                     // 检查挑战是否已参与的逻辑
                     // 如果当前用户是创建者，则标记为已参与
                     const isCreator = challenge.creator &&
-                        (challenge.creator._id === currentUserId || challenge.creator.id === currentUserId);
-                    console.log('是否是创建者(tab):', isCreator);
-                    console.log('原始isJoined(tab):', challenge.isJoined);
-                    console.log('原始isParticipating(tab):', challenge.isParticipating);
+                        (challenge.creator._id === currentUserId ||
+                            challenge.creator.id === currentUserId);
                     // 确保参与人数至少为1（如果有创建者）
                     const participantsCount = challenge.participantsCount || challenge.participants || 0;
                     const adjustedParticipantsCount = isCreator && participantsCount === 0 ? 1 : participantsCount;
@@ -310,46 +334,55 @@ Page({
                         ...challenge,
                         image: (0, image_1.getFullImageUrl)(challenge.image),
                         // 如果用户是创建者或服务端返回了这些字段，则标记为已参与
-                        isJoined: isCreator || challenge.isJoined || challenge.isParticipating || false,
-                        isParticipating: isCreator || challenge.isJoined || challenge.isParticipating || false,
+                        isJoined: isCreator ||
+                            challenge.isJoined ||
+                            challenge.isParticipating ||
+                            false,
+                        isParticipating: isCreator ||
+                            challenge.isJoined ||
+                            challenge.isParticipating ||
+                            false,
                         isCreator: isCreator,
                         // 确保 participantsCount 字段存在
                         participantsCount: adjustedParticipantsCount,
-                        participants: adjustedParticipantsCount
+                        participants: adjustedParticipantsCount,
                     };
                 });
-                const newChallenges = page === 1 ? processedChallenges : [...this.data.challengeResults, ...processedChallenges];
+                const newChallenges = page === 1
+                    ? processedChallenges
+                    : [...this.data.challengeResults, ...processedChallenges];
                 this.setData({
                     challengeResults: newChallenges,
                     loading: false,
                     hasMore: challenges && challenges.length === pageSize,
-                    results: newChallenges.length > 0 ? [1] : [] // 用于判断是否有搜索结果
+                    results: newChallenges.length > 0 ? [1] : [], // 用于判断是否有搜索结果
                 });
             }
             else if (activeTab === 'posts') {
                 const posts = results.posts || [];
-                const processedPosts = posts.map(post => ({
+                const processedPosts = posts.map((post) => ({
                     ...post,
                     userAvatar: (0, image_1.getFullImageUrl)(post.userAvatar),
-                    images: (post.images || []).map(img => (0, image_1.getFullImageUrl)(img)),
+                    images: (post.images || []).map((img) => (0, image_1.getFullImageUrl)(img)),
                     createdAt: (0, util_1.formatRelativeTime)(post.createdAt || new Date()),
-                    likes: post.likeCount || post.likes || 0
+                    likes: post.likeCount || post.likes || 0,
                 }));
-                const newPosts = page === 1 ? processedPosts : [...this.data.postResults, ...processedPosts];
+                const newPosts = page === 1
+                    ? processedPosts
+                    : [...this.data.postResults, ...processedPosts];
                 this.setData({
                     postResults: newPosts,
                     loading: false,
                     hasMore: posts && posts.length === pageSize,
-                    results: newPosts.length > 0 ? [1] : [] // 用于判断是否有搜索结果
+                    results: newPosts.length > 0 ? [1] : [], // 用于判断是否有搜索结果
                 });
             }
         })
-            .catch(error => {
-            console.error('搜索失败:', error);
+            .catch((error) => {
             this.setData({ loading: false });
             wx.showToast({
                 title: '搜索失败',
-                icon: 'none'
+                icon: 'none',
             });
         });
     },
@@ -358,7 +391,7 @@ Page({
         if (this.data.loading || !this.data.hasMore)
             return;
         this.setData({
-            page: this.data.page + 1
+            page: this.data.page + 1,
         });
         this.fetchSearchResults();
     },
@@ -371,21 +404,21 @@ Page({
     viewUserProfile(e) {
         const id = e.currentTarget.dataset.id;
         wx.navigateTo({
-            url: `/pages/profile/profile?id=${id}`
+            url: `/pages/profile/profile?id=${id}`,
         });
     },
     // 查看小组详情
     viewGroupDetail(e) {
         const id = e.currentTarget.dataset.id;
         wx.navigateTo({
-            url: `/pages/community/groups/detail/detail?id=${id}`
+            url: `/pages/community/groups/detail/detail?id=${id}`,
         });
     },
     // 查看挑战详情
     viewChallengeDetail(e) {
         const id = e.currentTarget.dataset.id;
         wx.navigateTo({
-            url: `/pages/community/challenges/detail/detail?id=${id}`
+            url: `/pages/community/challenges/detail/detail?id=${id}`,
         });
     },
     // 查看动态详情
@@ -394,15 +427,14 @@ Page({
         // 从组件事件的detail中获取postId，或者从dataset中获取id（兼容直接点击的情况）
         const postId = ((_a = e.detail) === null || _a === void 0 ? void 0 : _a.postId) || e.currentTarget.dataset.id;
         if (!postId) {
-            console.error('无法获取帖子ID:', e);
             wx.showToast({
                 title: '无法查看帖子详情',
-                icon: 'none'
+                icon: 'none',
             });
             return;
         }
         wx.navigateTo({
-            url: `/pages/community/post-detail/post-detail?id=${postId}`
+            url: `/pages/community/post-detail/post-detail?id=${postId}`,
         });
     },
     // 切换关注状态
@@ -410,7 +442,7 @@ Page({
         if (!this.data.hasLogin) {
             wx.showToast({
                 title: '请先登录',
-                icon: 'none'
+                icon: 'none',
             });
             return;
         }
@@ -421,17 +453,17 @@ Page({
             return;
         const isFollow = !user.isFollowing;
         wx.showLoading({ title: '处理中' });
-        api_1.communityAPI.followUser(id, isFollow)
+        api_1.communityAPI
+            .followUser(id, isFollow)
             .then(() => {
             this.setData({
-                [`userResults[${index}].isFollowing`]: isFollow
+                [`userResults[${index}].isFollowing`]: isFollow,
             });
         })
-            .catch(error => {
-            console.error('操作失败:', error);
+            .catch((error) => {
             wx.showToast({
                 title: '操作失败',
-                icon: 'none'
+                icon: 'none',
             });
         })
             .finally(() => {
@@ -443,7 +475,7 @@ Page({
         if (!this.data.hasLogin) {
             wx.showToast({
                 title: '请先登录',
-                icon: 'none'
+                icon: 'none',
             });
             return;
         }
@@ -456,42 +488,43 @@ Page({
         if (group.isJoined) {
             wx.showToast({
                 title: '已加入该小组',
-                icon: 'none'
+                icon: 'none',
             });
             return;
         }
         const isJoined = !group.isJoined;
         wx.showLoading({ title: '处理中' });
         if (isJoined) {
-            api_1.communityAPI.joinGroup(id)
+            api_1.communityAPI
+                .joinGroup(id)
                 .then(() => {
                 // 更新本地状态
                 this.setData({
                     [`groupResults[${index}].isJoined`]: true,
                     // 增加成员数
-                    [`groupResults[${index}].membersCount`]: (group.membersCount || 0) + 1
+                    [`groupResults[${index}].membersCount`]: (group.membersCount || 0) + 1,
                 });
                 wx.showToast({
                     title: '已成功加入',
-                    icon: 'success'
+                    icon: 'success',
                 });
             })
-                .catch(error => {
-                console.error('加入失败:', error);
+                .catch((error) => {
                 // 如果服务端返回已加入的错误，更新本地状态
-                if (error && error.message && error.message.includes('已加入') || error.message.includes('已经是成员')) {
+                if ((error && error.message && error.message.includes('已加入')) ||
+                    error.message.includes('已经是成员')) {
                     this.setData({
-                        [`groupResults[${index}].isJoined`]: true
+                        [`groupResults[${index}].isJoined`]: true,
                     });
                     wx.showToast({
                         title: '已加入该小组',
-                        icon: 'none'
+                        icon: 'none',
                     });
                 }
                 else {
                     wx.showToast({
                         title: '加入失败',
-                        icon: 'none'
+                        icon: 'none',
                     });
                 }
             })
@@ -500,24 +533,24 @@ Page({
             });
         }
         else {
-            api_1.communityAPI.leaveGroup(id)
+            api_1.communityAPI
+                .leaveGroup(id)
                 .then(() => {
                 // 更新本地状态
                 this.setData({
                     [`groupResults[${index}].isJoined`]: false,
                     // 减少成员数，确保不小于0
-                    [`groupResults[${index}].membersCount`]: Math.max(0, (group.membersCount || 0) - 1)
+                    [`groupResults[${index}].membersCount`]: Math.max(0, (group.membersCount || 0) - 1),
                 });
                 wx.showToast({
                     title: '已退出小组',
-                    icon: 'success'
+                    icon: 'success',
                 });
             })
-                .catch(error => {
-                console.error('退出失败:', error);
+                .catch((error) => {
                 wx.showToast({
                     title: '退出失败',
-                    icon: 'none'
+                    icon: 'none',
                 });
             })
                 .finally(() => {
@@ -530,7 +563,7 @@ Page({
         if (!this.data.hasLogin) {
             wx.showToast({
                 title: '请先登录',
-                icon: 'none'
+                icon: 'none',
             });
             return;
         }
@@ -550,31 +583,31 @@ Page({
                 success: (res) => {
                     if (res.confirm) {
                         wx.showLoading({
-                            title: '处理中...'
+                            title: '处理中...',
                         });
                         // 调用API解散挑战
-                        api_1.communityAPI.dismissChallenge(id)
+                        api_1.communityAPI
+                            .dismissChallenge(id)
                             .then(() => {
                             // 从列表中移除该挑战
                             challengeResults.splice(index, 1);
                             this.setData({ challengeResults });
                             wx.showToast({
                                 title: '挑战已解散',
-                                icon: 'success'
+                                icon: 'success',
                             });
                         })
-                            .catch(error => {
-                            console.error('解散挑战失败:', error);
+                            .catch((error) => {
                             wx.showToast({
                                 title: '解散挑战失败',
-                                icon: 'none'
+                                icon: 'none',
                             });
                         })
                             .finally(() => {
                             wx.hideLoading();
                         });
                     }
-                }
+                },
             });
             return;
         }
@@ -582,14 +615,15 @@ Page({
         if (challenge.isJoined) {
             wx.showToast({
                 title: '已参与此挑战',
-                icon: 'none'
+                icon: 'none',
             });
             return;
         }
         const isJoined = !challenge.isJoined;
         wx.showLoading({ title: '处理中' });
         if (isJoined) {
-            api_1.communityAPI.joinChallenge(id)
+            api_1.communityAPI
+                .joinChallenge(id)
                 .then(() => {
                 // 更新本地状态
                 this.setData({
@@ -597,30 +631,29 @@ Page({
                     [`challengeResults[${index}].isParticipating`]: true,
                     // 增加参与人数
                     [`challengeResults[${index}].participants`]: (challenge.participants || 0) + 1,
-                    [`challengeResults[${index}].participantsCount`]: (challenge.participantsCount || challenge.participants || 0) + 1
+                    [`challengeResults[${index}].participantsCount`]: (challenge.participantsCount || challenge.participants || 0) + 1,
                 });
                 wx.showToast({
                     title: '已成功参加',
-                    icon: 'success'
+                    icon: 'success',
                 });
             })
-                .catch(error => {
-                console.error('参与失败:', error);
+                .catch((error) => {
                 // 如果服务端返回已参与的错误，更新本地状态
                 if (error && error.message && error.message.includes('已经参与')) {
                     this.setData({
                         [`challengeResults[${index}].isJoined`]: true,
-                        [`challengeResults[${index}].isParticipating`]: true
+                        [`challengeResults[${index}].isParticipating`]: true,
                     });
                     wx.showToast({
                         title: '已参与此挑战',
-                        icon: 'none'
+                        icon: 'none',
                     });
                 }
                 else {
                     wx.showToast({
                         title: '参与失败',
-                        icon: 'none'
+                        icon: 'none',
                     });
                 }
             })
@@ -629,25 +662,25 @@ Page({
             });
         }
         else {
-            api_1.communityAPI.leaveChallenge(id)
+            api_1.communityAPI
+                .leaveChallenge(id)
                 .then(() => {
                 this.setData({
                     [`challengeResults[${index}].isJoined`]: false,
                     [`challengeResults[${index}].isParticipating`]: false,
                     // 减少参与人数，确保不小于1（如果有创建者）
                     [`challengeResults[${index}].participants`]: Math.max(1, (challenge.participants || 0) - 1),
-                    [`challengeResults[${index}].participantsCount`]: Math.max(1, (challenge.participantsCount || challenge.participants || 0) - 1)
+                    [`challengeResults[${index}].participantsCount`]: Math.max(1, (challenge.participantsCount || challenge.participants || 0) - 1),
                 });
                 wx.showToast({
                     title: '已退出挑战',
-                    icon: 'success'
+                    icon: 'success',
                 });
             })
-                .catch(error => {
-                console.error('退出失败:', error);
+                .catch((error) => {
                 wx.showToast({
                     title: '退出失败',
-                    icon: 'none'
+                    icon: 'none',
                 });
             })
                 .finally(() => {
@@ -667,18 +700,19 @@ Page({
         if (!this.data.hasLogin) {
             wx.showToast({
                 title: '请先登录',
-                icon: 'none'
+                icon: 'none',
             });
             return;
         }
         // 从组件事件的detail中获取postId和index，或者从dataset中获取（兼容直接点击的情况）
         const postId = ((_a = e.detail) === null || _a === void 0 ? void 0 : _a.postId) || e.currentTarget.dataset.id;
-        const index = ((_b = e.detail) === null || _b === void 0 ? void 0 : _b.index) !== undefined ? e.detail.index : e.currentTarget.dataset.index;
+        const index = ((_b = e.detail) === null || _b === void 0 ? void 0 : _b.index) !== undefined
+            ? e.detail.index
+            : e.currentTarget.dataset.index;
         if (postId === undefined || index === undefined) {
-            console.error('无法获取帖子ID或索引:', e);
             wx.showToast({
                 title: '操作失败',
-                icon: 'none'
+                icon: 'none',
             });
             return;
         }
@@ -695,14 +729,15 @@ Page({
         const apiCall = isLiked
             ? api_1.communityAPI.unlikePost(postId)
             : api_1.communityAPI.likePost(postId);
-        apiCall.then(response => {
+        apiCall
+            .then((response) => {
             // 使用服务器返回的实际点赞数和点赞状态
             const postResults = [...this.data.postResults];
             postResults[index].isLiked = response.isLiked;
             postResults[index].likes = response.likeCount;
             this.setData({ postResults });
-        }).catch(error => {
-            console.error('点赞操作失败:', error);
+        })
+            .catch((error) => {
             // 恢复原状态
             const postResults = [...this.data.postResults];
             postResults[index].isLiked = isLiked;
@@ -712,7 +747,7 @@ Page({
             this.setData({ postResults });
             wx.showToast({
                 title: '操作失败',
-                icon: 'none'
+                icon: 'none',
             });
         });
     },
@@ -724,15 +759,14 @@ Page({
         // 从组件事件的detail中获取postId，或者从dataset中获取id（兼容直接点击的情况）
         const postId = ((_a = e.detail) === null || _a === void 0 ? void 0 : _a.postId) || e.currentTarget.dataset.id;
         if (!postId) {
-            console.error('无法获取帖子ID:', e);
             wx.showToast({
                 title: '无法评论帖子',
-                icon: 'none'
+                icon: 'none',
             });
             return;
         }
         wx.navigateTo({
-            url: `/pages/community/post-detail/post-detail?id=${postId}&focus=comment`
+            url: `/pages/community/post-detail/post-detail?id=${postId}&focus=comment`,
         });
     },
     /**
@@ -743,12 +777,11 @@ Page({
         // 从组件事件的detail中获取postId，或者从dataset中获取id（兼容直接点击的情况）
         const postId = ((_a = e.detail) === null || _a === void 0 ? void 0 : _a.postId) || e.currentTarget.dataset.id;
         if (!postId) {
-            console.error('无法获取帖子ID:', e);
             return;
         }
         wx.showShareMenu({
             withShareTicket: true,
-            menus: ['shareAppMessage', 'shareTimeline']
+            menus: ['shareAppMessage', 'shareTimeline'],
         });
     },
 });

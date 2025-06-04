@@ -7,6 +7,8 @@ const util_1 = require("../../../utils/util");
 Page({
     data: {
         activeTab: 'all',
+        tabIndex: 0,
+        tabName: '全部',
         notifications: [],
         loading: false,
         hasMore: true,
@@ -20,13 +22,41 @@ Page({
         (0, use_auth_1.useAuth)(this);
         this.loadNotifications(true);
     },
-    // 切换标签
-    switchTab(e) {
-        const tab = e.currentTarget.dataset.tab;
-        if (tab === this.data.activeTab)
+    // 处理tab-bar组件的标签切换事件
+    onTabChange(e) {
+        const index = e.detail.index;
+        let activeTab = 'all';
+        let tabName = '全部';
+        switch (index) {
+            case 0:
+                activeTab = 'all';
+                tabName = '全部';
+                break;
+            case 1:
+                activeTab = 'like';
+                tabName = '点赞';
+                break;
+            case 2:
+                activeTab = 'comment';
+                tabName = '评论';
+                break;
+            case 3:
+                activeTab = 'follow';
+                tabName = '关注';
+                break;
+            case 4:
+                activeTab = 'system';
+                tabName = '系统';
+                break;
+            default:
+                break;
+        }
+        if (activeTab === this.data.activeTab)
             return;
         this.setData({
-            activeTab: tab,
+            activeTab,
+            tabIndex: index,
+            tabName,
             notifications: [],
             page: 1,
             hasMore: true
@@ -68,7 +98,8 @@ Page({
             const formattedNotifications = notifications.map((notification) => {
                 return {
                     ...notification,
-                    timeAgo: this.formatTimeAgo(notification.createdAt)
+                    timeAgo: this.formatTimeAgo(notification.createdAt),
+                    time: this.formatTimeAgo(notification.createdAt)
                 };
             });
             this.setData({
@@ -83,7 +114,6 @@ Page({
             }
         })
             .catch((error) => {
-            console.error('获取通知失败:', error);
             this.setData({ loading: false });
             if (isRefresh) {
                 wx.stopPullDownRefresh();
@@ -110,7 +140,6 @@ Page({
             });
         })
             .catch((error) => {
-            console.error('标记已读失败:', error);
             wx.showToast({
                 title: '操作失败',
                 icon: 'none'
@@ -144,7 +173,6 @@ Page({
                         });
                     })
                         .catch((error) => {
-                        console.error('标记全部已读失败:', error);
                         wx.showToast({
                             title: '操作失败',
                             icon: 'none'
@@ -177,7 +205,6 @@ Page({
                         });
                     })
                         .catch((error) => {
-                        console.error('删除通知失败:', error);
                         wx.showToast({
                             title: '删除失败',
                             icon: 'none'
@@ -197,42 +224,66 @@ Page({
             this.loadNotifications();
         }
     },
+    // 加载更多
+    loadMore() {
+        if (!this.data.loading && this.data.hasMore) {
+            this.loadNotifications();
+        }
+    },
     // 处理通知点击
-    handleNotificationTap(e) {
-        const { id, index, type } = e.currentTarget.dataset;
+    handleNotification(e) {
+        const { id, type, targetId } = e.currentTarget.dataset;
+        const index = this.data.notifications.findIndex(item => item.id === id);
+        if (index === -1)
+            return;
         const notification = this.data.notifications[index];
         // 如果未读，先标记为已读
         if (!notification.isRead) {
-            this.markAsRead(e);
+            // 直接调用API而不是通过事件处理函数
+            api_1.notificationAPI.markAsRead(id)
+                .then(() => {
+                const notifications = [...this.data.notifications];
+                notifications[index].isRead = true;
+                this.setData({
+                    notifications,
+                    unreadCount: Math.max(0, this.data.unreadCount - 1)
+                });
+            })
+                .catch((error) => {
+                wx.showToast({
+                    title: '操作失败',
+                    icon: 'none'
+                });
+            });
         }
         // 根据通知类型跳转到相应页面
         switch (type) {
             case 'like':
             case 'comment':
-                if (notification.relatedPost) {
+                if (notification.post) {
                     wx.navigateTo({
-                        url: `/pages/community/post-detail/post-detail?id=${notification.relatedPost._id}`
+                        url: `/pages/community/post-detail/post-detail?id=${notification.post.id || targetId}`
                     });
                 }
                 break;
             case 'follow':
                 if (notification.sender) {
                     wx.navigateTo({
-                        url: `/pages/community/user-profile/user-profile?id=${notification.sender._id}`
+                        url: `/pages/community/user-profile/user-profile?id=${notification.sender.id || targetId}`
                     });
                 }
                 break;
             case 'challenge':
                 if (notification.relatedChallenge) {
                     wx.navigateTo({
-                        url: `/pages/community/challenges/detail/detail?id=${notification.relatedChallenge._id}`
+                        url: `/pages/community/challenges/detail/detail?id=${notification.relatedChallenge._id || targetId}`
                     });
                 }
                 break;
             case 'habit':
                 if (notification.relatedHabit) {
                     wx.navigateTo({
-                        url: `/pages/habits/detail/detail?id=${notification.relatedHabit._id}`
+                        url: `/pages/habits/detail/detail?id=${notification.relatedHabit._id || targetId}`
                     });
                 }
                 break;
@@ -242,6 +293,48 @@ Page({
             default:
                 break;
         }
+    },
+    // 切换关注状态
+    toggleFollow(e) {
+        // 注意：在WXML中应该使用catchtap而不是bindtap来阻止事件冒泡
+        const { id, index } = e.currentTarget.dataset;
+        const notifications = [...this.data.notifications];
+        const notification = notifications[index];
+        if (!this.data.hasLogin) {
+            wx.showToast({
+                title: '请先登录',
+                icon: 'none'
+            });
+            return;
+        }
+        const isFollowing = notification.isFollowing;
+        // 调用关注/取消关注API
+        wx.showLoading({ title: isFollowing ? '取消关注中...' : '关注中...' });
+        // 这里假设有一个userAPI.toggleFollow方法
+        // 实际使用时需替换为真实的API调用
+        const toggleFollowPromise = new Promise((resolve, reject) => {
+            setTimeout(() => {
+                resolve({});
+            }, 500);
+        });
+        toggleFollowPromise
+            .then(() => {
+            wx.hideLoading();
+            // 更新本地状态
+            notifications[index].isFollowing = !isFollowing;
+            this.setData({ notifications });
+            wx.showToast({
+                title: isFollowing ? '已取消关注' : '已关注',
+                icon: 'success'
+            });
+        })
+            .catch((error) => {
+            wx.hideLoading();
+            wx.showToast({
+                title: '操作失败',
+                icon: 'none'
+            });
+        });
     },
     // 格式化时间
     formatTimeAgo(time) {

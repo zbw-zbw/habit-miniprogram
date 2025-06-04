@@ -80,7 +80,6 @@ Page({
         api_1.communityAPI.getChallenge(challengeId)
             .then(challenge => {
             var _a, _b, _c;
-            console.log('获取到挑战详情:', challenge);
             // 处理挑战数据
             const processedChallenge = {
                 ...challenge,
@@ -123,7 +122,6 @@ Page({
             this.loadParticipants();
         })
             .catch(error => {
-            console.error('获取挑战详情失败:', error);
             wx.showToast({
                 title: '获取挑战详情失败',
                 icon: 'none'
@@ -142,7 +140,6 @@ Page({
         this.setData({ participantsLoading: true });
         api_1.communityAPI.getChallengeParticipants(challengeId, { limit: 5 })
             .then(result => {
-            console.log('获取到参与者列表:', result);
             let participants = result.participants || [];
             // 检查创建者是否在参与者列表中
             const { challenge } = this.data;
@@ -176,7 +173,6 @@ Page({
             });
         })
             .catch(error => {
-            console.error('获取参与者列表失败:', error);
             this.setData({ participantsLoading: false });
         });
     },
@@ -226,7 +222,6 @@ Page({
             this.loadParticipants();
         })
             .catch(error => {
-            console.error('操作失败:', error);
             // 显示错误提示
             wx.showToast({
                 title: '操作失败',
@@ -407,7 +402,6 @@ Page({
                         }, 1500);
                     })
                         .catch(error => {
-                        console.error('解散挑战失败:', error);
                         wx.showToast({
                             title: '解散挑战失败',
                             icon: 'none'

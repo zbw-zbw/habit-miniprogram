@@ -94,8 +94,7 @@
                 bind:viewDetail="viewPostDetail"
                 bind:viewUser="viewUserProfile"
                 bind:like="likePost"
-                bind:comment="commentPost"
-                bind:share="sharePost">
+                bind:comment="commentPost">
               </post-card>
             </block>
             

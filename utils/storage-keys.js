@@ -12,7 +12,7 @@ var StorageKeys;
     StorageKeys["HABIT_CHAINS"] = "habitChains";
     StorageKeys["CHECKINS"] = "checkins";
     StorageKeys["SETTINGS"] = "settings";
-    StorageKeys["THEME"] = "theme";
+    StorageKeys["SETTING_THEME"] = "setting_theme";
     StorageKeys["ACHIEVEMENTS"] = "achievements";
     StorageKeys["REFRESH_TOKEN"] = "refreshToken";
 })(StorageKeys = exports.StorageKeys || (exports.StorageKeys = {}));

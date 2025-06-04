@@ -53,7 +53,7 @@ exports.getComments = async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('获取评论列表错误:', error);
+    
     res.status(500).json({
       success: false,
       message: '服务器错误，获取评论列表失败'
@@ -79,7 +79,7 @@ exports.createComment = async (req, res) => {
     const { postId } = req.params;
     const { content, replyTo, replyToUser } = req.body;
     
-    console.log('创建评论请求数据:', { postId, userId: req.user._id, content, replyTo, replyToUser });
+    
     
     // 检查动态是否存在
     const post = await Post.findById(postId);
@@ -128,7 +128,7 @@ exports.createComment = async (req, res) => {
     
     session.endSession();
     } catch (transactionError) {
-      console.error('评论事务处理错误，尝试使用非事务方式:', transactionError);
+      
       
       // 如果事务失败，使用非事务方式保存
       try {
@@ -147,9 +147,9 @@ exports.createComment = async (req, res) => {
         post.commentCount += 1;
         await post.save();
         
-        console.log('使用非事务方式创建评论成功');
+        
       } catch (nonTransactionError) {
-        console.error('非事务方式创建评论失败:', nonTransactionError);
+        
         return res.status(500).json({
           success: false,
           message: '服务器错误，创建评论失败',
@@ -171,7 +171,7 @@ exports.createComment = async (req, res) => {
       data: comment
     });
     } catch (populateError) {
-      console.error('填充评论用户信息错误:', populateError);
+      
       // 即使填充失败，评论创建已成功，返回基本数据
       res.status(201).json({
         success: true,
@@ -180,7 +180,7 @@ exports.createComment = async (req, res) => {
       });
     }
   } catch (error) {
-    console.error('创建评论错误:', error);
+    
     res.status(500).json({
       success: false,
       message: '服务器错误，创建评论失败',
@@ -211,7 +211,7 @@ exports.checkCommentOwner = async (req, res, next) => {
     
     next();
   } catch (error) {
-    console.error('检查评论所有者错误:', error);
+    
     res.status(500).json({
       success: false,
       message: '服务器错误'
@@ -247,7 +247,7 @@ exports.updateComment = async (req, res) => {
       data: comment
     });
   } catch (error) {
-    console.error('更新评论错误:', error);
+    
     res.status(500).json({
       success: false,
       message: '服务器错误，更新评论失败'
@@ -282,7 +282,7 @@ exports.deleteComment = async (req, res) => {
     
     session.endSession();
     } catch (transactionError) {
-      console.error('评论删除事务处理错误，尝试使用非事务方式:', transactionError);
+      
       
       // 如果事务失败，使用非事务方式保存
       try {
@@ -297,9 +297,9 @@ exports.deleteComment = async (req, res) => {
           await post.save();
         }
         
-        console.log('使用非事务方式删除评论成功');
+        
       } catch (nonTransactionError) {
-        console.error('非事务方式删除评论失败:', nonTransactionError);
+        
         return res.status(500).json({
           success: false,
           message: '服务器错误，删除评论失败',
@@ -313,7 +313,7 @@ exports.deleteComment = async (req, res) => {
       message: '评论删除成功'
     });
   } catch (error) {
-    console.error('删除评论错误:', error);
+    
     res.status(500).json({
       success: false,
       message: '服务器错误，删除评论失败',
@@ -331,13 +331,13 @@ exports.likeComment = async (req, res) => {
     const { commentId } = req.params;
     const userId = req.user._id;
     
-    console.log('点赞评论请求:', { commentId, userId: userId.toString() });
+    
     
     // 查找评论
     const comment = await Comment.findById(commentId);
     
     if (!comment) {
-      console.error('评论不存在:', commentId);
+      
       return res.status(404).json({
         success: false,
         message: '评论不存在'
@@ -353,12 +353,7 @@ exports.likeComment = async (req, res) => {
     await comment.save();
     }
     
-    console.log('点赞评论成功:', { 
-      commentId, 
-      userId: userId.toString(), 
-      likeCount: comment.likes.length,
-      isLiked: true
-    });
+    
     
     return res.status(200).json({
       success: true,
@@ -366,7 +361,7 @@ exports.likeComment = async (req, res) => {
         isLiked: true
     });
   } catch (error) {
-    console.error('点赞评论失败:', error);
+    
     return res.status(500).json({
       success: false,
       message: '服务器错误，点赞评论失败'
@@ -383,13 +378,13 @@ exports.unlikeComment = async (req, res) => {
     const { commentId } = req.params;
     const userId = req.user._id;
     
-    console.log('取消点赞评论请求:', { commentId, userId: userId.toString() });
+    
     
     // 查找评论
     const comment = await Comment.findById(commentId);
     
     if (!comment) {
-      console.error('评论不存在:', commentId);
+      
       return res.status(404).json({
         success: false,
         message: '评论不存在'
@@ -406,12 +401,7 @@ exports.unlikeComment = async (req, res) => {
     await comment.save();
     }
     
-    console.log('取消点赞评论成功:', { 
-      commentId, 
-      userId: userId.toString(), 
-      likeCount: comment.likes.length,
-      isLiked: false
-    });
+    
     
     return res.status(200).json({
       success: true,
@@ -419,7 +409,7 @@ exports.unlikeComment = async (req, res) => {
         isLiked: false
     });
   } catch (error) {
-    console.error('取消点赞评论失败:', error);
+    
     return res.status(500).json({
       success: false,
       message: '服务器错误，取消点赞评论失败'

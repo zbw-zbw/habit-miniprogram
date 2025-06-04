@@ -11,7 +11,7 @@ export const setStorage = <T>(key: string, data: T): void => {
   try {
     wx.setStorageSync(key, data);
   } catch (error) {
-    console.error(`设置本地存储失败: ${key}`, error);
+    
   }
 };
 
@@ -26,7 +26,7 @@ export const getStorage = <T>(key: string, defaultValue: T): T => {
     const value = wx.getStorageSync(key);
     return (value === '' || value === null || value === undefined) ? defaultValue : value;
   } catch (error) {
-    console.error(`获取本地存储失败: ${key}`, error);
+    
     return defaultValue;
   }
 };
@@ -39,7 +39,7 @@ export const removeStorage = (key: string): void => {
   try {
     wx.removeStorageSync(key);
   } catch (error) {
-    console.error(`移除本地存储失败: ${key}`, error);
+    
   }
 };
 
@@ -50,7 +50,7 @@ export const clearStorage = (): void => {
   try {
     wx.clearStorageSync();
   } catch (error) {
-    console.error('清除本地存储失败', error);
+    
   }
 };
 
@@ -185,7 +185,7 @@ export const saveHabits = (habits: IHabit[]): void => {
   try {
     wx.setStorageSync('habits', habits);
   } catch (e) {
-    console.error('保存习惯数据失败:', e);
+    
   }
 };
 
@@ -197,7 +197,7 @@ export const getHabits = (): IHabit[] => {
   try {
     return wx.getStorageSync('habits') || [];
   } catch (e) {
-    console.error('获取习惯数据失败:', e);
+    
     return [];
   }
 };
@@ -210,7 +210,7 @@ export const saveCheckins = (checkins: ICheckin[]): void => {
   try {
     wx.setStorageSync('checkins', checkins);
   } catch (e) {
-    console.error('保存打卡记录失败:', e);
+    
   }
 };
 
@@ -222,7 +222,7 @@ export const getCheckins = (): ICheckin[] => {
   try {
     return wx.getStorageSync('checkins') || [];
   } catch (e) {
-    console.error('获取打卡记录失败:', e);
+    
     return [];
   }
 };
@@ -245,7 +245,7 @@ export const saveUserInfo = (userInfo: IUserInfo): void => {
   try {
     wx.setStorageSync('userInfo', userInfo);
   } catch (e) {
-    console.error('保存用户信息失败:', e);
+    
   }
 };
 
@@ -257,7 +257,7 @@ export const getUserInfo = (): IUserInfo | null => {
   try {
     return wx.getStorageSync('userInfo') || null;
   } catch (e) {
-    console.error('获取用户信息失败:', e);
+    
     return null;
   }
 };
@@ -293,7 +293,7 @@ export const getHabitById = (habitId: string): IHabit | null => {
  * @param theme 主题
  */
 export const saveTheme = (theme: 'light' | 'dark'): void => {
-  setStorage('theme', theme);
+  setStorage('setting_theme', theme);
 };
 
 /**
@@ -301,7 +301,7 @@ export const saveTheme = (theme: 'light' | 'dark'): void => {
  * @returns 主题名称
  */
 export const getTheme = (): 'light' | 'dark' => {
-  return getStorage<'light' | 'dark'>('theme', 'light');
+  return getStorage<'light' | 'dark'>('setting_theme', 'light');
 };
 
 /**
@@ -315,7 +315,7 @@ export const saveHabitStats = (habitId: string, stats: IHabitStats): void => {
     allStats[habitId] = stats;
     wx.setStorageSync('habitStats', allStats);
   } catch (e) {
-    console.error('保存习惯统计数据失败:', e);
+    
   }
 };
 
@@ -329,7 +329,7 @@ export const getHabitStats = (habitId: string): IHabitStats | null => {
     const allStats = wx.getStorageSync('habitStats') || {};
     return allStats[habitId] || null;
   } catch (e) {
-    console.error('获取习惯统计数据失败:', e);
+    
     return null;
   }
 };
@@ -342,7 +342,7 @@ export const saveAllHabitStats = (stats: Record<string, IHabitStats>): void => {
   try {
     wx.setStorageSync('habitStats', stats);
   } catch (e) {
-    console.error('保存所有习惯统计数据失败:', e);
+    
   }
 };
 
@@ -354,7 +354,7 @@ export const getAllHabitStats = (): Record<string, IHabitStats> => {
   try {
     return wx.getStorageSync('habitStats') || {};
   } catch (e) {
-    console.error('获取所有习惯统计数据失败:', e);
+    
     return {};
   }
 };
@@ -366,7 +366,7 @@ export const clearAllData = (): void => {
   try {
     wx.clearStorageSync();
   } catch (e) {
-    console.error('清除本地存储失败:', e);
+    
   }
 };
 
@@ -378,6 +378,6 @@ export const clearAuthData = (): void => {
     wx.removeStorageSync('token');
     wx.removeStorageSync('refreshToken');
   } catch (e) {
-    console.error('清除认证数据失败:', e);
+    
   }
 }; 

@@ -1,4 +1,6 @@
 /* 用户资料设置页面样式 */
+@import '/styles/iconfont.wxss';
+
 .profile-setup-container {
   display: flex;
   flex-direction: column;

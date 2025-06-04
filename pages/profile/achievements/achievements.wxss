@@ -1,4 +1,6 @@
 /* 成就列表页面样式 */
+@import '/styles/iconfont.wxss';
+
 .container {
   padding: 16px;
   background-color: #F5F7FA;

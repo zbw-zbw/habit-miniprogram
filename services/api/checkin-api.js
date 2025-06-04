@@ -48,6 +48,24 @@ exports.checkinAPI = {
         return (0, request_1.post)('/api/checkins', data);
     },
     /**
+     * 创建打卡记录并返回相关统计数据（聚合API）
+     * @param checkinData 打卡数据
+     * @returns Promise<{checkin: ICheckin, stats: IHabitStats, habit: IHabit}>
+     */
+    createCheckinWithDetails: (checkinData) => {
+        // 确保habitId或habit至少有一个
+        if (!checkinData.habitId && !checkinData.habit) {
+            return Promise.reject(new Error('习惯ID不能为空'));
+        }
+        // 将habitId复制到habit字段，以满足服务器端要求
+        const data = { ...checkinData };
+        if (!data.habit && data.habitId) {
+            data.habit = data.habitId;
+        }
+        // 使用聚合API端点
+        return (0, request_1.post)('/api/checkins/with-details', data);
+    },
+    /**
      * 更新打卡记录
      * @param id 打卡记录ID
      * @param checkin 打卡记录数据

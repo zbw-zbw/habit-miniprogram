@@ -2,7 +2,6 @@
 @import "/styles/iconfont.wxss";
 
 .container {
-  padding: 30rpx;
   background-color: #F5F7FA;
   min-height: 100vh;
 }
@@ -174,20 +173,6 @@
   padding: 0 30rpx 30rpx;
 }
 
-.cancel-btn {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  width: 45%;
-  height: 88rpx;
-  background-color: #F5F7FA;
-  color: #606266;
-  font-size: 30rpx;
-  border-radius: 8rpx;
-  text-align: center;
-  border: none;
-}
-
 .submit-btn {
   display: flex;
   justify-content: center;
@@ -207,48 +192,11 @@
   color: #FFFFFF;
 }
 
-/* 导航栏 */
-.navbar {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 20rpx 30rpx;
-  background-color: #FFFFFF;
-  position: relative;
-}
-
-.navbar-left {
-  width: 60rpx;
-  height: 60rpx;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.navbar-left .iconfont {
-  font-size: 40rpx;
-  color: #303133;
-}
-
-.navbar-title {
-  position: absolute;
-  left: 50%;
-  transform: translateX(-50%);
-  font-size: 32rpx;
-  font-weight: 500;
-  color: #303133;
-}
-
-.navbar-right {
-  width: 60rpx;
-}
-
 /* 表单容器 */
 .form-container {
   background-color: #FFFFFF;
   border-radius: 16rpx;
   padding: 30rpx;
-  margin-top: 30rpx;
   box-shadow: 0 2rpx 10rpx rgba(0, 0, 0, 0.05);
 }
 

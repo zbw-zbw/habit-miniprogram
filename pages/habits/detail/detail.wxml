@@ -18,10 +18,13 @@
             <text class="iconfont icon-tag"></text>
             {{categoryMap[habit.category] || habit.category}}
           </view>
-          <!-- 频率标签 -->
+          <!-- 频率和目标合并标签 -->
           <view class="tag">
             <text class="iconfont icon-repeat"></text>
+            <!-- 频率部分 -->
             <block wx:if="{{habit.frequency.type === 'daily'}}">每天</block>
+            <block wx:elif="{{habit.frequency.type === 'workdays'}}">工作日</block>
+            <block wx:elif="{{habit.frequency.type === 'weekends'}}">周末</block>
             <block wx:elif="{{habit.frequency.type === 'weekly'}}">
               <block wx:if="{{habit.frequency.days.length === 7}}">每天</block>
               <block wx:elif="{{habit.frequency.days.length === 5 && habit.frequency.days.includes(1) && habit.frequency.days.includes(2) && habit.frequency.days.includes(3) && habit.frequency.days.includes(4) && habit.frequency.days.includes(5)}}">工作日</block>
@@ -30,16 +33,25 @@
               <block wx:else>每周{{habit.frequency.days.length}}天</block>
             </block>
             <block wx:elif="{{habit.frequency.type === 'monthly'}}">每月{{habit.frequency.days.length}}次</block>
-            <block wx:else>自定义</block>
-          </view>
-          <!-- 目标标签：显示次数或时长 -->
-          <view class="tag">
-            <text class="iconfont icon-target"></text>
-            <block wx:if="{{habit.goal.type === 'duration' && habit.goal.value}}">
+            <block wx:elif="{{habit.frequency.type === 'custom'}}">自定义</block>
+            <block wx:else>{{habit.frequency.type}}</block>
+            
+            <!-- 目标部分 -->
+            <text class="tag-separator">·</text>
+            <block wx:if="{{habit.duration && habit.duration.enabled}}">
+              {{habit.duration.format || '00:00:00'}}
+            </block>
+            <block wx:elif="{{habit.goal && habit.goal.value && habit.goal.unit}}">
+              {{habit.goal.value}}{{habit.goal.unit || '次'}}
+            </block>
+            <block wx:elif="{{habit.goal && habit.goal.type === 'duration' && habit.goal.value}}">
               {{habit.goal.value}}{{habit.goal.unit || '分钟'}}
             </block>
-            <block wx:elif="{{habit.goal.type === 'count' && habit.goal.value}}">
+            <block wx:elif="{{habit.goal && habit.goal.type === 'completion' && habit.goal.value}}">
               {{habit.goal.value}}{{habit.goal.unit || '次'}}
+            </block>
+            <block wx:elif="{{habit.targetValue}}">
+              {{habit.targetValue}}{{habit.unit || '次'}}
             </block>
             <block wx:else>
               1次

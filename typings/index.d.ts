@@ -9,7 +9,7 @@
  */
 
 // 应用配置
-interface IAppOption {
+export interface IAppOption {
   globalData: {
     userInfo: IUserInfo | null;
     hasLogin: boolean;
@@ -21,6 +21,14 @@ interface IAppOption {
     apiAvailable?: boolean; // API服务是否可用
     token?: string; // 用户认证令牌
     refreshToken?: string; // 刷新令牌
+    settings?: {
+      notification: boolean;
+      sound: boolean;
+      vibration: boolean;
+      language: 'zh_CN' | 'en_US';
+      autoBackup: boolean;
+    }; // 用户设置
+    isDarkMode?: boolean; // 是否深色模式
   };
   userInfoReadyCallback?: WechatMiniprogram.GetUserInfoSuccessCallback;
   login(userInfo: IUserInfo, callback: (success: boolean) => void): void;
@@ -40,10 +48,17 @@ interface IAppOption {
   verifyToken?(): void; // 验证令牌有效性
   refreshAuthToken?(): void; // 刷新认证令牌
   onShow?(): void; // 当小程序从后台进入前台显示时触发
+  refreshCurrentPageData?(): void; // 刷新当前页面数据
+  loadSettings?(): void; // 加载用户设置
+  applyTheme?(theme: 'light' | 'dark' | 'system'): void; // 应用主题到UI
+  updateAllPagesTheme?(theme: 'light' | 'dark'): void; // 更新所有页面的主题
+  playNotificationSound?(): void; // 播放通知提示音
+  vibrate?(): void; // 触发震动
+  sendNotification?(title: string, content: string): void; // 发送通知
 }
 
 // 用户信息
-interface IUserInfo {
+export interface IUserInfo {
   id: string;
   nickName: string;
   avatarUrl: string;
@@ -54,7 +69,7 @@ interface IUserInfo {
 }
 
 // 习惯
-interface IHabit {
+export interface IHabit {
   id: string;
   _id?: string; // 添加MongoDB ID字段
   name: string;
@@ -81,7 +96,7 @@ interface IHabit {
 }
 
 // 打卡记录
-interface ICheckin {
+export interface ICheckin {
   id: string;
   habitId: string;
   date: string; // YYYY-MM-DD 格式
@@ -92,7 +107,7 @@ interface ICheckin {
 }
 
 // 习惯统计数据
-interface IHabitStats {
+export interface IHabitStats {
   totalCompletions: number;
   totalDays: number;
   completionRate: number;
@@ -102,7 +117,7 @@ interface IHabitStats {
 }
 
 // 社区动态接口
-interface IPost {
+export interface IPost {
   id: string;
   userId: string;
   userInfo: {
@@ -121,7 +136,7 @@ interface IPost {
 }
 
 // 评论接口
-interface IComment {
+export interface IComment {
   id: string;
   postId: string;
   userId: string;
@@ -134,7 +149,7 @@ interface IComment {
 }
 
 // 挑战接口
-interface IChallenge {
+export interface IChallenge {
   id: string;
   title: string;
   description: string;
@@ -147,7 +162,7 @@ interface IChallenge {
 }
 
 // 朋友接口
-interface IFriend {
+export interface IFriend {
   id: string;
   userId: string;
   nickName: string;
@@ -161,7 +176,7 @@ interface IFriend {
 }
 
 // 通知接口
-interface INotification {
+export interface INotification {
   id: string;
   userId: string;
   type: 'like' | 'comment' | 'follow' | 'challenge' | 'system';
@@ -178,7 +193,7 @@ interface INotification {
 }
 
 // 成就接口
-interface IAchievement {
+export interface IAchievement {
   id: string;
   title: string;
   description: string;

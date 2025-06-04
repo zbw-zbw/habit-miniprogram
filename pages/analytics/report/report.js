@@ -49,7 +49,6 @@ Page({
             });
         })
             .catch(error => {
-            console.error('获取报告数据失败:', error);
             // 如果API失败，回退到本地数据生成
             Promise.all([
                 api_1.habitAPI.getHabits(),
@@ -60,7 +59,6 @@ Page({
                 this.setData({ loading: false });
             })
                 .catch(err => {
-                console.error('加载本地数据失败:', err);
                 this.setData({ loading: false });
                 wx.showToast({
                     title: '加载数据失败',

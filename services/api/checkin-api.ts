@@ -2,6 +2,20 @@
  * 打卡相关API
  */
 import { get, post, put, del } from '../../utils/request';
+import { ICheckin, IHabit, IHabitStats } from '../../utils/types';
+
+// 扩展的打卡数据类型，包含额外字段
+interface ICheckinData extends Partial<ICheckin> {
+  habitId?: string;
+  habit?: string;
+  media?: Array<{
+    type: 'image' | 'video' | 'audio';
+    url: string;
+    thumbnail?: string;
+    duration?: number;
+  }>;
+  isPublic?: boolean;
+}
 
 export const checkinAPI = {
   /**
@@ -40,7 +54,7 @@ export const checkinAPI = {
    * @param checkinData 打卡数据
    * @returns Promise<ICheckin>
    */
-  createCheckin: (checkinData: Partial<ICheckin> & { habitId?: string, habit?: string }): Promise<ICheckin> => {
+  createCheckin: (checkinData: ICheckinData): Promise<ICheckin> => {
     // 确保habitId或habit至少有一个
     if (!checkinData.habitId && !checkinData.habit) {
       return Promise.reject(new Error('习惯ID不能为空'));
@@ -53,6 +67,35 @@ export const checkinAPI = {
     }
     
     return post<ICheckin>('/api/checkins', data);
+  },
+
+  /**
+   * 创建打卡记录并返回相关统计数据（聚合API）
+   * @param checkinData 打卡数据
+   * @returns Promise<{checkin: ICheckin, stats: IHabitStats, habit: IHabit}>
+   */
+  createCheckinWithDetails: (checkinData: ICheckinData): Promise<{
+    checkin: ICheckin;
+    stats: IHabitStats;
+    habit: IHabit;
+  }> => {
+    // 确保habitId或habit至少有一个
+    if (!checkinData.habitId && !checkinData.habit) {
+      return Promise.reject(new Error('习惯ID不能为空'));
+    }
+    
+    // 将habitId复制到habit字段，以满足服务器端要求
+    const data = { ...checkinData };
+    if (!data.habit && data.habitId) {
+      data.habit = data.habitId;
+    }
+    
+    // 使用聚合API端点
+    return post<{
+      checkin: ICheckin;
+      stats: IHabitStats;
+      habit: IHabit;
+    }>('/api/checkins/with-details', data);
   },
 
   /**

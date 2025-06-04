@@ -1,13 +1,5 @@
 <!--pages/community/groups/create/create.wxml-->
 <view class="container">
-  <view class="navbar">
-    <view class="navbar-left" bindtap="goBack">
-      <text class="iconfont icon-left"></text>
-    </view>
-    <view class="navbar-title">创建小组</view>
-    <view class="navbar-right"></view>
-  </view>
-
   <view class="form-container">
     <form bindsubmit="submitForm">
       <!-- 小组头像 -->

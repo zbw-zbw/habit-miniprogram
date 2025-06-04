@@ -53,7 +53,7 @@ exports.getNotifications = async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('获取通知列表错误:', error);
+    
     res.status(500).json({
       success: false,
       message: '服务器错误，获取通知列表失败'
@@ -90,7 +90,7 @@ exports.markAsRead = async (req, res) => {
       data: notification
     });
   } catch (error) {
-    console.error('标记通知已读错误:', error);
+    
     res.status(500).json({
       success: false,
       message: '服务器错误，标记通知已读失败'
@@ -128,7 +128,7 @@ exports.markAllAsRead = async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('标记所有通知已读错误:', error);
+    
     res.status(500).json({
       success: false,
       message: '服务器错误，标记所有通知已读失败'
@@ -163,7 +163,7 @@ exports.deleteNotification = async (req, res) => {
       message: '通知已删除'
     });
   } catch (error) {
-    console.error('删除通知错误:', error);
+    
     res.status(500).json({
       success: false,
       message: '服务器错误，删除通知失败'
@@ -182,7 +182,7 @@ exports.createNotification = async (notificationData) => {
     await notification.save();
     return notification;
   } catch (error) {
-    console.error('创建通知错误:', error);
+    
     throw error;
   }
 }; 

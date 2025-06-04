@@ -23,7 +23,6 @@ Page({
      * 生命周期函数--监听页面加载
      */
     onLoad() {
-        console.log('个人中心页面初始加载');
     },
     /**
      * 生命周期函数--监听页面显示
@@ -58,7 +57,6 @@ Page({
         this.setData({ loading: true });
         // 检查是否已登录，未登录则不请求数据
         if (!this.data.hasLogin) {
-            console.log('用户未登录，不加载个人资料数据');
             this.setData({
                 loading: false,
                 stats: {
@@ -76,7 +74,6 @@ Page({
         api_1.userAPI
             .getProfileAll()
             .then((data) => {
-            console.log('获取用户聚合数据成功:', data);
             // 更新统计数据
             this.setData({
                 'stats.totalHabits': data.stats.totalHabits,
@@ -90,7 +87,6 @@ Page({
             });
         })
             .catch((error) => {
-            console.error('获取用户聚合数据失败:', error);
             this.setData({ loading: false });
         });
     },

@@ -66,7 +66,7 @@ const authenticate = async (req, res, next) => {
       });
     }
     
-    console.error('认证中间件错误:', error);
+    
     res.status(500).json({
       success: false,
       message: '服务器内部错误'
@@ -145,7 +145,7 @@ const isOwner = (modelName, paramName) => {
       
       next();
     } catch (error) {
-      console.error('所有权验证中间件错误:', error);
+      
       res.status(500).json({
         success: false,
         message: '服务器内部错误'

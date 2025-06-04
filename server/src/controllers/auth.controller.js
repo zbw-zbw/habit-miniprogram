@@ -87,7 +87,7 @@ exports.register = async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('注册错误:', error);
+    
     res.status(500).json({
       success: false,
       message: '服务器错误，注册失败'
@@ -160,7 +160,7 @@ exports.login = async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('登录错误:', error);
+    
     res.status(500).json({
       success: false,
       message: '服务器错误，登录失败'
@@ -259,7 +259,7 @@ exports.wxLogin = async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('微信登录错误:', error);
+    
     res.status(500).json({
       success: false,
       message: '服务器错误，微信登录失败'
@@ -323,7 +323,7 @@ exports.refreshToken = async (req, res) => {
       });
     }
     
-    console.error('刷新令牌错误:', error);
+    
     res.status(500).json({
       success: false,
       message: '服务器错误，令牌刷新失败'
@@ -374,7 +374,7 @@ exports.forgotPassword = async (req, res) => {
       data: { resetToken } // 实际应用中不应返回此字段
     });
   } catch (error) {
-    console.error('忘记密码错误:', error);
+    
     res.status(500).json({
       success: false,
       message: '服务器错误，处理忘记密码请求失败'
@@ -430,7 +430,7 @@ exports.resetPassword = async (req, res) => {
       });
     }
     
-    console.error('重置密码错误:', error);
+    
     res.status(500).json({
       success: false,
       message: '服务器错误，密码重置失败'
@@ -486,7 +486,7 @@ exports.verifyEmail = async (req, res) => {
       });
     }
     
-    console.error('验证邮箱错误:', error);
+    
     res.status(500).json({
       success: false,
       message: '服务器错误，邮箱验证失败'
@@ -507,7 +507,7 @@ exports.logout = async (req, res) => {
       message: '登出成功'
     });
   } catch (error) {
-    console.error('登出错误:', error);
+    
     res.status(500).json({
       success: false,
       message: '服务器错误，登出失败'
@@ -588,7 +588,7 @@ exports.verifyToken = async (req, res) => {
       throw error;
     }
   } catch (error) {
-    console.error('验证令牌错误:', error);
+    
     res.status(500).json({
       success: false,
       message: '服务器错误，令牌验证失败'

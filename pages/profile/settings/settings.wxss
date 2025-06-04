@@ -1,40 +1,42 @@
 /* 个人中心-设置页面样式 */
-.settings-container {
-  min-height: 100vh;
-  background-color: #F5F7FA;
-  padding-bottom: 40px;
-}
+@import '/styles/iconfont.wxss';
 
-/* 页面标题 */
-.page-header {
-  padding: 30rpx 30rpx 20rpx;
+.settings-container {
+  padding: 30rpx;
+  background-color: var(--background-color);
+  min-height: 100vh;
 }
 
 .header-title {
-  font-size: 44rpx;
+  font-size: 36rpx;
   font-weight: 600;
-  color: #303133;
+  color: var(--title-color);
 }
 
 /* 设置组 */
 .settings-group {
-  margin-bottom: 16px;
-  background-color: #FFFFFF;
+  background-color: var(--card-background);
+  border-radius: 12rpx;
+  padding: 20rpx 30rpx;
+  margin-bottom: 30rpx;
+  box-shadow: var(--shadow-light);
 }
 
 .settings-title {
-  padding: 16px 16px 8px;
-  font-size: 14px;
-  color: #909399;
+  font-size: 28rpx;
+  color: var(--text-color-secondary);
+  margin-bottom: 20rpx;
+  padding-bottom: 10rpx;
+  border-bottom: 1rpx solid var(--divider-color);
 }
 
 /* 设置项 */
 .settings-item {
   display: flex;
-  align-items: center;
   justify-content: space-between;
-  padding: 16px;
-  border-bottom: 1px solid #E4E7ED;
+  align-items: center;
+  padding: 24rpx 0;
+  border-bottom: 1rpx solid var(--divider-color);
 }
 
 .settings-item:last-child {
@@ -42,49 +44,64 @@
 }
 
 .item-label {
-  font-size: 15px;
-  color: #303133;
+  display: flex;
+  align-items: center;
+  font-size: 28rpx;
+  color: var(--text-color);
+}
+
+.item-label .iconfont {
+  font-size: 36rpx;
+  margin-right: 16rpx;
+  color: var(--primary-color);
 }
 
 .item-value {
   display: flex;
   align-items: center;
-  font-size: 14px;
-  color: #606266;
+  font-size: 28rpx;
+  color: var(--text-color-secondary);
 }
 
 .item-arrow {
-  width: 8px;
-  height: 8px;
-  border-top: 2px solid #C0C4CC;
-  border-right: 2px solid #C0C4CC;
+  width: 16rpx;
+  height: 16rpx;
+  border-top: 2rpx solid var(--text-color-secondary);
+  border-right: 2rpx solid var(--text-color-secondary);
   transform: rotate(45deg);
-  margin-left: 8px;
+  margin-left: 10rpx;
 }
 
 /* 退出登录按钮 */
 .logout-button {
-  margin: 24px 16px;
-  height: 44px;
-  line-height: 44px;
+  width: 100%;
+  height: 88rpx;
+  line-height: 88rpx;
   text-align: center;
-  background-color: #FFFFFF;
-  color: #F56C6C;
-  border-radius: 8px;
-  font-size: 16px;
+  background-color: #fff;
+  color: #ff5630;
+  font-size: 32rpx;
+  border-radius: 12rpx;
+  margin-top: 60rpx;
+  box-shadow: var(--shadow-light);
 }
 
-/* 模态框 */
+.logout-button-dark {
+  background-color: var(--card-background);
+  color: #ff6b6b;
+}
+
+/* 模态框样式 */
 .modal {
   position: fixed;
   top: 0;
   left: 0;
   right: 0;
   bottom: 0;
-  z-index: 100;
+  z-index: 1000;
   visibility: hidden;
   opacity: 0;
-  transition: all 0.3s ease;
+  transition: all 0.3s;
 }
 
 .modal.show {
@@ -98,7 +115,7 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background-color: rgba(0, 0, 0, 0.5);
+  background-color: rgba(0, 0, 0, 0.6);
 }
 
 .modal-content {
@@ -106,10 +123,11 @@
   bottom: 0;
   left: 0;
   right: 0;
-  background-color: #FFFFFF;
-  border-radius: 16px 16px 0 0;
+  background-color: #fff;
+  border-radius: 24rpx 24rpx 0 0;
+  overflow: hidden;
   transform: translateY(100%);
-  transition: transform 0.3s ease;
+  transition: transform 0.3s;
 }
 
 .modal.show .modal-content {
@@ -117,171 +135,214 @@
 }
 
 .modal-header {
-  padding: 16px;
-  border-bottom: 1px solid #E4E7ED;
   display: flex;
-  align-items: center;
   justify-content: space-between;
+  align-items: center;
+  padding: 30rpx;
+  border-bottom: 1rpx solid #eee;
 }
 
 .modal-title {
-  font-size: 16px;
-  font-weight: 500;
-  color: #303133;
+  font-size: 32rpx;
+  font-weight: 600;
+  color: #333;
 }
 
 .modal-close {
-  width: 24px;
-  height: 24px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 24px;
-  color: #909399;
+  font-size: 40rpx;
+  color: #999;
 }
 
 .modal-body {
-  padding: 16px;
+  padding: 30rpx;
+  max-height: 70vh;
+  overflow-y: auto;
 }
 
-.modal-footer {
-  padding: 16px;
-  display: flex;
-  justify-content: space-between;
-}
-
-.btn-cancel, .btn-confirm {
-  flex: 1;
-  height: 40px;
-  text-align: center;
-  border-radius: 20px;
-  font-size: 16px;
-}
-
-.btn-cancel {
-  background-color: #F5F7FA;
-  color: #606266;
-  margin-right: 12px;
-}
-
-.btn-confirm {
-  background-color: #4F7CFF;
-  color: #FFFFFF;
-}
-
-/* 主题选择 */
+/* 主题选项样式 */
 .theme-option {
   display: flex;
   align-items: center;
-  padding: 16px 0;
-  border-bottom: 1px solid #E4E7ED;
+  padding: 24rpx 0;
+  border-bottom: 1rpx solid #eee;
 }
 
 .theme-option:last-child {
   border-bottom: none;
 }
 
-.theme-option.active {
-  color: #4F7CFF;
-}
-
 .theme-icon {
-  width: 24px;
-  height: 24px;
+  width: 40rpx;
+  height: 40rpx;
   border-radius: 50%;
-  margin-right: 12px;
+  margin-right: 20rpx;
 }
 
 .theme-icon.light {
-  background-color: #FFFFFF;
-  border: 1px solid #DCDFE6;
+  background-color: #f5f5f5;
+  border: 1rpx solid #ddd;
 }
 
 .theme-icon.dark {
-  background-color: #303133;
+  background-color: #333;
+  border: 1rpx solid #666;
 }
 
 .theme-icon.system {
-  background: linear-gradient(to right, #FFFFFF 50%, #303133 50%);
-  border: 1px solid #DCDFE6;
+  background: linear-gradient(135deg, #f5f5f5 0%, #f5f5f5 50%, #333 50%, #333 100%);
+  border: 1rpx solid #ddd;
 }
 
 .theme-label {
   flex: 1;
-  font-size: 15px;
+  font-size: 28rpx;
+  color: #333;
 }
 
 .theme-check {
-  width: 16px;
-  height: 16px;
-  border-radius: 50%;
-  border: 2px solid #4F7CFF;
-  position: relative;
-}
-
-.theme-check::after {
-  content: '';
-  position: absolute;
-  top: 3px;
-  left: 3px;
-  width: 6px;
-  height: 6px;
+  width: 20rpx;
+  height: 20rpx;
   border-radius: 50%;
   background-color: #4F7CFF;
 }
 
-/* 语言选择 */
+/* 语言选项样式 */
 .language-option {
   display: flex;
   align-items: center;
-  padding: 16px 0;
-  border-bottom: 1px solid #E4E7ED;
+  padding: 24rpx 0;
+  border-bottom: 1rpx solid #eee;
 }
 
 .language-option:last-child {
   border-bottom: none;
 }
 
-.language-option.active {
-  color: #4F7CFF;
-}
-
 .language-label {
   flex: 1;
-  font-size: 15px;
+  font-size: 28rpx;
+  color: #333;
 }
 
 .language-check {
-  width: 16px;
-  height: 16px;
-  border-radius: 50%;
-  border: 2px solid #4F7CFF;
-  position: relative;
-}
-
-.language-check::after {
-  content: '';
-  position: absolute;
-  top: 3px;
-  left: 3px;
-  width: 6px;
-  height: 6px;
+  width: 20rpx;
+  height: 20rpx;
   border-radius: 50%;
   background-color: #4F7CFF;
 }
 
-/* 确认模态框 */
+/* 确认模态框样式 */
 .confirm-text {
-  font-size: 16px;
-  font-weight: 500;
-  color: #303133;
+  font-size: 32rpx;
+  color: #333;
   display: block;
-  margin-bottom: 8px;
+  margin-bottom: 20rpx;
 }
 
 .confirm-desc {
-  font-size: 14px;
-  color: #606266;
+  font-size: 28rpx;
+  color: #999;
   display: block;
+  margin-bottom: 40rpx;
+}
+
+.modal-footer {
+  display: flex;
+  border-top: 1rpx solid #eee;
+}
+
+.btn-cancel, .btn-confirm {
+  flex: 1;
+  height: 88rpx;
+  line-height: 88rpx;
+  text-align: center;
+  font-size: 32rpx;
+}
+
+.btn-cancel {
+  color: #999;
+  border-right: 1rpx solid #eee;
+}
+
+.btn-confirm {
+  color: #4F7CFF;
+}
+
+/* 深色模式样式 */
+.dark-mode .settings-group {
+  background-color: var(--card-background);
+  box-shadow: var(--shadow-light);
+}
+
+.dark-mode .settings-title {
+  color: var(--text-color-secondary);
+  border-bottom-color: var(--divider-color);
+}
+
+.dark-mode .settings-item {
+  border-bottom-color: var(--divider-color);
+}
+
+.dark-mode .item-label {
+  color: var(--text-color);
+}
+
+.dark-mode .item-value {
+  color: var(--text-color-secondary);
+}
+
+.dark-mode .item-arrow {
+  border-color: var(--text-color-secondary);
+}
+
+.dark-mode .modal-content {
+  background-color: var(--card-background);
+}
+
+.dark-mode .modal-header {
+  border-bottom-color: var(--divider-color);
+}
+
+.dark-mode .modal-title {
+  color: var(--title-color);
+}
+
+.dark-mode .modal-close {
+  color: var(--text-color-secondary);
+}
+
+.dark-mode .theme-option,
+.dark-mode .language-option {
+  border-bottom-color: var(--divider-color);
+}
+
+.dark-mode .theme-label,
+.dark-mode .language-label {
+  color: var(--text-color);
+}
+
+.dark-mode .theme-check,
+.dark-mode .language-check {
+  background-color: var(--primary-color);
+}
+
+.dark-mode .confirm-text {
+  color: var(--text-color);
+}
+
+.dark-mode .confirm-desc {
+  color: var(--text-color-secondary);
+}
+
+.dark-mode .modal-footer {
+  border-top-color: var(--divider-color);
+}
+
+.dark-mode .btn-cancel {
+  color: var(--text-color-secondary);
+  border-right-color: var(--divider-color);
+}
+
+.dark-mode .btn-confirm {
+  color: var(--primary-color);
 } 
- 

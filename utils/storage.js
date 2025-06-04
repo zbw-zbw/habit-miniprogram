@@ -14,7 +14,6 @@ const setStorage = (key, data) => {
         wx.setStorageSync(key, data);
     }
     catch (error) {
-        console.error(`设置本地存储失败: ${key}`, error);
     }
 };
 exports.setStorage = setStorage;
@@ -30,7 +29,6 @@ const getStorage = (key, defaultValue) => {
         return (value === '' || value === null || value === undefined) ? defaultValue : value;
     }
     catch (error) {
-        console.error(`获取本地存储失败: ${key}`, error);
         return defaultValue;
     }
 };
@@ -44,7 +42,6 @@ const removeStorage = (key) => {
         wx.removeStorageSync(key);
     }
     catch (error) {
-        console.error(`移除本地存储失败: ${key}`, error);
     }
 };
 exports.removeStorage = removeStorage;
@@ -56,7 +53,6 @@ const clearStorage = () => {
         wx.clearStorageSync();
     }
     catch (error) {
-        console.error('清除本地存储失败', error);
     }
 };
 exports.clearStorage = clearStorage;
@@ -183,7 +179,6 @@ const saveHabits = (habits) => {
         wx.setStorageSync('habits', habits);
     }
     catch (e) {
-        console.error('保存习惯数据失败:', e);
     }
 };
 exports.saveHabits = saveHabits;
@@ -196,7 +191,6 @@ const getHabits = () => {
         return wx.getStorageSync('habits') || [];
     }
     catch (e) {
-        console.error('获取习惯数据失败:', e);
         return [];
     }
 };
@@ -210,7 +204,6 @@ const saveCheckins = (checkins) => {
         wx.setStorageSync('checkins', checkins);
     }
     catch (e) {
-        console.error('保存打卡记录失败:', e);
     }
 };
 exports.saveCheckins = saveCheckins;
@@ -223,7 +216,6 @@ const getCheckins = () => {
         return wx.getStorageSync('checkins') || [];
     }
     catch (e) {
-        console.error('获取打卡记录失败:', e);
         return [];
     }
 };
@@ -247,7 +239,6 @@ const saveUserInfo = (userInfo) => {
         wx.setStorageSync('userInfo', userInfo);
     }
     catch (e) {
-        console.error('保存用户信息失败:', e);
     }
 };
 exports.saveUserInfo = saveUserInfo;
@@ -260,7 +251,6 @@ const getUserInfo = () => {
         return wx.getStorageSync('userInfo') || null;
     }
     catch (e) {
-        console.error('获取用户信息失败:', e);
         return null;
     }
 };
@@ -296,7 +286,7 @@ exports.getHabitById = getHabitById;
  * @param theme 主题
  */
 const saveTheme = (theme) => {
-    (0, exports.setStorage)('theme', theme);
+    (0, exports.setStorage)('setting_theme', theme);
 };
 exports.saveTheme = saveTheme;
 /**
@@ -304,7 +294,7 @@ exports.saveTheme = saveTheme;
  * @returns 主题名称
  */
 const getTheme = () => {
-    return (0, exports.getStorage)('theme', 'light');
+    return (0, exports.getStorage)('setting_theme', 'light');
 };
 exports.getTheme = getTheme;
 /**
@@ -319,7 +309,6 @@ const saveHabitStats = (habitId, stats) => {
         wx.setStorageSync('habitStats', allStats);
     }
     catch (e) {
-        console.error('保存习惯统计数据失败:', e);
     }
 };
 exports.saveHabitStats = saveHabitStats;
@@ -334,7 +323,6 @@ const getHabitStats = (habitId) => {
         return allStats[habitId] || null;
     }
     catch (e) {
-        console.error('获取习惯统计数据失败:', e);
         return null;
     }
 };
@@ -348,7 +336,6 @@ const saveAllHabitStats = (stats) => {
         wx.setStorageSync('habitStats', stats);
     }
     catch (e) {
-        console.error('保存所有习惯统计数据失败:', e);
     }
 };
 exports.saveAllHabitStats = saveAllHabitStats;
@@ -361,7 +348,6 @@ const getAllHabitStats = () => {
         return wx.getStorageSync('habitStats') || {};
     }
     catch (e) {
-        console.error('获取所有习惯统计数据失败:', e);
         return {};
     }
 };
@@ -374,7 +360,6 @@ const clearAllData = () => {
         wx.clearStorageSync();
     }
     catch (e) {
-        console.error('清除本地存储失败:', e);
     }
 };
 exports.clearAllData = clearAllData;
@@ -387,7 +372,6 @@ const clearAuthData = () => {
         wx.removeStorageSync('refreshToken');
     }
     catch (e) {
-        console.error('清除认证数据失败:', e);
     }
 };
 exports.clearAuthData = clearAuthData;

@@ -8,6 +8,7 @@ const User = require('../models/user.model');
 const fs = require('fs');
 const path = require('path');
 const mongoose = require('mongoose');
+const checkinService = require('../services/checkin.service');
 
 /**
  * 获取当前用户的所有打卡记录
@@ -888,6 +889,38 @@ exports.getCheckinStatsSummary = async (req, res) => {
     res.status(500).json({
       success: false,
       message: '服务器错误，获取打卡统计摘要失败'
+    });
+  }
+};
+
+/**
+ * 创建打卡记录并返回详细信息（聚合API）
+ * @route POST /api/checkins/with-details
+ */
+exports.createCheckinWithDetails = async (req, res) => {
+  try {
+    // 验证请求
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({
+        success: false,
+        errors: errors.array()
+      });
+    }
+    
+    // 使用服务创建打卡记录并获取详细信息
+    const result = await checkinService.createCheckinWithDetails(req.body, req.user);
+    
+    res.status(201).json({
+      success: true,
+      message: '打卡记录创建成功',
+      data: result
+    });
+  } catch (error) {
+    console.error('创建打卡记录错误:', error);
+    res.status(500).json({
+      success: false,
+      message: error.message || '服务器错误，创建打卡记录失败'
     });
   }
 }; 

@@ -95,7 +95,7 @@ Page({
         loading: false
       });
     } catch (error) {
-      console.error('加载数据失败', error);
+      
       wx.showToast({
         title: '加载数据失败',
         icon: 'none'
@@ -301,7 +301,7 @@ Page({
       
       this.loadData();
     } catch (error) {
-      console.error('保存习惯链失败', error);
+      
       wx.showToast({
         title: '保存失败',
         icon: 'none'
@@ -362,7 +362,7 @@ Page({
             
             this.loadData();
           } catch (error) {
-            console.error('删除习惯链失败', error);
+            
             wx.showToast({
               title: '删除失败',
               icon: 'none'
@@ -445,7 +445,7 @@ Page({
         analyzing: false
       });
     } catch (error) {
-      console.error('加载习惯关联失败', error);
+      
       wx.showToast({
         title: '分析失败',
         icon: 'none'
@@ -516,7 +516,7 @@ Page({
       
       this.loadData();
     } catch (error) {
-      console.error('保存推荐习惯链失败', error);
+      
       wx.showToast({
         title: '保存失败',
         icon: 'none'

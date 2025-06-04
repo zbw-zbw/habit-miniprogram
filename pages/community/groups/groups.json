@@ -1,5 +1,9 @@
 {
   "navigationBarTitleText": "小组列表",
   "enablePullDownRefresh": true,
-  "usingComponents": {}
+  "usingComponents": {
+    "search-box": "/components/search-box/search-box",
+    "tab-bar": "/components/tab-bar/tab-bar",
+    "fab-button": "/components/fab-button/fab-button"
+  }
 } 

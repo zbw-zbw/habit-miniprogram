@@ -69,9 +69,9 @@ function updateApiBaseUrl(port) {
     );
     
     fs.writeFileSync(appJsPath, content, 'utf8');
-    console.log(`已更新小程序API基础URL为 http://localhost:${port}`);
+    
   } else {
-    console.warn('未找到app.js文件，无法更新API基础URL');
+    
   }
 }
 
@@ -80,7 +80,7 @@ function updateApiBaseUrl(port) {
  * @param {number} port 端口号
  */
 function startServer(port) {
-  console.log(`正在端口 ${port} 上启动服务器...`);
+  
   
   // 设置环境变量
   const env = { ...process.env, PORT: port.toString() };
@@ -93,20 +93,20 @@ function startServer(port) {
   });
   
   server.on('error', (err) => {
-    console.error('启动服务器时出错:', err);
+    
     process.exit(1);
   });
   
   server.on('exit', (code) => {
     if (code !== 0) {
-      console.error(`服务器进程以代码 ${code} 退出`);
+      
       process.exit(code);
     }
   });
   
   // 监听Ctrl+C信号
   process.on('SIGINT', () => {
-    console.log('正在关闭服务器...');
+    
     server.kill();
     process.exit(0);
   });
@@ -126,7 +126,7 @@ async function main() {
     // 启动服务器
     startServer(port);
   } catch (err) {
-    console.error('启动服务器失败:', err);
+    
     process.exit(1);
   }
 }

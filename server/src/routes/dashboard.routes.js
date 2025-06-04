@@ -52,7 +52,15 @@ router.get(
     query('days')
       .optional()
       .isInt({ min: 0, max: 365 })
-      .withMessage('天数必须是0-365之间的整数')
+      .withMessage('天数必须是0-365之间的整数'),
+    query('sort')
+      .optional()
+      .isIn(['default', 'name', 'createdAt', 'completionRate'])
+      .withMessage('排序字段必须是default、name、createdAt或completionRate之一'),
+    query('order')
+      .optional()
+      .isIn(['asc', 'desc'])
+      .withMessage('排序顺序必须是asc或desc')
   ],
   dashboardController.getAllHabits
 );

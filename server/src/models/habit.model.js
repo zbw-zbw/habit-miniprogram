@@ -43,7 +43,7 @@ const habitSchema = new Schema({
   frequency: {
     type: {
       type: String,
-      enum: ['daily', 'weekly', 'monthly', 'custom'],
+      enum: ['daily', 'weekly', 'monthly', 'custom', 'weekends', 'workdays'],
       required: true
     },
     // 对于weekly，表示星期几 [1-7]，对于monthly，表示每月几号 [1-31]

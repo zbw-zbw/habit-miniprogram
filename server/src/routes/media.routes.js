@@ -83,7 +83,7 @@ router.post(
         filename: req.file.filename
       });
     } catch (error) {
-      console.error('文件上传错误:', error);
+      
       res.status(500).json({
         success: false,
         message: '服务器错误，文件上传失败'
@@ -130,7 +130,7 @@ router.post(
         files: fileUrls
       });
     } catch (error) {
-      console.error('文件上传错误:', error);
+      
       res.status(500).json({
         success: false,
         message: '服务器错误，文件上传失败'

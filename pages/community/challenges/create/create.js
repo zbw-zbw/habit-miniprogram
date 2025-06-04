@@ -313,14 +313,12 @@ Page({
             title: '创建中'
         });
         const { formData } = this.data;
-        console.log('准备提交的表单数据:', formData);
         // 如果有封面，先上传封面
         const uploadCoverPromise = formData.image
             ? this.uploadCover(formData.image)
             : Promise.resolve('');
         uploadCoverPromise
             .then((imageUrl) => {
-            console.log('封面上传成功, URL:', imageUrl);
             // 准备提交的数据
             const challengeData = {
                 title: formData.title,
@@ -333,12 +331,10 @@ Page({
                 image: imageUrl || undefined,
                 isPublic: true
             };
-            console.log('发送到服务器的数据:', challengeData);
             // 创建挑战
             return api_1.communityAPI.createChallenge(challengeData);
         })
             .then((challenge) => {
-            console.log('挑战创建成功:', challenge);
             wx.hideLoading();
             wx.showToast({
                 title: '创建成功',
@@ -357,7 +353,6 @@ Page({
             }, 1500);
         })
             .catch((error) => {
-            console.error('创建挑战失败:', error);
             // 尝试解析错误详情
             let errorMsg = '创建失败';
             if (error && error.message) {
@@ -368,8 +363,6 @@ Page({
             }
             // 检查是否是网络请求错误
             if (error && error.statusCode) {
-                console.error('HTTP错误状态码:', error.statusCode);
-                console.error('HTTP错误响应:', error.data);
                 if (error.statusCode === 404) {
                     errorMsg = 'API接口不存在，请联系管理员';
                 }
@@ -400,7 +393,6 @@ Page({
                     resolve(result.url);
                 })
                     .catch(error => {
-                    console.error('上传封面失败:', error);
                     reject(error);
                 });
             }
@@ -482,7 +474,6 @@ Page({
      * 刷新数据方法，供上一页面调用
      */
     refreshData() {
-        console.log('创建挑战页面刷新数据');
         // 这个方法会被上一页面调用，不需要实现具体逻辑
     }
 });

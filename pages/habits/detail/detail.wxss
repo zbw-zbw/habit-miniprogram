@@ -58,6 +58,7 @@
 .habit-tags {
   display: flex;
   flex-wrap: wrap;
+  gap: 16rpx;
 }
 
 .tag {
@@ -65,7 +66,7 @@
   border-radius: 30rpx;
   padding: 8rpx 20rpx;
   font-size: 24rpx;
-  margin-right: 20rpx;
+  margin-right: 0;
   display: flex;
   align-items: center;
   font-weight: 600;
@@ -76,6 +77,12 @@
 .tag .iconfont {
   font-size: 24rpx;
   margin-right: 8rpx;
+}
+
+.tag-separator {
+  margin: 0 6rpx;
+  font-weight: bold;
+  opacity: 0.8;
 }
 
 .habit-stats {
@@ -536,19 +543,28 @@
 }
 
 .habit-checkin-btn {
-  background-color: rgba(255, 255, 255, 0.2);
+  background-color: rgba(255, 255, 255, 0.3);
   color: #FFFFFF;
-  padding: 10rpx 24rpx;
+  padding: 12rpx 30rpx;
   border-radius: 30rpx;
-  font-size: 28rpx;
+  font-size: 30rpx;
+  font-weight: bold;
   display: flex;
   align-items: center;
   justify-content: center;
+  box-shadow: 0 4rpx 10rpx rgba(0, 0, 0, 0.2);
+  border: 2rpx solid rgba(255, 255, 255, 0.6);
+  transition: all 0.3s ease;
+}
+
+.habit-checkin-btn:active {
+  transform: scale(0.95);
+  box-shadow: 0 2rpx 5rpx rgba(0, 0, 0, 0.15);
 }
 
 .habit-checkin-btn .iconfont {
   margin-right: 8rpx;
-  font-size: 32rpx;
+  font-size: 34rpx;
 }
 
 .habit-completed {

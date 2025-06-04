@@ -100,7 +100,6 @@ Page({
             });
         }
         catch (error) {
-            console.error('加载数据失败', error);
             wx.showToast({
                 title: '加载数据失败',
                 icon: 'none'
@@ -212,7 +211,6 @@ Page({
             });
         }
         catch (error) {
-            console.error('加载日历数据失败', error);
         }
     },
     /**
@@ -286,7 +284,6 @@ Page({
                         wx.navigateBack();
                     }
                     catch (error) {
-                        console.error('删除习惯链失败', error);
                         wx.showToast({
                             title: '删除失败',
                             icon: 'none'

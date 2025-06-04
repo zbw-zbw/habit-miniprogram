@@ -1,13 +1,5 @@
 <!--pages/community/challenges/create/create.wxml-->
 <view class="container">
-  <view class="navbar">
-    <view class="navbar-left" bindtap="goBack">
-      <text class="iconfont icon-left"></text>
-    </view>
-    <view class="navbar-title">创建挑战</view>
-    <view class="navbar-right"></view>
-  </view>
-
   <view class="form-container">
     <form bindsubmit="submitForm">
       <!-- 挑战封面 -->

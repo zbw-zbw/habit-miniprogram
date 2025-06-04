@@ -7,6 +7,7 @@ import { dashboardAPI } from '../../services/api/dashboard';
 import { IHabit, IHabitStats } from '../../utils/types';
 import { useAuth } from '../../utils/use-auth';
 import { getCurrentDate } from '../../utils/date';
+import { IAppOption } from '../../typings/index';
 
 // 添加通用API响应类型
 interface ApiResponse<T> {
@@ -95,8 +96,6 @@ Page({
       (category) => this.data.categoryMap[category] || category
     );
 
-    console.log('初始化categoryLabels:', categoryLabels);
-
     // 确保默认选中"全部"标签
     this.setData({
       apiAvailable: app.globalData.apiAvailable,
@@ -104,6 +103,9 @@ Page({
       categoryTabs: categoryLabels, // 同时设置tab-bar组件使用的标签
       activeTab: 0, // 默认选中"全部"标签
       hasLogin: app.globalData.hasLogin,
+      // 初始化排序选项
+      sortType: 'default',
+      sortOrder: 'asc',
     });
 
     // 使用useAuth工具获取全局登录状态
@@ -119,7 +121,6 @@ Page({
    * 生命周期函数--监听页面显示
    */
   onShow() {
-    console.log('习惯页面onShow');
     const app = getApp();
 
     // 更新登录状态
@@ -129,7 +130,6 @@ Page({
 
     // 检查是否已登录，未登录则不请求数据
     if (!app.globalData.hasLogin) {
-      console.log('用户未登录，不加载习惯数据');
       this.setData({
         habits: [],
         loading: false,
@@ -174,13 +174,12 @@ Page({
     // 使用新的专用API获取所有习惯，添加时间戳参数避免缓存
     dashboardAPI
       .getAllHabits({
-        includeArchived: true,
+        includeArchived: false,
         includeStats: true,
-        includeCheckins: false,
+        includeCheckins: true,
         timestamp: Date.now(), // 添加时间戳避免缓存
       } as any) // 使用类型断言处理timestamp属性
       .then((response) => {
-        console.log('强制刷新获取习惯数据成功:', response);
         // 从响应中提取所需数据，确保数据存在
         let habits: IHabit[] = [];
         let habitStats: Record<string, IHabitStats> = {};
@@ -223,20 +222,20 @@ Page({
 
         // 确保habitStats中的日期格式正确
         const today = getCurrentDate();
-        Object.keys(habitStats).forEach(habitId => {
+        Object.keys(habitStats).forEach((habitId) => {
           const stats = habitStats[habitId];
           if (stats && stats.lastCompletedDate) {
             // 处理lastCompletedDate，确保格式一致
-            const lastCompletedDate = typeof stats.lastCompletedDate === 'string'
-              ? stats.lastCompletedDate.split('T')[0] // 处理ISO格式日期
-              : '';
-              
+            const lastCompletedDate =
+              typeof stats.lastCompletedDate === 'string'
+                ? stats.lastCompletedDate.split('T')[0] // 处理ISO格式日期
+                : '';
+
             // 比较日期字符串，确定是否今天已完成
             const isCompletedToday = lastCompletedDate === today;
-            
+
             // 添加调试日志
-            console.log(`习惯[${habitId}] 最后完成日期: ${lastCompletedDate}, 今天: ${today}, 是否完成: ${isCompletedToday}`);
-            
+
             // 更新统计数据中的lastCompletedDate格式
             stats.lastCompletedDate = lastCompletedDate;
           }
@@ -244,22 +243,16 @@ Page({
 
         // 根据当前标签筛选习惯
         const filteredHabits = this.filterHabits(habits);
-        console.log('筛选后的习惯列表:', filteredHabits);
-
-        // 根据当前排序方式排序习惯
-        const sortedHabits = this.sortHabits(filteredHabits, habitStats);
-        console.log('排序后的习惯列表:', sortedHabits);
 
         // 更新数据
         this.setData({
-          habits: sortedHabits,
+          habits: filteredHabits,
           allHabits: habits, // 保存完整的习惯列表
           habitStats,
           loading: false,
           apiAvailable: true,
           error: habits.length === 0 ? '暂无习惯数据' : '',
         });
-        console.log('更新后的habitStats:', habitStats);
       })
       .catch((error) => {
         console.error('获取习惯数据失败:', error);
@@ -285,7 +278,6 @@ Page({
 
     // 检查是否已登录，未登录则不请求数据
     if (!app.globalData.hasLogin) {
-      console.log('用户未登录，不加载习惯数据');
       this.setData({
         habits: [],
         loading: false,
@@ -297,12 +289,14 @@ Page({
     // 使用新的专用API获取所有习惯
     dashboardAPI
       .getAllHabits({
-        includeArchived: true,
+        includeArchived: this.data.showArchived,
         includeStats: true,
         includeCheckins: false,
+        // 添加排序参数
+        sort: this.data.sortType,
+        order: this.data.sortOrder,
       })
       .then((response) => {
-        console.log('获取所有习惯数据成功:', response);
         // 从响应中提取所需数据，确保数据存在
         let habits: IHabit[] = [];
         let habitStats: Record<string, IHabitStats> = {};
@@ -333,12 +327,10 @@ Page({
             }
           }
         }
-        console.log('解析后的习惯数据:', habits);
         // 确保每个习惯都有分类属性
         habits = habits.map((habit: IHabit) => {
           // 如果没有分类，则默认为"other"
           if (!habit.category) {
-            console.log(`习惯[${habit.name}]没有分类，设置为默认分类"other"`);
             return { ...habit, category: 'other' };
           }
           return habit;
@@ -357,19 +349,15 @@ Page({
         }
         // 根据当前标签筛选习惯
         const filteredHabits = this.filterHabits(habits);
-        console.log('筛选后的习惯列表:', filteredHabits);
-        // 根据当前排序方式排序习惯
-        const sortedHabits = this.sortHabits(filteredHabits, habitStats);
         // 更新数据
         this.setData({
-          habits: sortedHabits,
+          habits: filteredHabits,
           allHabits: habits, // 保存完整的习惯列表
           habitStats,
           loading: false,
           apiAvailable: true,
           error: habits.length === 0 ? '暂无习惯数据' : '',
         });
-        console.log('更新后的habitStats:', habitStats);
       })
       .catch((error) => {
         console.error('获取习惯数据失败:', error);
@@ -391,30 +379,15 @@ Page({
       return [];
     }
 
-    const { activeTab, categories, showArchived } = this.data;
+    const { activeTab, categories } = this.data;
 
     // 获取当前选中的分类
     const selectedCategory = categories[activeTab];
 
-    console.log(
-      '当前选择的分类:',
-      selectedCategory,
-      '活动标签索引:',
-      activeTab,
-      '是否显示已归档习惯:',
-      showArchived
-    );
-
     // 筛选出符合条件的习惯
     return habits.filter((habit) => {
-      // 处理归档状态筛选
-      if (showArchived) {
-        // 如果显示已归档习惯，则只显示已归档的
-        if (!habit.isArchived) return false;
-      } else {
-        // 否则只显示未归档的
-        if (habit.isArchived) return false;
-      }
+      // 不在前端过滤归档状态，由服务端处理
+      // 已归档的习惯是否显示完全取决于API请求时的includeArchived参数
 
       // 如果是"全部"标签，则不进行分类筛选
       if (selectedCategory === 'all') return true;
@@ -422,71 +395,9 @@ Page({
       // 获取习惯分类，默认为'other'
       const habitCategory = habit.category || 'other';
 
-      // 输出日志帮助调试
-      console.log(
-        `习惯[${habit.name}]的分类:`,
-        habitCategory,
-        '当前选中分类:',
-        selectedCategory
-      );
-
-      // 匹配分类 - 增加日志
-      const match = habitCategory === selectedCategory;
-      if (!match) {
-        console.log(`习惯[${habit.name}]分类不匹配，被过滤掉`);
-      }
-
-      return match;
+      // 匹配分类
+      return habitCategory === selectedCategory;
     });
-  },
-
-  /**
-   * 根据排序方式排序习惯
-   */
-  sortHabits(habits: any[], habitStats: Record<string, IHabitStats>): IHabit[] {
-    const { sortType, sortOrder } = this.data;
-    const sortedHabits = [...habits];
-
-    switch (sortType) {
-      case 'name':
-        sortedHabits.sort((a, b) => {
-          const result = a.name.localeCompare(b.name);
-          return sortOrder === 'asc' ? result : -result;
-        });
-        break;
-      case 'createdAt':
-        sortedHabits.sort((a, b) => {
-          const result =
-            new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
-          return sortOrder === 'asc' ? result : -result;
-        });
-        break;
-      case 'completionRate':
-        sortedHabits.sort((a, b) => {
-          // 获取习惯ID (可能是id或_id)
-          const habitIdA = a.id || a._id || '';
-          const habitIdB = b.id || b._id || '';
-
-          // 获取完成率
-          const rateA =
-            habitIdA && habitStats[habitIdA]
-              ? habitStats[habitIdA].completionRate || 0
-              : 0;
-          const rateB =
-            habitIdB && habitStats[habitIdB]
-              ? habitStats[habitIdB].completionRate || 0
-              : 0;
-
-          const result = rateA - rateB;
-          return sortOrder === 'asc' ? result : -result;
-        });
-        break;
-      default:
-        // 默认排序，不做任何操作
-        break;
-    }
-
-    return sortedHabits;
   },
 
   /**
@@ -500,29 +411,23 @@ Page({
     if (e.detail && e.detail.index !== undefined) {
       // 来自tab-bar组件的事件
       activeTab = e.detail.index;
-      console.log('来自tab-bar组件的Tab切换:', activeTab);
     } else {
       // 来自点击事件的原始处理方式
       activeTab = e.currentTarget.dataset.index;
-      console.log('来自点击事件的Tab切换:', activeTab);
     }
 
     // 只更新活动标签，并基于现有数据过滤，不再重新加载
     this.setData({ activeTab }, () => {
       // 从缓存中获取所有习惯数据，如果没有则重新加载
       const { allHabits, habitStats } = this.data;
-      
+
       if (allHabits && allHabits.length > 0) {
         // 根据当前标签筛选习惯
         const filteredHabits = this.filterHabits(allHabits);
-        console.log('筛选后的习惯列表:', filteredHabits);
-        
-        // 根据当前排序方式排序习惯
-        const sortedHabits = this.sortHabits(filteredHabits, habitStats);
-        
+
         // 更新数据
         this.setData({
-          habits: sortedHabits
+          habits: filteredHabits,
         });
       } else {
         // 如果没有缓存的所有习惯数据，重新加载
@@ -606,7 +511,6 @@ Page({
       events: {
         // 监听打卡完成事件，然后刷新数据
         checkinCompleted: () => {
-          console.log('接收到打卡完成事件，刷新习惯列表');
           // 延迟一点执行，确保后端数据已更新
           setTimeout(() => {
             this.loadData();
@@ -684,7 +588,6 @@ Page({
    */
   toggleArchived(e: any) {
     const showArchived = e.detail.value;
-    console.log('切换已归档习惯显示状态:', showArchived);
     this.setData({ showArchived }, () => {
       this.loadHabits();
     });

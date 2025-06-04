@@ -17,7 +17,7 @@ Page({
         targetUser: null,
         // 当前用户信息
         userInfo: {
-            avatar: '/assets/images/default-avatar.png'
+            avatar: '/assets/images/default-avatar.png',
         },
         // 消息列表
         messages: [],
@@ -28,8 +28,10 @@ Page({
         safeAreaBottom: 0,
         // 是否显示更多操作面板
         showActionPanel: false,
+        // 是否显示表情面板
+        showEmojiPanel: false,
         // 调试信息
-        debugInfo: ''
+        debugInfo: '',
     },
     // 轮询定时器
     pollingTimer: null,
@@ -44,22 +46,24 @@ Page({
         this.setData({
             hasLogin,
             userInfo: userInfo || {
-                avatar: '/assets/images/default-avatar.png'
-            }
+                avatar: '/assets/images/default-avatar.png',
+            },
         });
         // 保存当前用户ID
-        this.currentUserId = (userInfo === null || userInfo === void 0 ? void 0 : userInfo.id) || '';
-        console.log('本地用户ID:', this.currentUserId, '用户信息:', userInfo);
+        if (userInfo && userInfo.id) {
+            this.currentUserId = userInfo.id;
+            console.log('onLoad - 设置当前用户ID:', this.currentUserId);
+        }
         // 从服务器获取当前用户ID
         this.fetchCurrentUserInfo();
         if (!hasLogin) {
             wx.showToast({
                 title: '请先登录',
-                icon: 'none'
+                icon: 'none',
             });
             setTimeout(() => {
                 wx.navigateTo({
-                    url: '/pages/login/login'
+                    url: '/pages/login/login',
                 });
             }, 1500);
             return;
@@ -69,7 +73,7 @@ Page({
         if (!userId) {
             wx.showToast({
                 title: '缺少用户信息',
-                icon: 'none'
+                icon: 'none',
             });
             setTimeout(() => {
                 wx.navigateBack();
@@ -78,12 +82,14 @@ Page({
         }
         this.setData({
             sessionId: sessionId || '',
-            userId
+            userId,
         });
         // 获取底部安全区域高度
         const systemInfo = wx.getSystemInfoSync();
         this.setData({
-            safeAreaBottom: systemInfo.safeArea ? systemInfo.screenHeight - systemInfo.safeArea.bottom : 0
+            safeAreaBottom: systemInfo.safeArea
+                ? systemInfo.screenHeight - systemInfo.safeArea.bottom
+                : 0,
         });
         // 加载聊天对象信息
         this.loadTargetUser();
@@ -96,17 +102,25 @@ Page({
      * 从服务器获取当前用户信息
      */
     fetchCurrentUserInfo() {
+        // 先从本地获取用户信息
+        const { userInfo } = (0, use_auth_1.getAuthState)();
+        if (userInfo && userInfo.id) {
+            this.currentUserId = userInfo.id;
+            console.log('从本地获取用户ID:', this.currentUserId);
+        }
+        // 再从服务器获取，确保ID正确
         if (message_api_1.messageAPI.getCurrentUserInfo) {
-            message_api_1.messageAPI.getCurrentUserInfo()
+            message_api_1.messageAPI
+                .getCurrentUserInfo()
                 .then((result) => {
                 if (result && result.success && result.currentUser) {
                     const serverUserId = result.currentUser.id;
                     // 更新当前用户ID
                     this.currentUserId = serverUserId;
+                    console.log('从服务器获取用户ID:', this.currentUserId);
                     // 显示调试信息
-                    const debugInfo = `本地ID: ${this.data.userInfo.id || '未知'}\n服务器ID: ${serverUserId}`;
+                    const debugInfo = `本地ID: ${(userInfo === null || userInfo === void 0 ? void 0 : userInfo.id) || '未知'}\n服务器ID: ${serverUserId}`;
                     this.setData({ debugInfo });
-                    console.log('服务器用户ID:', serverUserId);
                     // 重新处理消息
                     if (this.data.messages.length > 0) {
                         const processedMessages = this.processMessages(this.data.messages);
@@ -114,7 +128,7 @@ Page({
                     }
                 }
             })
-                .catch(error => {
+                .catch((error) => {
                 console.error('获取当前用户信息失败:', error);
             });
         }
@@ -134,51 +148,23 @@ Page({
     loadTargetUser() {
         const { userId } = this.data;
         // 调用API获取用户信息
-        if (message_api_1.messageAPI.getUserInfo) {
-            message_api_1.messageAPI.getUserInfo(userId)
-                .then(user => {
-                // 设置导航栏标题
-                wx.setNavigationBarTitle({
-                    title: user.nickname || user.username
-                });
-                // 更新用户信息
-                this.setData({
-                    targetUser: {
-                        ...user,
-                        avatar: (0, image_1.getFullImageUrl)(user.avatar || '/assets/images/default-avatar.png')
-                    }
-                });
-            })
-                .catch(error => {
-                console.error('获取用户信息失败:', error);
-                // 使用模拟数据
-                this.loadMockUserInfo();
+        message_api_1.messageAPI
+            .getUserInfo(userId)
+            .then((user) => {
+            // 设置导航栏标题
+            wx.setNavigationBarTitle({
+                title: user.nickname || user.username,
             });
-        }
-        else {
-            // API不存在，使用模拟数据
-            this.loadMockUserInfo();
-        }
-    },
-    /**
-     * 加载模拟用户信息
-     */
-    loadMockUserInfo() {
-        const { userId } = this.data;
-        // 生成模拟数据
-        const mockUser = {
-            id: userId,
-            username: `user_${userId.slice(-5)}`,
-            nickname: `用户 ${userId.slice(-5)}`,
-            avatar: (0, image_1.getFullImageUrl)('/assets/images/default-avatar.png'),
-            online: Math.random() > 0.5
-        };
-        // 设置导航栏标题
-        wx.setNavigationBarTitle({
-            title: mockUser.nickname
-        });
-        this.setData({
-            targetUser: mockUser
+            // 更新用户信息
+            this.setData({
+                targetUser: {
+                    ...user,
+                    avatar: (0, image_1.getFullImageUrl)(user.avatar || '/assets/images/default-avatar.png'),
+                },
+            });
+        })
+            .catch((error) => {
+            console.error('getUserInfo error', error);
         });
     },
     /**
@@ -188,59 +174,21 @@ Page({
         const { sessionId, userId } = this.data;
         this.setData({ loading: true });
         // 调用API获取历史消息
-        if (message_api_1.messageAPI.getChatMessages) {
-            message_api_1.messageAPI.getChatMessages(sessionId || userId)
-                .then(messages => {
-                // 处理消息数据
-                const processedMessages = this.processMessages(messages);
-                this.setData({
-                    messages: processedMessages,
-                    loading: false
-                });
-                // 滚动到底部
-                this.scrollToBottom();
-            })
-                .catch(error => {
-                console.error('获取历史消息失败:', error);
-                // 使用模拟数据
-                this.loadMockMessages();
+        message_api_1.messageAPI
+            .getChatMessages(sessionId || userId)
+            .then((messages) => {
+            // 处理消息数据
+            const processedMessages = this.processMessages(messages);
+            this.setData({
+                messages: processedMessages,
+                loading: false,
             });
-        }
-        else {
-            // API不存在，使用模拟数据
-            this.loadMockMessages();
-        }
-    },
-    /**
-     * 加载模拟消息数据
-     */
-    loadMockMessages() {
-        const { userId } = this.data;
-        const { userInfo } = this.data;
-        const currentUserId = userInfo._id || 'current_user';
-        // 生成模拟数据
-        const mockMessages = Array(15).fill(0).map((_, index) => {
-            const isSelf = index % 3 !== 0;
-            const timestamp = Date.now() - (15 - index) * 60000;
-            return {
-                id: `msg_${index}`,
-                type: index % 5 === 0 ? message_api_1.MessageType.IMAGE : message_api_1.MessageType.TEXT,
-                content: index % 5 === 0
-                    ? '/assets/images/default-avatar.png'
-                    : `这是一条${isSelf ? '发送' : '接收'}的测试消息 ${index}`,
-                senderId: isSelf ? currentUserId : userId,
-                receiverId: isSelf ? userId : currentUserId,
-                timestamp,
-                status: 'sent',
-                isSelf
-            };
+            // 滚动到底部
+            this.scrollToBottom();
+        })
+            .catch((error) => {
+            console.error('getChatMessages error:', error);
         });
-        this.setData({
-            messages: mockMessages,
-            loading: false
-        });
-        // 滚动到底部
-        this.scrollToBottom();
     },
     /**
      * 处理消息数据
@@ -248,18 +196,19 @@ Page({
     processMessages(messages) {
         // 使用保存的当前用户ID
         const currentUserId = this.currentUserId;
-        if (!currentUserId) {
-            console.error('当前用户ID为空，无法正确处理消息');
-        }
-        console.log('处理消息，当前用户ID:', currentUserId);
-        return messages.map(msg => {
+        // 检查当前消息列表中已有的消息ID
+        const existingMessageIds = this.data.messages.map(msg => msg.id);
+        // 过滤掉已经存在的消息，避免重复
+        const filteredMessages = messages.filter(msg => !existingMessageIds.includes(msg.id));
+        return filteredMessages.map((msg) => {
             // 确保senderId是字符串类型进行比较
             const senderId = String(msg.senderId);
+            // 检查发送者ID是否与当前用户ID匹配
             const isSelf = senderId === String(currentUserId);
-            console.log(`消息ID: ${msg.id}, 发送者: ${senderId}, 当前用户: ${currentUserId}, 是自己发送: ${isSelf}`);
+            console.log(`消息ID: ${msg.id}, 发送者: ${senderId}, 当前用户: ${currentUserId}, isSelf: ${isSelf}`);
             return {
                 ...msg,
-                isSelf
+                isSelf,
             };
         });
     },
@@ -270,11 +219,11 @@ Page({
         setTimeout(() => {
             wx.createSelectorQuery()
                 .select('#message-list')
-                .boundingClientRect(rect => {
+                .boundingClientRect((rect) => {
                 if (rect) {
                     wx.pageScrollTo({
                         scrollTop: rect.height,
-                        duration: 300
+                        duration: 300,
                     });
                 }
             })
@@ -295,24 +244,31 @@ Page({
      */
     checkNewMessages() {
         const { sessionId, userId, messages } = this.data;
+        if (messages.length === 0)
+            return; // 如果没有消息，不需要检查
         const lastMessageTime = messages.length > 0 ? messages[messages.length - 1].timestamp : 0;
+        const lastMessageId = messages.length > 0 ? messages[messages.length - 1].id : '';
         // 调用API获取新消息
         if (message_api_1.messageAPI.getNewMessages) {
-            message_api_1.messageAPI.getNewMessages(sessionId || userId, lastMessageTime)
-                .then(newMessages => {
+            message_api_1.messageAPI
+                .getNewMessages(sessionId || userId, lastMessageTime)
+                .then((newMessages) => {
                 if (newMessages && newMessages.length > 0) {
-                    console.log('收到新消息:', newMessages);
-                    // 处理新消息
-                    const processedMessages = this.processMessages(newMessages);
-                    // 添加到消息列表
-                    this.setData({
-                        messages: [...this.data.messages, ...processedMessages]
-                    });
-                    // 滚动到底部
-                    this.scrollToBottom();
+                    // 过滤掉已经存在的消息，避免重复
+                    const filteredNewMessages = newMessages.filter((msg) => msg.id !== lastMessageId && !messages.some((m) => m.id === msg.id));
+                    if (filteredNewMessages.length > 0) {
+                        // 处理新消息
+                        const processedMessages = this.processMessages(filteredNewMessages);
+                        // 添加到消息列表
+                        this.setData({
+                            messages: [...this.data.messages, ...processedMessages],
+                        });
+                        // 滚动到底部
+                        this.scrollToBottom();
+                    }
                 }
             })
-                .catch(error => {
+                .catch((error) => {
                 console.error('获取新消息失败:', error);
             });
         }
@@ -322,7 +278,26 @@ Page({
      */
     onInputChange(e) {
         this.setData({
-            inputValue: e.detail.value
+            inputValue: e.detail.value,
+        });
+    },
+    /**
+     * 切换表情面板显示状态
+     */
+    toggleEmojiPanel() {
+        this.setData({
+            showEmojiPanel: !this.data.showEmojiPanel,
+            showActionPanel: false // 关闭操作面板
+        });
+    },
+    /**
+     * 选择表情
+     */
+    selectEmoji(e) {
+        const emoji = e.currentTarget.dataset.emoji;
+        const inputValue = this.data.inputValue + emoji;
+        this.setData({
+            inputValue
         });
     },
     /**
@@ -332,12 +307,18 @@ Page({
         const { inputValue, userId, sessionId } = this.data;
         if (!inputValue.trim())
             return;
+        // 关闭表情面板和操作面板
+        this.setData({
+            showEmojiPanel: false,
+            showActionPanel: false,
+        });
         // 使用保存的当前用户ID
         const currentUserId = this.currentUserId;
+        console.log('发送消息 - 当前用户ID:', currentUserId, '接收者ID:', userId);
         if (!currentUserId) {
             wx.showToast({
                 title: '用户信息异常',
-                icon: 'none'
+                icon: 'none',
             });
             return;
         }
@@ -350,47 +331,45 @@ Page({
             receiverId: userId,
             timestamp: Date.now(),
             status: 'sending',
-            isSelf: true
+            isSelf: true, // 自己发送的消息，一定是true
         };
-        console.log('发送消息:', message);
         // 添加到消息列表
         this.setData({
             messages: [...this.data.messages, message],
-            inputValue: ''
+            inputValue: '',
         });
         // 滚动到底部
         this.scrollToBottom();
         // 调用API发送消息
         if (message_api_1.messageAPI.sendMessage) {
-            message_api_1.messageAPI.sendMessage({
+            message_api_1.messageAPI
+                .sendMessage({
                 sessionId: sessionId || undefined,
                 receiverId: userId,
                 type: message_api_1.MessageType.TEXT,
-                content: inputValue
+                content: inputValue,
             })
-                .then(result => {
-                console.log('消息发送成功:', result);
+                .then((result) => {
                 // 更新消息状态
                 const messages = [...this.data.messages];
-                const index = messages.findIndex(msg => msg.id === message.id);
+                const index = messages.findIndex((msg) => msg.id === message.id);
                 if (index !== -1) {
                     messages[index] = {
                         ...messages[index],
                         id: result.id || messages[index].id,
-                        status: 'sent'
+                        status: 'sent',
                     };
                     this.setData({ messages });
                 }
             })
-                .catch(error => {
-                console.error('发送消息失败:', error);
+                .catch((error) => {
                 // 更新消息状态为失败
                 const messages = [...this.data.messages];
-                const index = messages.findIndex(msg => msg.id === message.id);
+                const index = messages.findIndex((msg) => msg.id === message.id);
                 if (index !== -1) {
                     messages[index] = {
                         ...messages[index],
-                        status: 'failed'
+                        status: 'failed',
                     };
                     this.setData({ messages });
                 }
@@ -409,34 +388,34 @@ Page({
         const messages = [...this.data.messages];
         messages[index] = {
             ...messages[index],
-            status: 'sending'
+            status: 'sending',
         };
         this.setData({ messages });
         // 调用API重发消息
         if (message_api_1.messageAPI.sendMessage) {
-            message_api_1.messageAPI.sendMessage({
+            message_api_1.messageAPI
+                .sendMessage({
                 sessionId: this.data.sessionId || undefined,
                 receiverId: message.receiverId,
                 type: message.type,
-                content: message.content
+                content: message.content,
             })
-                .then(result => {
+                .then((result) => {
                 // 更新消息状态
                 const updatedMessages = [...this.data.messages];
                 updatedMessages[index] = {
                     ...updatedMessages[index],
                     id: result.id || updatedMessages[index].id,
-                    status: 'sent'
+                    status: 'sent',
                 };
                 this.setData({ messages: updatedMessages });
             })
-                .catch(error => {
-                console.error('重发消息失败:', error);
+                .catch((error) => {
                 // 更新消息状态为失败
                 const updatedMessages = [...this.data.messages];
                 updatedMessages[index] = {
                     ...updatedMessages[index],
-                    status: 'failed'
+                    status: 'failed',
                 };
                 this.setData({ messages: updatedMessages });
             });
@@ -447,7 +426,8 @@ Page({
      */
     toggleActionPanel() {
         this.setData({
-            showActionPanel: !this.data.showActionPanel
+            showActionPanel: !this.data.showActionPanel,
+            showEmojiPanel: false // 关闭表情面板
         });
     },
     /**
@@ -456,18 +436,18 @@ Page({
     sendImageMessage() {
         // 隐藏操作面板
         this.setData({
-            showActionPanel: false
+            showActionPanel: false,
         });
         // 选择图片
         wx.chooseImage({
             count: 1,
             sizeType: ['compressed'],
             sourceType: ['album', 'camera'],
-            success: res => {
+            success: (res) => {
                 const tempFilePath = res.tempFilePaths[0];
                 // 上传图片
                 this.uploadImage(tempFilePath);
-            }
+            },
         });
     },
     /**
@@ -477,7 +457,6 @@ Page({
         const { userId, sessionId } = this.data;
         // 使用正确的当前用户ID
         const currentUserId = this.currentUserId;
-        console.log('开始上传图片:', filePath);
         // 创建消息对象
         const message = {
             id: `msg_${Date.now()}`,
@@ -487,51 +466,49 @@ Page({
             receiverId: userId,
             timestamp: Date.now(),
             status: 'sending',
-            isSelf: true
+            isSelf: true,
         };
         // 添加到消息列表
         this.setData({
-            messages: [...this.data.messages, message]
+            messages: [...this.data.messages, message],
         });
         // 滚动到底部
         this.scrollToBottom();
         // 调用API上传图片
         if (message_api_1.messageAPI.uploadImage) {
-            message_api_1.messageAPI.uploadImage(filePath)
-                .then(imageUrl => {
-                console.log('图片上传成功，URL:', imageUrl);
+            message_api_1.messageAPI
+                .uploadImage(filePath)
+                .then((imageUrl) => {
                 // 发送图片消息
                 return message_api_1.messageAPI.sendMessage({
                     sessionId: sessionId || undefined,
                     receiverId: userId,
                     type: message_api_1.MessageType.IMAGE,
-                    content: imageUrl
+                    content: imageUrl,
                 });
             })
-                .then(result => {
-                console.log('图片消息发送成功:', result);
+                .then((result) => {
                 // 更新消息状态
                 const messages = [...this.data.messages];
-                const index = messages.findIndex(msg => msg.id === message.id);
+                const index = messages.findIndex((msg) => msg.id === message.id);
                 if (index !== -1) {
                     messages[index] = {
                         ...messages[index],
                         id: result.id || messages[index].id,
                         content: result.content || messages[index].content,
-                        status: 'sent'
+                        status: 'sent',
                     };
                     this.setData({ messages });
                 }
             })
-                .catch(error => {
-                console.error('发送图片消息失败:', error);
+                .catch((error) => {
                 // 更新消息状态为失败
                 const messages = [...this.data.messages];
-                const index = messages.findIndex(msg => msg.id === message.id);
+                const index = messages.findIndex((msg) => msg.id === message.id);
                 if (index !== -1) {
                     messages[index] = {
                         ...messages[index],
-                        status: 'failed'
+                        status: 'failed',
                     };
                     this.setData({ messages });
                 }
@@ -541,11 +518,11 @@ Page({
             // 模拟发送成功
             setTimeout(() => {
                 const messages = [...this.data.messages];
-                const index = messages.findIndex(msg => msg.id === message.id);
+                const index = messages.findIndex((msg) => msg.id === message.id);
                 if (index !== -1) {
                     messages[index] = {
                         ...messages[index],
-                        status: 'sent'
+                        status: 'sent',
                     };
                     this.setData({ messages });
                 }
@@ -557,21 +534,19 @@ Page({
      */
     previewImage(e) {
         const { url } = e.currentTarget.dataset;
-        console.log('预览图片:', url);
         // 收集所有图片消息的URL
         const imageUrls = this.data.messages
-            .filter(msg => msg.type === message_api_1.MessageType.IMAGE)
-            .map(msg => msg.content);
+            .filter((msg) => msg.type === message_api_1.MessageType.IMAGE)
+            .map((msg) => msg.content);
         wx.previewImage({
             current: url,
             urls: imageUrls,
             fail: (err) => {
-                console.error('预览图片失败:', err);
                 wx.showToast({
                     title: '预览图片失败',
-                    icon: 'none'
+                    icon: 'none',
                 });
-            }
+            },
         });
     },
     /**
@@ -580,7 +555,7 @@ Page({
     viewUserProfile() {
         const { userId } = this.data;
         wx.navigateTo({
-            url: `/pages/community/user-profile/user-profile?id=${userId}`
+            url: `/pages/community/user-profile/user-profile?id=${userId}`,
         });
     },
     /**
@@ -588,18 +563,17 @@ Page({
      */
     onImageError(e) {
         const { index } = e.currentTarget.dataset;
-        console.error('图片加载失败:', index, e);
         // 更新消息状态为失败
         const messages = [...this.data.messages];
         if (index !== undefined && index >= 0 && index < messages.length) {
             messages[index] = {
                 ...messages[index],
-                status: 'failed'
+                status: 'failed',
             };
             this.setData({ messages });
             wx.showToast({
                 title: '图片加载失败',
-                icon: 'none'
+                icon: 'none',
             });
         }
     },

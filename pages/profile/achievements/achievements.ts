@@ -64,7 +64,7 @@ Page<IPageData, IPageMethods>({
       // 根据当前选中的标签筛选成就
       this.filterAchievements();
     } catch (error) {
-      console.error('加载成就列表失败:', error);
+      
       
       this.setData({
         loading: false,

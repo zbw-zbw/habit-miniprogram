@@ -12,4 +12,7 @@ router.get('/', authMiddleware, followController.getFriends);
 // 关注/取消关注用户
 router.put('/:userId/follow', authMiddleware, followController.toggleFollow);
 
+// 添加好友
+router.post('/:userId/add', authMiddleware, followController.addFriend);
+
 module.exports = router; 

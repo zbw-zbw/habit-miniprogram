@@ -30,7 +30,6 @@ class AchievementService {
             }
         }
         catch (error) {
-            console.error('加载成就数据失败:', error);
         }
     }
     /**
@@ -41,7 +40,6 @@ class AchievementService {
             (0, storage_1.setStorage)(this.storageKey, this.achievements);
         }
         catch (error) {
-            console.error('保存成就数据失败:', error);
         }
     }
     /**
@@ -53,12 +51,10 @@ class AchievementService {
             const achievements = await api_1.userAPI
                 .getAchievements()
                 .catch((error) => {
-                console.error('从API获取成就失败，使用本地数据:', error);
                 return null;
             });
             // 如果成功获取到服务器数据，使用服务器数据
             if (achievements && Array.isArray(achievements)) {
-                console.log('从API获取成就成功:', achievements.length);
                 // 转换成标准格式
                 this.achievements = achievements.map(achievement => ({
                     id: achievement.id || `achievement-${Date.now()}`,
@@ -79,7 +75,6 @@ class AchievementService {
             return [...this.achievements];
         }
         catch (error) {
-            console.error('获取成就数据失败:', error);
             // 出错时使用本地数据
             if (this.achievements.length === 0) {
                 await this.loadAchievements();
@@ -384,25 +379,20 @@ class AchievementService {
      * @param achievement 解锁的成就
      */
     triggerUnlockCallbacks(achievement) {
-        console.log('触发成就解锁回调，回调数量:', this.unlockCallbacks.length, '成就:', achievement);
         if (this.unlockCallbacks.length === 0) {
             // 如果没有注册回调，直接使用全局App实例显示通知
             const app = getApp();
             if (app && app.onAchievementUnlocked) {
-                console.log('通过App实例直接触发成就解锁通知');
                 app.onAchievementUnlocked(achievement);
             }
             else {
-                console.error('App实例不存在或没有onAchievementUnlocked方法');
             }
         }
         this.unlockCallbacks.forEach((callback) => {
             try {
-                console.log('执行成就解锁回调');
                 callback(achievement);
             }
             catch (error) {
-                console.error('成就解锁回调执行失败:', error);
             }
         });
     }
@@ -431,7 +421,6 @@ class AchievementService {
             return true;
         }
         catch (error) {
-            console.error('更新成就失败:', error);
             return false;
         }
     }

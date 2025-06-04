@@ -25,15 +25,23 @@ exports.getAuthState = getAuthState;
 function useAuth(page, options = {}) {
     const app = getApp();
     const { onChange, autoUpdate = true } = options;
+    // 存储初始登录状态，用于比较变化
+    const initialLoginState = app.globalData.hasLogin;
+    // 为页面或组件添加一个属性来跟踪上一次的登录状态
+    page.__previousLoginState = initialLoginState;
     // 初始化页面或组件的登录状态数据
     if (autoUpdate && typeof page.setData === 'function') {
         page.setData({
-            hasLogin: app.globalData.hasLogin,
+            hasLogin: initialLoginState,
             userInfo: app.globalData.userInfo
         });
     }
     // 注册登录状态变化监听
     const callback = (authState) => {
+        // 获取上一次的登录状态
+        const previousLoginState = page.__previousLoginState;
+        // 更新页面或组件的登录状态跟踪
+        page.__previousLoginState = authState.hasLogin;
         // 自动更新页面或组件的数据
         if (autoUpdate && typeof page.setData === 'function') {
             page.setData({
@@ -41,8 +49,9 @@ function useAuth(page, options = {}) {
                 userInfo: authState.userInfo
             });
         }
-        // 调用自定义回调
-        if (onChange) {
+        // 只有在登录状态从未登录变为已登录时才调用自定义回调
+        // 或者从已登录变为未登录时
+        if (onChange && ((!previousLoginState && authState.hasLogin) || (previousLoginState && !authState.hasLogin))) {
             onChange(authState);
         }
     };

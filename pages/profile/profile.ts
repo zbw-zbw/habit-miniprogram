@@ -58,7 +58,7 @@ Page<IPageData, IPageMethods>({
    * 生命周期函数--监听页面加载
    */
   onLoad() {
-    console.log('个人中心页面初始加载');
+    
   },
 
   /**
@@ -99,7 +99,7 @@ Page<IPageData, IPageMethods>({
 
     // 检查是否已登录，未登录则不请求数据
     if (!this.data.hasLogin) {
-      console.log('用户未登录，不加载个人资料数据');
+      
       this.setData({
         loading: false,
         stats: {
@@ -118,7 +118,7 @@ Page<IPageData, IPageMethods>({
     userAPI
       .getProfileAll()
       .then((data: IUserProfileAll) => {
-        console.log('获取用户聚合数据成功:', data);
+        
 
         // 更新统计数据
         this.setData({
@@ -133,7 +133,7 @@ Page<IPageData, IPageMethods>({
         });
       })
       .catch((error) => {
-        console.error('获取用户聚合数据失败:', error);
+        
         this.setData({ loading: false });
       });
   },

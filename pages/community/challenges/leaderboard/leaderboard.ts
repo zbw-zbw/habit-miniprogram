@@ -74,7 +74,7 @@ Page<IPageData, IPageMethods>({
     // 调用API获取排行榜
     communityAPI.getChallengeLeaderboard(challengeId)
       .then(result => {
-        console.log('获取到排行榜:', result);
+        
         
         // 获取排行榜数据
         const leaderboard = result.leaderboard || [];
@@ -92,7 +92,7 @@ Page<IPageData, IPageMethods>({
         });
       })
       .catch(error => {
-        console.error('获取排行榜失败:', error);
+        
         
         wx.showToast({
           title: '获取排行榜失败',

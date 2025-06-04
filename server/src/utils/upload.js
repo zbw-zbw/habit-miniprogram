@@ -115,7 +115,7 @@ exports.deleteFile = async (fileUrl) => {
     
     return false;
   } catch (error) {
-    console.error('删除文件失败:', error);
+    
     return false;
   }
 };

@@ -2,6 +2,9 @@
   "navigationBarTitleText": "社区动态",
   "enablePullDownRefresh": true,
   "usingComponents": {
-    "post-card": "/components/post-card/post-card"
+    "post-card": "/components/post-card/post-card",
+    "search-box": "/components/search-box/search-box",
+    "tab-bar": "/components/tab-bar/tab-bar",
+    "fab-button": "/components/fab-button/fab-button"
   }
 } 

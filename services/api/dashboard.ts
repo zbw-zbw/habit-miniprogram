@@ -1,7 +1,7 @@
 /**
  * 仪表盘数据API服务
  * 聚合所有前端需要的数据，减少网络请求
- * 
+ *
  * 后端已实现聚合API端点：
  * 1. `/api/dashboard` - 获取仪表盘数据
  * 2. `/api/habits/all` - 获取所有习惯数据
@@ -42,7 +42,7 @@ export interface IDashboardResponse {
  * 习惯列表数据接口，专为习惯页面设计
  */
 export interface IHabitsListResponse {
-  habits: IHabit[];     // 所有习惯，包括归档的
+  habits: IHabit[]; // 所有习惯，包括归档的
   activeHabits: IHabit[]; // 活跃的习惯
   archivedHabits: IHabit[]; // 归档的习惯
   habitStats: Record<string, IHabitStats>; // 习惯统计数据
@@ -96,21 +96,24 @@ export const dashboardAPI = {
    * @param options 附加选项
    * @returns 仪表盘数据
    */
-  getDashboard: (date: string = getCurrentDate(), options: {
-    includeCheckins?: boolean; // 是否包含打卡记录
-    days?: number; // 获取多少天的打卡记录
-  } = {}): Promise<IDashboardResponse> => {
+  getDashboard: (
+    date: string = getCurrentDate(),
+    options: {
+      includeCheckins?: boolean; // 是否包含打卡记录
+      days?: number; // 获取多少天的打卡记录
+    } = {}
+  ): Promise<IDashboardResponse> => {
     const { includeCheckins = true, days = 7 } = options;
-    
+
     // 使用后端聚合API
     return request<ApiResponse<IDashboardResponse>>({
       url: '/api/dashboard',
       method: 'GET',
-      data: { 
-        date, 
-        days: includeCheckins ? days : 0 
-      }
-    }).then(response => {
+      data: {
+        date,
+        days: includeCheckins ? days : 0,
+      },
+    }).then((response) => {
       // 确保返回的数据符合接口定义
       // 这里已经得到的是response.data，因为request模块已经处理过了
       if (typeof response === 'object' && response !== null) {
@@ -126,30 +129,38 @@ export const dashboardAPI = {
    * @param options 可选参数
    * @returns 所有习惯及相关数据
    */
-  getAllHabits: (options: {
-    includeArchived?: boolean; // 是否包含归档的习惯
-    includeStats?: boolean; // 是否包含统计数据
-    includeCheckins?: boolean; // 是否包含打卡记录
-    days?: number; // 获取多少天的打卡记录
-  } = {}): Promise<IHabitsListResponse> => {
-    const { 
-      includeArchived = true, 
-      includeStats = true, 
-      includeCheckins = false, 
-      days = 7 
+  getAllHabits: (
+    options: {
+      includeArchived?: boolean; // 是否包含归档的习惯
+      includeStats?: boolean; // 是否包含统计数据
+      includeCheckins?: boolean; // 是否包含打卡记录
+      days?: number; // 获取多少天的打卡记录
+      sort?: string; // 排序字段
+      order?: string; // 排序顺序
+    } = {}
+  ): Promise<IHabitsListResponse> => {
+    const {
+      includeArchived = false,
+      includeStats = true,
+      includeCheckins = true,
+      days = 7,
+      sort = 'createdAt',
+      order = 'desc',
     } = options;
 
     // 使用后端聚合API
     return request<ApiResponse<IHabitsListResponse>>({
       url: '/api/habits',
       method: 'GET',
-      data: { 
-        includeArchived, 
-        includeStats, 
-        includeCheckins, 
-        days 
-      }
-    }).then(response => {
+      data: {
+        includeArchived,
+        includeStats,
+        includeCheckins,
+        days,
+        sort,
+        order,
+      },
+    }).then((response) => {
       // 确保返回的数据符合接口定义
       if (typeof response === 'object' && response !== null) {
         return response.data || response;
@@ -163,32 +174,36 @@ export const dashboardAPI = {
    * @param options 可选参数
    * @returns 分析数据
    */
-  getAnalytics: (options: {
-    startDate?: string;
-    endDate?: string;
-    timeRange?: 'week' | 'month' | 'year' | 'all'; // 时间范围
-  } = {}): Promise<IAnalyticsResponse> => {
-    const { 
-      startDate = formatDate(new Date(new Date().setMonth(new Date().getMonth() - 1))), 
+  getAnalytics: (
+    options: {
+      startDate?: string;
+      endDate?: string;
+      timeRange?: 'week' | 'month' | 'year' | 'all'; // 时间范围
+    } = {}
+  ): Promise<IAnalyticsResponse> => {
+    const {
+      startDate = formatDate(
+        new Date(new Date().setMonth(new Date().getMonth() - 1))
+      ),
       endDate = getCurrentDate(),
-      timeRange = 'month'
+      timeRange = 'month',
     } = options;
-    
+
     // 使用后端聚合API
     return request<ApiResponse<IAnalyticsResponse>>({
       url: '/api/analytics',
       method: 'GET',
-      data: { 
-        startDate, 
-        endDate, 
-        timeRange 
-      }
-    }).then(response => {
+      data: {
+        startDate,
+        endDate,
+        timeRange,
+      },
+    }).then((response) => {
       // 确保返回的数据符合接口定义
       if (typeof response === 'object' && response !== null) {
         return response.data || response;
       }
       return response;
     });
-  }
-}; 
+  },
+};

@@ -8,7 +8,7 @@ export enum StorageKeys {
   HABIT_CHAINS = 'habitChains',
   CHECKINS = 'checkins',
   SETTINGS = 'settings',
-  THEME = 'theme',
+  SETTING_THEME = 'setting_theme',
   ACHIEVEMENTS = 'achievements',
   REFRESH_TOKEN = 'refreshToken'
 } 

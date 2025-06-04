@@ -133,7 +133,7 @@ export async function executeRequest<T = any>(
         }
       }
     } catch (error) {
-      console.error('读取缓存失败:', error);
+      
     }
   }
   
@@ -157,11 +157,11 @@ export async function executeRequest<T = any>(
           timestamp: Date.now()
         });
       } catch (error) {
-        console.error('保存缓存失败:', error);
+        
       }
     }
   } catch (error) {
-    console.error('API请求失败:', error);
+    
     
     // 设置错误状态
     const errorMessage = error instanceof Error ? error.message : '请求失败';
@@ -246,7 +246,7 @@ export function useApiRequest<T>(
         }
       })
       .catch(error => {
-        console.error('API请求失败:', error);
+        
         
         // 处理错误响应
         const errorMessage = error.message || '请求失败';
@@ -331,7 +331,7 @@ export function createApiRequests(
           }
         })
         .catch(error => {
-          console.error(`API请求失败 [${key}]:`, error);
+          
           
           // 更新错误状态
           const errorMessage = error.message || '请求失败';

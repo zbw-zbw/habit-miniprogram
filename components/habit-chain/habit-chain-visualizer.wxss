@@ -1,3 +1,6 @@
+/* 引入图标字体 */
+@import '/styles/iconfont.wxss';
+
 .habit-chain-visualizer {
   display: flex;
   flex-direction: column;
@@ -45,7 +48,7 @@
   padding: 16rpx;
   background-color: #ffffff;
   border-radius: 12rpx;
-  border-left: 8rpx solid #5E72E4;
+  border-left: 8rpx solid #5e72e4;
   box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.1);
   transition: all 0.3s ease;
 }
@@ -114,24 +117,24 @@
   .canvas-container {
     background-color: #222222;
   }
-  
+
   .habit-item {
     background-color: #333333;
   }
-  
+
   .habit-name {
     color: #ffffff;
   }
-  
+
   .habit-status {
     color: #aaaaaa;
   }
-  
+
   .title {
     color: #ffffff;
   }
-  
+
   .empty-state {
     color: #aaaaaa;
   }
-} 
+}

@@ -51,6 +51,13 @@ router.post('/from-template/:templateId', authMiddleware, habitController.create
 router.get('/', authMiddleware, habitController.getHabits);
 
 /**
+ * @route GET /api/habits/with-stats
+ * @desc 获取多个习惯及其统计数据（聚合API）
+ * @access Private
+ */
+router.get('/with-stats', authMiddleware, habitController.getHabitsWithStats);
+
+/**
  * @route POST /api/habits
  * @desc 创建新习惯
  * @access Private
@@ -61,7 +68,7 @@ router.post(
   [
     body('name').notEmpty().withMessage('习惯名称不能为空'),
     body('frequency.type')
-      .isIn(['daily', 'weekly', 'monthly', 'custom'])
+      .isIn(['daily', 'weekly', 'monthly', 'custom', 'weekends', 'workdays'])
       .withMessage('无效的频率类型')
   ],
   habitController.createHabit
@@ -73,6 +80,13 @@ router.post(
  * @access Private
  */
 router.get('/:habitId', authMiddleware, isOwner('Habit', 'habitId'), habitController.getHabit);
+
+/**
+ * @route GET /api/habits/:habitId/with-stats
+ * @desc 获取指定习惯的详情及统计数据（聚合API）
+ * @access Private
+ */
+router.get('/:habitId/with-stats', authMiddleware, isOwner('Habit', 'habitId'), habitController.getHabitWithStats);
 
 /**
  * @route PUT /api/habits/:habitId
@@ -87,7 +101,7 @@ router.put(
     body('name').optional().notEmpty().withMessage('习惯名称不能为空'),
     body('frequency.type')
       .optional()
-      .isIn(['daily', 'weekly', 'monthly', 'custom'])
+      .isIn(['daily', 'weekly', 'monthly', 'custom', 'weekends', 'workdays'])
       .withMessage('无效的频率类型')
   ],
   habitController.updateHabit

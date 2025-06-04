@@ -80,8 +80,7 @@
                 bind:viewDetail="viewPostDetail"
                 bind:viewUser="viewUserProfile"
                 bind:like="likePost"
-                bind:comment="commentPost"
-                bind:share="sharePost">
+                bind:comment="commentPost">
               </post-card>
             </block>
             
@@ -111,7 +110,7 @@
           <view class="member-list" wx:else>
             <view class="member-item" 
                   wx:for="{{members}}" 
-                  wx:key="{{item._id || item.id}}" 
+                  wx:key="id" 
                   bindtap="viewUserProfile" 
                   data-id="{{item._id || item.id}}"
                   data-index="{{index}}">

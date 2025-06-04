@@ -117,7 +117,6 @@ Page({
                 wx.setStorageSync('userInfo', app.globalData.userInfo);
             }
             catch (e) {
-                console.error('保存登录状态失败', e);
             }
             // 通知登录状态变化
             app.notifyLoginStateChanged();
@@ -139,7 +138,6 @@ Page({
             }, 1500);
         })
             .catch(error => {
-            console.error('设置用户资料失败:', error);
             wx.showToast({
                 title: error.message || '设置失败',
                 icon: 'none'

@@ -184,7 +184,7 @@ Page<IPageData, IPageMethods>({
     // 使用useAuth获取登录状态
     useAuth(this, {
       onChange: (authState) => {
-        console.log('登录状态变化:', authState);
+        
         // 如果登录状态发生变化，重新加载数据
         if (this.data.hasLogin !== authState.hasLogin) {
           this.setData({ hasLogin: authState.hasLogin });
@@ -216,8 +216,6 @@ Page<IPageData, IPageMethods>({
     }
     this.setData({ tabIndex });
     
-    // 加载数据
-    this.loadData();
     // 初始化日历
     this.updateCalendar();
   },
@@ -288,13 +286,13 @@ Page<IPageData, IPageMethods>({
         timeRange: this.data.timeRange,
       })
       .then((data) => {
-        console.log('获取分析数据成功:', data);
+        
 
         // 处理数据
         this.processAnalyticsData(data);
       })
       .catch((error) => {
-        console.error('获取分析数据失败:', error);
+        
 
         // 加载失败
         this.setData({
@@ -314,7 +312,7 @@ Page<IPageData, IPageMethods>({
   processAnalyticsData(data: any) {
     // 确保data是有效对象
     if (!data || typeof data !== 'object') {
-      console.error('分析数据无效:', data);
+      
       this.setData({
         loading: false,
         chartLoading: false,
@@ -323,7 +321,7 @@ Page<IPageData, IPageMethods>({
       return;
     }
 
-    console.log('处理分析数据:', data);
+    
 
     // 从聚合API的响应中提取数据
     let summary = data.summary || {};
@@ -376,12 +374,12 @@ Page<IPageData, IPageMethods>({
       });
     }
 
-    console.log('提取的习惯数量:', habits.length);
-    console.log('习惯Map:', habitsMap);
+    
+    
 
     // 检查今天的日期
     const today = formatDate(new Date());
-    console.log('今天日期:', today);
+    
 
     // 检查timelineData中今天的数据
     let completedToday = Number(summary.completedToday || 0);
@@ -390,13 +388,13 @@ Page<IPageData, IPageMethods>({
     if (Array.isArray(timelineData)) {
       // 查找今天的数据
       const todayData = timelineData.find((item) => item.date === today);
-      console.log('今天的时间线数据:', todayData);
+      
 
       if (todayData) {
         // 如果API返回的completedToday为0但时间线数据显示今天有完成的习惯，则使用时间线数据
         if (completedToday === 0 && todayData.totalCompleted > 0) {
           completedToday = todayData.totalCompleted;
-          console.log('从时间线数据更新今日完成数:', completedToday);
+          
         }
         todayCompletionRate = todayData.completionRate || 0;
       }
@@ -407,7 +405,7 @@ Page<IPageData, IPageMethods>({
       const todayHeatmap = heatmapData.find((item) => item.date === today);
       if (todayHeatmap && todayHeatmap.count > 0) {
         completedToday = todayHeatmap.count;
-        console.log('从热图数据更新今日完成数:', completedToday);
+        
       }
     }
 
@@ -437,11 +435,7 @@ Page<IPageData, IPageMethods>({
         });
       }
 
-      console.log(
-        '从习惯统计数据更新连续打卡天数:',
-        currentStreak,
-        longestStreak
-      );
+      
     }
 
     // 处理统计数据，确保数字类型
@@ -452,15 +446,7 @@ Page<IPageData, IPageMethods>({
     );
     const totalCheckins = Number(summary.totalCheckins || 0);
 
-    console.log('处理后的统计数据:', {
-      totalHabits,
-      activeHabits,
-      completedToday,
-      completionRate,
-      totalCheckins,
-      currentStreak,
-      longestStreak,
-    });
+    
 
     // 更新数据
     this.setData({
@@ -488,7 +474,7 @@ Page<IPageData, IPageMethods>({
     if (Array.isArray(timelineData) && timelineData.length > 0) {
       this.generateChartData(timelineData);
     } else {
-      console.warn('无时间线数据，无法生成图表');
+      
       this.setData({ chartLoading: false });
       this.drawEmptyCharts();
     }
@@ -501,7 +487,7 @@ Page<IPageData, IPageMethods>({
       try {
         this.drawCharts();
       } catch (error) {
-        console.error('绘制图表失败:', error);
+        
         this.drawEmptyCharts();
       }
     }, 300);
@@ -554,7 +540,7 @@ Page<IPageData, IPageMethods>({
    */
   generateChartData(timelineData: any[]) {
     if (!Array.isArray(timelineData)) {
-      console.error('时间线数据不是数组:', timelineData);
+      
       this.setData({
         chartData: {
           dates: [],
@@ -664,7 +650,7 @@ Page<IPageData, IPageMethods>({
       return 0; // 没有数据则返回0
     });
 
-    console.log('年视图处理后的数据:', { dates, values, completionRates });
+    
 
     // 更新图表数据
     this.setData({
@@ -722,7 +708,7 @@ Page<IPageData, IPageMethods>({
         activeTab = 'overview';
     }
 
-    console.log('Tab切换到:', activeTab, '索引:', index);
+    
 
     // 先设置标签，再处理图表
     this.setData(
@@ -738,7 +724,7 @@ Page<IPageData, IPageMethods>({
           // 当切换到总览标签时，重新绘制图表
           if (activeTab === 'overview') {
             try {
-              console.log('切换到总览标签，重新绘制图表');
+              
               // 检查图表数据是否有效
               if (
                 this.data.chartData &&
@@ -747,12 +733,12 @@ Page<IPageData, IPageMethods>({
               ) {
                 this.drawCharts();
               } else {
-                console.log('无图表数据，绘制空图表');
+                
                 // 如果没有数据，绘制空图表
                 this.drawEmptyCharts();
               }
             } catch (error) {
-              console.error('绘制图表失败:', error);
+              
               this.drawEmptyCharts();
             } finally {
               // 确保关闭加载状态
@@ -781,7 +767,7 @@ Page<IPageData, IPageMethods>({
       return; // 如果是相同的范围，不做任何操作
     }
     
-    console.log('切换时间范围:', range);
+    
     
     this.setData({
       timeRange: range,
@@ -1064,13 +1050,13 @@ Page<IPageData, IPageMethods>({
 
       // 确保有数据可以绘制
       if (!chartData.dates || chartData.dates.length === 0) {
-        console.log('没有图表数据可绘制');
+        
         // 创建空图表，显示"暂无数据"
         this.drawEmptyCharts();
         return;
       }
 
-      console.log('开始绘制图表，数据:', chartData);
+      
 
       // 设置图表的公共配置
       const chartConfig = {
@@ -1101,7 +1087,7 @@ Page<IPageData, IPageMethods>({
         wx.createCanvasContext('completionChart').draw();
         wx.createCanvasContext('checkinsChart').draw();
       } catch (e) {
-        console.log('清除旧图表失败:', e);
+        
       }
 
       // 绘制完成率趋势图表
@@ -1160,7 +1146,7 @@ Page<IPageData, IPageMethods>({
 
       // 计算打卡次数图表的最大值，确保至少为1
       const maxValue = Math.max(...chartData.values, 1);
-      console.log('打卡次数最大值:', maxValue);
+      
 
       // 创建Y轴刻度数组
       const yAxisMax = maxValue < 5 ? 5 : Math.ceil(maxValue * 1.2); // 为数据留出一些空间
@@ -1179,7 +1165,7 @@ Page<IPageData, IPageMethods>({
         }
       }
 
-      console.log('打卡次数Y轴刻度:', yAxisItems);
+      
 
       // 绘制打卡次数图表
       setTimeout(() => {
@@ -1237,7 +1223,7 @@ Page<IPageData, IPageMethods>({
             },
           });
         } catch (error) {
-          console.error('绘制打卡次数图表失败:', error);
+          
         }
 
         // 图表绘制完成后，设置加载状态为false
@@ -1246,9 +1232,9 @@ Page<IPageData, IPageMethods>({
         }, 100); // 给一点延迟，让用户能够看到加载动画
       }, 50); // 稍微延迟绘制第二个图表，避免冲突
 
-      console.log('图表绘制完成');
+      
     } catch (error) {
-      console.error('绘制图表失败:', error);
+      
       this.drawEmptyCharts(); // 出错时绘制空图表
       this.setData({ chartLoading: false }); // 出错时也要关闭加载状态
     }
@@ -1280,7 +1266,7 @@ Page<IPageData, IPageMethods>({
         wx.createCanvasContext('completionChart').draw();
         wx.createCanvasContext('checkinsChart').draw();
       } catch (e) {
-        console.log('清除旧图表失败:', e);
+        
       }
 
       // 绘制完成率趋势图表
@@ -1376,18 +1362,18 @@ Page<IPageData, IPageMethods>({
             },
           });
         } catch (error) {
-          console.error('绘制空打卡次数图表失败:', error);
+          
         }
       }, 50);
 
-      console.log('空图表绘制完成');
+      
 
       // 图表绘制完成后，设置加载状态为false
       setTimeout(() => {
         this.setData({ chartLoading: false });
       }, 300); // 给一点延迟，让用户能够看到加载动画
     } catch (error) {
-      console.error('绘制空图表失败:', error);
+      
       this.setData({ chartLoading: false }); // 出错时也要关闭加载状态
     }
   },

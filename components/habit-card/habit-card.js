@@ -12,24 +12,24 @@ Component({
     properties: {
         habit: {
             type: Object,
-            value: {}
+            value: {},
         },
         stats: {
             type: Object,
-            value: {}
+            value: {},
         },
         showActions: {
             type: Boolean,
-            value: false
+            value: false,
         },
         showCheckinButton: {
             type: Boolean,
-            value: true
+            value: true,
         },
         mode: {
             type: String,
-            value: 'normal' // 可选值：normal, compact, simple
-        }
+            value: 'normal', // 可选值：normal, compact, simple
+        },
     },
     /**
      * 组件的初始数据
@@ -42,18 +42,18 @@ Component({
         completionRateFormatted: '0',
         // 分类中英文映射
         categoryMap: {
-            'learning': '学习',
-            'health': '健康',
-            'work': '工作',
-            'social': '社交',
-            'finance': '财务',
-            'other': '其他',
-            'reading': '阅读',
-            'exercise': '运动',
-            'diet': '饮食',
-            'sleep': '睡眠',
-            'meditation': '冥想'
-        }
+            learning: '学习',
+            health: '健康',
+            work: '工作',
+            social: '社交',
+            finance: '财务',
+            other: '其他',
+            reading: '阅读',
+            exercise: '运动',
+            diet: '饮食',
+            sleep: '睡眠',
+            meditation: '冥想',
+        },
     },
     /**
      * 组件的生命周期
@@ -61,20 +61,20 @@ Component({
     lifetimes: {
         attached() {
             this.checkTodayStatus();
-        }
+        },
     },
     /**
      * 数据监听器
      */
     observers: {
-        'habit': function (habit) {
+        habit: function (habit) {
             // 当habit属性变化时重新检查状态
             this.checkTodayStatus();
         },
-        'stats': function (stats) {
+        stats: function (stats) {
             // 当stats属性变化时重新格式化完成率
             this.formatCompletionRate();
-        }
+        },
     },
     /**
      * 组件的方法列表
@@ -102,7 +102,7 @@ Component({
             // 格式化为整数字符串
             const completionRateFormatted = Math.round(completionRate).toString();
             this.setData({
-                completionRateFormatted
+                completionRateFormatted,
             });
         },
         /**
@@ -116,6 +116,16 @@ Component({
             const habitId = habit._id || habit.id;
             if (!habitId)
                 return;
+            // 处理服务端goal字段到前端targetValue和unit字段的转换
+            if (habit.goal && habit.goal.value !== undefined) {
+                // 如果没有targetValue或unit，则从goal中提取
+                if (habit.targetValue === undefined) {
+                    habit.targetValue = habit.goal.value;
+                }
+                if (!habit.unit && habit.goal.unit) {
+                    habit.unit = habit.goal.unit;
+                }
+            }
             const today = (0, date_1.getCurrentDate)();
             const shouldDoToday = (0, habit_1.shouldDoHabitOnDate)(habit, today);
             // 检查习惯是否已完成
@@ -129,8 +139,6 @@ Component({
                     : '';
                 // 比较日期字符串，而不是对象
                 isCompleted = lastCompletedDateStr === today;
-                // 添加调试日志
-                console.log(`习惯[${habit.name}] 最后完成日期: ${lastCompletedDateStr}, 今天: ${today}, 是否完成: ${isCompleted}`);
             }
             // 获取分类的中文名称
             const category = habit.category || 'other';
@@ -139,7 +147,7 @@ Component({
                 isToday: true,
                 shouldDoToday,
                 isCompleted,
-                categoryName
+                categoryName,
             });
             // 格式化完成率
             this.formatCompletionRate();
@@ -161,7 +169,7 @@ Component({
             if (isCompleted) {
                 wx.showToast({
                     title: '今日已完成',
-                    icon: 'none'
+                    icon: 'none',
                 });
                 return;
             }
@@ -173,7 +181,6 @@ Component({
          */
         onViewDetail() {
             const habit = this.properties.habit;
-            console.log('点击查看详情', habit);
             if (!habit) {
                 console.error('习惯对象不存在', habit);
                 return;
@@ -185,7 +192,7 @@ Component({
                 return;
             }
             wx.navigateTo({
-                url: `/pages/habits/detail/detail?id=${habitId}`
+                url: `/pages/habits/detail/detail?id=${habitId}`,
             });
         },
         /**
@@ -193,7 +200,7 @@ Component({
          */
         showActions() {
             this.setData({
-                showActions: true
+                showActions: true,
             });
         },
         /**
@@ -201,7 +208,7 @@ Component({
          */
         hideActions() {
             this.setData({
-                showActions: false
+                showActions: false,
             });
         },
         /**
@@ -222,7 +229,7 @@ Component({
             if (!habitId)
                 return;
             wx.navigateTo({
-                url: `/pages/habits/create/create?id=${habitId}`
+                url: `/pages/habits/create/create?id=${habitId}`,
             });
             // 隐藏操作菜单
             this.hideActions();
@@ -247,10 +254,10 @@ Component({
                     if (res.confirm) {
                         this.triggerEvent('delete', { habitId });
                     }
-                }
+                },
             });
             // 隐藏操作菜单
             this.hideActions();
-        }
-    }
+        },
+    },
 });

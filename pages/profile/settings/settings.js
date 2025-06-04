@@ -34,7 +34,8 @@ Page({
         showClearModal: false,
         showLogoutModal: false,
         hasLogin: false,
-        userInfo: null
+        userInfo: null,
+        darkMode: false // 默认为浅色模式
     },
     /**
      * 生命周期函数--监听页面加载
@@ -42,6 +43,19 @@ Page({
     onLoad() {
         (0, use_auth_1.useAuth)(this);
         this.loadSettings();
+        // 初始化深色模式状态
+        const app = getApp();
+        if (app.globalData && app.globalData.isDarkMode !== undefined) {
+            this.setData({ darkMode: app.globalData.isDarkMode });
+        }
+        else if (this.data.settings.theme === 'dark') {
+            this.setData({ darkMode: true });
+        }
+        else if (this.data.settings.theme === 'system') {
+            // 如果是跟随系统，则获取系统主题
+            const systemInfo = wx.getSystemInfoSync();
+            this.setData({ darkMode: systemInfo.theme === 'dark' });
+        }
     },
     /**
      * 加载设置
@@ -50,11 +64,21 @@ Page({
         const app = getApp();
         // 从本地存储或全局状态获取设置
         const storedSettings = (0, storage_1.getStorage)('settings', this.data.settings);
+        // 如果有存储的设置，使用存储的设置
         if (storedSettings) {
             this.setData({ settings: storedSettings });
         }
         else {
-            // 使用默认设置并保存
+            // 如果没有存储的设置，使用全局设置或默认设置
+            if (app.globalData.settings) {
+                this.setData({
+                    settings: {
+                        ...this.data.settings,
+                        ...app.globalData.settings
+                    }
+                });
+            }
+            // 保存默认设置
             (0, storage_1.setStorage)('settings', this.data.settings);
         }
         // 同步主题设置
@@ -76,15 +100,15 @@ Page({
      */
     saveSettings() {
         const app = getApp();
-        // 保存到本地存储，使用统一的键名
+        // 只保存统一的settings对象，避免数据冗余和不一致
         (0, storage_1.setStorage)('settings', this.data.settings);
-        // 同时单独存储各项设置，便于其他页面读取
-        wx.setStorageSync('setting_notification', this.data.settings.notification);
-        wx.setStorageSync('setting_theme', this.data.settings.theme);
-        wx.setStorageSync('setting_language', this.data.settings.language);
-        wx.setStorageSync('setting_sound', this.data.settings.sound);
-        wx.setStorageSync('setting_vibration', this.data.settings.vibration);
-        wx.setStorageSync('setting_autoBackup', this.data.settings.autoBackup);
+        // 更新全局设置
+        if (app.globalData.settings) {
+            app.globalData.settings = {
+                ...app.globalData.settings,
+                ...this.data.settings
+            };
+        }
         // 应用主题设置
         if (app.setTheme) {
             app.setTheme(this.data.settings.theme);
@@ -100,6 +124,7 @@ Page({
     switchSetting(e) {
         const key = e.currentTarget.dataset.key;
         const value = e.detail.value;
+        const app = getApp();
         this.setData({
             [`settings.${key}`]: value
         }, () => {
@@ -120,8 +145,28 @@ Page({
                                 });
                             });
                         }
+                        else {
+                            // 测试通知
+                            if (app.sendNotification) {
+                                app.sendNotification('通知已开启', '您将收到习惯提醒通知');
+                            }
+                        }
                     }
                 });
+            }
+            // 特殊处理声音设置
+            if (key === 'sound' && value) {
+                // 测试声音
+                if (app.playNotificationSound) {
+                    app.playNotificationSound();
+                }
+            }
+            // 特殊处理震动设置
+            if (key === 'vibration' && value) {
+                // 测试震动
+                if (app.vibrate) {
+                    app.vibrate();
+                }
             }
         });
     },
@@ -142,14 +187,30 @@ Page({
      */
     selectTheme(e) {
         const theme = e.currentTarget.dataset.value;
+        const app = getApp();
         // 找到对应的主题标签
         const currentTheme = this.data.themeOptions.find(option => option.value === theme);
+        // 确定是否应该启用深色模式
+        let isDarkMode = false;
+        if (theme === 'dark') {
+            isDarkMode = true;
+        }
+        else if (theme === 'system') {
+            // 如果是跟随系统，则获取系统主题
+            const systemInfo = wx.getSystemInfoSync();
+            isDarkMode = systemInfo.theme === 'dark';
+        }
         this.setData({
             'settings.theme': theme,
             currentThemeLabel: currentTheme ? currentTheme.label : '浅色模式',
-            showThemeModal: false
+            showThemeModal: false,
+            darkMode: isDarkMode
         }, () => {
             this.saveSettings();
+            // 应用主题
+            if (app.setTheme) {
+                app.setTheme(theme);
+            }
             wx.showToast({
                 title: '主题已更新',
                 icon: 'success'
@@ -173,6 +234,7 @@ Page({
      */
     selectLanguage(e) {
         const language = e.currentTarget.dataset.value;
+        const app = getApp();
         // 找到对应的语言标签
         const currentLanguage = this.data.languageOptions.find(option => option.value === language);
         this.setData({
@@ -181,26 +243,24 @@ Page({
             showLanguageModal: false
         }, () => {
             this.saveSettings();
+            // 应用语言
+            if (app.setLanguage) {
+                app.setLanguage(language);
+            }
             wx.showToast({
                 title: '语言已更新',
                 icon: 'success'
             });
-            // 需要重启应用才能完全应用语言设置
-            wx.showModal({
-                title: '提示',
-                content: '语言设置将在重启应用后完全生效',
-                showCancel: false
-            });
         });
     },
     /**
-     * 显示清除缓存模态框
+     * 显示清除缓存确认模态框
      */
     showClearModal() {
         this.setData({ showClearModal: true });
     },
     /**
-     * 隐藏清除缓存模态框
+     * 隐藏清除缓存确认模态框
      */
     hideClearModal() {
         this.setData({ showClearModal: false });
@@ -209,27 +269,37 @@ Page({
      * 清除缓存
      */
     clearCache() {
-        wx.showLoading({
-            title: '清除中'
+        // 保留登录信息和设置，清除其他缓存
+        const userInfo = wx.getStorageSync('userInfo');
+        const token = wx.getStorageSync('token');
+        const refreshToken = wx.getStorageSync('refreshToken');
+        const settings = wx.getStorageSync('settings');
+        // 清除所有缓存
+        wx.clearStorageSync();
+        // 恢复登录信息和设置
+        if (userInfo)
+            wx.setStorageSync('userInfo', userInfo);
+        if (token)
+            wx.setStorageSync('token', token);
+        if (refreshToken)
+            wx.setStorageSync('refreshToken', refreshToken);
+        if (settings)
+            wx.setStorageSync('settings', settings);
+        this.setData({ showClearModal: false });
+        wx.showToast({
+            title: '缓存已清除',
+            icon: 'success',
+            duration: 2000
         });
-        // 模拟清除缓存
-        setTimeout(() => {
-            wx.hideLoading();
-            this.setData({ showClearModal: false });
-            wx.showToast({
-                title: '缓存已清除',
-                icon: 'success'
-            });
-        }, 1000);
     },
     /**
-     * 显示退出登录模态框
+     * 显示退出登录确认模态框
      */
     showLogoutModal() {
         this.setData({ showLogoutModal: true });
     },
     /**
-     * 隐藏退出登录模态框
+     * 隐藏退出登录确认模态框
      */
     hideLogoutModal() {
         this.setData({ showLogoutModal: false });
@@ -239,24 +309,21 @@ Page({
      */
     logout() {
         const app = getApp();
-        wx.showLoading({
-            title: '退出中'
-        });
         app.logout(() => {
-            wx.hideLoading();
             this.setData({ showLogoutModal: false });
             wx.showToast({
                 title: '已退出登录',
-                icon: 'success'
+                icon: 'success',
+                duration: 2000
             });
-            // 返回上一页
-            setTimeout(() => {
-                wx.navigateBack();
-            }, 1000);
+            // 返回到首页
+            wx.switchTab({
+                url: '/pages/index/index'
+            });
         });
     },
     /**
-     * 跳转到关于页面
+     * 跳转到关于我们页面
      */
     navigateToAbout() {
         wx.navigateTo({
@@ -264,11 +331,20 @@ Page({
         });
     },
     /**
-     * 跳转到反馈页面
+     * 跳转到意见反馈页面
      */
     navigateToFeedback() {
         wx.navigateTo({
             url: '/pages/profile/feedback/feedback'
         });
+    },
+    /**
+     * 测试通知功能
+     */
+    testNotification() {
+        const app = getApp();
+        if (app.sendNotification) {
+            app.sendNotification('测试通知', '这是一条测试通知');
+        }
     }
 });

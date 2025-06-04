@@ -2,24 +2,24 @@
 <view class="post-item" bindtap="{{!isDetail ? 'viewPostDetail' : ''}}">
   <view class="post-header">
     <view class="post-user" catchtap="viewUserProfile">
-      <image class="post-avatar" src="{{post.userAvatar || post.user.avatar || '/assets/images/default-avatar.png'}}" mode="aspectFill"></image>
+      <image class="post-avatar" src="{{postData.userAvatar || postData.user.avatar || '/assets/images/default-avatar.png'}}" mode="aspectFill"></image>
       <view class="post-user-info">
-        <text class="post-username">{{post.userName || post.user.nickname || post.user.username || '用户'}}</text>
-        <text class="post-meta">{{post.createdAt}}</text>
+        <text class="post-username">{{postData.userName || postData.user.nickname || postData.user.username || '用户'}}</text>
+        <text class="post-meta">{{postData.createdAt}}</text>
       </view>
     </view>
   </view>
   
   <view class="post-content">
-    <text class="post-text">{{post.content}}</text>
+    <text class="post-text">{{postData.content}}</text>
     
     <!-- 图片 - 微信朋友圈风格 -->
-    <block wx:if="{{post.images && post.images.length > 0}}">
+    <block wx:if="{{postData.images && postData.images.length > 0}}">
       <!-- 单张图片 -->
-      <view class="post-images" wx:if="{{post.images.length === 1}}">
+      <view class="post-images" wx:if="{{postData.images.length === 1}}">
         <image 
           class="post-image single" 
-          src="{{post.images[0]}}" 
+          src="{{postData.images[0]}}" 
           mode="aspectFill"
           catchtap="previewImage"
           data-index="0"
@@ -27,10 +27,10 @@
       </view>
       
       <!-- 两张图片 -->
-      <view class="post-images count-2" wx:elif="{{post.images.length === 2}}">
+      <view class="post-images count-2" wx:elif="{{postData.images.length === 2}}">
         <image 
           class="post-image" 
-          wx:for="{{post.images}}" 
+          wx:for="{{postData.images}}" 
           wx:key="*this" 
           src="{{item}}" 
           mode="aspectFill"
@@ -40,10 +40,10 @@
       </view>
       
       <!-- 三张及以上图片 -->
-      <view class="post-images count-{{post.images.length}}" wx:else>
+      <view class="post-images count-{{postData.images.length}}" wx:else>
         <image 
           class="post-image" 
-          wx:for="{{post.images}}" 
+          wx:for="{{postData.images}}" 
           wx:key="*this" 
           src="{{item}}" 
           mode="aspectFill"
@@ -54,9 +54,9 @@
     </block>
     
     <!-- 标签 -->
-    <view class="post-tags" wx:if="{{post.tags && post.tags.length > 0}}">
+    <view class="post-tags" wx:if="{{postData.tags && postData.tags.length > 0}}">
       <view class="post-tag" 
-            wx:for="{{post.tags}}" 
+            wx:for="{{postData.tags}}" 
             wx:key="*this" 
             wx:for-item="tag"
             catchtap="viewTag"
@@ -68,19 +68,14 @@
   </view>
   
   <view class="post-actions">
-    <view class="post-action {{post.isLiked ? 'active' : ''}}" catchtap="likePost">
-      <text class="iconfont {{post.isLiked ? 'icon-heart-fill' : 'icon-heart'}}"></text>
-      <text>{{post.likes || 0}}</text>
+    <view class="post-action {{postData.isLiked ? 'active' : ''}}" catchtap="likePost">
+      <text class="iconfont {{postData.isLiked ? 'icon-heart-fill' : 'icon-heart'}}"></text>
+      <text>{{postData.likes || 0}}</text>
     </view>
     <view class="post-action" catchtap="commentPost">
       <text class="iconfont icon-comment"></text>
-      <text>{{post.comments || 0}}</text>
+      <text>{{postData.comments || 0}}</text>
     </view>
-    <button class="post-action share-btn" open-type="share" wx:if="{{isDetail}}">
-      <text class="iconfont icon-share"></text>
-    </button>
-    <view class="post-action" catchtap="sharePost" wx:else>
-      <text class="iconfont icon-share"></text>
-    </view>
+   
   </view>
 </view> 

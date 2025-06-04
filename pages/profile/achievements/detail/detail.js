@@ -63,7 +63,6 @@ Page({
             });
         }
         catch (error) {
-            console.error('加载成就详情失败:', error);
             this.setData({
                 loading: false,
                 achievement: null

@@ -17,7 +17,9 @@ Page({
     pageSize: 10,
     tags: [],
     activeTag: '',
-    hasLogin: false
+    hasLogin: false,
+    activeTagIndex: 0,
+    searchKeyword: ''
   },
 
   /**
@@ -55,7 +57,7 @@ Page({
         this.setData({ tags });
       })
       .catch(error => {
-        console.error('获取热门话题失败:', error);
+        
       });
   },
 
@@ -115,7 +117,7 @@ Page({
         });
       })
       .catch(error => {
-        console.error('获取动态列表失败:', error);
+        
         
         this.setData({
           loading: false
@@ -126,6 +128,28 @@ Page({
           icon: 'none'
         });
       });
+  },
+
+  /**
+   * 标签切换处理
+   */
+  onTabChange(e) {
+    const index = e.detail;
+    // 如果是第一个标签（全部），则清空activeTag
+    let activeTag = '';
+    
+    if (index > 0 && this.data.tags.length >= index) {
+      activeTag = this.data.tags[index - 1]; // 减1是因为第一个标签是"全部"
+    }
+    
+    this.setData({
+      activeTagIndex: index,
+      activeTag: activeTag,
+      page: 1
+    });
+    
+    // 重新加载动态列表
+    this.loadPosts(true);
   },
 
   /**
@@ -200,7 +224,7 @@ Page({
         this.setData({ posts });
       })
       .catch(error => {
-        console.error('操作失败:', error);
+        
         
         wx.showToast({
           title: '操作失败',
@@ -226,7 +250,28 @@ Page({
    * 分享动态
    */
   sharePost(e) {
-    // 小程序内分享由onShareAppMessage处理
+    // 获取动态ID和索引
+    const { postId, index } = e.detail;
+    
+    // 如果没有提供索引，则尝试从event中获取
+    const postIndex = index !== undefined ? index : e.currentTarget.dataset.index;
+    
+    // 获取动态数据
+    const post = this.data.posts[postIndex];
+    
+    if (!post) {
+      wx.showToast({
+        title: '分享失败',
+        icon: 'none'
+      });
+      return;
+    }
+    
+    // 显示分享菜单
+    wx.showShareMenu({
+      withShareTicket: true,
+      menus: ['shareAppMessage', 'shareTimeline']
+    });
   },
 
   /**
@@ -239,6 +284,46 @@ Page({
   },
 
   /**
+   * 搜索输入处理
+   */
+  onSearchInput(e) {
+    this.setData({
+      searchKeyword: e.detail
+    });
+  },
+
+  /**
+   * 执行搜索
+   */
+  onSearch() {
+    const { searchKeyword } = this.data;
+    if (!searchKeyword.trim()) {
+      return;
+    }
+    
+    // 设置搜索参数并重新加载
+    this.setData({
+      page: 1,
+      activeTag: '',
+      activeTagIndex: 0
+    });
+    
+    this.loadPosts(true);
+  },
+
+  /**
+   * 清除搜索
+   */
+  clearSearch() {
+    this.setData({
+      searchKeyword: '',
+      page: 1
+    });
+    
+    this.loadPosts(true);
+  },
+
+  /**
    * 显示筛选选项
    */
   showFilter() {
@@ -246,7 +331,7 @@ Page({
       itemList: ['最新发布', '最多点赞', '最多评论'],
       success: (res) => {
         // 根据选择的筛选选项重新加载数据
-        console.log('选择了筛选选项:', res.tapIndex);
+        
         this.loadPosts(true);
       }
     });
@@ -281,7 +366,7 @@ Page({
    * 页面上拉触底事件的处理函数
    */
   onReachBottom() {
-    if (!this.data.loading && this.data.hasMore) {
+    if (this.data.hasMore && !this.data.loading) {
       this.loadPosts();
     }
   },
@@ -296,17 +381,15 @@ Page({
       
       if (post) {
         return {
-          title: `${post.userName}的习惯打卡分享`,
+          title: `${post.userName || '用户'}的习惯打卡分享`,
           path: `/pages/community/post-detail/post-detail?id=${postId}`,
-          imageUrl: post.images && post.images.length > 0 
-            ? post.images[0] 
-            : '/assets/images/share-default.png'
+          imageUrl: post.images && post.images.length > 0 ? post.images[0] : '/assets/images/share-default.png'
         };
       }
     }
     
     return {
-      title: '习惯打卡社区动态',
+      title: '习惯打卡社区',
       path: '/pages/community/posts/posts'
     };
   }

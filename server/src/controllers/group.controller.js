@@ -91,7 +91,7 @@ exports.getGroups = async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('获取小组列表失败:', error);
+    
     return res.status(500).json({
       success: false,
       message: '获取小组列表失败'
@@ -122,7 +122,7 @@ exports.getGroup = async (req, res) => {
       data: group
     });
   } catch (error) {
-    console.error('获取小组详情失败:', error);
+    
     return res.status(500).json({
       success: false,
       message: '获取小组详情失败'
@@ -167,7 +167,7 @@ exports.createGroup = async (req, res) => {
       data: group
     });
   } catch (error) {
-    console.error('创建小组失败:', error);
+    
     return res.status(500).json({
       success: false,
       message: '创建小组失败'
@@ -226,7 +226,7 @@ exports.updateGroup = async (req, res) => {
       data: group
     });
   } catch (error) {
-    console.error('更新小组失败:', error);
+    
     return res.status(500).json({
       success: false,
       message: '更新小组失败'
@@ -268,7 +268,7 @@ exports.deleteGroup = async (req, res) => {
       message: '小组已删除'
     });
   } catch (error) {
-    console.error('删除小组失败:', error);
+    
     return res.status(500).json({
       success: false,
       message: '删除小组失败'
@@ -312,7 +312,7 @@ exports.joinGroup = async (req, res) => {
       message: '成功加入小组'
     });
   } catch (error) {
-    console.error('加入小组失败:', error);
+    
     return res.status(500).json({
       success: false,
       message: '加入小组失败'
@@ -365,7 +365,7 @@ exports.leaveGroup = async (req, res) => {
       message: '成功退出小组'
     });
   } catch (error) {
-    console.error('退出小组失败:', error);
+    
     return res.status(500).json({
       success: false,
       message: '退出小组失败'
@@ -412,7 +412,7 @@ exports.getGroupMembers = async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('获取小组成员失败:', error);
+    
     return res.status(500).json({
       success: false,
       message: '获取小组成员失败'
@@ -443,7 +443,7 @@ exports.checkGroupOwner = async (req, res, next) => {
     
     next();
   } catch (error) {
-    console.error('检查小组所有者失败:', error);
+    
     return res.status(500).json({
       success: false,
       message: '检查小组所有者失败'
@@ -501,7 +501,7 @@ exports.getGroupPosts = async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('获取小组动态失败:', error);
+    
     return res.status(500).json({
       success: false,
       message: '获取小组动态失败'
@@ -546,7 +546,7 @@ exports.dismissGroup = async (req, res) => {
       message: '小组已解散'
     });
   } catch (error) {
-    console.error('解散小组失败:', error);
+    
     return res.status(500).json({
       success: false,
       message: '解散小组失败'

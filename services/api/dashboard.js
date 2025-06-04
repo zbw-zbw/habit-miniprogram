@@ -31,9 +31,9 @@ exports.dashboardAPI = {
             method: 'GET',
             data: {
                 date,
-                days: includeCheckins ? days : 0
-            }
-        }).then(response => {
+                days: includeCheckins ? days : 0,
+            },
+        }).then((response) => {
             // 确保返回的数据符合接口定义
             // 这里已经得到的是response.data，因为request模块已经处理过了
             if (typeof response === 'object' && response !== null) {
@@ -49,7 +49,7 @@ exports.dashboardAPI = {
      * @returns 所有习惯及相关数据
      */
     getAllHabits: (options = {}) => {
-        const { includeArchived = true, includeStats = true, includeCheckins = false, days = 7 } = options;
+        const { includeArchived = false, includeStats = true, includeCheckins = true, days = 7, sort = 'createdAt', order = 'desc', } = options;
         // 使用后端聚合API
         return (0, request_1.request)({
             url: '/api/habits',
@@ -58,9 +58,11 @@ exports.dashboardAPI = {
                 includeArchived,
                 includeStats,
                 includeCheckins,
-                days
-            }
-        }).then(response => {
+                days,
+                sort,
+                order,
+            },
+        }).then((response) => {
             // 确保返回的数据符合接口定义
             if (typeof response === 'object' && response !== null) {
                 return response.data || response;
@@ -74,7 +76,7 @@ exports.dashboardAPI = {
      * @returns 分析数据
      */
     getAnalytics: (options = {}) => {
-        const { startDate = (0, date_1.formatDate)(new Date(new Date().setMonth(new Date().getMonth() - 1))), endDate = (0, date_1.getCurrentDate)(), timeRange = 'month' } = options;
+        const { startDate = (0, date_1.formatDate)(new Date(new Date().setMonth(new Date().getMonth() - 1))), endDate = (0, date_1.getCurrentDate)(), timeRange = 'month', } = options;
         // 使用后端聚合API
         return (0, request_1.request)({
             url: '/api/analytics',
@@ -82,14 +84,14 @@ exports.dashboardAPI = {
             data: {
                 startDate,
                 endDate,
-                timeRange
-            }
-        }).then(response => {
+                timeRange,
+            },
+        }).then((response) => {
             // 确保返回的数据符合接口定义
             if (typeof response === 'object' && response !== null) {
                 return response.data || response;
             }
             return response;
         });
-    }
+    },
 };

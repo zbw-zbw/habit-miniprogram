@@ -15,7 +15,7 @@ exports.uploadImage = async (req, res) => {
       return res.status(400).json({ success: false, message: '未找到上传文件' });
     }
     
-    console.log('上传图片:', req.file);
+    
     
     // 获取文件路径
     const filePath = req.file.path;
@@ -27,7 +27,7 @@ exports.uploadImage = async (req, res) => {
     const baseUrl = config.baseUrl || `http://${req.headers.host}`;
     const fullUrl = fileUrl.startsWith('http') ? fileUrl : `${baseUrl}${fileUrl}`;
     
-    console.log('图片上传成功, URL:', fullUrl);
+    
     
     res.json({
       success: true,
@@ -37,7 +37,7 @@ exports.uploadImage = async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('上传图片失败:', error);
+    
     res.status(500).json({ success: false, message: '上传图片失败' });
   }
 }; 

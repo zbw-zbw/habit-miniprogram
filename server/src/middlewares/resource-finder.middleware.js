@@ -105,7 +105,7 @@ exports.findResource = (modelName, paramName, checkOwnership = true) => {
       req.resource = resource;
       next();
     } catch (error) {
-      console.error(`查找${modelName}资源错误:`, error);
+      
       res.status(500).json({
         success: false,
         message: '服务器错误，无法查找资源'

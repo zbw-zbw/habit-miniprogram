@@ -88,7 +88,6 @@ Page({
             });
         })
             .catch(error => {
-            console.error('搜索用户失败:', error);
             this.setData({
                 users: [],
                 loading: false
@@ -114,7 +113,6 @@ Page({
             });
         })
             .catch(error => {
-            console.error('加载推荐好友失败:', error);
             this.setData({
                 recommendUsers: [],
                 loadingRecommend: false
@@ -125,9 +123,10 @@ Page({
      * 查看用户资料
      */
     viewUserProfile(e) {
+        console.log(e);
         const { id } = e.currentTarget.dataset;
         wx.navigateTo({
-            url: `/pages/profile/user/user?id=${id}`
+            url: `/pages/community/user-profile/user-profile?id=${id}`
         });
     },
     /**
@@ -150,7 +149,6 @@ Page({
             });
         })
             .catch(error => {
-            console.error('添加好友失败:', error);
             wx.showToast({
                 title: '添加失败',
                 icon: 'none'
@@ -180,7 +178,6 @@ Page({
             });
         })
             .catch(error => {
-            console.error('添加好友失败:', error);
             wx.showToast({
                 title: '添加失败',
                 icon: 'none'
@@ -215,7 +212,6 @@ Page({
                         this.loadRecommendUsers();
                     })
                         .catch(error => {
-                        console.error('添加好友失败:', error);
                         wx.showToast({
                             title: '添加失败',
                             icon: 'none'

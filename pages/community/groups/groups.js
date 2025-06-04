@@ -15,6 +15,7 @@ Page({
         loadingMore: false,
         hasMore: true,
         activeTab: 'all',
+        tabIndex: 0,
         groups: [],
         page: 1,
         limit: 10,
@@ -28,6 +29,14 @@ Page({
         // 如果有标签参数，设置初始标签
         if (options.tab && ['all', 'joined', 'created', 'recommended'].includes(options.tab)) {
             this.setData({ activeTab: options.tab });
+            // 设置对应的tabIndex
+            const tabMap = {
+                'all': 0,
+                'joined': 1,
+                'created': 2,
+                'recommended': 3
+            };
+            this.setData({ tabIndex: tabMap[options.tab] });
         }
         // 如果有标签参数，直接搜索该标签
         if (options.tag) {
@@ -111,7 +120,6 @@ Page({
             });
         })
             .catch(error => {
-            console.error('获取小组列表失败:', error);
             // 显示错误提示
             wx.showToast({
                 title: '获取小组列表失败',
@@ -124,20 +132,21 @@ Page({
         });
     },
     /**
-     * 切换标签
+     * 处理tab-bar组件的tabchange事件
      */
-    switchTab(e) {
-        const tab = e.currentTarget.dataset.tab;
-        if (tab !== this.data.activeTab) {
-            this.setData({
-                activeTab: tab,
-                page: 1,
-                groups: [],
-                hasMore: true
-            });
-            // 重新加载数据
-            this.loadGroups();
-        }
+    onTabChange(e) {
+        const { index } = e.detail;
+        const tabMap = ['all', 'joined', 'created', 'recommended'];
+        // 设置当前活动标签和索引
+        this.setData({
+            tabIndex: index,
+            activeTab: tabMap[index],
+            page: 1,
+            groups: [],
+            hasMore: true
+        });
+        // 重新加载数据
+        this.loadGroups(true);
     },
     /**
      * 查看小组详情
@@ -184,7 +193,6 @@ Page({
                             });
                         })
                             .catch(error => {
-                            console.error('解散小组失败:', error);
                             wx.showToast({
                                 title: '解散小组失败',
                                 icon: 'none'
@@ -222,7 +230,6 @@ Page({
             });
         })
             .catch(error => {
-            console.error('操作失败:', error);
             // 显示错误提示
             wx.showToast({
                 title: '操作失败',
@@ -245,7 +252,6 @@ Page({
      * 刷新数据
      */
     refreshData() {
-        console.log('刷新小组列表数据');
         this.loadGroups(true);
     },
     /**

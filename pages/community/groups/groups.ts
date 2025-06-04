@@ -4,7 +4,7 @@
  */
 import { communityAPI } from '../../../services/api';
 import { getFullImageUrl } from '../../../utils/image';
-import { IAppOption } from '../../../app';
+import { IAppOption } from '../../../typings/index';
 
 // 本地接口定义，用于处理小组数据
 interface IGroupItem {
@@ -38,6 +38,7 @@ interface IPageData {
   loadingMore: boolean;
   hasMore: boolean;
   activeTab: string; // all, joined, recommended
+  tabIndex: number; // 当前选中的标签索引
   groups: IGroupItem[];
   page: number;
   limit: number;
@@ -47,7 +48,7 @@ interface IPageData {
 
 interface IPageMethods {
   loadGroups(isRefresh?: boolean): void;
-  switchTab(e: any): void;
+  onTabChange(e: any): void; // 添加tab切换方法
   viewGroupDetail(e: any): void;
   toggleJoinGroup(e: any): void;
   inputSearch(e: any): void;
@@ -66,6 +67,7 @@ Page<IPageData, IPageMethods>({
     loadingMore: false,
     hasMore: true,
     activeTab: 'all', // all, joined, recommended
+    tabIndex: 0, // 当前选中的标签索引，默认为"全部"
     groups: [],
     page: 1,
     limit: 10,
@@ -80,6 +82,16 @@ Page<IPageData, IPageMethods>({
     // 如果有标签参数，设置初始标签
     if (options.tab && ['all', 'joined', 'created', 'recommended'].includes(options.tab)) {
       this.setData({ activeTab: options.tab });
+      
+      // 设置对应的tabIndex
+      const tabMap: Record<string, number> = {
+        'all': 0,
+        'joined': 1,
+        'created': 2,
+        'recommended': 3
+      };
+      
+      this.setData({ tabIndex: tabMap[options.tab] });
     }
     
     // 如果有标签参数，直接搜索该标签
@@ -173,7 +185,7 @@ Page<IPageData, IPageMethods>({
         });
       })
       .catch(error => {
-        console.error('获取小组列表失败:', error);
+        
         
         // 显示错误提示
         wx.showToast({
@@ -187,24 +199,25 @@ Page<IPageData, IPageMethods>({
         });
       });
   },
-
+  
   /**
-   * 切换标签
+   * 处理tab-bar组件的tabchange事件
    */
-  switchTab(e: any) {
-    const tab = e.currentTarget.dataset.tab;
+  onTabChange(e: any) {
+    const { index } = e.detail;
+    const tabMap = ['all', 'joined', 'created', 'recommended'];
     
-    if (tab !== this.data.activeTab) {
-      this.setData({
-        activeTab: tab,
-        page: 1,
-        groups: [],
-        hasMore: true
-      });
-      
-      // 重新加载数据
-      this.loadGroups();
-    }
+    // 设置当前活动标签和索引
+    this.setData({
+      tabIndex: index,
+      activeTab: tabMap[index],
+      page: 1,
+      groups: [],
+      hasMore: true
+    });
+    
+    // 重新加载数据
+    this.loadGroups(true);
   },
 
   /**
@@ -258,7 +271,7 @@ Page<IPageData, IPageMethods>({
                 });
               })
               .catch(error => {
-                console.error('解散小组失败:', error);
+                
                 
                 wx.showToast({
                   title: '解散小组失败',
@@ -303,7 +316,7 @@ Page<IPageData, IPageMethods>({
         });
       })
       .catch(error => {
-        console.error('操作失败:', error);
+        
         
         // 显示错误提示
         wx.showToast({
@@ -329,7 +342,7 @@ Page<IPageData, IPageMethods>({
    * 刷新数据
    */
   refreshData() {
-    console.log('刷新小组列表数据');
+    
     this.loadGroups(true);
   },
 

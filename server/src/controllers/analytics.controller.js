@@ -114,7 +114,7 @@ exports.getDashboard = async (req, res) => {
       data: dashboard
     });
   } catch (error) {
-    console.error('获取仪表盘数据错误:', error);
+    
     res.status(500).json({
       success: false,
       message: '服务器错误，获取仪表盘数据失败'
@@ -201,7 +201,7 @@ exports.getHabitsCompletion = async (req, res) => {
       data: result
     });
   } catch (error) {
-    console.error('获取习惯完成率数据错误:', error);
+    
     res.status(500).json({
       success: false,
       message: '服务器错误，获取习惯完成率数据失败'
@@ -271,7 +271,7 @@ exports.getHabitsStreak = async (req, res) => {
       data: result
     });
   } catch (error) {
-    console.error('获取习惯连续记录数据错误:', error);
+    
     res.status(500).json({
       success: false,
       message: '服务器错误，获取习惯连续记录数据失败'
@@ -415,7 +415,7 @@ exports.getHabitsTrends = async (req, res) => {
       data: result
     });
   } catch (error) {
-    console.error('获取习惯趋势数据错误:', error);
+    
     res.status(500).json({
       success: false,
       message: '服务器错误，获取习惯趋势数据失败'
@@ -580,7 +580,7 @@ exports.generateReport = async (req, res) => {
       data: reportData
     });
   } catch (error) {
-    console.error('生成习惯报告错误:', error);
+    
     res.status(500).json({
       success: false,
       message: '服务器错误，生成习惯报告失败'

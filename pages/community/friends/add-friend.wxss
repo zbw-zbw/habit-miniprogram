@@ -4,51 +4,34 @@
 .container {
   background-color: #F5F7FA;
   min-height: 100vh;
-  padding-bottom: 40rpx;
-}
-
-/* 导航栏 */
-.navbar {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 20rpx 30rpx;
-  background-color: #FFFFFF;
-  position: relative;
-}
-
-.navbar-left {
-  width: 60rpx;
-  height: 60rpx;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.navbar-left .iconfont {
-  font-size: 40rpx;
-  color: #303133;
-}
-
-.navbar-title {
-  position: absolute;
-  left: 50%;
-  transform: translateX(-50%);
-  font-size: 32rpx;
-  font-weight: 500;
-  color: #303133;
-}
-
-.navbar-right {
-  width: 60rpx;
+  padding: 0 0 40rpx;
 }
 
 /* 搜索栏 */
 .search-bar {
+  position: sticky;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 100;
   display: flex;
   align-items: center;
   padding: 20rpx 30rpx;
   background-color: #FFFFFF;
+  box-shadow: 0 2rpx 10rpx rgba(0, 0, 0, 0.05);
+  width: 100%;
+  box-sizing: border-box;
+}
+
+/* 为了让搜索框下方的内容不被遮挡，添加顶部内边距 */
+.search-results, .recommend-section {
+  margin-top: 110rpx; /* 搜索框高度 + 上下padding + 一些额外空间 */
+}
+
+/* 第一个section需要额外的顶部边距 */
+.container > .search-results:first-child,
+.container > .recommend-section:first-child {
+  margin-top: 110rpx;
 }
 
 .search-input-wrapper {
@@ -94,16 +77,14 @@
 
 /* 搜索结果 */
 .search-results {
-  margin-top: 20rpx;
   background-color: #FFFFFF;
   padding: 0 0 20rpx 0;
 }
 
 /* 推荐好友 */
 .recommend-section {
-  margin-top: 20rpx;
+  margin: 24rpx;
   background-color: #FFFFFF;
-  padding: 0 0 20rpx 0;
 }
 
 /* 扫码添加 */
@@ -225,7 +206,7 @@
 }
 
 .add-btn {
-  min-width: 120rpx;
+  width: 120rpx!important;
   height: 60rpx;
   background-color: #4F7CFF;
   border-radius: 30rpx;
@@ -261,4 +242,4 @@
 .no-result-text {
   font-size: 28rpx;
   color: #909399;
-} 
+}

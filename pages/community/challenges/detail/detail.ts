@@ -125,7 +125,7 @@ Page<IPageData, IPageMethods>({
     
     communityAPI.getChallenge(challengeId)
       .then(challenge => {
-        console.log('获取到挑战详情:', challenge);
+        
         
         // 处理挑战数据
         const processedChallenge = {
@@ -177,7 +177,7 @@ Page<IPageData, IPageMethods>({
         this.loadParticipants();
       })
       .catch(error => {
-        console.error('获取挑战详情失败:', error);
+        
         
         wx.showToast({
           title: '获取挑战详情失败',
@@ -202,7 +202,7 @@ Page<IPageData, IPageMethods>({
     
     communityAPI.getChallengeParticipants(challengeId, { limit: 5 })
       .then(result => {
-        console.log('获取到参与者列表:', result);
+        
         
         let participants = result.participants || [];
         
@@ -241,7 +241,7 @@ Page<IPageData, IPageMethods>({
         });
       })
       .catch(error => {
-        console.error('获取参与者列表失败:', error);
+        
         this.setData({ participantsLoading: false });
       });
   },
@@ -300,7 +300,7 @@ Page<IPageData, IPageMethods>({
         this.loadParticipants();
       })
       .catch(error => {
-        console.error('操作失败:', error);
+        
         
         // 显示错误提示
         wx.showToast({
@@ -503,7 +503,7 @@ Page<IPageData, IPageMethods>({
               }, 1500);
             })
             .catch(error => {
-              console.error('解散挑战失败:', error);
+              
               
               wx.showToast({
                 title: '解散挑战失败',

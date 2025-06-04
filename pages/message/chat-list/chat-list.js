@@ -73,7 +73,6 @@ Page({
                 });
             })
                 .catch(error => {
-                console.error('获取聊天会话列表失败:', error);
                 // 使用模拟数据
                 this.loadMockSessions();
             });
@@ -138,7 +137,6 @@ Page({
         wx.navigateTo({
             url: `/pages/message/chat/chat?sessionId=${id}&userId=${userid}`,
             fail: (err) => {
-                console.error('跳转到聊天页面失败:', err);
                 wx.showToast({
                     title: '跳转失败',
                     icon: 'none'
@@ -205,7 +203,6 @@ Page({
         wx.navigateTo({
             url: '/pages/community/friends/add-friend',
             fail: (err) => {
-                console.error('跳转到寻找好友页面失败:', err);
                 wx.showToast({
                     title: '跳转失败',
                     icon: 'none'

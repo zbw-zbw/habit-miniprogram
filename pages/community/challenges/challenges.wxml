@@ -1,28 +1,25 @@
 <!--pages/community/challenges/challenges.wxml-->
 <view class="container">
-  <!-- 顶部搜索栏 -->
-  <view class="search-bar">
-    <view class="search-input-container">
-      <text class="iconfont icon-search"></text>
-      <input class="search-input" 
-             placeholder="搜索挑战" 
-             value="{{searchKeyword}}" 
-             bindinput="inputSearch"
-             bindconfirm="doSearch"/>
+  <!-- 头部固定区域 -->
+  <view class="sticky-header">
+    <!-- 顶部搜索栏 -->
+    <view class="search-bar">
+      <search-box 
+        placeholder="搜索挑战" 
+        value="{{searchKeyword}}" 
+        bind:input="inputSearch"
+        bind:search="doSearch"
+        showSearchButton="{{true}}"
+        style="width:100%"
+      ></search-box>
     </view>
-    <view class="create-btn" bindtap="createChallenge">
-      <text class="iconfont icon-add"></text>
-      <text>创建挑战</text>
-    </view>
-  </view>
-  
-  <!-- 标签栏 -->
-  <view class="tabs">
-    <view class="tab-item {{activeTab === 'all' ? 'active' : ''}}" bindtap="switchTab" data-tab="all">全部</view>
-    <view class="tab-item {{activeTab === 'joined' ? 'active' : ''}}" bindtap="switchTab" data-tab="joined">已参加</view>
-    <view class="tab-item {{activeTab === 'created' ? 'active' : ''}}" bindtap="switchTab" data-tab="created">我创建的</view>
-    <view class="tab-item {{activeTab === 'popular' ? 'active' : ''}}" bindtap="switchTab" data-tab="popular">热门</view>
-    <view class="tab-item {{activeTab === 'new' ? 'active' : ''}}" bindtap="switchTab" data-tab="new">最新</view>
+    
+    <!-- 标签栏 -->
+    <tab-bar 
+      tabs="{{['全部', '已参加', '我创建的', '最新']}}" 
+      activeTab="{{tabIndex}}"
+      bind:tabchange="onTabChange"
+    ></tab-bar>
   </view>
   
   <!-- 挑战列表 -->
@@ -75,8 +72,8 @@
         <!-- 挑战信息 -->
         <view class="challenge-info">
           <view class="info-item">
-            <text class="iconfont icon-user"></text>
-            <text>{{item.participantsCount || item.participants || 0}}人参与</text>
+            <van-icon name="friends-o" />
+            <text style="margin-left: 4px;">{{item.participantsCount || 0}}人参与</text>
           </view>
           <view class="info-item">
             <text class="iconfont icon-calendar"></text>
@@ -113,4 +110,12 @@
       <text>没有更多数据了</text>
     </view>
   </view>
+
+  <!-- 创建挑战按钮 - 使用fab-button组件 -->
+  <fab-button 
+    icon="add" 
+    type="primary" 
+    position="bottom-right" 
+    bind:click="createChallenge"
+  />
 </view> 

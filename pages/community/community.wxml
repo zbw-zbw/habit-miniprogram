@@ -88,7 +88,7 @@
                 wx:key="id" 
                 bindtap="viewChallengeDetail"
                 data-challenge-id="{{item.id}}">
-            <image class="challenge-image" src="{{item.coverImage || item.image}}" mode="aspectFill"></image>
+            <image class="challenge-image" src="{{item.coverImage || item.image || '/assets/images/challenge.png'}}" mode="aspectFill"></image>
             <view class="challenge-overlay"></view>
             <view class="challenge-info">
               <text class="challenge-title">{{item.name || item.title}}</text>
@@ -136,8 +136,7 @@
             bind:viewDetail="viewPostDetail"
             bind:viewUser="viewUserProfile"
             bind:like="likePost"
-            bind:comment="commentPost"
-            bind:share="sharePost">
+            bind:comment="commentPost">
           </post-card>
         </block>
         

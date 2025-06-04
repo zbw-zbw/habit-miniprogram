@@ -23,6 +23,22 @@ exports.habitAPI = {
         return (0, request_1.get)(`/api/habits/${habitId}`);
     },
     /**
+     * 获取习惯详情及统计数据（聚合API）
+     * @param habitId 习惯ID
+     * @returns Promise<{habit: IHabit, stats: IHabitStats}>
+     */
+    getHabitWithStats: (habitId) => {
+        return (0, request_1.get)(`/api/habits/${habitId}/with-stats`);
+    },
+    /**
+     * 获取多个习惯及其统计数据（聚合API）
+     * @param params 查询参数
+     * @returns Promise<{habits: IHabitWithStats[]}>
+     */
+    getHabitsWithStats: (params) => {
+        return (0, request_1.get)('/api/habits/with-stats', params);
+    },
+    /**
      * 创建习惯
      * @param habitData 习惯数据
      * @returns Promise<IHabit>

@@ -1,4 +1,7 @@
 {
-  "usingComponents": {},
+  "usingComponents": {
+    "search-box": "/components/search-box/search-box",
+    "fab-button": "/components/fab-button/fab-button"
+  },
   "navigationBarTitleText": "添加好友"
 } 

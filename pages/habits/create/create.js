@@ -130,7 +130,6 @@ Page({
             }
         }
         catch (error) {
-            console.error('加载分类列表失败:', error);
             // 出错时使用默认分类列表
             const defaultCategories = [
                 { id: 'learning', name: '学习', icon: 'book' },
@@ -231,7 +230,6 @@ Page({
             wx.hideLoading();
         }
         catch (error) {
-            console.error('加载习惯详情失败:', error);
             wx.hideLoading();
             wx.showToast({
                 title: '加载失败',
@@ -498,7 +496,6 @@ Page({
             }, 1500);
         }
         catch (error) {
-            console.error(isEdit ? '更新习惯失败:' : '创建习惯失败:', error);
             wx.hideLoading();
             wx.showToast({
                 title: isEdit ? '保存失败' : '创建失败',

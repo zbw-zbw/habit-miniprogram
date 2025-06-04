@@ -46,7 +46,6 @@ function setupLoginCheck(page) {
     }
     if (!page.onLoginFail) {
         page.onLoginFail = function () {
-            console.log('用户登录失败或取消');
         };
     }
     // 确保页面初始数据中包含loginModal

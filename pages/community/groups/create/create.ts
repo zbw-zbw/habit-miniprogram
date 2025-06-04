@@ -352,7 +352,7 @@ Page<IPageData, {
         }, 1500);
       })
       .catch((error) => {
-        console.error('创建小组失败:', error);
+        
         wx.hideLoading();
         wx.showToast({
           title: error?.message || '创建失败',
@@ -373,7 +373,7 @@ Page<IPageData, {
             resolve(result.url);
           })
           .catch(error => {
-            console.error('上传头像失败:', error);
+            
             reject(error);
           });
       } else {

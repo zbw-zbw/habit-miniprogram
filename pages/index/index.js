@@ -70,7 +70,7 @@ Page({
         apiAvailable: true,
         loginModal: {
             show: false,
-            message: '请先登录以使用此功能'
+            message: '请先登录以使用此功能',
         },
     },
     /**
@@ -90,7 +90,7 @@ Page({
             weekday,
             userInfo: app.globalData.userInfo,
             hasLogin: app.globalData.hasLogin,
-            apiAvailable: app.apiAvailable || true
+            apiAvailable: app.apiAvailable || true,
         });
         // 使用useAuth工具获取全局登录状态
         (0, use_auth_1.useAuth)(this);
@@ -153,7 +153,6 @@ Page({
         dashboard_1.dashboardAPI
             .getDashboard(today, { days: 30 })
             .then((dashboardData) => {
-            console.log('获取仪表盘数据成功:', dashboardData);
             // 处理数据并更新UI
             this.processDashboardData(dashboardData);
         })
@@ -191,7 +190,6 @@ Page({
                 if (habitStat && habitStat.currentStreak > 0) {
                     // 使用最大的连续打卡天数
                     currentStreak = Math.max(currentStreak, habitStat.currentStreak || 0);
-                    console.log(`从习惯统计更新连续打卡天数: ${habitStat.currentStreak}`);
                 }
             });
         }
@@ -200,11 +198,9 @@ Page({
             todayHabits.forEach((habit) => {
                 if (habit.stats && habit.stats.currentStreak > 0) {
                     currentStreak = Math.max(currentStreak, habit.stats.currentStreak);
-                    console.log(`从习惯自身更新连续打卡天数: ${habit.stats.currentStreak}`);
                 }
             });
         }
-        console.log('当前连续打卡天数:', currentStreak);
         // 设置数据
         this.setData({
             todayHabits,
@@ -386,7 +382,6 @@ Page({
      * 处理登录状态变化
      */
     onLoginStateChange(loginState) {
-        console.log('首页接收到登录状态变化:', loginState.hasLogin);
         this.setData({
             userInfo: loginState.userInfo,
             hasLogin: loginState.hasLogin,
@@ -405,7 +400,7 @@ Page({
                 totalCount: 0,
                 completionRate: 0,
                 completionRateDisplay: '0',
-                currentStreak: 0
+                currentStreak: 0,
             });
         }
     },
@@ -439,6 +434,5 @@ Page({
      * 登录失败事件
      */
     onLoginFail() {
-        console.log('用户登录失败或取消');
     },
 });
