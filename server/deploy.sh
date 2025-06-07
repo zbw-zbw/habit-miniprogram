@@ -13,7 +13,7 @@ command -v pm2 >/dev/null 2>&1 || { echo "正在安装PM2..."; npm install -g pm
 
 # 安装依赖
 echo "安装依赖..."
-npm ci --production
+npm install --production
 
 # 检查环境变量文件
 if [ ! -f .env ]; then

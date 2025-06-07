@@ -136,15 +136,20 @@ app.use((err, req, res, next) => {
 // 连接数据库并启动服务器
 const startServer = async () => {
   try {
-// 连接数据库
+    console.log('正在连接数据库...');
+    console.log('数据库URL:', config.db.url);
+    
+    // 连接数据库
     await mongoose.connect(config.db.url, {
-  useNewUrlParser: true,
-  useUnifiedTopology: true
+      useNewUrlParser: true,
+      useUnifiedTopology: true,
+      serverSelectionTimeoutMS: 5000, // 5秒超时
+      connectTimeoutMS: 10000, // 10秒连接超时
     });
     console.log('数据库连接成功');
   
-  // 启动服务器
-  app.listen(PORT, () => {
+    // 启动服务器
+    app.listen(PORT, '0.0.0.0', () => {
       console.log(`服务器已启动，端口: ${PORT}`);
       console.log(`在浏览器中访问: http://localhost:${PORT}`);
     });
