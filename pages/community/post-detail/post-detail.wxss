@@ -335,30 +335,37 @@
   padding: 4rpx 0;
 }
 
+/* 评论操作 */
 .comment-actions {
   display: flex;
+  margin-top: 8rpx;
 }
 
 .comment-action {
   display: flex;
   align-items: center;
+  margin-right: 48rpx;
+  padding: 8rpx 0;
+  background-color: transparent;
   font-size: 24rpx;
-  color: #909399;
-  margin-right: 24rpx;
-  padding: 6rpx 12rpx;
-  border-radius: 30rpx;
-  background-color: #F5F7FA;
-  transition: all 0.2s ease;
+  color: #B2B2B2;
+  line-height: normal;
+  border-radius: 0;
 }
 
 .comment-action.active {
   color: #F56C6C;
-  background-color: rgba(245, 108, 108, 0.1);
+  background-color: transparent;
 }
 
 .comment-action .iconfont {
-  font-size: 28rpx;
-  margin-right: 6rpx;
+  font-size: 36rpx;
+  color: #B2B2B2;
+  margin-right: 8rpx;
+}
+
+.comment-action.active .iconfont {
+  color: #F56C6C;
 }
 
 /* 回复列表 */
@@ -432,28 +439,34 @@
 /* 回复操作 */
 .reply-actions {
   display: flex;
-  margin-top: 4rpx;
+  margin-top: 8rpx;
 }
 
 .reply-action {
   display: flex;
   align-items: center;
-  font-size: 22rpx;
-  color: #909399;
-  margin-right: 20rpx;
-  padding: 4rpx 10rpx;
-  border-radius: 24rpx;
-  background-color: rgba(255, 255, 255, 0.5);
+  margin-right: 48rpx;
+  padding: 8rpx 0;
+  background-color: transparent;
+  font-size: 24rpx;
+  color: #B2B2B2;
+  line-height: normal;
+  border-radius: 0;
 }
 
 .reply-action.active {
   color: #F56C6C;
-  background-color: rgba(245, 108, 108, 0.1);
+  background-color: transparent;
 }
 
 .reply-action .iconfont {
-  font-size: 24rpx;
-  margin-right: 4rpx;
+  font-size: 36rpx;
+  color: #B2B2B2;
+  margin-right: 8rpx;
+}
+
+.reply-action.active .iconfont {
+  color: #F56C6C;
 }
 
 /* 评论输入区域 */

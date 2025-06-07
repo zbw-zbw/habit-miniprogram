@@ -342,7 +342,6 @@
   width: 80rpx;
   height: 80rpx;
   border-radius: 40rpx;
-  margin-right: 16rpx;
 }
 
 .member-info {
@@ -407,7 +406,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  flex: 1;
+  width: 240rpx !important;
   height: 70rpx;
   border-radius: 35rpx;
   font-size: 28rpx;

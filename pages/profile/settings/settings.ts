@@ -374,13 +374,13 @@ Page<IPageData, IPageMethods>({
     if (refreshToken) wx.setStorageSync('refreshToken', refreshToken);
     if (settings) wx.setStorageSync('settings', settings);
     
-    this.setData({ showClearModal: false });
-    
-    wx.showToast({
-      title: '缓存已清除',
+      this.setData({ showClearModal: false });
+      
+      wx.showToast({
+        title: '缓存已清除',
       icon: 'success',
       duration: 2000
-    });
+      });
   },
 
   /**

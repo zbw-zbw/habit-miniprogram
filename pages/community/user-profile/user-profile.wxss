@@ -75,14 +75,13 @@
   margin-right: 30rpx;
   border: 6rpx solid #FFFFFF;
   box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.1);
-  margin-top: -80rpx;
+  margin-top: -12rpx;
   flex-shrink: 0;
 }
 
 .user-meta {
   flex: 1;
-  margin-top: 20rpx;
-  padding-right: 140rpx; /* 为按钮预留空间 */
+  padding-right: 184rpx; /* 为按钮预留空间 */
 }
 
 .user-name {
@@ -113,7 +112,6 @@
 .user-stats {
   display: flex;
   align-items: center;
-  margin-top: 24rpx;
   justify-content: space-between;
   max-width: 360rpx;
 }

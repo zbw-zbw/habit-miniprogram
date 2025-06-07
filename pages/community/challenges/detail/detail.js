@@ -79,7 +79,7 @@ Page({
         this.setData({ loading: true });
         api_1.communityAPI.getChallenge(challengeId)
             .then(challenge => {
-            var _a, _b, _c;
+            var _a, _b, _c, _d;
             // 处理挑战数据
             const processedChallenge = {
                 ...challenge,
@@ -91,13 +91,16 @@ Page({
                 participants: challenge.participants || challenge.participantsCount || (challenge.creator ? 1 : 0),
                 // 确保isJoined和isParticipating字段存在
                 isJoined: challenge.isJoined || challenge.isParticipating || false,
-                isParticipating: challenge.isParticipating || challenge.isJoined || false
+                isParticipating: challenge.isParticipating || challenge.isJoined || false,
+                // 确保remainingDays和durationDays字段存在
+                remainingDays: challenge.remainingDays !== undefined ? challenge.remainingDays : 0,
+                durationDays: challenge.durationDays || (((_a = challenge.requirements) === null || _a === void 0 ? void 0 : _a.targetCount) || 0)
             };
             // 计算状态文本和样式
             const statusText = this.formatStatusText(challenge.status);
             const statusClass = this.formatStatusClass(challenge.status);
             // 计算剩余时间
-            const timeRemaining = this.calculateTimeRemaining(((_a = challenge.dateRange) === null || _a === void 0 ? void 0 : _a.startDate) || '', ((_b = challenge.dateRange) === null || _b === void 0 ? void 0 : _b.endDate) || '');
+            const timeRemaining = this.calculateTimeRemaining(((_b = challenge.dateRange) === null || _b === void 0 ? void 0 : _b.startDate) || '', ((_c = challenge.dateRange) === null || _c === void 0 ? void 0 : _c.endDate) || '');
             // 检查是否是创建者
             const app = getApp();
             const isCreator = app.globalData.userInfo &&
@@ -114,7 +117,7 @@ Page({
                 timeRemaining,
                 progress: challenge.progress || {
                     completedCount: 0,
-                    targetCount: ((_c = challenge.requirements) === null || _c === void 0 ? void 0 : _c.targetCount) || 0,
+                    targetCount: ((_d = challenge.requirements) === null || _d === void 0 ? void 0 : _d.targetCount) || 0,
                     completionRate: 0
                 }
             });
@@ -318,21 +321,37 @@ Page({
      * 计算剩余时间
      */
     calculateTimeRemaining(startDate, endDate) {
+        const { challenge } = this.data;
+        // 如果后端已经提供了remainingDays和durationDays，优先使用它们
+        if (challenge && challenge.remainingDays !== undefined && challenge.durationDays !== undefined) {
+            if (challenge.status === 'completed' || challenge.status === 'cancelled') {
+                return '已结束';
+            }
+            else if (challenge.status === 'upcoming') {
+                return `${challenge.remainingDays}/${challenge.durationDays} 天后开始`;
+            }
+            else if (challenge.status === 'active') {
+                return `剩余 ${challenge.remainingDays}/${challenge.durationDays} 天`;
+            }
+        }
+        // 后备方案：手动计算
         if (!startDate || !endDate) {
             return '';
         }
         const now = new Date();
         const start = new Date(startDate);
         const end = new Date(endDate);
+        // 计算总天数
+        const totalDays = Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24));
         if (now < start) {
             // 还未开始
             const diffDays = Math.ceil((start.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
-            return `${diffDays}天后开始`;
+            return `${diffDays}/${totalDays}天后开始`;
         }
         else if (now <= end) {
             // 进行中
             const diffDays = Math.ceil((end.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
-            return `剩余${diffDays}天`;
+            return `剩余${diffDays}/${totalDays}天`;
         }
         else {
             // 已结束

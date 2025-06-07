@@ -42,12 +42,15 @@ exports.updateProfile = async (req, res) => {
       });
     }
 
-    const { nickname, gender } = req.body;
+    const { nickname, nickName, gender, avatarUrl } = req.body;
     const user = req.user;
 
     // 更新用户资料
     if (nickname) user.nickname = nickname;
+    // 支持nickName参数（微信小程序使用）
+    if (nickName) user.nickname = nickName;
     if (gender) user.gender = gender;
+    if (avatarUrl) user.avatar = avatarUrl;
 
     await user.save();
 
@@ -57,7 +60,7 @@ exports.updateProfile = async (req, res) => {
       data: user,
     });
   } catch (error) {
-    
+    console.error('更新用户资料失败:', error);
     res.status(500).json({
       success: false,
       message: '服务器错误，更新用户资料失败',

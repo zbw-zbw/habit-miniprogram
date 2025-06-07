@@ -187,6 +187,6 @@
   <!-- 未登录提示 -->
   <view class="login-tip" wx:if="{{!hasLogin}}">
     <text>登录后查看更多内容</text>
-    <button class="login-btn" bindtap="login">登录/注册</button>
+    <button class="login-btn" bindtap="login">一键登录</button>
   </view>
 </view> 

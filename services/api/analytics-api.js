@@ -30,6 +30,14 @@ exports.analyticsAPI = {
         return (0, request_1.get)(`/api/analytics/habits/${habitId}/stats`);
     },
     /**
+     * 获取分析数据（用于分析页面）
+     * @param params 查询参数
+     * @returns Promise<any>
+     */
+    getAnalytics: (params) => {
+        return (0, request_1.get)('/api/analytics', params);
+    },
+    /**
      * 获取月度报告
      * @param params 查询参数
      * @returns Promise

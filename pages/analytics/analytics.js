@@ -4,8 +4,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
  * 数据分析页面
  */
 const date_1 = require("../../utils/date");
-// 导入仪表盘API
-const dashboard_1 = require("../../services/api/dashboard");
+const analytics_api_1 = require("../../services/api/analytics-api");
 // 导入微信图表库
 /* eslint-disable @typescript-eslint/no-var-requires */
 /* eslint-disable @typescript-eslint/no-require-imports */
@@ -33,7 +32,6 @@ Page({
      */
     data: {
         activeTab: 'overview',
-        tabList: ['总览', '习惯', '日历'],
         tabIndex: 0,
         timeRange: 'week',
         loading: true,
@@ -54,15 +52,12 @@ Page({
             values: [],
             completionRates: [],
         },
-        // 日历相关数据
         calendarTitle: '',
-        calendarMonth: new Date().getMonth(),
-        calendarYear: new Date().getFullYear(),
+        calendarMonth: 0,
+        calendarYear: 0,
         calendarDays: [],
-        // 存储打卡数据
         checkins: [],
         error: '',
-        // 分析数据
         categoryData: [],
         heatmapData: [],
         weeklyTrend: 0,
@@ -74,19 +69,15 @@ Page({
      * 生命周期函数--监听页面加载
      */
     onLoad() {
-        // 使用useAuth获取登录状态
         (0, use_auth_1.useAuth)(this, {
             onChange: (authState) => {
-                // 如果登录状态发生变化，重新加载数据
                 if (this.data.hasLogin !== authState.hasLogin) {
                     this.setData({ hasLogin: authState.hasLogin });
                     if (authState.hasLogin) {
-                        // 已登录，加载数据
                         this.loadData();
                         this.updateCalendar();
                     }
                     else {
-                        // 未登录，重置数据
                         this.resetStatsData();
                     }
                 }
@@ -113,7 +104,6 @@ Page({
      * 生命周期函数--监听页面显示
      */
     onShow() {
-        // 未登录时重置数据
         if (!this.data.hasLogin) {
             this.resetStatsData();
             return;
@@ -133,44 +123,42 @@ Page({
         // 确定时间范围
         let startDate, endDate;
         const today = (0, date_1.formatDate)(new Date());
+        // 根据选择的时间范围设置开始和结束日期
         switch (this.data.timeRange) {
             case 'week':
-                // 过去一周
-                startDate = (0, date_1.formatDate)(new Date(new Date().setDate(new Date().getDate() - 7)));
+                // 获取过去7天的数据
+                startDate = (0, date_1.formatDate)(new Date(Date.now() - 6 * 24 * 60 * 60 * 1000));
                 endDate = today;
                 break;
             case 'month':
-                // 过去一个月
-                startDate = (0, date_1.formatDate)(new Date(new Date().setMonth(new Date().getMonth() - 1)));
+                // 获取过去30天的数据
+                startDate = (0, date_1.formatDate)(new Date(Date.now() - 29 * 24 * 60 * 60 * 1000));
                 endDate = today;
                 break;
             case 'year':
-                // 过去一年
-                startDate = (0, date_1.formatDate)(new Date(new Date().setFullYear(new Date().getFullYear() - 1)));
+                // 获取过去12个月的数据
+                startDate = (0, date_1.formatDate)(new Date(Date.now() - 364 * 24 * 60 * 60 * 1000));
                 endDate = today;
                 break;
             default:
-                // 默认过去一周
-                startDate = (0, date_1.formatDate)(new Date(new Date().setDate(new Date().getDate() - 7)));
+                startDate = (0, date_1.formatDate)(new Date(Date.now() - 6 * 24 * 60 * 60 * 1000));
                 endDate = today;
         }
-        // 使用新的聚合API获取分析数据
-        dashboard_1.dashboardAPI
+        // 调用分析API获取聚合数据
+        analytics_api_1.analyticsAPI
             .getAnalytics({
-            startDate,
-            endDate,
-            timeRange: this.data.timeRange,
+            startDate: startDate,
+            endDate: endDate,
+            timeRange: this.data.timeRange
         })
             .then((data) => {
-            // 处理数据
             this.processAnalyticsData(data);
         })
             .catch((error) => {
-            // 加载失败
             this.setData({
                 loading: false,
                 chartLoading: false,
-                error: '加载数据失败，请稍后重试',
+                error: error.message || '加载数据失败',
             });
             // 绘制空图表
             this.drawEmptyCharts();
@@ -312,8 +300,6 @@ Page({
             this.setData({ chartLoading: false });
             this.drawEmptyCharts();
         }
-        // 更新日历数据
-        this.updateCalendar();
         // 绘制图表
         setTimeout(() => {
             try {
@@ -460,98 +446,18 @@ Page({
         }, 300);
     },
     /**
-     * 切换标签
-     */
-    switchTab(e) {
-        const tab = e.currentTarget.dataset.tab;
-        this.setData({ activeTab: tab }, () => {
-            // 当切换到总览标签时，重新绘制图表
-            if (tab === 'overview') {
-                this.setData({ chartLoading: true }); // 显示图表加载状态
-                setTimeout(() => {
-                    this.drawCharts(); // 延迟执行以确保视图已更新
-                }, 100);
-            }
-        });
-    },
-    /**
-     * 处理Tab组件的标签变化
-     */
-    onTabChange(e) {
-        const index = e.detail.index;
-        let activeTab;
-        switch (index) {
-            case 0:
-                activeTab = 'overview';
-                break;
-            case 1:
-                activeTab = 'habits';
-                break;
-            case 2:
-                activeTab = 'calendar';
-                break;
-            default:
-                activeTab = 'overview';
-        }
-        // 先设置标签，再处理图表
-        this.setData({
-            tabIndex: index,
-            activeTab: activeTab,
-            // 只有在切换到总览时才设置图表加载状态
-            chartLoading: activeTab === 'overview',
-        }, () => {
-            // 使用setTimeout避免在当前事件循环中更新状态和绘制图表
-            setTimeout(() => {
-                // 当切换到总览标签时，重新绘制图表
-                if (activeTab === 'overview') {
-                    try {
-                        // 检查图表数据是否有效
-                        if (this.data.chartData &&
-                            Array.isArray(this.data.chartData.dates) &&
-                            this.data.chartData.dates.length > 0) {
-                            this.drawCharts();
-                        }
-                        else {
-                            // 如果没有数据，绘制空图表
-                            this.drawEmptyCharts();
-                        }
-                    }
-                    catch (error) {
-                        this.drawEmptyCharts();
-                    }
-                    finally {
-                        // 确保关闭加载状态
-                        setTimeout(() => {
-                            this.setData({ chartLoading: false });
-                        }, 300);
-                    }
-                }
-                // 切换到日历标签时更新日历
-                if (activeTab === 'calendar') {
-                    this.updateCalendar();
-                }
-            }, 200);
-        });
-    },
-    /**
      * 切换时间范围
      */
     switchTimeRange(e) {
         const range = e.currentTarget.dataset.range;
-        if (this.data.timeRange === range) {
-            return; // 如果是相同的范围，不做任何操作
+        if (range !== this.data.timeRange) {
+            this.setData({
+                timeRange: range,
+                chartLoading: true,
+            }, () => {
+                this.loadData();
+            });
         }
-        this.setData({
-            timeRange: range,
-            chartLoading: true
-        });
-        // 如果用户未登录，不发送请求，只重置数据
-        if (!this.data.hasLogin) {
-            this.resetStatsData();
-            return;
-        }
-        // 加载新的时间范围数据
-        this.loadData();
     },
     /**
      * 重置统计数据到默认状态
@@ -582,15 +488,6 @@ Page({
         this.drawEmptyCharts();
     },
     /**
-     * 查看习惯详情
-     */
-    viewHabitDetail(e) {
-        const habitId = e.currentTarget.dataset.id;
-        wx.navigateTo({
-            url: `/pages/habits/detail/detail?id=${habitId}`,
-        });
-    },
-    /**
      * 生成报告
      */
     generateReport() {
@@ -615,165 +512,6 @@ Page({
             path: '/pages/analytics/analytics',
             imageUrl: '/images/share-analytics.png',
         };
-    },
-    /**
-     * 更新日历
-     */
-    updateCalendar() {
-        const { calendarYear, calendarMonth } = this.data;
-        const calendarTitle = `${calendarYear}年${calendarMonth + 1}月`;
-        // 获取当月第一天是周几
-        const firstDay = new Date(calendarYear, calendarMonth, 1).getDay() || 7; // 转换为周一为1，周日为7
-        const firstDayIndex = firstDay === 7 ? 0 : firstDay; // 调整为数组索引
-        // 获取当月天数
-        const daysInMonth = new Date(calendarYear, calendarMonth + 1, 0).getDate();
-        // 上个月的天数
-        const prevMonthDays = new Date(calendarYear, calendarMonth, 0).getDate();
-        const calendarDays = [];
-        const today = (0, date_1.formatDate)(new Date());
-        // 上个月的日期
-        for (let i = 0; i < firstDayIndex; i++) {
-            const day = prevMonthDays - firstDayIndex + i + 1;
-            const date = (0, date_1.formatDate)(new Date(calendarYear, calendarMonth - 1, day));
-            calendarDays.push({
-                date,
-                day,
-                isCurrentMonth: false,
-                isCompleted: this.isDateCompleted(date),
-                isToday: this.isToday(date),
-            });
-        }
-        // 当月的日期
-        for (let i = 1; i <= daysInMonth; i++) {
-            const date = (0, date_1.formatDate)(new Date(calendarYear, calendarMonth, i));
-            calendarDays.push({
-                date,
-                day: i,
-                isCurrentMonth: true,
-                isCompleted: this.isDateCompleted(date),
-                isToday: this.isToday(date),
-            });
-        }
-        // 下个月的日期
-        const remainingDays = 42 - calendarDays.length; // 6行7列
-        for (let i = 1; i <= remainingDays; i++) {
-            const date = (0, date_1.formatDate)(new Date(calendarYear, calendarMonth + 1, i));
-            calendarDays.push({
-                date,
-                day: i,
-                isCurrentMonth: false,
-                isCompleted: this.isDateCompleted(date),
-                isToday: this.isToday(date),
-            });
-        }
-        this.setData({
-            calendarTitle,
-            calendarDays,
-        });
-    },
-    /**
-     * 检查日期是否已完成打卡
-     */
-    isDateCompleted(date) {
-        // 使用页面中存储的打卡记录和习惯数据来判断日期是否已完成
-        const habitsMap = this.data.habitsMap;
-        const habits = Object.values(habitsMap);
-        return this.isDateFullyCompleted(date, habits, this.data.checkins);
-    },
-    /**
-     * 检查特定日期是否所有习惯都已完成
-     * @param date 日期字符串
-     * @param habits 习惯列表
-     * @param checkins 打卡记录列表
-     */
-    isDateFullyCompleted(date, habits, checkins) {
-        // 如果没有习惯或打卡记录，直接返回false
-        if (!habits || habits.length === 0)
-            return false;
-        if (!checkins || checkins.length === 0)
-            return false;
-        // 筛选出指定日期应该执行的习惯
-        const habitsForDate = habits.filter((habit) => {
-            // 检查习惯是否在指定日期应该执行
-            // 需要确保习惯在日期之前创建
-            const habitCreatedAt = new Date(habit.createdAt);
-            const targetDate = new Date(date);
-            if (habitCreatedAt > targetDate)
-                return false;
-            // 已归档的习惯不计入
-            if (habit.isArchived)
-                return false;
-            // 根据习惯频率判断是否应该在该日期执行
-            // 这里简化处理，假设所有习惯都是每天执行
-            return true;
-        });
-        // 如果没有应该执行的习惯，直接返回false
-        if (habitsForDate.length === 0)
-            return false;
-        // 筛选出指定日期的打卡记录
-        const checkinsForDate = checkins.filter((checkin) => checkin.date === date);
-        // 检查每个习惯是否都有完成的打卡记录
-        const completedHabits = habitsForDate.filter((habit) => {
-            // 获取习惯ID，支持多种属性名
-            const habitId = typeof habit === 'object' ? habit.id || habit._id || '' : '';
-            // 检查是否有该习惯的完成打卡记录
-            return checkinsForDate.some((checkin) => {
-                const checkinHabitId = checkin.habitId ||
-                    (checkin.habit && typeof checkin.habit === 'object'
-                        ? checkin.habit.id || checkin.habit._id || ''
-                        : '');
-                return checkinHabitId === habitId && checkin.isCompleted;
-            });
-        });
-        // 所有习惯都有完成的打卡记录才算完成
-        return completedHabits.length === habitsForDate.length;
-    },
-    /**
-     * 检查是否是今天
-     */
-    isToday(date) {
-        return date === (0, date_1.formatDate)(new Date());
-    },
-    /**
-     * 切换月份
-     */
-    changeMonth(e) {
-        const { direction } = e.currentTarget.dataset;
-        let { calendarYear, calendarMonth } = this.data;
-        if (direction === 'prev') {
-            calendarMonth--;
-            if (calendarMonth < 0) {
-                calendarMonth = 11;
-                calendarYear--;
-            }
-        }
-        else {
-            calendarMonth++;
-            if (calendarMonth > 11) {
-                calendarMonth = 0;
-                calendarYear++;
-            }
-        }
-        this.setData({
-            calendarYear,
-            calendarMonth,
-        }, () => {
-            this.updateCalendar();
-        });
-    },
-    /**
-     * 查看日期详情
-     */
-    viewDayDetail(e) {
-        const { date } = e.currentTarget.dataset;
-        wx.showToast({
-            title: `查看${date}的记录`,
-            icon: 'none',
-        });
-        // 实际项目中可以跳转到日期详情页
-        // wx.navigateTo({
-        //   url: `/pages/date-detail/date-detail?date=${date}`
-        // });
     },
     /**
      * 在数据加载完成后绘制图表
@@ -1115,5 +853,235 @@ Page({
                 this.loadData();
             }
         });
+    },
+    /**
+     * 处理Tab组件的标签变化
+     */
+    onTabChange(e) {
+        const index = e.detail.index;
+        let activeTab;
+        switch (index) {
+            case 0:
+                activeTab = 'overview';
+                break;
+            case 1:
+                activeTab = 'habits';
+                break;
+            case 2:
+                activeTab = 'calendar';
+                break;
+            default:
+                activeTab = 'overview';
+        }
+        // 先设置标签，再处理图表
+        this.setData({
+            tabIndex: index,
+            activeTab: activeTab,
+            // 只有在切换到总览时才设置图表加载状态
+            chartLoading: activeTab === 'overview',
+        }, () => {
+            // 使用setTimeout避免在当前事件循环中更新状态和绘制图表
+            setTimeout(() => {
+                // 当切换到总览标签时，重新绘制图表
+                if (activeTab === 'overview') {
+                    try {
+                        // 检查图表数据是否有效
+                        if (this.data.chartData &&
+                            Array.isArray(this.data.chartData.dates) &&
+                            this.data.chartData.dates.length > 0) {
+                            this.drawCharts();
+                        }
+                        else {
+                            // 如果没有数据，绘制空图表
+                            this.drawEmptyCharts();
+                        }
+                    }
+                    catch (error) {
+                        this.drawEmptyCharts();
+                    }
+                    finally {
+                        // 确保关闭加载状态
+                        setTimeout(() => {
+                            this.setData({ chartLoading: false });
+                        }, 300);
+                    }
+                }
+                // 切换到日历标签时更新日历
+                if (activeTab === 'calendar') {
+                    this.updateCalendar();
+                }
+            }, 200);
+        });
+    },
+    /**
+     * 查看习惯详情
+     */
+    viewHabitDetail(e) {
+        const habitId = e.currentTarget.dataset.id;
+        wx.navigateTo({
+            url: `/pages/habits/detail/detail?id=${habitId}`,
+        });
+    },
+    /**
+     * 更新日历
+     */
+    updateCalendar() {
+        const { calendarYear, calendarMonth } = this.data;
+        const currentDate = new Date();
+        // 如果日历年月未设置，使用当前年月
+        const year = calendarYear || currentDate.getFullYear();
+        const month = calendarMonth !== undefined ? calendarMonth : currentDate.getMonth();
+        const calendarTitle = `${year}年${month + 1}月`;
+        // 获取当月第一天是周几
+        const firstDay = new Date(year, month, 1).getDay() || 7; // 转换为周一为1，周日为7
+        const firstDayIndex = firstDay === 7 ? 0 : firstDay; // 调整为数组索引
+        // 获取当月天数
+        const daysInMonth = new Date(year, month + 1, 0).getDate();
+        // 上个月的天数
+        const prevMonthDays = new Date(year, month, 0).getDate();
+        const calendarDays = [];
+        const today = (0, date_1.formatDate)(new Date());
+        // 上个月的日期
+        for (let i = 0; i < firstDayIndex; i++) {
+            const day = prevMonthDays - firstDayIndex + i + 1;
+            const date = (0, date_1.formatDate)(new Date(year, month - 1, day));
+            calendarDays.push({
+                date,
+                day,
+                isCurrentMonth: false,
+                isCompleted: this.isDateCompleted(date),
+                isToday: this.isToday(date),
+            });
+        }
+        // 当月的日期
+        for (let i = 1; i <= daysInMonth; i++) {
+            const date = (0, date_1.formatDate)(new Date(year, month, i));
+            calendarDays.push({
+                date,
+                day: i,
+                isCurrentMonth: true,
+                isCompleted: this.isDateCompleted(date),
+                isToday: this.isToday(date),
+            });
+        }
+        // 下个月的日期
+        const remainingDays = 42 - calendarDays.length; // 6行7列
+        for (let i = 1; i <= remainingDays; i++) {
+            const date = (0, date_1.formatDate)(new Date(year, month + 1, i));
+            calendarDays.push({
+                date,
+                day: i,
+                isCurrentMonth: false,
+                isCompleted: this.isDateCompleted(date),
+                isToday: this.isToday(date),
+            });
+        }
+        this.setData({
+            calendarTitle,
+            calendarYear: year,
+            calendarMonth: month,
+            calendarDays,
+        });
+    },
+    /**
+     * 检查日期是否已完成打卡
+     */
+    isDateCompleted(date) {
+        // 使用页面中存储的打卡记录和习惯数据来判断日期是否已完成
+        const habitsMap = this.data.habitsMap;
+        const habits = Object.values(habitsMap);
+        return this.isDateFullyCompleted(date, habits, this.data.checkins);
+    },
+    /**
+     * 检查特定日期是否所有习惯都已完成
+     */
+    isDateFullyCompleted(date, habits, checkins) {
+        // 如果没有习惯或打卡记录，直接返回false
+        if (!habits || habits.length === 0)
+            return false;
+        if (!checkins || checkins.length === 0)
+            return false;
+        // 筛选出指定日期应该执行的习惯
+        const habitsForDate = habits.filter((habit) => {
+            // 检查习惯是否在指定日期应该执行
+            // 需要确保习惯在日期之前创建
+            const habitCreatedAt = new Date(habit.createdAt);
+            const targetDate = new Date(date);
+            if (habitCreatedAt > targetDate)
+                return false;
+            // 已归档的习惯不计入
+            if (habit.isArchived)
+                return false;
+            // 根据习惯频率判断是否应该在该日期执行
+            // 这里简化处理，假设所有习惯都是每天执行
+            return true;
+        });
+        // 如果没有应该执行的习惯，直接返回false
+        if (habitsForDate.length === 0)
+            return false;
+        // 筛选出指定日期的打卡记录
+        const checkinsForDate = checkins.filter((checkin) => checkin.date === date);
+        // 检查每个习惯是否都有完成的打卡记录
+        const completedHabits = habitsForDate.filter((habit) => {
+            // 获取习惯ID，支持多种属性名
+            const habitId = typeof habit === 'object' ? habit.id || habit._id || '' : '';
+            // 检查是否有该习惯的完成打卡记录
+            return checkinsForDate.some((checkin) => {
+                const checkinHabitId = checkin.habitId ||
+                    (checkin.habit && typeof checkin.habit === 'object'
+                        ? checkin.habit.id || checkin.habit._id || ''
+                        : '');
+                return checkinHabitId === habitId && checkin.isCompleted;
+            });
+        });
+        // 所有习惯都有完成的打卡记录才算完成
+        return completedHabits.length === habitsForDate.length;
+    },
+    /**
+     * 检查是否是今天
+     */
+    isToday(date) {
+        return date === (0, date_1.formatDate)(new Date());
+    },
+    /**
+     * 切换月份
+     */
+    changeMonth(e) {
+        const { direction } = e.currentTarget.dataset;
+        let { calendarYear, calendarMonth } = this.data;
+        if (direction === 'prev') {
+            calendarMonth--;
+            if (calendarMonth < 0) {
+                calendarMonth = 11;
+                calendarYear--;
+            }
+        }
+        else {
+            calendarMonth++;
+            if (calendarMonth > 11) {
+                calendarMonth = 0;
+                calendarYear++;
+            }
+        }
+        this.setData({
+            calendarYear,
+            calendarMonth,
+        }, () => {
+            this.updateCalendar();
+        });
+    },
+    /**
+     * 查看日期详情
+     */
+    viewDayDetail(e) {
+        const { date } = e.currentTarget.dataset;
+        wx.showToast({
+            title: `查看${date}的记录`,
+            icon: 'none',
+        });
+        // 实际项目中可以跳转到日期详情页
+        // wx.navigateTo({
+        //   url: `/pages/date-detail/date-detail?date=${date}`
+        // });
     },
 });

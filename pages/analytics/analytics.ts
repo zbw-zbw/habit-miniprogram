@@ -1,11 +1,9 @@
 /**
  * 数据分析页面
  */
-import { formatDate, getPastDates } from '../../utils/date';
-import { habitAPI, checkinAPI } from '../../services/api';
-// 导入仪表盘API
-import { dashboardAPI } from '../../services/api/dashboard';
-import { IHabit, ICheckin, IHabitStats } from '../../utils/types';
+import { formatDate } from '../../utils/date';
+import { analyticsAPI } from '../../services/api/analytics-api';
+import { ICheckin, IHabit, IAppOption } from '../../utils/types';
 // 导入微信图表库
 /* eslint-disable @typescript-eslint/no-var-requires */
 /* eslint-disable @typescript-eslint/no-require-imports */
@@ -33,11 +31,10 @@ function formatDateCustom(date: Date, format = 'YYYY-MM-DD'): string {
 
 interface IPageData {
   activeTab: 'overview' | 'habits' | 'calendar';
-  tabList: string[]; // 用于Tab组件显示的标签
-  tabIndex: number; // 用于Tab组件的当前索引
+  tabIndex: number;
   timeRange: 'week' | 'month' | 'year';
   loading: boolean;
-  chartLoading: boolean; // 添加图表加载状态
+  chartLoading: boolean;
   stats: {
     totalHabits: number;
     activeHabits: number;
@@ -73,22 +70,18 @@ interface IPageData {
     isCompleted: boolean;
     isToday: boolean;
   }>;
-  // 存储打卡数据
   checkins: ICheckin[];
   error: string;
-  // 分析数据
   categoryData: Array<{
     category: string;
     count: number;
     completionRate: number;
     averageStreak: number;
   }>;
-  // 热图数据
   heatmapData: Array<{
     date: string;
     count: number;
   }>;
-  // 趋势数据
   weeklyTrend: number;
   bestCategory: string;
   timelineData: Array<{
@@ -98,6 +91,7 @@ interface IPageData {
     totalHabits: number;
   }>;
   hasLogin: boolean;
+  dataLoaded: boolean;
 }
 
 interface IPageMethods {
@@ -106,13 +100,17 @@ interface IPageMethods {
   calculateHabitStats(habits: IHabit[], checkins: ICheckin[]): void;
   generateChartData(timelineData: any[]): void;
   generateYearChartData(timelineData: any[]): void;
-  switchTab(e: WechatMiniprogram.TouchEvent): void;
-  onTabChange(e: { detail: { index: number } }): void; // 添加处理Tab组件切换的方法
   switchTimeRange(e: WechatMiniprogram.TouchEvent): void;
+  onTabChange(e: { detail: { index: number } }): void;
   viewHabitDetail(e: WechatMiniprogram.TouchEvent): void;
   generateReport(): void;
   navigateToInsights(): void;
-  login(): void; // 添加登录方法
+  login(): void;
+  drawCharts(): void;
+  drawEmptyCharts(): void;
+  getStreakProgressWidth(): string;
+  calculateYAxisStep(maxValue: number): number;
+  resetStatsData(): void;
   // 日历相关方法
   updateCalendar(): void;
   isDateCompleted(date: string): boolean;
@@ -124,13 +122,6 @@ interface IPageMethods {
   isToday(date: string): boolean;
   changeMonth(e: WechatMiniprogram.TouchEvent): void;
   viewDayDetail(e: WechatMiniprogram.TouchEvent): void;
-  // 新增图表相关方法
-  drawCharts(): void;
-  drawEmptyCharts(): void;
-  getStreakProgressWidth(): string;
-  // 添加Y轴步长计算方法
-  calculateYAxisStep(maxValue: number): number;
-  resetStatsData(): void;
 }
 
 Page<IPageData, IPageMethods>({
@@ -139,11 +130,10 @@ Page<IPageData, IPageMethods>({
    */
   data: {
     activeTab: 'overview',
-    tabList: ['总览', '习惯', '日历'], // 用于Tab组件显示的标签
-    tabIndex: 0, // 用于Tab组件的当前索引
+    tabIndex: 0,
     timeRange: 'week',
     loading: true,
-    chartLoading: false, // 初始化图表加载状态
+    chartLoading: false,
     stats: {
       totalHabits: 0,
       activeHabits: 0,
@@ -160,47 +150,42 @@ Page<IPageData, IPageMethods>({
       values: [],
       completionRates: [],
     },
-    // 日历相关数据
     calendarTitle: '',
-    calendarMonth: new Date().getMonth(),
-    calendarYear: new Date().getFullYear(),
+    calendarMonth: 0,
+    calendarYear: 0,
     calendarDays: [],
-    // 存储打卡数据
     checkins: [],
     error: '',
-    // 分析数据
     categoryData: [],
     heatmapData: [],
     weeklyTrend: 0,
     bestCategory: '',
     timelineData: [],
     hasLogin: false,
+    dataLoaded: false,
   },
 
   /**
    * 生命周期函数--监听页面加载
    */
   onLoad() {
-    // 使用useAuth获取登录状态
     useAuth(this, {
       onChange: (authState) => {
-        
-        // 如果登录状态发生变化，重新加载数据
         if (this.data.hasLogin !== authState.hasLogin) {
           this.setData({ hasLogin: authState.hasLogin });
           
           if (authState.hasLogin) {
-            // 已登录，加载数据
             this.loadData();
             this.updateCalendar();
+            this.setData({ dataLoaded: true });
           } else {
-            // 未登录，重置数据
             this.resetStatsData();
+            this.setData({ dataLoaded: false });
           }
         }
       }
     });
-
+    
     // 设置初始tabIndex
     let tabIndex = 0;
     switch (this.data.activeTab) {
@@ -224,14 +209,25 @@ Page<IPageData, IPageMethods>({
    * 生命周期函数--监听页面显示
    */
   onShow() {
-    // 未登录时重置数据
     if (!this.data.hasLogin) {
       this.resetStatsData();
       return;
     }
 
+    // 避免在登录后立即重复加载数据
+    // 只有当页面不是首次加载或者数据尚未加载时才重新加载
+    const lastLoginTime = getApp<IAppOption>().globalData.lastLoginTime || 0;
+    const currentTime = Date.now();
+    const timeSinceLogin = currentTime - lastLoginTime;
+    
+    // 如果是刚登录（3秒内）且数据已加载，不重复加载
+    if (timeSinceLogin < 3000 && this.data.dataLoaded) {
+      return;
+    }
+    
     this.loadData();
     this.updateCalendar();
+    this.setData({ dataLoaded: true });
   },
 
   /**
@@ -248,59 +244,45 @@ Page<IPageData, IPageMethods>({
     let startDate, endDate;
     const today = formatDate(new Date());
 
+    // 根据选择的时间范围设置开始和结束日期
     switch (this.data.timeRange) {
       case 'week':
-        // 过去一周
-        startDate = formatDate(
-          new Date(new Date().setDate(new Date().getDate() - 7))
-        );
+        // 获取过去7天的数据
+        startDate = formatDate(new Date(Date.now() - 6 * 24 * 60 * 60 * 1000));
         endDate = today;
         break;
       case 'month':
-        // 过去一个月
-        startDate = formatDate(
-          new Date(new Date().setMonth(new Date().getMonth() - 1))
-        );
+        // 获取过去30天的数据
+        startDate = formatDate(new Date(Date.now() - 29 * 24 * 60 * 60 * 1000));
         endDate = today;
         break;
       case 'year':
-        // 过去一年
-        startDate = formatDate(
-          new Date(new Date().setFullYear(new Date().getFullYear() - 1))
-        );
+        // 获取过去12个月的数据
+        startDate = formatDate(new Date(Date.now() - 364 * 24 * 60 * 60 * 1000));
         endDate = today;
         break;
       default:
-        // 默认过去一周
-        startDate = formatDate(
-          new Date(new Date().setDate(new Date().getDate() - 7))
-        );
+        startDate = formatDate(new Date(Date.now() - 6 * 24 * 60 * 60 * 1000));
         endDate = today;
     }
 
-    // 使用新的聚合API获取分析数据
-    dashboardAPI
+    // 调用分析API获取聚合数据，只请求一次数据
+    analyticsAPI
       .getAnalytics({
-        startDate,
-        endDate,
-        timeRange: this.data.timeRange,
+        startDate: startDate,
+        endDate: endDate,
+        timeRange: this.data.timeRange
       })
       .then((data) => {
-        
-
-        // 处理数据
         this.processAnalyticsData(data);
       })
       .catch((error) => {
-        
-
-        // 加载失败
         this.setData({
           loading: false,
           chartLoading: false,
-          error: '加载数据失败，请稍后重试',
+          error: error.message || '加载数据失败',
         });
-
+        
         // 绘制空图表
         this.drawEmptyCharts();
       });
@@ -478,9 +460,6 @@ Page<IPageData, IPageMethods>({
       this.setData({ chartLoading: false });
       this.drawEmptyCharts();
     }
-
-    // 更新日历数据
-    this.updateCalendar();
 
     // 绘制图表
     setTimeout(() => {
@@ -669,119 +648,22 @@ Page<IPageData, IPageMethods>({
   },
 
   /**
-   * 切换标签
-   */
-  switchTab(e: WechatMiniprogram.TouchEvent) {
-    const tab = e.currentTarget.dataset.tab as
-      | 'overview'
-      | 'habits'
-      | 'calendar';
-    this.setData({ activeTab: tab }, () => {
-      // 当切换到总览标签时，重新绘制图表
-      if (tab === 'overview') {
-        this.setData({ chartLoading: true }); // 显示图表加载状态
-        setTimeout(() => {
-          this.drawCharts(); // 延迟执行以确保视图已更新
-        }, 100);
-      }
-    });
-  },
-
-  /**
-   * 处理Tab组件的标签变化
-   */
-  onTabChange(e: { detail: { index: number } }) {
-    const index = e.detail.index;
-    let activeTab: 'overview' | 'habits' | 'calendar';
-
-    switch (index) {
-      case 0:
-        activeTab = 'overview';
-        break;
-      case 1:
-        activeTab = 'habits';
-        break;
-      case 2:
-        activeTab = 'calendar';
-        break;
-      default:
-        activeTab = 'overview';
-    }
-
-    
-
-    // 先设置标签，再处理图表
-    this.setData(
-      {
-        tabIndex: index,
-        activeTab: activeTab,
-        // 只有在切换到总览时才设置图表加载状态
-        chartLoading: activeTab === 'overview',
-      },
-      () => {
-        // 使用setTimeout避免在当前事件循环中更新状态和绘制图表
-        setTimeout(() => {
-          // 当切换到总览标签时，重新绘制图表
-          if (activeTab === 'overview') {
-            try {
-              
-              // 检查图表数据是否有效
-              if (
-                this.data.chartData &&
-                Array.isArray(this.data.chartData.dates) &&
-                this.data.chartData.dates.length > 0
-              ) {
-                this.drawCharts();
-              } else {
-                
-                // 如果没有数据，绘制空图表
-                this.drawEmptyCharts();
-              }
-            } catch (error) {
-              
-              this.drawEmptyCharts();
-            } finally {
-              // 确保关闭加载状态
-              setTimeout(() => {
-                this.setData({ chartLoading: false });
-              }, 300);
-            }
-          }
-
-          // 切换到日历标签时更新日历
-          if (activeTab === 'calendar') {
-            this.updateCalendar();
-          }
-        }, 200);
-      }
-    );
-  },
-
-  /**
    * 切换时间范围
    */
   switchTimeRange(e: WechatMiniprogram.TouchEvent) {
     const range = e.currentTarget.dataset.range as 'week' | 'month' | 'year';
     
-    if (this.data.timeRange === range) {
-      return; // 如果是相同的范围，不做任何操作
+    if (range !== this.data.timeRange) {
+      this.setData(
+        {
+          timeRange: range,
+          chartLoading: true,
+        },
+        () => {
+          this.loadData();
+        }
+      );
     }
-    
-    
-    
-    this.setData({
-      timeRange: range,
-      chartLoading: true
-    });
-    
-    // 如果用户未登录，不发送请求，只重置数据
-    if (!this.data.hasLogin) {
-      this.resetStatsData();
-      return;
-    }
-    
-    // 加载新的时间范围数据
-    this.loadData();
   },
 
   /**
@@ -815,16 +697,6 @@ Page<IPageData, IPageMethods>({
   },
 
   /**
-   * 查看习惯详情
-   */
-  viewHabitDetail(e: WechatMiniprogram.TouchEvent) {
-    const habitId = e.currentTarget.dataset.id;
-    wx.navigateTo({
-      url: `/pages/habits/detail/detail?id=${habitId}`,
-    });
-  },
-
-  /**
    * 生成报告
    */
   generateReport() {
@@ -851,194 +723,6 @@ Page<IPageData, IPageMethods>({
       path: '/pages/analytics/analytics',
       imageUrl: '/images/share-analytics.png',
     };
-  },
-
-  /**
-   * 更新日历
-   */
-  updateCalendar() {
-    const { calendarYear, calendarMonth } = this.data;
-    const calendarTitle = `${calendarYear}年${calendarMonth + 1}月`;
-
-    // 获取当月第一天是周几
-    const firstDay = new Date(calendarYear, calendarMonth, 1).getDay() || 7; // 转换为周一为1，周日为7
-    const firstDayIndex = firstDay === 7 ? 0 : firstDay; // 调整为数组索引
-
-    // 获取当月天数
-    const daysInMonth = new Date(calendarYear, calendarMonth + 1, 0).getDate();
-
-    // 上个月的天数
-    const prevMonthDays = new Date(calendarYear, calendarMonth, 0).getDate();
-
-    const calendarDays = [];
-    const today = formatDate(new Date());
-
-    // 上个月的日期
-    for (let i = 0; i < firstDayIndex; i++) {
-      const day = prevMonthDays - firstDayIndex + i + 1;
-      const date = formatDate(new Date(calendarYear, calendarMonth - 1, day));
-      calendarDays.push({
-        date,
-        day,
-        isCurrentMonth: false,
-        isCompleted: this.isDateCompleted(date),
-        isToday: this.isToday(date),
-      });
-    }
-
-    // 当月的日期
-    for (let i = 1; i <= daysInMonth; i++) {
-      const date = formatDate(new Date(calendarYear, calendarMonth, i));
-      calendarDays.push({
-        date,
-        day: i,
-        isCurrentMonth: true,
-        isCompleted: this.isDateCompleted(date),
-        isToday: this.isToday(date),
-      });
-    }
-
-    // 下个月的日期
-    const remainingDays = 42 - calendarDays.length; // 6行7列
-    for (let i = 1; i <= remainingDays; i++) {
-      const date = formatDate(new Date(calendarYear, calendarMonth + 1, i));
-      calendarDays.push({
-        date,
-        day: i,
-        isCurrentMonth: false,
-        isCompleted: this.isDateCompleted(date),
-        isToday: this.isToday(date),
-      });
-    }
-
-    this.setData({
-      calendarTitle,
-      calendarDays,
-    });
-  },
-
-  /**
-   * 检查日期是否已完成打卡
-   */
-  isDateCompleted(date: string): boolean {
-    // 使用页面中存储的打卡记录和习惯数据来判断日期是否已完成
-    const habitsMap = this.data.habitsMap;
-    const habits = Object.values(habitsMap);
-    return this.isDateFullyCompleted(date, habits, this.data.checkins);
-  },
-
-  /**
-   * 检查特定日期是否所有习惯都已完成
-   * @param date 日期字符串
-   * @param habits 习惯列表
-   * @param checkins 打卡记录列表
-   */
-  isDateFullyCompleted(
-    date: string,
-    habits: IHabit[],
-    checkins: ICheckin[]
-  ): boolean {
-    // 如果没有习惯或打卡记录，直接返回false
-    if (!habits || habits.length === 0) return false;
-    if (!checkins || checkins.length === 0) return false;
-
-    // 筛选出指定日期应该执行的习惯
-    const habitsForDate = habits.filter((habit) => {
-      // 检查习惯是否在指定日期应该执行
-      // 需要确保习惯在日期之前创建
-      const habitCreatedAt = new Date(habit.createdAt);
-      const targetDate = new Date(date);
-      if (habitCreatedAt > targetDate) return false;
-
-      // 已归档的习惯不计入
-      if (habit.isArchived) return false;
-
-      // 根据习惯频率判断是否应该在该日期执行
-      // 这里简化处理，假设所有习惯都是每天执行
-      return true;
-    });
-
-    // 如果没有应该执行的习惯，直接返回false
-    if (habitsForDate.length === 0) return false;
-
-    // 筛选出指定日期的打卡记录
-    const checkinsForDate = checkins.filter((checkin) => checkin.date === date);
-
-    // 检查每个习惯是否都有完成的打卡记录
-    const completedHabits = habitsForDate.filter((habit) => {
-      // 获取习惯ID，支持多种属性名
-      const habitId =
-        typeof habit === 'object' ? habit.id || (habit as any)._id || '' : '';
-
-      // 检查是否有该习惯的完成打卡记录
-      return checkinsForDate.some((checkin) => {
-        const checkinHabitId =
-          checkin.habitId ||
-          (checkin.habit && typeof checkin.habit === 'object'
-            ? checkin.habit.id || (checkin.habit as any)._id || ''
-            : '');
-        return checkinHabitId === habitId && checkin.isCompleted;
-      });
-    });
-
-    // 所有习惯都有完成的打卡记录才算完成
-    return completedHabits.length === habitsForDate.length;
-  },
-
-  /**
-   * 检查是否是今天
-   */
-  isToday(date: string): boolean {
-    return date === formatDate(new Date());
-  },
-
-  /**
-   * 切换月份
-   */
-  changeMonth(e: WechatMiniprogram.TouchEvent) {
-    const { direction } = e.currentTarget.dataset;
-    let { calendarYear, calendarMonth } = this.data;
-
-    if (direction === 'prev') {
-      calendarMonth--;
-      if (calendarMonth < 0) {
-        calendarMonth = 11;
-        calendarYear--;
-      }
-    } else {
-      calendarMonth++;
-      if (calendarMonth > 11) {
-        calendarMonth = 0;
-        calendarYear++;
-      }
-    }
-
-    this.setData(
-      {
-        calendarYear,
-        calendarMonth,
-      },
-      () => {
-        this.updateCalendar();
-      }
-    );
-  },
-
-  /**
-   * 查看日期详情
-   */
-  viewDayDetail(e: WechatMiniprogram.TouchEvent) {
-    const { date } = e.currentTarget.dataset;
-
-    wx.showToast({
-      title: `查看${date}的记录`,
-      icon: 'none',
-    });
-
-    // 实际项目中可以跳转到日期详情页
-    // wx.navigateTo({
-    //   url: `/pages/date-detail/date-detail?date=${date}`
-    // });
   },
 
   /**
@@ -1400,10 +1084,278 @@ Page<IPageData, IPageMethods>({
           userInfo: app.globalData.userInfo,
           hasLogin: true,
         });
-
-        // 重新加载数据
-        this.loadData();
+        
+        // 不需要在这里调用loadData，因为useAuth的onChange回调中已经处理了这个逻辑
+        // 登录状态变化会自动触发useAuth的onChange回调
       }
     });
+  },
+
+  /**
+   * 处理Tab组件的标签变化
+   */
+  onTabChange(e: { detail: { index: number } }) {
+    const index = e.detail.index;
+    let activeTab: 'overview' | 'habits' | 'calendar';
+
+    switch (index) {
+      case 0:
+        activeTab = 'overview';
+        break;
+      case 1:
+        activeTab = 'habits';
+        break;
+      case 2:
+        activeTab = 'calendar';
+        break;
+      default:
+        activeTab = 'overview';
+    }
+
+    // 先设置标签，再处理图表
+    this.setData(
+      {
+        tabIndex: index,
+        activeTab: activeTab,
+        // 只有在切换到总览时才设置图表加载状态
+        chartLoading: activeTab === 'overview',
+      },
+      () => {
+        // 使用setTimeout避免在当前事件循环中更新状态和绘制图表
+        setTimeout(() => {
+          // 当切换到总览标签时，重新绘制图表
+          if (activeTab === 'overview') {
+            try {
+              // 检查图表数据是否有效
+              if (
+                this.data.chartData &&
+                Array.isArray(this.data.chartData.dates) &&
+                this.data.chartData.dates.length > 0
+              ) {
+                this.drawCharts();
+              } else {
+                // 如果没有数据，绘制空图表
+                this.drawEmptyCharts();
+              }
+            } catch (error) {
+              this.drawEmptyCharts();
+            } finally {
+              // 确保关闭加载状态
+              setTimeout(() => {
+                this.setData({ chartLoading: false });
+              }, 300);
+            }
+          }
+
+          // 切换到日历标签时更新日历
+          if (activeTab === 'calendar') {
+            this.updateCalendar();
+          }
+        }, 200);
+      }
+    );
+  },
+
+  /**
+   * 查看习惯详情
+   */
+  viewHabitDetail(e: WechatMiniprogram.TouchEvent) {
+    const habitId = e.currentTarget.dataset.id;
+    wx.navigateTo({
+      url: `/pages/habits/detail/detail?id=${habitId}`,
+    });
+  },
+
+  /**
+   * 更新日历
+   */
+  updateCalendar() {
+    const { calendarYear, calendarMonth } = this.data;
+    const currentDate = new Date();
+    
+    // 如果日历年月未设置，使用当前年月
+    const year = calendarYear || currentDate.getFullYear();
+    const month = calendarMonth !== undefined ? calendarMonth : currentDate.getMonth();
+    
+    const calendarTitle = `${year}年${month + 1}月`;
+
+    // 获取当月第一天是周几
+    const firstDay = new Date(year, month, 1).getDay() || 7; // 转换为周一为1，周日为7
+    const firstDayIndex = firstDay === 7 ? 0 : firstDay; // 调整为数组索引
+
+    // 获取当月天数
+    const daysInMonth = new Date(year, month + 1, 0).getDate();
+
+    // 上个月的天数
+    const prevMonthDays = new Date(year, month, 0).getDate();
+
+    const calendarDays = [];
+    const today = formatDate(new Date());
+
+    // 上个月的日期
+    for (let i = 0; i < firstDayIndex; i++) {
+      const day = prevMonthDays - firstDayIndex + i + 1;
+      const date = formatDate(new Date(year, month - 1, day));
+      calendarDays.push({
+        date,
+        day,
+        isCurrentMonth: false,
+        isCompleted: this.isDateCompleted(date),
+        isToday: this.isToday(date),
+      });
+    }
+
+    // 当月的日期
+    for (let i = 1; i <= daysInMonth; i++) {
+      const date = formatDate(new Date(year, month, i));
+      calendarDays.push({
+        date,
+        day: i,
+        isCurrentMonth: true,
+        isCompleted: this.isDateCompleted(date),
+        isToday: this.isToday(date),
+      });
+    }
+
+    // 下个月的日期
+    const remainingDays = 42 - calendarDays.length; // 6行7列
+    for (let i = 1; i <= remainingDays; i++) {
+      const date = formatDate(new Date(year, month + 1, i));
+      calendarDays.push({
+        date,
+        day: i,
+        isCurrentMonth: false,
+        isCompleted: this.isDateCompleted(date),
+        isToday: this.isToday(date),
+      });
+    }
+
+    this.setData({
+      calendarTitle,
+      calendarYear: year,
+      calendarMonth: month,
+      calendarDays,
+    });
+  },
+
+  /**
+   * 检查日期是否已完成打卡
+   */
+  isDateCompleted(date: string): boolean {
+    // 使用页面中存储的打卡记录和习惯数据来判断日期是否已完成
+    const habitsMap = this.data.habitsMap;
+    const habits = Object.values(habitsMap);
+    return this.isDateFullyCompleted(date, habits, this.data.checkins);
+  },
+
+  /**
+   * 检查特定日期是否所有习惯都已完成
+   */
+  isDateFullyCompleted(
+    date: string,
+    habits: IHabit[],
+    checkins: ICheckin[]
+  ): boolean {
+    // 如果没有习惯或打卡记录，直接返回false
+    if (!habits || habits.length === 0) return false;
+    if (!checkins || checkins.length === 0) return false;
+
+    // 筛选出指定日期应该执行的习惯
+    const habitsForDate = habits.filter((habit) => {
+      // 检查习惯是否在指定日期应该执行
+      // 需要确保习惯在日期之前创建
+      const habitCreatedAt = new Date(habit.createdAt);
+      const targetDate = new Date(date);
+      if (habitCreatedAt > targetDate) return false;
+
+      // 已归档的习惯不计入
+      if (habit.isArchived) return false;
+
+      // 根据习惯频率判断是否应该在该日期执行
+      // 这里简化处理，假设所有习惯都是每天执行
+      return true;
+    });
+
+    // 如果没有应该执行的习惯，直接返回false
+    if (habitsForDate.length === 0) return false;
+
+    // 筛选出指定日期的打卡记录
+    const checkinsForDate = checkins.filter((checkin) => checkin.date === date);
+
+    // 检查每个习惯是否都有完成的打卡记录
+    const completedHabits = habitsForDate.filter((habit) => {
+      // 获取习惯ID，支持多种属性名
+      const habitId =
+        typeof habit === 'object' ? habit.id || (habit as any)._id || '' : '';
+
+      // 检查是否有该习惯的完成打卡记录
+      return checkinsForDate.some((checkin) => {
+        const checkinHabitId =
+          checkin.habitId ||
+          (checkin.habit && typeof checkin.habit === 'object'
+            ? checkin.habit.id || (checkin.habit as any)._id || ''
+            : '');
+        return checkinHabitId === habitId && checkin.isCompleted;
+      });
+    });
+
+    // 所有习惯都有完成的打卡记录才算完成
+    return completedHabits.length === habitsForDate.length;
+  },
+
+  /**
+   * 检查是否是今天
+   */
+  isToday(date: string): boolean {
+    return date === formatDate(new Date());
+  },
+
+  /**
+   * 切换月份
+   */
+  changeMonth(e: WechatMiniprogram.TouchEvent) {
+    const { direction } = e.currentTarget.dataset;
+    let { calendarYear, calendarMonth } = this.data;
+
+    if (direction === 'prev') {
+      calendarMonth--;
+      if (calendarMonth < 0) {
+        calendarMonth = 11;
+        calendarYear--;
+      }
+    } else {
+      calendarMonth++;
+      if (calendarMonth > 11) {
+        calendarMonth = 0;
+        calendarYear++;
+      }
+    }
+
+    this.setData(
+      {
+        calendarYear,
+        calendarMonth,
+      },
+      () => {
+        this.updateCalendar();
+      }
+    );
+  },
+
+  /**
+   * 查看日期详情
+   */
+  viewDayDetail(e: WechatMiniprogram.TouchEvent) {
+    const { date } = e.currentTarget.dataset;
+
+    wx.showToast({
+      title: `查看${date}的记录`,
+      icon: 'none',
+    });
+
+    // 实际项目中可以跳转到日期详情页
+    // wx.navigateTo({
+    //   url: `/pages/date-detail/date-detail?date=${date}`
+    // });
   },
 });

@@ -5,19 +5,6 @@ import { get, post, put, del } from '../../utils/request';
 
 export const analyticsAPI = {
   /**
-   * 获取仪表盘数据
-   * @returns Promise<{habitCount: number; completedToday: number; streak: number; completion: number;}>
-   */
-  getDashboard: () => {
-    return get<{
-      habitCount: number;
-      completedToday: number;
-      streak: number;
-      completion: number;
-    }>('/api/analytics/dashboard');
-  },
-
-  /**
    * 获取完成率数据
    * @param params 查询参数
    * @returns Promise<{labels: string[]; data: number[]; average: number;}>
@@ -49,6 +36,19 @@ export const analyticsAPI = {
       bestDayOfWeek: string;
       bestTimeOfDay: string;
     }>(`/api/analytics/habits/${habitId}/stats`);
+  },
+
+  /**
+   * 获取分析数据（用于分析页面）
+   * @param params 查询参数
+   * @returns Promise<any>
+   */
+  getAnalytics: (params: {
+    startDate: string;
+    endDate: string;
+    timeRange: 'week' | 'month' | 'year';
+  }) => {
+    return get<any>('/api/analytics', params);
   },
 
   /**

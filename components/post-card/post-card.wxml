@@ -1,9 +1,9 @@
 <!-- components/post-card/post-card.wxml -->
 <view class="post-item" bindtap="{{!isDetail ? 'viewPostDetail' : ''}}">
   <view class="post-header">
-    <view class="post-user" catchtap="viewUserProfile">
-      <image class="post-avatar" src="{{postData.userAvatar || postData.user.avatar || '/assets/images/default-avatar.png'}}" mode="aspectFill"></image>
-      <view class="post-user-info">
+    <view class="post-user">
+      <image class="post-avatar" src="{{postData.userAvatar || postData.user.avatar || '/assets/images/default-avatar.png'}}" mode="aspectFill" catchtap="viewUserProfile"></image>
+      <view class="post-user-info" catchtap="viewUserProfile">
         <text class="post-username">{{postData.userName || postData.user.nickname || postData.user.username || '用户'}}</text>
         <text class="post-meta">{{postData.createdAt}}</text>
       </view>

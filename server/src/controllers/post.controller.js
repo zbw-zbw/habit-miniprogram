@@ -16,14 +16,18 @@ const mongoose = require('mongoose');
  */
 exports.getPosts = async (req, res) => {
   try {
-    const { type = 'all', filter = 'all', page = 1, limit = 10 } = req.query;
+    const { type = 'all', filter = 'all', page = 1, limit = 10, userId } = req.query;
     const skip = (page - 1) * limit;
 
     // 构建查询条件
     let query = { isDeleted: false };
 
+    // 如果指定了userId，只返回该用户的动态
+    if (userId) {
+      query.user = userId;
+    }
     // 根据过滤条件构建查询
-    if (filter === 'following' || type === 'follow') {
+    else if (filter === 'following' || type === 'follow') {
       // 获取用户关注的人
       const following = await Follow.find({ follower: req.user._id }).select(
         'following'

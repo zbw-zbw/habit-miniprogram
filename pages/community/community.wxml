@@ -36,7 +36,7 @@
       <view class="content-card">
         <view class="section-header">
           <text class="section-title">热门小组</text>
-          <view class="section-more" bindtap="viewAllGroups">
+          <view class="section-more" bindtap="viewAllGroups" wx:if="{{groups.length > 0}}">
             查看全部<text class="iconfont icon-right"></text>
           </view>
         </view>
@@ -77,7 +77,7 @@
       <view class="content-card">
         <view class="section-header">
           <text class="section-title">热门挑战</text>
-          <view class="section-more" bindtap="viewAllChallenges">
+          <view class="section-more" bindtap="viewAllChallenges" wx:if="{{challenges && challenges.length > 0}}">
             查看全部<text class="iconfont icon-right"></text>
           </view>
         </view>

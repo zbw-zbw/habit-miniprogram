@@ -20,7 +20,11 @@
       <empty-state
         title="暂无统计数据"
         description="创建并完成习惯后即可查看统计数据"
-        icon="/assets/images/stats.png">
+        icon="/assets/images/empty.png"
+        actionText="创建习惯"
+        showAction="{{hasLogin}}"
+        hasLogin="{{hasLogin}}"
+      >
       </empty-state>
     </block>
     <block wx:else>
@@ -106,8 +110,12 @@
     <block wx:if="{{habitStats.length === 0}}">
       <empty-state
         title="暂无习惯数据"
-        description="创建并完成习惯后即可查看统计数据"
-        icon="/assets/images/stats.png">
+        description="创建并完成习惯后即可查看习惯数据"
+        icon="/assets/images/empty.png"
+        actionText="创建习惯"
+        showAction="{{hasLogin}}"
+        hasLogin="{{hasLogin}}"
+      >
       </empty-state>
     </block>
     <view class="habits-list" wx:else>
@@ -130,7 +138,11 @@
       <empty-state
         title="暂无日历数据"
         description="创建并完成习惯后即可查看日历数据"
-        icon="/assets/images/calendar.png">
+        icon="/assets/images/empty.png"
+        actionText="创建习惯"
+        showAction="{{hasLogin}}"
+        hasLogin="{{hasLogin}}"
+      >
       </empty-state>
     </block>
     <view class="calendar-card" wx:else>

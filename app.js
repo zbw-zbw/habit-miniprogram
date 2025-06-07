@@ -318,6 +318,15 @@ App({
         // 获取当前页面
         const pages = getCurrentPages();
         const currentPage = pages[pages.length - 1];
+        
+        // 如果当前页面是分析页面，不重复加载数据，避免重复API调用
+        if (currentPage && currentPage.route && (
+            currentPage.route === 'pages/analytics/analytics' || 
+            currentPage.__route__ === 'pages/analytics/analytics'
+        )) {
+            return; // 分析页面通过useAuth已经处理了登录后的数据加载
+        }
+        
         // 如果当前页面有刷新数据的方法，则调用
         if (currentPage && typeof currentPage.loadData === 'function') {
             currentPage.loadData();

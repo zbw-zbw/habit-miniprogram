@@ -661,15 +661,30 @@ Page<IPageData, IPageMethods>({
       return this.login();
     }
 
-    const id = e.detail?.id || e.currentTarget.dataset.id;
+    // 从事件对象中获取动态ID
+    let postId;
 
-    if (!id) {
+    // 先尝试从detail中获取
+    if (e.detail) {
+      postId = e.detail.postId;
+    }
+
+    // 如果detail中没有，则尝试从dataset中获取
+    if (!postId && e.currentTarget && e.currentTarget.dataset) {
+      postId = e.currentTarget.dataset.id;
+    }
+
+    if (!postId) {
+      wx.showToast({
+        title: '操作失败',
+        icon: 'none',
+      });
       return;
     }
 
     // 跳转到动态详情页并自动聚焦评论框
     wx.navigateTo({
-      url: `/pages/community/post-detail/post-detail?id=${id}&focus=comment`,
+      url: `/pages/community/post-detail/post-detail?id=${postId}&focus=comment`,
     });
   },
 

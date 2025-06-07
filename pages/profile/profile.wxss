@@ -4,18 +4,19 @@
 @import "/styles/iconfont.wxss";
 
 .container {
-  padding: 30rpx;
-  background-color: var(--background-color);
+  padding: 20rpx;
   min-height: 100vh;
+  background-color: #f5f7fa;
+  box-sizing: border-box;
 }
 
 /* 用户卡片 */
 .user-card {
-  background-color: #FFFFFF;
+  background-color: #fff;
   border-radius: 16rpx;
-  padding: 40rpx 30rpx;
+  padding: 30rpx;
   margin-bottom: 30rpx;
-  box-shadow: var(--shadow-light);
+  box-shadow: 0 2rpx 10rpx rgba(0, 0, 0, 0.05);
 }
 
 .user-info {
@@ -27,75 +28,92 @@
   width: 120rpx;
   height: 120rpx;
   border-radius: 50%;
+  margin-right: 30rpx;
+  border: 2rpx solid #f0f0f0;
 }
 
 .avatar-placeholder {
   width: 120rpx;
   height: 120rpx;
   border-radius: 50%;
-  background-color: #F5F7FA;
+  margin-right: 30rpx;
+  background-color: #f5f5f5;
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-right: 30rpx;
 }
 
-.avatar-placeholder .iconfont {
-  font-size: 60rpx;
-  color: #DCDFE6;
+.user-meta {
+  flex: 1;
 }
 
 .nickname {
   font-size: 36rpx;
   font-weight: 500;
-  color: var(--title-color);
-  margin-bottom: 10rpx;
+  color: #303133;
+}
+
+.nickname-container {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
 }
 
 .user-id {
   font-size: 24rpx;
-  color: var(--text-color-secondary);
+  color: #999;
+  margin-bottom: 16rpx;
 }
 
 .login-tip {
   font-size: 32rpx;
-  color: var(--text-color-secondary);
-  margin-bottom: 16rpx;
+  color: #999;
+}
+
+.update-profile-btn {
+  font-size: 24rpx;
+  padding: 8rpx 20rpx;
+  background-color: #4F7CFF;
+  color: #fff;
+  border-radius: 30rpx;
+  margin: 0 !important;
+  line-height: 1.5;
+  width: 180rpx!important;
 }
 
 /* 统计卡片 */
 .stats-card {
-  display: flex;
-  background-color: #FFFFFF;
+  background-color: #fff;
   border-radius: 16rpx;
   padding: 30rpx;
   margin-bottom: 30rpx;
-  box-shadow: var(--shadow-light);
+  box-shadow: 0 2rpx 10rpx rgba(0, 0, 0, 0.05);
+  display: flex;
+  justify-content: space-between;
 }
 
 .stats-item {
-  flex: 1;
   text-align: center;
+  flex: 1;
 }
 
 .stats-value {
-  font-size: 36rpx;
-  font-weight: 600;
-  color: var(--primary-color);
-  margin-bottom: 8rpx;
+  font-size: 40rpx;
+  font-weight: 500;
+  color: #4F7CFF;
+  margin-bottom: 10rpx;
 }
 
 .stats-label {
   font-size: 24rpx;
-  color: var(--text-color-secondary);
+  color: #666;
 }
 
 /* 章节标题 */
 .section-title {
   font-size: 32rpx;
   font-weight: 500;
-  color: var(--title-color);
-  margin: 40rpx 0 20rpx;
+  color: #303133;
 }
 
 /* 章节标题带更多入口 */
@@ -103,34 +121,28 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin: 40rpx 0 20rpx;
+  margin: 30rpx 0 20rpx;
 }
 
 .section-more {
   font-size: 24rpx;
-  color: var(--text-color-secondary);
-  display: flex;
-  align-items: center;
-}
-
-.section-more .iconfont {
-  font-size: 24rpx;
-  margin-left: 4rpx;
+  color: #999;
 }
 
 /* 成就列表 */
 .achievements-list {
-  background-color: #FFFFFF;
+  background-color: #fff;
   border-radius: 16rpx;
-  overflow: hidden;
-  box-shadow: var(--shadow-light);
+  padding: 20rpx;
+  margin-bottom: 30rpx;
+  box-shadow: 0 2rpx 10rpx rgba(0, 0, 0, 0.05);
 }
 
 .achievement-item {
   display: flex;
   align-items: center;
-  padding: 30rpx;
-  border-bottom: 1rpx solid var(--divider-color);
+  padding: 20rpx;
+  border-bottom: 1rpx solid #f5f5f5;
 }
 
 .achievement-item:last-child {
@@ -140,26 +152,22 @@
 .achievement-icon {
   width: 80rpx;
   height: 80rpx;
-  border-radius: 16rpx;
-  background-color: #F5F7FA;
+  border-radius: 50%;
+  background-color: #f0f0f0;
   display: flex;
   align-items: center;
   justify-content: center;
   margin-right: 20rpx;
+  color: #999;
 }
 
 .achievement-icon.completed {
-  background-color: var(--primary-color);
-  color: #FFFFFF;
+  background-color: #67C23A;
+  color: #fff;
 }
 
 .achievement-icon .iconfont {
   font-size: 40rpx;
-  color: var(--text-color-secondary);
-}
-
-.achievement-icon.completed .iconfont {
-  color: #FFFFFF;
 }
 
 .achievement-info {
@@ -167,16 +175,16 @@
 }
 
 .achievement-name {
-  font-size: 30rpx;
+  font-size: 28rpx;
   font-weight: 500;
-  color: var(--title-color);
+  color: #303133;
   margin-bottom: 8rpx;
 }
 
 .achievement-desc {
   font-size: 24rpx;
-  color: var(--text-color-secondary);
-  margin-bottom: 16rpx;
+  color: #999;
+  margin-bottom: 10rpx;
 }
 
 .achievement-progress {
@@ -187,32 +195,27 @@
 .progress-bar {
   flex: 1;
   height: 10rpx;
-  background-color: #F5F7FA;
+  background-color: #f0f0f0;
   border-radius: 5rpx;
+  margin-right: 10rpx;
   overflow: hidden;
-  margin-right: 16rpx;
 }
 
 .progress-inner {
   height: 100%;
-  background-color: var(--primary-color);
-  border-radius: 5rpx;
+  background-color: #4F7CFF;
 }
 
 .progress-text {
   font-size: 24rpx;
-  color: var(--text-color-secondary);
+  color: #999;
   width: 60rpx;
   text-align: right;
 }
 
 .achievement-status {
+  color: #67C23A;
   margin-left: 20rpx;
-  color: var(--success-color);
-}
-
-.achievement-status .iconfont {
-  font-size: 40rpx;
 }
 
 /* 设置列表 */
@@ -269,19 +272,197 @@
 /* 设置按钮 */
 .settings-btn {
   width: 100%;
-  margin-top: 60rpx;
-  background-color: #FFFFFF;
-  color: var(--primary-color);
+  height: 90rpx;
+  line-height: 90rpx;
+  text-align: center;
+  background-color: #fff;
   border-radius: 16rpx;
+  margin-bottom: 30rpx;
+  box-shadow: 0 2rpx 10rpx rgba(0, 0, 0, 0.05);
   font-size: 32rpx;
-  padding: 20rpx 0;
-  box-shadow: var(--shadow-light);
+  color: #333;
 }
 
 /* 版本信息 */
 .version-info {
-  margin-top: 40rpx;
   text-align: center;
   font-size: 24rpx;
-  color: var(--text-color-secondary);
+  color: #999;
+  margin-bottom: 30rpx;
+}
+
+/* 资料完善模态框样式 */
+.profile-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 1000;
+}
+
+.modal-mask {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+}
+
+.modal-content {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 85%;
+  background-color: #fff;
+  border-radius: 16rpx;
+  overflow: hidden;
+  box-shadow: 0 4rpx 20rpx rgba(0, 0, 0, 0.1);
+}
+
+.modal-header {
+  padding: 36rpx 30rpx;
+  text-align: center;
+  font-size: 34rpx;
+  font-weight: 500;
+  color: #303133;
+  border-bottom: 1rpx solid #f0f0f0;
+}
+
+.modal-body {
+  padding: 40rpx 40rpx;
+}
+
+.form-item {
+  margin-bottom: 40rpx;
+}
+
+.form-item:last-child {
+  margin-bottom: 10rpx;
+}
+
+.form-label {
+  font-size: 28rpx;
+  color: #606266;
+  margin-bottom: 20rpx;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+}
+
+.input-container {
+  position: relative;
+  width: 100%;
+}
+
+.form-input {
+  width: 100%;
+  height: 88rpx;
+  border: 1rpx solid #dcdfe6;
+  border-radius: 8rpx;
+  padding: 0 24rpx;
+  padding-right: 80rpx; /* 为计数器留出空间 */
+  box-sizing: border-box;
+  font-size: 30rpx;
+  transition: all 0.3s;
+  background-color: #f9fafc;
+}
+
+.form-input:focus {
+  border-color: #4F7CFF;
+  box-shadow: 0 0 0 2rpx rgba(79, 124, 255, 0.2);
+  background-color: #fff;
+}
+
+.input-counter {
+  position: absolute;
+  right: 24rpx;
+  bottom: 24rpx;
+  font-size: 24rpx;
+  color: #909399;
+  background-color: rgba(245, 247, 250, 0.8);
+  padding: 4rpx 10rpx;
+  border-radius: 20rpx;
+  line-height: 1;
+}
+
+/* 头像选择按钮 */
+.avatar-picker {
+  padding: 0;
+  margin: 20rpx 0;
+  background-color: transparent;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+.avatar-picker::after {
+  border: none;
+}
+
+.avatar-preview {
+  width: 160rpx;
+  height: 160rpx;
+  border-radius: 50%;
+  margin-bottom: 16rpx;
+  border: 2rpx solid #f0f0f0;
+  box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.08);
+  position: relative;
+  overflow: hidden;
+  background-color: #f5f7fa;
+}
+
+.avatar-picker-text {
+  font-size: 24rpx;
+  color: #4F7CFF;
+  margin-top: 8rpx;
+  background-color: rgba(79, 124, 255, 0.1);
+  padding: 6rpx 20rpx;
+  border-radius: 30rpx;
+}
+
+.modal-footer {
+  display: flex;
+  padding: 30rpx 0;
+  border-top: 1rpx solid #f0f0f0;
+  justify-content: space-between;
+}
+
+.cancel-btn, .confirm-btn {
+  flex: 1;
+  height: 88rpx;
+  line-height: 88rpx;
+  text-align: center;
+  font-size: 32rpx;
+  margin: 0 20rpx !important;
+  border-radius: 8rpx;
+  font-weight: 500;
+}
+
+.cancel-btn {
+  color: #606266;
+  background-color: #f5f7fa;
+  border: 1rpx solid #dcdfe6;
+}
+
+.confirm-btn {
+  color: #fff;
+  background-color: #4F7CFF;
+  box-shadow: 0 4rpx 12rpx rgba(79, 124, 255, 0.3);
+}
+
+.debug-info {
+  font-size: 24rpx;
+  color: #ff6b6b;
+  margin-top: 8rpx;
+  padding: 8rpx;
+  background-color: #fff5f5;
+  border: 1px dashed #ff6b6b;
+  border-radius: 4rpx;
+  display: none; /* 隐藏调试信息 */
 } 

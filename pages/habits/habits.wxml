@@ -48,7 +48,7 @@
         wx:key="id" 
         habit="{{item}}" 
         stats="{{item.stats}}"
-        bindcheckin="onCheckin"
+        showCheckinButton="{{false}}"
         binddelete="onDeleteHabit">
       </habit-card>
     </block>

@@ -6,8 +6,15 @@
       <view class="user-info">
         <image class="avatar" src="{{userInfo.avatarUrl ? userInfo.avatarUrl : '/assets/images/default-avatar.png'}}" mode="aspectFill"></image>
         <view class="user-meta">
-          <view class="nickname">{{userInfo.nickname || '微信用户'}}</view>
-          <view class="user-id">ID: {{userInfo.id}}</view>
+          <view class="nickname-container">
+            <view class="nickname">{{userInfo.nickName || '微信用户'}}</view>
+            <!-- 修改完善资料按钮，点击后显示模态框 -->
+            <button 
+              class="update-profile-btn" 
+              bindtap="showProfileModal">
+              {{isFirstLogin ? '完善资料' : '修改资料'}}
+            </button>
+          </view>
         </view>
       </view>
     </block>
@@ -98,4 +105,48 @@
 
   <!-- 未登录提示 -->
   <login-tip wx:if="{{!hasLogin}}" bind:login="login"></login-tip>
+  
+  <!-- 资料完善模态框 -->
+  <view class="profile-modal" wx:if="{{showModal}}">
+    <view class="modal-mask" bindtap="hideProfileModal"></view>
+    <view class="modal-content">
+      <view class="modal-header">{{isFirstLogin ? '完善个人资料' : '修改个人资料'}}</view>
+      <view class="modal-body">
+        <form bindsubmit="formSubmit">
+          <view class="form-item">
+            <view class="form-label">昵称</view>
+            <view class="input-container">
+              <input 
+                class="form-input" 
+                type="nickname" 
+                name="nickname"
+                value="{{tempUserInfo.nickName}}" 
+                placeholder="请输入昵称（最多8个字）" 
+                maxlength="8"
+                bindinput="onNicknameInput" />
+              <view class="input-counter">{{nicknameLength}}/8</view>
+            </view>
+          </view>
+          <view class="form-item">
+            <view class="form-label">头像</view>
+            <button 
+              class="avatar-picker" 
+              open-type="chooseAvatar" 
+              bind:chooseavatar="onChooseAvatar">
+              <image 
+                class="avatar-preview" 
+                src="{{tempUserInfo.avatarUrl || '/assets/images/default-avatar.png'}}" 
+                mode="aspectFill">
+              </image>
+              <view class="avatar-picker-text">点击选择头像</view>
+            </button>
+          </view>
+          <view class="modal-footer">
+            <button class="cancel-btn" bindtap="hideProfileModal">取消</button>
+            <button class="confirm-btn" form-type="submit">确认</button>
+          </view>
+        </form>
+      </view>
+    </view>
+  </view>
 </view>

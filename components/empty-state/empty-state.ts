@@ -23,7 +23,7 @@ Component({
     },
     showAction: {
       type: Boolean,
-      value: true
+      value: false
     },
     hasLogin: {
       type: Boolean,
@@ -31,7 +31,7 @@ Component({
     },
     showLoginButton: {
       type: Boolean,
-      value: true
+      value: false
     }
   },
 

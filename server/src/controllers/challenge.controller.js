@@ -89,7 +89,31 @@ exports.getChallenges = async (req, res) => {
       challengeObj.isCreator = challenge.creator && 
         challenge.creator._id.toString() === req.user._id.toString();
       
-      return challengeObj;
+      // 计算挑战天数
+      let durationDays = 0;
+      let remainingDays = 0;
+      if (challengeObj.dateRange && challengeObj.dateRange.startDate && challengeObj.dateRange.endDate) {
+        const startDate = new Date(challengeObj.dateRange.startDate);
+        const endDate = new Date(challengeObj.dateRange.endDate);
+        
+        // 计算天数差异（不包括结束日期当天）
+        const diffTime = Math.abs(endDate - startDate);
+        durationDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+        
+        // 计算剩余天数
+        const now = new Date();
+        if (now < endDate) {
+          // 计算从现在到结束日期的天数差
+          const remainingTime = endDate - now;
+          remainingDays = Math.ceil(remainingTime / (1000 * 60 * 60 * 24));
+        }
+      }
+      
+      return {
+        ...challengeObj,
+        durationDays: durationDays,
+        remainingDays: remainingDays
+      };
     }));
     
     // 返回结果
@@ -169,7 +193,11 @@ exports.createChallenge = async (req, res) => {
     // 计算结束日期
     const start = new Date(startDate);
     const end = new Date(start);
-    end.setDate(end.getDate() + duration);
+    end.setDate(end.getDate() + parseInt(duration));
+    
+    // 计算实际天数（不包括结束日期当天）
+    const diffTime = Math.abs(end - start);
+    const durationDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
     
     // 创建新挑战
     const challenge = new Challenge({
@@ -183,7 +211,7 @@ exports.createChallenge = async (req, res) => {
         description: description
       },
       requirements: {
-        targetCount: duration,
+        targetCount: durationDays,
         requireStreak: false
       },
       dateRange: {
@@ -196,17 +224,27 @@ exports.createChallenge = async (req, res) => {
       privacy: isPublic ? 'public' : 'private',
       maxParticipants: 0,
       participantCount: 1,
-      tags: tags || []
+      tags: tags || [],
+      durationDays: durationDays // 添加天数字段
     });
     
-    // 设置挑战状态
+    // 设置挑战状态和剩余天数
     const now = new Date();
     if (start <= now && end > now) {
       challenge.status = 'active';
+      // 计算剩余天数
+      const remainingTime = end - now;
+      const remainingDays = Math.ceil(remainingTime / (1000 * 60 * 60 * 24));
+      challenge.remainingDays = remainingDays;
     } else if (start > now) {
       challenge.status = 'upcoming';
+      // 计算开始前的天数 + 总天数
+      const timeToStart = start - now;
+      const daysToStart = Math.ceil(timeToStart / (1000 * 60 * 60 * 24));
+      challenge.remainingDays = daysToStart + durationDays;
     } else {
       challenge.status = 'completed';
+      challenge.remainingDays = 0;
     }
     
     await challenge.save();
@@ -219,7 +257,7 @@ exports.createChallenge = async (req, res) => {
       status: 'joined',
       progress: {
         completedCount: 0,
-        targetCount: duration
+        targetCount: durationDays
       },
       joinDate: new Date()
     });
@@ -235,7 +273,7 @@ exports.createChallenge = async (req, res) => {
       data: challenge
     });
   } catch (error) {
-    
+    console.error('创建挑战错误:', error);
     res.status(500).json({
       success: false,
       message: '服务器错误，创建挑战失败'
@@ -314,12 +352,28 @@ exports.getChallenge = async (req, res) => {
       }
     }
     
-    // 获取实际参与人数（排除创建者自己）
-    const participantsCount = await ChallengeParticipant.countDocuments({
-      challenge: challengeId,
-      status: { $in: ['joined', 'completed'] },
-      user: { $ne: challenge.creator._id } // 排除创建者
-    });
+    // 确保participantsCount与participantCount一致，不排除创建者
+    const participantsCount = challenge.participantCount;
+    
+    // 计算挑战天数
+    let durationDays = 0;
+    let remainingDays = 0;
+    if (challenge.dateRange && challenge.dateRange.startDate && challenge.dateRange.endDate) {
+      const startDate = new Date(challenge.dateRange.startDate);
+      const endDate = new Date(challenge.dateRange.endDate);
+      
+      // 计算天数差异（不包括结束日期当天）
+      const diffTime = Math.abs(endDate - startDate);
+      durationDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+      
+      // 计算剩余天数
+      const now = new Date();
+      if (now < endDate) {
+        // 计算从现在到结束日期的天数差
+        const remainingTime = endDate - now;
+        remainingDays = Math.ceil(remainingTime / (1000 * 60 * 60 * 24));
+      }
+    }
     
     // 添加参与状态和进度
     const result = {
@@ -327,7 +381,9 @@ exports.getChallenge = async (req, res) => {
       isJoined,
       isParticipating: isJoined,
       progress: userProgress,
-      participantsCount: participantsCount // 使用不包含创建者的参与人数
+      participantsCount: participantsCount, // 使用与participantCount一致的值
+      durationDays: durationDays, // 添加天数字段
+      remainingDays: remainingDays // 添加剩余天数字段
     };
     
     res.status(200).json({
@@ -335,7 +391,7 @@ exports.getChallenge = async (req, res) => {
       data: result
     });
   } catch (error) {
-    
+    console.error('获取挑战详情错误:', error);
     res.status(500).json({
       success: false,
       message: '服务器错误，获取挑战详情失败'
@@ -421,24 +477,19 @@ exports.deleteChallenge = async (req, res) => {
       });
     }
     
-    const session = await mongoose.startSession();
+    // 不使用事务，直接执行数据库操作
+    // 删除挑战参与记录
+    await ChallengeParticipant.deleteMany({ challenge: challenge._id });
     
-    await session.withTransaction(async () => {
-      // 删除挑战参与记录
-      await ChallengeParticipant.deleteMany({ challenge: challenge._id }, { session });
-      
-      // 删除挑战
-      await Challenge.findByIdAndDelete(challenge._id, { session });
-    });
-    
-    session.endSession();
+    // 删除挑战
+    await Challenge.findByIdAndDelete(challenge._id);
     
     res.status(200).json({
       success: true,
       message: '挑战删除成功'
     });
   } catch (error) {
-    
+    console.error('删除挑战错误:', error);
     res.status(500).json({
       success: false,
       message: '服务器错误，删除挑战失败'
@@ -500,14 +551,14 @@ exports.joinChallenge = async (req, res) => {
       });
     }
     
-    const session = await mongoose.startSession();
     let participant;
     
-    await session.withTransaction(async () => {
+    try {
+      // 不使用事务，直接执行数据库操作
       if (existingParticipant) {
         // 更新参与状态
         existingParticipant.status = 'joined';
-        participant = await existingParticipant.save({ session });
+        participant = await existingParticipant.save();
       } else {
         // 创建新的参与记录
         participant = new ChallengeParticipant({
@@ -516,27 +567,31 @@ exports.joinChallenge = async (req, res) => {
           status: 'joined',
           progress: {
             completedCount: 0,
-            targetCount: challenge.requirements.targetCount
+            targetCount: challenge.requirements.targetCount || 1
           }
         });
         
-        await participant.save({ session });
+        await participant.save();
         
         // 更新挑战参与人数
         challenge.participantCount += 1;
-        await challenge.save({ session });
+        await challenge.save();
       }
-    });
-    
-    session.endSession();
-    
-    res.status(200).json({
-      success: true,
-      message: '成功参与挑战',
-      data: participant
-    });
+      
+      res.status(200).json({
+        success: true,
+        message: '成功参与挑战',
+        data: participant
+      });
+    } catch (error) {
+      console.error('参与挑战操作错误:', error);
+      res.status(500).json({
+        success: false,
+        message: '服务器错误，参与挑战失败'
+      });
+    }
   } catch (error) {
-    
+    console.error('参与挑战错误:', error);
     res.status(500).json({
       success: false,
       message: '服务器错误，参与挑战失败'
@@ -583,26 +638,21 @@ exports.leaveChallenge = async (req, res) => {
       });
     }
     
-    const session = await mongoose.startSession();
+    // 不使用事务，直接执行数据库操作
+    // 更新参与状态
+    participant.status = 'withdrawn';
+    await participant.save();
     
-    await session.withTransaction(async () => {
-      // 更新参与状态
-      participant.status = 'withdrawn';
-      await participant.save({ session });
-      
-      // 更新挑战参与人数
-      challenge.participantCount = Math.max(0, challenge.participantCount - 1);
-      await challenge.save({ session });
-    });
-    
-    session.endSession();
+    // 更新挑战参与人数
+    challenge.participantCount = Math.max(0, challenge.participantCount - 1);
+    await challenge.save();
     
     res.status(200).json({
       success: true,
       message: '成功退出挑战'
     });
   } catch (error) {
-    
+    console.error('退出挑战错误:', error);
     res.status(500).json({
       success: false,
       message: '服务器错误，退出挑战失败'

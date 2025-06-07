@@ -478,18 +478,30 @@ Page({
      * 评论动态
      */
     commentPost(e) {
-        var _a;
         // 如果未登录，跳转到登录页
         if (!this.data.hasLogin) {
             return this.login();
         }
-        const id = ((_a = e.detail) === null || _a === void 0 ? void 0 : _a.id) || e.currentTarget.dataset.id;
-        if (!id) {
+        // 从事件对象中获取动态ID
+        let postId;
+        // 先尝试从detail中获取
+        if (e.detail) {
+            postId = e.detail.postId;
+        }
+        // 如果detail中没有，则尝试从dataset中获取
+        if (!postId && e.currentTarget && e.currentTarget.dataset) {
+            postId = e.currentTarget.dataset.id;
+        }
+        if (!postId) {
+            wx.showToast({
+                title: '操作失败',
+                icon: 'none',
+            });
             return;
         }
         // 跳转到动态详情页并自动聚焦评论框
         wx.navigateTo({
-            url: `/pages/community/post-detail/post-detail?id=${id}&focus=comment`,
+            url: `/pages/community/post-detail/post-detail?id=${postId}&focus=comment`,
         });
     },
     /**

@@ -62,14 +62,23 @@ router.put(
   '/profile',
   authMiddleware,
   [
-    body('nickname')
-      .optional()
-      .isLength({ max: 30 })
-      .withMessage('昵称长度不能超过30个字符'),
-    body('gender')
-      .optional()
-      .isIn(['male', 'female', 'other', 'unknown'])
-      .withMessage('无效的性别值')
+    body('nickname').optional().isLength({ min: 1, max: 30 }).withMessage('昵称长度应在1-30个字符之间'),
+    body('gender').optional().isIn(['male', 'female', 'other', 'unknown']).withMessage('性别值无效')
+  ],
+  userController.updateProfile
+);
+
+/**
+ * @route PUT /api/users/me
+ * @desc 更新当前用户资料（包括昵称和头像）
+ * @access Private
+ */
+router.put(
+  '/me',
+  authMiddleware,
+  [
+    body('nickName').optional().isLength({ min: 1, max: 30 }).withMessage('昵称长度应在1-30个字符之间'),
+    body('avatarUrl').optional().isURL().withMessage('头像URL格式不正确')
   ],
   userController.updateProfile
 );
@@ -87,6 +96,18 @@ router.post(
 );
 
 /**
+ * @route POST /api/users/me/avatar
+ * @desc 上传用户头像（别名）
+ * @access Private
+ */
+router.post(
+  '/me/avatar',
+  authMiddleware,
+  upload.single('avatar'),
+  userController.uploadAvatar
+);
+
+/**
  * @route PUT /api/users/password
  * @desc 修改用户密码
  * @access Private
@@ -95,19 +116,10 @@ router.put(
   '/password',
   authMiddleware,
   [
-    body('currentPassword')
-      .notEmpty()
-      .withMessage('当前密码不能为空'),
+    body('currentPassword').notEmpty().withMessage('请提供当前密码'),
     body('newPassword')
       .isLength({ min: 6 })
-      .withMessage('新密码长度至少为6个字符'),
-    body('confirmPassword')
-      .custom((value, { req }) => {
-        if (value !== req.body.newPassword) {
-          throw new Error('确认密码与新密码不匹配');
-        }
-        return true;
-      })
+      .withMessage('新密码长度至少为6个字符')
   ],
   userController.changePassword
 );
@@ -124,11 +136,7 @@ router.get('/settings', authMiddleware, userController.getSettings);
  * @desc 更新用户设置
  * @access Private
  */
-router.put(
-  '/settings',
-  authMiddleware,
-  userController.updateSettings
-);
+router.put('/settings', authMiddleware, userController.updateSettings);
 
 /**
  * @route GET /api/users/achievements

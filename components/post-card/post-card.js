@@ -1,6 +1,9 @@
 /**
  * 动态卡片组件 - 微信朋友圈风格
  */
+// 引入工具函数
+import { getFullUrl } from '../../utils/request';
+
 Component({
   /**
    * 组件的属性列表
@@ -12,8 +15,25 @@ Component({
       observer: function (newVal, oldVal) {
         // 监听post属性变化，确保UI更新
         if (newVal !== oldVal) {
+          // 处理头像URL，确保是完整路径
+          let postData = { ...newVal };
+          
+          // 处理用户头像URL
+          if (postData.userAvatar && postData.userAvatar.startsWith('/uploads/')) {
+            postData.userAvatar = getFullUrl(postData.userAvatar);
+          } else if (postData.user && postData.user.avatar && postData.user.avatar.startsWith('/uploads/')) {
+            postData.user.avatar = getFullUrl(postData.user.avatar);
+          }
+          
+          // 处理图片URL
+          if (postData.images && Array.isArray(postData.images)) {
+            postData.images = postData.images.map(img => 
+              img.startsWith('/uploads/') ? getFullUrl(img) : img
+            );
+          }
+          
           this.setData({
-            postData: newVal,
+            postData: postData,
           });
         }
       },
@@ -40,9 +60,25 @@ Component({
    */
   lifetimes: {
     attached() {
-      // 初始化postData
+      // 初始化postData，处理头像和图片URL
+      let postData = { ...this.data.post };
+      
+      // 处理用户头像URL
+      if (postData.userAvatar && postData.userAvatar.startsWith('/uploads/')) {
+        postData.userAvatar = getFullUrl(postData.userAvatar);
+      } else if (postData.user && postData.user.avatar && postData.user.avatar.startsWith('/uploads/')) {
+        postData.user.avatar = getFullUrl(postData.user.avatar);
+      }
+      
+      // 处理图片URL
+      if (postData.images && Array.isArray(postData.images)) {
+        postData.images = postData.images.map(img => 
+          img.startsWith('/uploads/') ? getFullUrl(img) : img
+        );
+      }
+      
       this.setData({
-        postData: this.data.post,
+        postData: postData,
       });
     },
   },
@@ -122,6 +158,7 @@ Component({
         return;
       }
 
+      // 修改这里，确保传递正确的postId参数
       this.triggerEvent('comment', { postId });
     },
 

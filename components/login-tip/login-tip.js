@@ -19,7 +19,7 @@ Component({
         // 按钮文本
         buttonText: {
             type: String,
-            value: '登录/注册',
+            value: '一键登录',
         },
     },
     /**

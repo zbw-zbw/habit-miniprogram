@@ -260,15 +260,49 @@ Page<IPageData, IPageMethods>({
    * 处理仪表盘数据
    */
   processDashboardData(dashboardData: any, errorMessage = '') {
+    // 检查dashboardData是否为空或undefined
+    if (!dashboardData) {
+      console.error('仪表盘数据为空或undefined');
+      this.setData({
+        todayHabits: [],
+        todayCheckins: [],
+        habitStats: {},
+        completedCount: 0,
+        totalCount: 0,
+        completionRate: 0,
+        completionRateDisplay: '0',
+        currentStreak: 0,
+        'loading.habits': false,
+        'loading.checkins': false,
+        'loading.stats': false,
+        'error.habits': errorMessage || '加载数据失败，请重试',
+        'error.checkins': errorMessage || '加载数据失败，请重试',
+        'error.stats': errorMessage || '加载数据失败，请重试',
+      });
+      return;
+    }
+
     const today = this.data.today;
 
-    // 提取所需数据
-    const { todayHabits, completedHabits, stats, habitStats } = dashboardData;
+    // 确保所有必需的属性存在，使用默认值填充缺失属性
+    const todayHabits = dashboardData.todayHabits || [];
+    const completedHabits = dashboardData.completedHabits || [];
+    const stats = dashboardData.stats || {
+      totalHabits: 0,
+      activeHabits: 0,
+      completedToday: 0,
+      completionRate: 0,
+      totalCheckins: 0,
+      currentStreak: 0,
+      longestStreak: 0,
+    };
+    const habitStats = dashboardData.habitStats || {};
+    const recentCheckins = dashboardData.recentCheckins || [];
 
     // 计算完成率
     const completedCount = completedHabits.length;
     const totalCount = todayHabits.length;
-    const completionRate = stats.completionRate;
+    const completionRate = stats.completionRate || 0;
     const completionRateDisplay = Math.floor(completionRate).toString();
 
     // 处理连续打卡天数
@@ -276,30 +310,46 @@ Page<IPageData, IPageMethods>({
 
     // 如果API返回的连续打卡天数为0，但是习惯自身的stats中有连续打卡天数，则使用习惯的数据
     if (currentStreak === 0 && habitStats) {
-      // 遍历所有习惯统计数据
-      Object.values(habitStats).forEach((habitStat: any) => {
-        if (habitStat && habitStat.currentStreak > 0) {
-          // 使用最大的连续打卡天数
-          currentStreak = Math.max(currentStreak, habitStat.currentStreak || 0);
-        }
-      });
+      try {
+        // 遍历所有习惯统计数据
+        Object.values(habitStats).forEach((habitStat: any) => {
+          if (habitStat && habitStat.currentStreak > 0) {
+            // 使用最大的连续打卡天数
+            currentStreak = Math.max(currentStreak, habitStat.currentStreak || 0);
+          }
+        });
+      } catch (error) {
+        console.error('处理习惯统计数据错误:', error);
+      }
     }
 
     // 如果还是0，尝试从习惯本身的stats获取
     if (currentStreak === 0 && Array.isArray(todayHabits)) {
-      todayHabits.forEach((habit) => {
-        if (habit.stats && habit.stats.currentStreak > 0) {
-          currentStreak = Math.max(currentStreak, habit.stats.currentStreak);
-        }
-      });
+      try {
+        todayHabits.forEach((habit) => {
+          if (habit && habit.stats && habit.stats.currentStreak > 0) {
+            currentStreak = Math.max(currentStreak, habit.stats.currentStreak);
+          }
+        });
+      } catch (error) {
+        console.error('处理习惯连续打卡数据错误:', error);
+      }
+    }
+
+    // 安全地过滤打卡记录
+    let todayCheckins = [];
+    try {
+      todayCheckins = recentCheckins.filter(
+        (c: ICheckin) => c && c.date === today
+      );
+    } catch (error) {
+      console.error('过滤打卡记录错误:', error);
     }
 
     // 设置数据
     this.setData({
       todayHabits,
-      todayCheckins: dashboardData.recentCheckins.filter(
-        (c: ICheckin) => c.date === today
-      ),
+      todayCheckins,
       habitStats,
       completedCount,
       totalCount,
@@ -497,9 +547,9 @@ Page<IPageData, IPageMethods>({
           userInfo: app.globalData.userInfo,
           hasLogin: true,
         });
-
-        // 重新加载数据
-        this.loadData();
+        
+        // 不需要在这里调用loadData，因为onLoginStateChange会处理这个逻辑
+        // 登录状态变化会自动触发onLoginStateChange
       }
     });
   },
@@ -511,26 +561,34 @@ Page<IPageData, IPageMethods>({
     userInfo: IUserInfo | null;
     hasLogin: boolean;
   }) {
+    // 检查登录状态是否真的发生了变化
+    const loginStatusChanged = this.data.hasLogin !== loginState.hasLogin;
+    
+    // 更新登录状态
     this.setData({
       userInfo: loginState.userInfo,
       hasLogin: loginState.hasLogin,
     });
 
-    // 重新加载数据
-    if (loginState.hasLogin) {
-      this.loadData();
-    } else {
-      // 用户退出登录时，清空数据
-      this.setData({
-        todayHabits: [],
-        todayCheckins: [],
-        habitStats: {},
-        completedCount: 0,
-        totalCount: 0,
-        completionRate: 0,
-        completionRateDisplay: '0',
-        currentStreak: 0,
-      });
+    // 只有当登录状态确实发生变化时才重新加载数据
+    // 这避免了在初始化和页面加载时重复调用loadData
+    if (loginStatusChanged) {
+      console.log('登录状态发生变化，重新加载数据');
+      if (loginState.hasLogin) {
+        this.loadData();
+      } else {
+        // 用户退出登录时，清空数据
+        this.setData({
+          todayHabits: [],
+          todayCheckins: [],
+          habitStats: {},
+          completedCount: 0,
+          totalCount: 0,
+          completionRate: 0,
+          completionRateDisplay: '0',
+          currentStreak: 0,
+        });
+      }
     }
   },
 
@@ -568,5 +626,10 @@ Page<IPageData, IPageMethods>({
    * 登录失败事件
    */
   onLoginFail() {
+    console.log('登录失败');
+    // 登录失败时可以执行一些操作，如显示错误信息或重置状态
+    this.setData({
+      'loginModal.show': false
+    });
   },
 });

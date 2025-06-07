@@ -1,8 +1,42 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.upload = exports.del = exports.put = exports.post = exports.get = exports.request = void 0;
-// 基础URL
-const BASE_URL = 'http://localhost:3001';
+exports.upload = exports.del = exports.put = exports.post = exports.get = exports.request = exports.getFullUrl = void 0;
+// 引入配置模块
+const config_1 = require("./config");
+/**
+ * 获取基础URL
+ */
+const getBaseUrl = () => {
+    try {
+        // 从配置中获取API基础URL
+        return config_1.config.API_BASE_URL;
+    }
+    catch (e) {
+        console.error('获取API基础URL失败', e);
+        // 默认值
+        return 'http://localhost:3000';
+    }
+};
+/**
+ * 获取完整URL路径
+ * @param path 相对路径或完整URL
+ * @returns 完整URL
+ */
+const getFullUrl = (path) => {
+    // 如果已经是完整URL，直接返回
+    if (path.startsWith('http://') || path.startsWith('https://')) {
+        return path;
+    }
+    // 获取当前基础URL
+    const baseUrl = getBaseUrl();
+    // 如果是相对路径且以/开头，拼接基础URL
+    if (path.startsWith('/')) {
+        return `${baseUrl}${path}`;
+    }
+    // 其他情况，确保路径以/开头
+    return `${baseUrl}/${path}`;
+};
+exports.getFullUrl = getFullUrl;
 /**
  * 生成UUID
  * @returns UUID字符串
@@ -45,22 +79,14 @@ const showErrorToast = (message) => {
         duration: 2000,
     });
 };
-/**
- * 将对象转换为查询字符串
- * @param params 参数对象
- * @returns 查询字符串
- */
+// 将对象转换为查询字符串
 const objectToQueryString = (params) => {
     return Object.keys(params)
         .filter(key => params[key] !== undefined && params[key] !== null)
         .map(key => `${encodeURIComponent(key)}=${encodeURIComponent(params[key])}`)
         .join('&');
 };
-/**
- * 请求拦截器
- * @param options 请求参数
- * @returns 处理后的请求参数
- */
+// 请求拦截器
 const requestInterceptor = (options) => {
     // 获取全局应用实例
     const app = getApp();
@@ -106,11 +132,7 @@ const requestInterceptor = (options) => {
     options.localDataFallback = false;
     return options;
 };
-/**
- * 响应拦截器
- * @param response 响应数据
- * @returns 处理后的响应数据
- */
+// 响应拦截器
 const responseInterceptor = (response, options) => {
     const { statusCode, data } = response;
     const app = getApp();
@@ -141,11 +163,7 @@ const responseInterceptor = (response, options) => {
     error.message = data.message || `网络请求失败，状态码：${statusCode}`;
     return Promise.reject(error);
 };
-/**
- * 处理未授权错误 (401)
- * @param options 原始请求参数
- * @returns Promise
- */
+// 处理未授权错误 (401)
 const handleUnauthorized = (options) => {
     const app = getApp();
     // 检查API服务是否可用
@@ -263,11 +281,7 @@ const handleUnauthorized = (options) => {
     // 无论如何，当前请求都返回错误
     return Promise.reject(new Error('登录已过期，请重新登录'));
 };
-/**
- * 请求方法
- * @param options 请求参数
- * @returns Promise
- */
+// 请求方法
 const request = (options) => {
     var _a;
     // 添加请求到队列
@@ -333,13 +347,7 @@ const request = (options) => {
     });
 };
 exports.request = request;
-/**
- * GET请求
- * @param url 请求地址
- * @param data 请求参数
- * @param options 其他选项
- * @returns Promise
- */
+// GET请求
 const get = (url, data, options) => {
     // 处理查询参数
     if (data) {
@@ -371,13 +379,7 @@ const get = (url, data, options) => {
     });
 };
 exports.get = get;
-/**
- * POST请求
- * @param url 请求地址
- * @param data 请求参数
- * @param options 其他选项
- * @returns Promise
- */
+// POST请求
 const post = (url, data, options) => {
     return (0, exports.request)({
         url,
@@ -387,13 +389,7 @@ const post = (url, data, options) => {
     });
 };
 exports.post = post;
-/**
- * PUT请求
- * @param url 请求地址
- * @param data 请求参数
- * @param options 其他选项
- * @returns Promise
- */
+// PUT请求
 const put = (url, data, options) => {
     return (0, exports.request)({
         url,
@@ -403,13 +399,7 @@ const put = (url, data, options) => {
     });
 };
 exports.put = put;
-/**
- * DELETE请求
- * @param url 请求地址
- * @param data 请求参数
- * @param options 其他选项
- * @returns Promise
- */
+// DELETE请求
 const del = (url, data, options) => {
     return (0, exports.request)({
         url,
@@ -419,13 +409,7 @@ const del = (url, data, options) => {
     });
 };
 exports.del = del;
-/**
- * 上传文件
- * @param url 上传地址
- * @param filePath 文件路径
- * @param options 其他选项
- * @returns Promise
- */
+// 上传文件
 const upload = (url, filePath, options) => {
     // 获取全局应用实例
     const app = getApp();
@@ -439,7 +423,7 @@ const upload = (url, filePath, options) => {
     }
     return new Promise((resolve, reject) => {
         wx.uploadFile({
-            url: BASE_URL + url,
+            url: (0, exports.getFullUrl)(url),
             filePath,
             name: (options === null || options === void 0 ? void 0 : options.name) || 'file',
             header,

@@ -136,6 +136,8 @@ Page({
                     endDate: challenge.endDate,
                     status: challenge.status || 'active',
                     tags: challenge.tags || [],
+                    durationDays: challenge.durationDays,
+                    remainingDays: challenge.remainingDays,
                 };
             });
             // 更新数据

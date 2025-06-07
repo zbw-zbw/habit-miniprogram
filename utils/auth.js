@@ -13,8 +13,9 @@ function login(callback) {
     wx.login({
         success: (loginRes) => {
             if (loginRes.code) {
-                // 展示用户信息设置界面
-                getUserProfile(loginRes.code, callback);
+                // 直接使用登录凭证进行登录，不再调用 getUserProfile
+                // 由于微信限制，getUserProfile 只能由用户点击手势触发
+                silentLogin(loginRes.code, callback);
             }
             else {
                 wx.hideLoading();
@@ -28,6 +29,7 @@ function login(callback) {
             }
         },
         fail: (err) => {
+            console.error('wx.login 失败:', err);
             wx.hideLoading();
             wx.showToast({
                 title: '登录失败',
@@ -41,7 +43,89 @@ function login(callback) {
 }
 exports.login = login;
 /**
- * 获取用户信息并登录
+ * 静默登录方法，不获取用户详细信息
+ * @param code 微信登录凭证
+ * @param callback 登录回调
+ */
+function silentLogin(code, callback) {
+    const app = getApp();
+    // 创建基础用户信息
+    const userInfo = {
+        id: 'temp_' + Date.now(),
+        nickName: '微信用户',
+        avatarUrl: '/assets/images/default-avatar.png',
+        createdAt: new Date().toISOString(),
+    };
+    // 获取API基础URL
+    const apiBaseUrl = app.globalData.apiBaseUrl || '';
+    // 调用后端API进行登录
+    wx.request({
+        url: `${apiBaseUrl}/api/auth/wx-login`,
+        method: 'POST',
+        data: {
+            code: code,
+            userInfo: userInfo,
+        },
+        success: (res) => {
+            if (res.statusCode === 200 && res.data && res.data.success) {
+                // 保存令牌和用户信息
+                const responseData = res.data.data;
+                app.globalData.token = responseData.token;
+                app.globalData.refreshToken = responseData.refreshToken || null;
+                app.globalData.userInfo = responseData.user;
+                app.globalData.hasLogin = true;
+                // 保存到本地存储
+                try {
+                    wx.setStorageSync('token', app.globalData.token);
+                    if (app.globalData.refreshToken) {
+                        wx.setStorageSync('refreshToken', app.globalData.refreshToken);
+                    }
+                    wx.setStorageSync('userInfo', app.globalData.userInfo);
+                }
+                catch (e) {
+                    console.error('保存登录信息失败:', e);
+                }
+                // 通知登录状态变化
+                app.notifyLoginStateChanged();
+                wx.showToast({
+                    title: '登录成功',
+                    icon: 'success',
+                });
+                // 刷新当前页面数据
+                app.refreshCurrentPageData && app.refreshCurrentPageData();
+                if (callback) {
+                    callback(true);
+                }
+            }
+            else {
+                console.error('后端登录接口返回错误:', res);
+                wx.showToast({
+                    title: '登录失败',
+                    icon: 'error',
+                });
+                if (callback) {
+                    callback(false);
+                }
+            }
+        },
+        fail: (err) => {
+            console.error('请求后端登录接口失败:', err);
+            wx.showToast({
+                title: '登录失败',
+                icon: 'error',
+            });
+            if (callback) {
+                callback(false);
+            }
+        },
+        complete: () => {
+            wx.hideLoading();
+        },
+    });
+}
+/**
+ * 获取用户信息并登录（保留但不再使用，仅用于参考）
+ * 由于微信限制，getUserProfile 只能由用户点击手势触发
  * @param code 微信登录凭证
  * @param callback 登录回调
  */
@@ -85,6 +169,7 @@ function getUserProfile(code, callback) {
                             wx.setStorageSync('userInfo', app.globalData.userInfo);
                         }
                         catch (e) {
+                            console.error('保存登录信息失败:', e);
                         }
                         // 通知登录状态变化
                         app.notifyLoginStateChanged();
@@ -99,6 +184,7 @@ function getUserProfile(code, callback) {
                         }
                     }
                     else {
+                        console.error('后端登录接口返回错误:', res);
                         wx.showToast({
                             title: '登录失败',
                             icon: 'error',
@@ -109,6 +195,7 @@ function getUserProfile(code, callback) {
                     }
                 },
                 fail: (err) => {
+                    console.error('请求后端登录接口失败:', err);
                     wx.showToast({
                         title: '登录失败',
                         icon: 'error',
@@ -122,12 +209,22 @@ function getUserProfile(code, callback) {
                 },
             });
         },
-        fail: () => {
+        fail: (err) => {
+            console.error('wx.getUserProfile 失败:', err);
             wx.hideLoading();
-            wx.showToast({
-                title: '已取消',
-                icon: 'none',
-            });
+            // 根据错误类型提供更具体的提示
+            if (err.errMsg && err.errMsg.includes('cancel')) {
+                wx.showToast({
+                    title: '已取消',
+                    icon: 'none',
+                });
+            }
+            else {
+                wx.showToast({
+                    title: '获取用户信息失败',
+                    icon: 'error',
+                });
+            }
             if (callback) {
                 callback(false);
             }

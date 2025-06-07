@@ -24,7 +24,7 @@ exports.userAPI = {
     /**
      * 更新用户头像
      * @param avatarFile 头像文件
-     * @returns Promise<{avatarUrl: string}>
+     * @returns Promise<{avatar: string}>
      */
     updateAvatar: (avatarFile) => {
         // 获取API基础URL

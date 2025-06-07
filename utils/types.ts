@@ -275,11 +275,25 @@ export interface IAppOption {
     achievementService?: any;
     token?: string;
     refreshToken?: string;
+    apiBaseUrl?: string;
+    apiAvailable?: boolean;
+    showAchievementUnlock?: boolean;
+    isDarkMode?: boolean;
+    lastLoginTime?: number;
+    settings?: {
+      notification?: boolean;
+      sound?: boolean;
+      vibration?: boolean;
+      language?: string;
+      autoBackup?: boolean;
+      theme?: string;
+    };
   };
   login: (userInfo: IUserInfo, callback: (success: boolean) => void) => void;
   logout: (callback: () => void) => void;
   onLoginStateChange: (callback: (loginState: { userInfo: IUserInfo | null; hasLogin: boolean; }) => void) => void;
   notifyLoginStateChanged: () => void;
+  refreshCurrentPageData?: () => void;
 }
 
 /**

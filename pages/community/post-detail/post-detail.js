@@ -3,7 +3,20 @@
  * 社区动态详情页面
  */
 import { communityAPI } from '../../../services/api';
+import { getFullUrl } from '../../../utils/request';
 const utils = require('../../../utils/util.js');
+
+/**
+ * 处理头像URL，确保是完整路径
+ * @param {string} avatarUrl 头像URL
+ * @returns {string} 完整的头像URL
+ */
+function processAvatarUrl(avatarUrl) {
+  if (avatarUrl && typeof avatarUrl === 'string' && avatarUrl.startsWith('/uploads/')) {
+    return getFullUrl(avatarUrl);
+  }
+  return avatarUrl;
+}
 
 Page({
 
@@ -79,11 +92,16 @@ Page({
         // 确保用户信息字段统一
         if (post.user) {
           post.userName = post.user.nickname || post.user.username;
-          post.userAvatar = post.user.avatar;
+          post.userAvatar = processAvatarUrl(post.user.avatar);
           post.userId = post.user.id;
         }
         
-        
+        // 处理图片URL
+        if (post.images && Array.isArray(post.images)) {
+          post.images = post.images.map(img => 
+            img.startsWith('/uploads/') ? getFullUrl(img) : img
+          );
+        }
         
         this.setData({ 
           post,
@@ -91,8 +109,6 @@ Page({
         });
       })
       .catch(error => {
-        
-        
         wx.showToast({
           title: '获取动态详情失败',
           icon: 'none'
@@ -132,7 +148,7 @@ Page({
           // 确保用户信息字段统一
           if (comment.user) {
             comment.userName = comment.user.nickname || comment.user.username;
-            comment.userAvatar = comment.user.avatar;
+            comment.userAvatar = processAvatarUrl(comment.user.avatar);
             comment.userId = comment.user.id;
           }
           
@@ -150,7 +166,7 @@ Page({
               // 确保用户信息字段统一
               if (reply.user) {
                 reply.userName = reply.user.nickname || reply.user.username;
-                reply.userAvatar = reply.user.avatar;
+                reply.userAvatar = processAvatarUrl(reply.user.avatar);
                 reply.userId = reply.user.id;
               }
               
@@ -167,8 +183,6 @@ Page({
               
               // 确保点赞数据正确
               reply.likes = reply.likeCount || reply.likes?.length || 0;
-              
-              
             });
           }
         });
@@ -181,8 +195,6 @@ Page({
         });
       })
       .catch(error => {
-        
-        
         wx.showToast({
           title: '获取评论失败',
           icon: 'none'
@@ -253,47 +265,44 @@ Page({
       return;
     }
     
+    // 立即更新UI状态，提供即时反馈
+    const comments = this.data.comments;
+    comments[index].isLiked = !comment.isLiked;
+    comments[index].likes = comment.isLiked 
+      ? Math.max(0, (comment.likes || 0) - 1) 
+      : (comment.likes || 0) + 1;
     
+    this.setData({ comments });
     
-    // 直接使用API路径
-    const apiUrl = `/api/comments/${commentId}/${comment.isLiked ? 'unlike' : 'like'}`;
+    // 使用communityAPI服务进行点赞/取消点赞操作
+    const apiCall = comments[index].isLiked 
+      ? communityAPI.likeCommentDirect(commentId)
+      : communityAPI.unlikeCommentDirect(commentId);
     
-    wx.request({
-      url: wx.getStorageSync('apiBaseUrl') + apiUrl,
-      method: 'POST',
-      header: {
-        'content-type': 'application/json',
-        'Authorization': 'Bearer ' + wx.getStorageSync('token')
-      },
-      data: {},
-      success: (res) => {
-        if (res.statusCode === 200) {
-          
-          // 处理嵌套的数据结构
-          const responseData = res.data.data || res.data;
-          const likeCount = responseData.likeCount || responseData.likes?.length || 0;
-          const isLiked = responseData.isLiked || false;
+    apiCall
+      .then(result => {
+        // 请求成功，用实际返回数据更新UI
+        const likeCount = result.likeCount || result.likes || 0;
+        const isLiked = result.isLiked || false;
         
         const comments = this.data.comments;
         comments[index].isLiked = isLiked;
         comments[index].likes = likeCount;
         
         this.setData({ comments });
-        } else {
-          
-          wx.showToast({
-            title: res.data.message || '操作失败',
-            icon: 'none'
-          });
-        }
-      },
-      fail: (error) => {
+      })
+      .catch(error => {
+        // 请求失败，恢复之前的状态
+        const comments = this.data.comments;
+        comments[index].isLiked = comment.isLiked;
+        comments[index].likes = comment.likes;
+        
+        this.setData({ comments });
         
         wx.showToast({
-          title: '网络请求失败',
+          title: '操作失败，请稍后再试',
           icon: 'none'
         });
-      }
       });
   },
   
@@ -430,7 +439,7 @@ Page({
           // 确保用户信息字段统一
           if (comment.user) {
             comment.userName = comment.user.nickname || comment.user.username;
-            comment.userAvatar = comment.user.avatar;
+            comment.userAvatar = processAvatarUrl(comment.user.avatar);
             comment.userId = comment.user.id;
           }
           
@@ -603,8 +612,6 @@ Page({
     const comment = this.data.comments[commentIndex];
     const reply = comment.replies[replyIndex];
     
-    
-    
     // 检查回复ID
     const replyId = reply.id || reply._id;
     
@@ -617,48 +624,45 @@ Page({
       return;
     }
     
+    // 立即更新UI状态，提供即时反馈
+    const comments = this.data.comments;
+    comments[commentIndex].replies[replyIndex].isLiked = !reply.isLiked;
+    comments[commentIndex].replies[replyIndex].likes = reply.isLiked 
+      ? Math.max(0, (reply.likes || 0) - 1) 
+      : (reply.likes || 0) + 1;
     
+    this.setData({ comments });
     
-    // 直接使用API路径
-    const apiUrl = `/api/comments/${replyId}/${reply.isLiked ? 'unlike' : 'like'}`;
+    // 使用communityAPI服务进行点赞/取消点赞操作
+    const apiCall = comments[commentIndex].replies[replyIndex].isLiked 
+      ? communityAPI.likeCommentDirect(replyId)
+      : communityAPI.unlikeCommentDirect(replyId);
     
-    wx.request({
-      url: wx.getStorageSync('apiBaseUrl') + apiUrl,
-      method: 'POST',
-      header: {
-        'content-type': 'application/json',
-        'Authorization': 'Bearer ' + wx.getStorageSync('token')
-      },
-      data: {},
-      success: (res) => {
-        if (res.statusCode === 200) {
-          
-          // 处理嵌套的数据结构
-          const responseData = res.data.data || res.data;
-          const likeCount = responseData.likeCount || responseData.likes?.length || 0;
-          const isLiked = responseData.isLiked || false;
-          
-          const comments = this.data.comments;
-          comments[commentIndex].replies[replyIndex].isLiked = isLiked;
-          comments[commentIndex].replies[replyIndex].likes = likeCount;
-          
-          this.setData({ comments });
-        } else {
-          
-          wx.showToast({
-            title: res.data.message || '操作失败',
-            icon: 'none'
-          });
-        }
-      },
-      fail: (error) => {
+    apiCall
+      .then(result => {
+        // 请求成功，用实际返回数据更新UI
+        const likeCount = result.likeCount || result.likes || 0;
+        const isLiked = result.isLiked || false;
+        
+        const comments = this.data.comments;
+        comments[commentIndex].replies[replyIndex].isLiked = isLiked;
+        comments[commentIndex].replies[replyIndex].likes = likeCount;
+        
+        this.setData({ comments });
+      })
+      .catch(error => {
+        // 请求失败，恢复之前的状态
+        const comments = this.data.comments;
+        comments[commentIndex].replies[replyIndex].isLiked = reply.isLiked;
+        comments[commentIndex].replies[replyIndex].likes = reply.likes;
+        
+        this.setData({ comments });
         
         wx.showToast({
-          title: '网络请求失败',
+          title: '操作失败，请稍后再试',
           icon: 'none'
         });
-      }
-    });
+      });
   },
 
   /**

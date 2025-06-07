@@ -77,7 +77,7 @@
           </view>
           <view class="info-item">
             <text class="iconfont icon-calendar"></text>
-            <text>{{item.totalDays || (item.requirements && item.requirements.targetCount) || 0}}天</text>
+            <text>剩余 {{item.remainingDays !== undefined ? item.remainingDays + '/' + (item.durationDays || item.totalDays || (item.requirements && item.requirements.targetCount) || 0) : (item.totalDays || (item.requirements && item.requirements.targetCount) || 0)}} 天</text>
           </view>
         </view>
         

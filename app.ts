@@ -391,9 +391,25 @@ App<IAppOption>({
     const pages = getCurrentPages();
     const currentPage = pages[pages.length - 1];
     
-    // 如果当前页面有刷新数据的方法，则调用
+    // 如果没有当前页面，直接返回
+    if (!currentPage) {
+      console.log('没有找到当前页面，跳过数据刷新');
+      return;
+    }
+    
+    // 记录当前页面路径，方便调试
+    const route = currentPage.route || (currentPage as any).__route__;
+    console.log('当前页面:', route);
+    
+    // 如果当前页面有loadData方法，只刷新当前页面数据
+    // 其他页面在切换tab时会自动通过onShow加载
     if (currentPage && typeof currentPage.loadData === 'function') {
-      currentPage.loadData();
+      console.log('刷新当前页面数据:', route);
+      try {
+        currentPage.loadData();
+      } catch (error) {
+        console.error('刷新页面数据出错:', error);
+      }
     }
   }
 });

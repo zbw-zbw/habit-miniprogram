@@ -23,6 +23,8 @@ interface IChallengeItem {
   progress?: number | { completionRate: number };
   progressValue?: number; // 添加预处理的进度值
   totalDays?: number;
+  durationDays?: number; // 添加挑战总天数字段
+  remainingDays?: number; // 添加挑战剩余天数字段
   requirements?: {
     targetCount?: number;
   };
@@ -220,6 +222,8 @@ Page<IPageData, IPageMethods>({
             endDate: challenge.endDate,
             status: challenge.status || 'active',
             tags: challenge.tags || [],
+            durationDays: challenge.durationDays,
+            remainingDays: challenge.remainingDays,
           };
         });
 

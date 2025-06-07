@@ -1,0 +1,8 @@
+<!-- components/avatar/avatar.wxml -->
+<image 
+  class="avatar {{size}}" 
+  src="{{avatarUrl}}" 
+  mode="{{mode}}" 
+  binderror="handleImageError"
+  bindtap="onTap"
+></image> 

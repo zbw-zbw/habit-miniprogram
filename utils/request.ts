@@ -13,9 +13,45 @@ type Method =
 
 // 引入存储模块
 import * as storage from './storage';
+// 引入配置模块
+import { config } from './config';
 
-// 基础URL
-const BASE_URL = 'http://localhost:3001';
+/**
+ * 获取基础URL
+ */
+const getBaseUrl = (): string => {
+  try {
+    // 从配置中获取API基础URL
+    return config.API_BASE_URL;
+  } catch (e) {
+    console.error('获取API基础URL失败', e);
+    // 默认值
+    return 'http://localhost:3000';
+  }
+};
+
+/**
+ * 获取完整URL路径
+ * @param path 相对路径或完整URL
+ * @returns 完整URL
+ */
+export const getFullUrl = (path: string): string => {
+  // 如果已经是完整URL，直接返回
+  if (path.startsWith('http://') || path.startsWith('https://')) {
+    return path;
+  }
+  
+  // 获取当前基础URL
+  const baseUrl = getBaseUrl();
+  
+  // 如果是相对路径且以/开头，拼接基础URL
+  if (path.startsWith('/')) {
+    return `${baseUrl}${path}`;
+  }
+  
+  // 其他情况，确保路径以/开头
+  return `${baseUrl}/${path}`;
+};
 
 /**
  * 生成UUID
@@ -104,18 +140,12 @@ const showErrorToast = (message: string) => {
   });
 };
 
-/**
- * 应用全局选项接口扩展，包含mockLogin方法
- */
+// 应用全局选项接口扩展，包含mockLogin方法
 interface ExtendedAppOption extends IAppOption {
   mockLogin?: (userInfo: any, callback: () => void) => void;
 }
 
-/**
- * 将对象转换为查询字符串
- * @param params 参数对象
- * @returns 查询字符串
- */
+// 将对象转换为查询字符串
 const objectToQueryString = (params: Record<string, any>): string => {
   return Object.keys(params)
     .filter(key => params[key] !== undefined && params[key] !== null)
@@ -123,11 +153,7 @@ const objectToQueryString = (params: Record<string, any>): string => {
     .join('&');
 };
 
-/**
- * 请求拦截器
- * @param options 请求参数
- * @returns 处理后的请求参数
- */
+// 请求拦截器
 const requestInterceptor = (options: RequestOptions): RequestOptions => {
   // 获取全局应用实例
   const app = getApp<IAppOption>();
@@ -181,11 +207,7 @@ const requestInterceptor = (options: RequestOptions): RequestOptions => {
   return options;
 };
 
-/**
- * 响应拦截器
- * @param response 响应数据
- * @returns 处理后的响应数据
- */
+// 响应拦截器
 const responseInterceptor = <T>(
   response: RequestResponse<ApiResponse<T>>,
   options: RequestOptions
@@ -228,11 +250,7 @@ const responseInterceptor = <T>(
   return Promise.reject(error);
 };
 
-/**
- * 处理未授权错误 (401)
- * @param options 原始请求参数
- * @returns Promise
- */
+// 处理未授权错误 (401)
 const handleUnauthorized = <T>(options: RequestOptions): Promise<T> => {
   const app = getApp<ExtendedAppOption>();
 
@@ -373,11 +391,7 @@ const handleUnauthorized = <T>(options: RequestOptions): Promise<T> => {
   return Promise.reject(new Error('登录已过期，请重新登录')) as Promise<T>;
 };
 
-/**
- * 请求方法
- * @param options 请求参数
- * @returns Promise
- */
+// 请求方法
 export const request = <T>(options: RequestOptions): Promise<T> => {
   // 添加请求到队列
   const requestId = generateUUID();
@@ -458,13 +472,7 @@ export const request = <T>(options: RequestOptions): Promise<T> => {
   });
 };
 
-/**
- * GET请求
- * @param url 请求地址
- * @param data 请求参数
- * @param options 其他选项
- * @returns Promise
- */
+// GET请求
 export const get = <T>(
   url: string,
   data?: Record<string, any>,
@@ -504,13 +512,7 @@ export const get = <T>(
   });
 };
 
-/**
- * POST请求
- * @param url 请求地址
- * @param data 请求参数
- * @param options 其他选项
- * @returns Promise
- */
+// POST请求
 export const post = <T>(
   url: string,
   data?: Record<string, any>,
@@ -524,13 +526,7 @@ export const post = <T>(
   });
 };
 
-/**
- * PUT请求
- * @param url 请求地址
- * @param data 请求参数
- * @param options 其他选项
- * @returns Promise
- */
+// PUT请求
 export const put = <T>(
   url: string,
   data?: Record<string, any>,
@@ -544,13 +540,7 @@ export const put = <T>(
   });
 };
 
-/**
- * DELETE请求
- * @param url 请求地址
- * @param data 请求参数
- * @param options 其他选项
- * @returns Promise
- */
+// DELETE请求
 export const del = <T>(
   url: string,
   data?: Record<string, any>,
@@ -564,13 +554,7 @@ export const del = <T>(
   });
 };
 
-/**
- * 上传文件
- * @param url 上传地址
- * @param filePath 文件路径
- * @param options 其他选项
- * @returns Promise
- */
+// 上传文件
 export const upload = <T>(
   url: string,
   filePath: string,
@@ -596,7 +580,7 @@ export const upload = <T>(
 
   return new Promise<T>((resolve, reject) => {
     wx.uploadFile({
-      url: BASE_URL + url,
+      url: getFullUrl(url),
       filePath,
       name: options?.name || 'file',
       header,
