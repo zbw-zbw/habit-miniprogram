@@ -54,7 +54,7 @@ const baseConfig = {
   log: {
     level: process.env.LOG_LEVEL || 'info'
   }
-};
+}; 
 
 // 环境特定配置
 const envConfigs = {

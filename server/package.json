@@ -4,15 +4,15 @@
   "description": "习惯打卡小程序后端服务",
   "main": "src/app.js",
   "scripts": {
-    "start": "node start-server.js",
-    "dev": "nodemon start-server.js",
-    "prod": "node start-prod.js",
-    "test": "jest --detectOpenHandles",
-    "test:watch": "jest --watch",
-    "seed": "node src/scripts/seed-templates.js",
-    "lint": "eslint src/**/*.js",
-    "format": "prettier --write \"src/**/*.js\"",
-    "deploy": "bash ./deploy.sh"
+      "start": "node start-server.js",
+      "dev": "nodemon start-server.js",
+      "prod": "node start-prod.js",
+      "test": "jest --detectOpenHandles",
+      "test:watch": "jest --watch",
+      "seed": "node src/scripts/seed-templates.js",
+      "lint": "eslint src/**/*.js",
+      "format": "prettier --write \"src/**/*.js\"",
+      "deploy": "bash ./deploy.sh"
   },
   "keywords": [
     "habit",

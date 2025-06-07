@@ -136,15 +136,15 @@ app.use((err, req, res, next) => {
 // 连接数据库并启动服务器
 const startServer = async () => {
   try {
-    // 连接数据库
+// 连接数据库
     await mongoose.connect(config.db.url, {
-      useNewUrlParser: true,
-      useUnifiedTopology: true
+  useNewUrlParser: true,
+  useUnifiedTopology: true
     });
     console.log('数据库连接成功');
-    
-    // 启动服务器
-    app.listen(PORT, () => {
+  
+  // 启动服务器
+  app.listen(PORT, () => {
       console.log(`服务器已启动，端口: ${PORT}`);
       console.log(`在浏览器中访问: http://localhost:${PORT}`);
     });
@@ -170,7 +170,7 @@ const gracefulShutdown = async () => {
     process.exit(0);
   } catch (err) {
     console.error('关闭应用时出错:', err);
-    process.exit(1);
+  process.exit(1);
   }
 };
 

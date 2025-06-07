@@ -1,0 +1,30 @@
+version: '3'
+
+services:
+  app:
+    build: .
+    container_name: habit-tracker-server
+    restart: always
+    ports:
+      - "3001:3000"  # 将容器内的3000端口映射到主机的3001端口，避免与现有服务冲突
+    volumes:
+      - ./uploads:/app/uploads  # 持久化上传文件
+    environment:
+      - NODE_ENV=production
+      - MONGODB_URI=mongodb://mongo:27017/habit-tracker
+      - PORT=3000
+      - JWT_SECRET=your_jwt_secret  # 生产环境中应使用更安全的密钥
+    depends_on:
+      - mongo
+
+  mongo:
+    image: mongo:5
+    container_name: habit-tracker-mongo
+    restart: always
+    ports:
+      - "27018:27017"  # 将MongoDB端口映射到27018，避免与本地MongoDB冲突
+    volumes:
+      - mongo-data:/data/db  # 持久化MongoDB数据
+
+volumes:
+  mongo-data:  # 定义数据卷 

@@ -418,22 +418,22 @@ App<IAppOption>({
       
       // 再次检查API可用性
       setTimeout(() => {
-        wx.request({
-          url: this.globalData.apiBaseUrl + '/api/health',
-          method: 'GET',
-          success: () => {
+    wx.request({
+      url: this.globalData.apiBaseUrl + '/api/health',
+      method: 'GET',
+      success: () => {
             console.log('备用API可用');
-            this.globalData.apiAvailable = true;
+        this.globalData.apiAvailable = true;
             
             // 刷新当前页面数据
             this.refreshCurrentPageData();
-          },
+      },
           fail: (err) => {
             console.error('备用API也无法连接:', err);
-            this.globalData.apiAvailable = false;
-            this.showApiUnavailableMessage();
+        this.globalData.apiAvailable = false;
+        this.showApiUnavailableMessage();
           }
-        });
+    });
       }, 1000);
     } else {
       console.error('没有配置备用API');
@@ -503,7 +503,7 @@ App<IAppOption>({
     if (currentPage && typeof currentPage.loadData === 'function') {
       console.log('刷新当前页面数据:', route);
       try {
-        currentPage.loadData();
+      currentPage.loadData();
       } catch (error) {
         console.error('刷新页面数据出错:', error);
       }

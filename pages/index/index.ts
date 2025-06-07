@@ -311,13 +311,13 @@ Page<IPageData, IPageMethods>({
     // 如果API返回的连续打卡天数为0，但是习惯自身的stats中有连续打卡天数，则使用习惯的数据
     if (currentStreak === 0 && habitStats) {
       try {
-        // 遍历所有习惯统计数据
-        Object.values(habitStats).forEach((habitStat: any) => {
-          if (habitStat && habitStat.currentStreak > 0) {
-            // 使用最大的连续打卡天数
-            currentStreak = Math.max(currentStreak, habitStat.currentStreak || 0);
-          }
-        });
+      // 遍历所有习惯统计数据
+      Object.values(habitStats).forEach((habitStat: any) => {
+        if (habitStat && habitStat.currentStreak > 0) {
+          // 使用最大的连续打卡天数
+          currentStreak = Math.max(currentStreak, habitStat.currentStreak || 0);
+        }
+      });
       } catch (error) {
         console.error('处理习惯统计数据错误:', error);
       }
@@ -326,11 +326,11 @@ Page<IPageData, IPageMethods>({
     // 如果还是0，尝试从习惯本身的stats获取
     if (currentStreak === 0 && Array.isArray(todayHabits)) {
       try {
-        todayHabits.forEach((habit) => {
+      todayHabits.forEach((habit) => {
           if (habit && habit.stats && habit.stats.currentStreak > 0) {
-            currentStreak = Math.max(currentStreak, habit.stats.currentStreak);
-          }
-        });
+          currentStreak = Math.max(currentStreak, habit.stats.currentStreak);
+        }
+      });
       } catch (error) {
         console.error('处理习惯连续打卡数据错误:', error);
       }
@@ -547,7 +547,7 @@ Page<IPageData, IPageMethods>({
           userInfo: app.globalData.userInfo,
           hasLogin: true,
         });
-        
+
         // 不需要在这里调用loadData，因为onLoginStateChange会处理这个逻辑
         // 登录状态变化会自动触发onLoginStateChange
       }
@@ -574,20 +574,20 @@ Page<IPageData, IPageMethods>({
     // 这避免了在初始化和页面加载时重复调用loadData
     if (loginStatusChanged) {
       console.log('登录状态发生变化，重新加载数据');
-      if (loginState.hasLogin) {
-        this.loadData();
-      } else {
-        // 用户退出登录时，清空数据
-        this.setData({
-          todayHabits: [],
-          todayCheckins: [],
-          habitStats: {},
-          completedCount: 0,
-          totalCount: 0,
-          completionRate: 0,
-          completionRateDisplay: '0',
-          currentStreak: 0,
-        });
+    if (loginState.hasLogin) {
+      this.loadData();
+    } else {
+      // 用户退出登录时，清空数据
+      this.setData({
+        todayHabits: [],
+        todayCheckins: [],
+        habitStats: {},
+        completedCount: 0,
+        totalCount: 0,
+        completionRate: 0,
+        completionRateDisplay: '0',
+        currentStreak: 0,
+      });
       }
     }
   },

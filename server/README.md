@@ -193,3 +193,68 @@ git pull
    ```bash
    sudo lsof -i :3000
    ```
+
+## Docker部署说明
+
+### 环境要求
+
+- Docker
+- Docker Compose
+
+### 快速启动
+
+在Windows系统下：
+```bash
+# 进入服务端目录
+cd server
+
+# 运行启动脚本
+start-docker.bat
+```
+
+在Linux/Mac系统下：
+```bash
+# 进入服务端目录
+cd server
+
+# 添加执行权限
+chmod +x start-docker.sh
+
+# 运行启动脚本
+./start-docker.sh
+```
+
+### 服务访问
+
+- API服务地址: http://localhost:3001
+- MongoDB数据库: localhost:27018
+
+### 目录结构
+
+- `src/` - 源代码目录
+- `uploads/` - 文件上传目录
+  - `avatars/` - 用户头像
+  - `checkins/` - 打卡图片
+  - `posts/` - 社区帖子图片
+
+### 常用Docker命令
+
+```bash
+# 启动服务
+docker-compose up -d
+
+# 查看日志
+docker-compose logs -f
+
+# 停止服务
+docker-compose down
+
+# 重新构建并启动
+docker-compose up -d --build
+```
+
+### 注意事项
+
+1. 确保3001端口未被占用
+2. 修改`utils/config.ts`中的API地址为Docker服务地址
+3. 生产环境部署时，请修改JWT密钥等敏感信息

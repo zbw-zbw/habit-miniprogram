@@ -42,10 +42,9 @@ interface EnvConfig {
 // 不同环境的配置
 const configs: Record<EnvType, EnvConfig> = {
   development: {
-    // 修改为本地网络IP，使手机可以访问到开发服务器
-    // 使用实际的IP地址而不是localhost
-    API_BASE_URL: 'http://192.168.31.117:3000',
-    IMAGE_BASE_URL: 'http://192.168.31.117:3000/uploads',
+    // 修改为Docker服务的地址和端口
+    API_BASE_URL: 'http://192.168.31.117:3001',
+    IMAGE_BASE_URL: 'http://192.168.31.117:3001/uploads',
     // 开发环境的备用API（可以是公共的mock API）
     FALLBACK_API_URL: 'https://mock.apifox.cn/m1/2572446-0-default'
   },
@@ -73,3 +72,4 @@ export const getConfig = (): EnvConfig => {
 
 // 导出所有配置项，方便直接使用
 export const config = getConfig(); 
+ 
