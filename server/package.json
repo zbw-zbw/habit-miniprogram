@@ -6,7 +6,6 @@
   "scripts": {
       "start": "node start-server.js",
       "dev": "nodemon start-server.js",
-      "prod": "node start-prod.js",
       "test": "jest --detectOpenHandles",
       "test:watch": "jest --watch",
       "seed": "node src/scripts/seed-templates.js",

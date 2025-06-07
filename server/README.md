@@ -14,247 +14,232 @@
 
 ## 技术栈
 
-- Node.js
+- Node.js >= 16.x
 - Express
 - MongoDB
 - JWT认证
 - RESTful API
+- PM2 (生产环境进程管理)
 
 ## 目录结构
 
 ```
 server/
-├── src/ # 源代码目录
-│ ├── app.js # 应用入口文件
-│ ├── config.js # 配置文件
-│ ├── controllers/ # 控制器
-│ ├── middlewares/ # 中间件
-│ ├── models/ # 数据模型
-│ └── routes/ # 路由
-├── uploads/ # 上传文件存储目录
-├── Dockerfile # Docker构建文件
-├── .dockerignore # Docker忽略文件
-├── deploy.sh # 部署脚本
-├── start-prod.js # 生产环境启动脚本
-├── .env # 环境变量配置
-├── .env.example # 环境变量示例
-├── package.json # 项目依赖
-└── README.md # 项目说明
+├── src/                    # 源代码目录
+│   ├── app.js             # 应用入口文件
+│   ├── config.js          # 配置文件
+│   ├── controllers/       # 控制器
+│   ├── middlewares/       # 中间件
+│   ├── models/            # 数据模型
+│   ├── routes/            # 路由
+│   ├── services/          # 业务服务
+│   └── utils/             # 工具函数
+├── uploads/               # 上传文件存储目录
+├── start-server.js        # 服务器启动脚本
+├── deploy.sh             # 部署脚本
+├── .env                  # 环境变量配置
+├── package.json          # 项目依赖
+└── README.md             # 项目说明
 ```
 
-
-## 安装与运行
+## 快速开始
 
 ### 前提条件
 
-- Node.js >= 14.0.0
+- Node.js >= 16.0.0
 - MongoDB >= 4.0.0
+- npm 或 yarn
 
-### 本地开发环境
+### 本地开发
 
-1. 安装依赖
+1. **安装依赖**
 ```bash
 npm install
 ```
 
-2. 配置环境变量
+2. **配置环境变量**
 ```bash
+# 创建环境变量文件
 cp .env.example .env
-```
-然后编辑 `.env` 文件，配置必要的环境变量。
 
-3. 运行服务
+# 编辑配置文件
+nano .env
+```
+
+3. **启动服务**
 ```bash
-# 开发模式
+# 开发模式（支持热重载）
 npm run dev
 
 # 生产模式
 npm start
 ```
 
-## 部署指南
+4. **访问服务**
+- API地址：http://localhost:3000
+- 健康检查：http://localhost:3000/api/health
 
-### 部署到云服务器
+## 生产部署
 
-#### 方法一：直接部署(推荐新手)
+**详细部署指南请参考：[DEPLOYMENT.md](./DEPLOYMENT.md)**
 
-1. 登录你的云服务器
+### 快速部署
 
-2. 安装Node.js和npm
 ```bash
-curl -sL https://deb.nodesource.com/setup_16.x | sudo -E bash -
-sudo apt-get install -y nodejs
-```
+# 1. 上传项目到服务器
+scp -r server/ user@your_server:/opt/habit-tracker/
 
-3. 将项目传输到服务器
-```bash
-# 在本地执行
-scp -r server/ user@your_server_ip:/path/to/server
-```
-
-4. 创建环境变量文件
-```bash
-cd /path/to/server
+# 2. 配置环境变量
 cp .env.example .env
-nano .env  # 编辑配置文件
-```
+nano .env
 
-5. 使用部署脚本
-```bash
+# 3. 运行部署脚本
 chmod +x deploy.sh
 ./deploy.sh
 ```
 
-#### 方法二：使用Docker(推荐团队开发)
+### Docker部署
 
-1. 安装Docker
 ```bash
-curl -fsSL https://get.docker.com | sh
+# 使用Docker Compose快速启动
+docker-compose up -d
 ```
 
-2. 创建`.env`文件
+## API文档
 
-3. 构建Docker镜像
+### 认证相关
+- `POST /api/auth/register` - 用户注册
+- `POST /api/auth/login` - 用户登录
+- `POST /api/auth/refresh` - 刷新令牌
+
+### 习惯管理
+- `GET /api/habits` - 获取习惯列表
+- `POST /api/habits` - 创建新习惯
+- `PUT /api/habits/:id` - 更新习惯
+- `DELETE /api/habits/:id` - 删除习惯
+
+### 打卡记录
+- `GET /api/checkins` - 获取打卡记录
+- `POST /api/checkins` - 创建打卡记录
+- `GET /api/analytics` - 获取数据分析
+
+### 社区功能
+- `GET /api/posts` - 获取社区动态
+- `POST /api/posts` - 发布动态
+- `POST /api/posts/:id/like` - 点赞
+- `POST /api/posts/:id/comments` - 评论
+
+## 环境变量配置
+
 ```bash
-docker build -t habit-tracker-api .
+# 服务器配置
+NODE_ENV=production
+PORT=3000
+BASE_URL=http://your-server-ip:3000
+
+# 数据库配置
+MONGODB_URI=mongodb://localhost:27017/habit-tracker
+
+# JWT配置
+JWT_SECRET=your_jwt_secret_key
+JWT_EXPIRES_IN=7d
+
+# 文件上传
+MAX_FILE_SIZE=10485760
+UPLOAD_DIR=uploads
+
+# CORS配置
+CORS_ORIGIN=*
 ```
 
-4. 运行Docker容器
+## 开发脚本
+
 ```bash
-docker run -d --name habit-tracker-api \
-  -p 3000:3000 \
-  --env-file .env \
-  -v $(pwd)/uploads:/app/uploads \
-  habit-tracker-api
+npm start        # 启动生产服务器
+npm run dev      # 启动开发服务器（热重载）
+npm test         # 运行测试
+npm run lint     # 代码检查
+npm run format   # 代码格式化
+npm run deploy   # 运行部署脚本
 ```
 
-### 配置域名和HTTPS
+## 维护操作
 
-1. 购买域名并添加DNS解析到你的服务器IP
+### PM2 进程管理
 
-2. 安装Nginx
 ```bash
-sudo apt-get update
-sudo apt-get install nginx
-```
+# 查看进程状态
+pm2 status
 
-3. 安装SSL证书(使用Let's Encrypt)
-```bash
-sudo apt-get install certbot python3-certbot-nginx
-sudo certbot --nginx -d api.yourhabitapp.com
-```
-
-## 数据库
-
-### MongoDB Atlas设置（推荐用于生产环境）
-
-1. 创建MongoDB Atlas账户: https://www.mongodb.com/cloud/atlas/register
-2. 创建一个新的集群
-3. 设置数据库用户
-4. 允许从你的服务器IP访问
-5. 获取连接字符串并在`.env`文件中设置MONGODB_URI
-
-## 维护
-
-### 日志查看
-```bash
+# 查看日志
 pm2 logs habit-tracker-api
-```
 
-### 重启服务
-```bash
+# 重启服务
 pm2 restart habit-tracker-api
+
+# 停止服务
+pm2 stop habit-tracker-api
 ```
 
-### 更新应用
-```bash
-# 拉取最新代码
-git pull
+### 数据库操作
 
-# 重新部署
-./deploy.sh
+```bash
+# 连接MongoDB
+mongo mongodb://localhost:27017/habit-tracker
+
+# 备份数据库
+mongodump --db habit-tracker --out /backup/$(date +%Y%m%d)
+
+# 恢复数据库
+mongorestore --db habit-tracker /backup/20231201/habit-tracker
 ```
 
 ## 常见问题
 
-1. **连接MongoDB失败**
-   - 检查MONGODB_URI是否正确
-   - 确保服务器可以访问MongoDB(检查防火墙设置)
-
-2. **上传文件失败**
-   - 检查uploads目录是否存在并有写入权限
-   ```bash
-   mkdir -p uploads
-   chmod 777 uploads
-   ```
-
-3. **端口被占用**
-   - 修改PORT环境变量或检查是否有其他应用占用该端口
-   ```bash
-   sudo lsof -i :3000
-   ```
-
-## Docker部署说明
-
-### 环境要求
-
-- Docker
-- Docker Compose
-
-### 快速启动
-
-在Windows系统下：
+### 1. 端口冲突
 ```bash
-# 进入服务端目录
-cd server
+# 查看端口占用
+sudo lsof -i :3000
 
-# 运行启动脚本
-start-docker.bat
+# 杀死占用进程
+sudo kill -9 <PID>
 ```
 
-在Linux/Mac系统下：
+### 2. MongoDB连接失败
+- 检查MongoDB服务状态：`sudo systemctl status mongod`
+- 验证连接字符串：`mongo "mongodb://localhost:27017/habit-tracker"`
+
+### 3. 文件上传失败
 ```bash
-# 进入服务端目录
-cd server
-
-# 添加执行权限
-chmod +x start-docker.sh
-
-# 运行启动脚本
-./start-docker.sh
+# 创建上传目录并设置权限
+mkdir -p uploads
+chmod 755 uploads
 ```
 
-### 服务访问
-
-- API服务地址: http://localhost:3001
-- MongoDB数据库: localhost:27018
-
-### 目录结构
-
-- `src/` - 源代码目录
-- `uploads/` - 文件上传目录
-  - `avatars/` - 用户头像
-  - `checkins/` - 打卡图片
-  - `posts/` - 社区帖子图片
-
-### 常用Docker命令
-
+### 4. PM2进程异常
 ```bash
-# 启动服务
-docker-compose up -d
+# 重新加载PM2配置
+pm2 reload ecosystem.config.js
 
-# 查看日志
-docker-compose logs -f
-
-# 停止服务
-docker-compose down
-
-# 重新构建并启动
-docker-compose up -d --build
+# 清理PM2日志
+pm2 flush
 ```
 
-### 注意事项
+## 贡献指南
 
-1. 确保3001端口未被占用
-2. 修改`utils/config.ts`中的API地址为Docker服务地址
-3. 生产环境部署时，请修改JWT密钥等敏感信息
+1. Fork 项目
+2. 创建功能分支：`git checkout -b feature/new-feature`
+3. 提交更改：`git commit -am 'Add new feature'`
+4. 推送分支：`git push origin feature/new-feature`
+5. 提交 Pull Request
+
+## 许可证
+
+[ISC License](LICENSE)
+
+## 支持
+
+如有问题或建议，请：
+1. 查看 [常见问题](#常见问题)
+2. 参考 [部署文档](./DEPLOYMENT.md)
+3. 提交 Issue

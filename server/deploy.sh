@@ -25,10 +25,10 @@ fi
 mkdir -p uploads
 chmod 777 uploads
 
-# 启动应用
+# 启动应用（使用正确的启动脚本）
 echo "启动应用..."
 pm2 delete habit-tracker-api 2>/dev/null || true
-pm2 start start-prod.js --name habit-tracker-api
+pm2 start start-server.js --name habit-tracker-api
 
 # 设置PM2开机自启
 echo "设置PM2开机自启..."
