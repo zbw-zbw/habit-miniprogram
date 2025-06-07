@@ -13,7 +13,7 @@ services:
       - NODE_ENV=production
       - MONGODB_URI=mongodb://mongo:27017/habit-tracker
       - PORT=3000
-      - JWT_SECRET=your_jwt_secret  # 生产环境中应使用更安全的密钥
+      - JWT_SECRET=h8dKl3pQr7sT9vX2zAcB4eF6gH1jK5mN  # 已更新为更安全的随机密钥
     depends_on:
       - mongo
 
