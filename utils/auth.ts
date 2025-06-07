@@ -67,6 +67,7 @@ function silentLogin(
 
   // 获取API基础URL
   const apiBaseUrl = app.globalData.apiBaseUrl || '';
+  console.log('当前API基础URL:', apiBaseUrl);
   
   // 调用后端API进行登录
   wx.request({
@@ -127,10 +128,27 @@ function silentLogin(
     },
     fail: (err) => {
       console.error('请求后端登录接口失败:', err);
-      wx.showToast({
-        title: '登录失败',
-        icon: 'error',
-      });
+      
+      // 添加更详细的错误信息
+      if (err.errMsg && err.errMsg.includes('ERR_CONNECTION_REFUSED')) {
+        console.error('无法连接到服务器，请检查:');
+        console.error('1. 后端服务器是否已启动');
+        console.error('2. API地址配置是否正确:', apiBaseUrl);
+        console.error('3. 服务器是否允许外部连接 (不仅限于localhost)');
+        console.error('4. 手机和电脑是否在同一网络');
+        console.error('5. 防火墙是否阻止了连接');
+        
+        wx.showModal({
+          title: '连接失败',
+          content: '无法连接到服务器，请确保服务器已启动且可从手机访问。',
+          showCancel: false
+        });
+      } else {
+        wx.showToast({
+          title: '登录失败',
+          icon: 'error',
+        });
+      }
 
       if (callback) {
         callback(false);

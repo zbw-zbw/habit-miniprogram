@@ -35,22 +35,33 @@ export const getEnvType = (): EnvType => {
 interface EnvConfig {
   API_BASE_URL: string;
   IMAGE_BASE_URL: string;
+  FALLBACK_API_URL?: string; // 备用API地址
   // 可以添加更多配置项
 }
 
 // 不同环境的配置
 const configs: Record<EnvType, EnvConfig> = {
   development: {
-    API_BASE_URL: 'http://localhost:3000',
-    IMAGE_BASE_URL: 'http://localhost:3000/uploads'
+    // 修改为本地网络IP，使手机可以访问到开发服务器
+    // 使用实际的IP地址而不是localhost
+    API_BASE_URL: 'http://192.168.31.117:3000',
+    IMAGE_BASE_URL: 'http://192.168.31.117:3000/uploads',
+    // 开发环境的备用API（可以是公共的mock API）
+    FALLBACK_API_URL: 'https://mock.apifox.cn/m1/2572446-0-default'
   },
   test: {
-    API_BASE_URL: 'https://api-test.yourapp.com',
-    IMAGE_BASE_URL: 'https://api-test.yourapp.com/uploads'
+    // 测试环境API地址 - 替换为你的测试服务器地址
+    API_BASE_URL: 'https://api-test.yourhabitapp.com',
+    IMAGE_BASE_URL: 'https://api-test.yourhabitapp.com/uploads',
+    // 测试环境备用API
+    FALLBACK_API_URL: 'https://mock.apifox.cn/m1/2572446-0-default'
   },
   production: {
-    API_BASE_URL: 'https://api.yourapp.com',
-    IMAGE_BASE_URL: 'https://api.yourapp.com/uploads'
+    // 生产环境API地址 - 替换为你的生产服务器地址
+    API_BASE_URL: 'https://api.yourhabitapp.com',
+    IMAGE_BASE_URL: 'https://api.yourhabitapp.com/uploads',
+    // 生产环境备用API
+    FALLBACK_API_URL: 'https://api-backup.yourhabitapp.com'
   }
 };
 

@@ -3,6 +3,7 @@
  */
 // 导入类型定义
 import { IAppOption, IUserInfo, IAchievement } from './typings/index';
+import { config, getEnvType } from './utils/config';
 
 // 登录状态变化监听器
 const loginStateListeners: Array<
@@ -17,7 +18,7 @@ const achievementUnlockListeners: Array<(achievement: IAchievement) => void> =
 const themeChangeListeners: Array<(theme: 'light' | 'dark' | 'system') => void> = [];
 
 // API基础URL
-const API_BASE_URL = 'http://localhost:3000'; // 本地开发环境API地址
+const API_BASE_URL = config.API_BASE_URL;
 
 App<IAppOption>({
   globalData: {
@@ -45,6 +46,9 @@ App<IAppOption>({
     // 获取系统信息
     const systemInfo = wx.getSystemInfoSync();
     this.globalData.systemInfo = systemInfo;
+
+    // 检查API可用性
+    this.checkApiAvailability();
 
     // 检查本地存储的登录状态
     const userInfo = wx.getStorageSync('userInfo');
@@ -344,24 +348,117 @@ App<IAppOption>({
 
   // API相关方法
   checkApiAvailability() {
-    wx.request({
-      url: this.globalData.apiBaseUrl + '/api/health',
-      method: 'GET',
-      success: () => {
-        this.globalData.apiAvailable = true;
-      },
-      fail: () => {
-        this.globalData.apiAvailable = false;
-        this.showApiUnavailableMessage();
-      },
+    const timeout = 5000; // 设置超时时间为5秒
+    let timeoutHandle: number;
+    let isRequestDone = false;
+    
+    console.log('检查API可用性:', this.globalData.apiBaseUrl);
+    
+    // 创建超时Promise
+    const timeoutPromise = new Promise((_, reject) => {
+      timeoutHandle = setTimeout(() => {
+        if (!isRequestDone) {
+          reject(new Error('请求超时'));
+        }
+      }, timeout) as unknown as number;
     });
+    
+    // 创建API请求Promise
+    const apiPromise = new Promise((resolve, reject) => {
+      wx.request({
+        url: this.globalData.apiBaseUrl + '/api/health',
+        method: 'GET',
+        success: (res) => {
+          isRequestDone = true;
+          if (res.statusCode >= 200 && res.statusCode < 300) {
+            console.log('API可用');
+            this.globalData.apiAvailable = true;
+            resolve(true);
+          } else {
+            console.log('API返回错误状态码:', res.statusCode);
+            reject(new Error(`API返回错误状态码: ${res.statusCode}`));
+          }
+        },
+        fail: (err) => {
+          isRequestDone = true;
+          console.error('API请求失败:', err);
+          reject(err);
+        }
+      });
+    });
+    
+    // 使用Promise.race竞争超时
+    Promise.race([apiPromise, timeoutPromise])
+      .catch((error) => {
+        console.error('API连接失败:', error);
+        // 尝试切换到备用API
+        this.switchToFallbackApi();
+      })
+      .finally(() => {
+        // 清理超时定时器
+        clearTimeout(timeoutHandle);
+      });
+  },
+  
+  // 切换到备用API
+  switchToFallbackApi() {
+    // 使用已导入的config，不要使用require
+    const fallbackApiUrl = config.FALLBACK_API_URL;
+    
+    if (fallbackApiUrl) {
+      console.log('切换到备用API:', fallbackApiUrl);
+      this.globalData.apiBaseUrl = fallbackApiUrl;
+      
+      // 显示切换提示
+      wx.showToast({
+        title: '已切换到备用服务器',
+        icon: 'none',
+        duration: 2000
+      });
+      
+      // 再次检查API可用性
+      setTimeout(() => {
+        wx.request({
+          url: this.globalData.apiBaseUrl + '/api/health',
+          method: 'GET',
+          success: () => {
+            console.log('备用API可用');
+            this.globalData.apiAvailable = true;
+            
+            // 刷新当前页面数据
+            this.refreshCurrentPageData();
+          },
+          fail: (err) => {
+            console.error('备用API也无法连接:', err);
+            this.globalData.apiAvailable = false;
+            this.showApiUnavailableMessage();
+          }
+        });
+      }, 1000);
+    } else {
+      console.error('没有配置备用API');
+      this.globalData.apiAvailable = false;
+      this.showApiUnavailableMessage();
+    }
   },
 
   showApiUnavailableMessage() {
-    wx.showToast({
-      title: '服务器连接失败',
-      icon: 'error',
-      duration: 2000,
+    // 使用已导入的getEnvType，不要使用require
+    const env = getEnvType();
+    
+    let message = '服务器连接失败';
+    if (env === 'development') {
+      message = '开发服务器连接失败，请确保服务器已启动';
+    } else if (env === 'test') {
+      message = '测试服务器连接失败，请稍后再试';
+    } else {
+      message = '服务器暂时不可用，请稍后再试';
+    }
+    
+    wx.showModal({
+      title: '连接错误',
+      content: message,
+      showCancel: false
     });
   },
 

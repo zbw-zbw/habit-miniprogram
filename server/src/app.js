@@ -8,6 +8,9 @@ const path = require('path');
 const mongoose = require('mongoose');
 require('dotenv').config();
 
+// 导入配置
+const config = require('./config');
+
 // 导入路由
 const authRoutes = require('./routes/auth.routes');
 const userRoutes = require('./routes/user.routes');
@@ -30,16 +33,16 @@ const authMiddleware = require('./middlewares/auth.middleware');
 
 // 初始化Express应用
 const app = express();
-const PORT = process.env.PORT || 3002;
+const PORT = config.port;
 
 // 中间件
-app.use(cors());
+app.use(cors(config.cors));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-app.use(morgan('dev'));
+app.use(morgan(process.env.NODE_ENV === 'production' ? 'combined' : 'dev'));
 
 // 静态文件服务
-app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
+app.use('/uploads', express.static(path.join(__dirname, '../', config.upload.dir)));
 
 // 路由
 app.use('/api/auth', authRoutes);
@@ -95,7 +98,8 @@ app.get('/', (req, res) => {
   res.json({
     message: '习惯打卡小程序API服务',
     version: '1.0.0',
-    status: 'running'
+    status: 'running',
+    environment: process.env.NODE_ENV || 'development'
   });
 });
 
@@ -103,12 +107,24 @@ app.get('/', (req, res) => {
 app.get('/api/health', (req, res) => {
   res.json({
     status: 'ok',
-    timestamp: new Date().toISOString()
+    timestamp: new Date().toISOString(),
+    environment: process.env.NODE_ENV || 'development',
+    database: mongoose.connection.readyState === 1 ? 'connected' : 'disconnected'
+  });
+});
+
+// 404处理
+app.use((req, res, next) => {
+  res.status(404).json({
+    success: false,
+    message: '请求的资源不存在',
+    path: req.originalUrl
   });
 });
 
 // 错误处理中间件
 app.use((err, req, res, next) => {
+  console.error('应用错误:', err);
   
   res.status(err.statusCode || 500).json({
     success: false,
@@ -117,22 +133,51 @@ app.use((err, req, res, next) => {
   });
 });
 
-// 连接数据库
-mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/habit-tracker', {
-  useNewUrlParser: true,
-  useUnifiedTopology: true
-})
-.then(() => {
-  
-  // 启动服务器
-  app.listen(PORT, () => {
+// 连接数据库并启动服务器
+const startServer = async () => {
+  try {
+    // 连接数据库
+    await mongoose.connect(config.db.url, {
+      useNewUrlParser: true,
+      useUnifiedTopology: true
+    });
+    console.log('数据库连接成功');
     
-  });
-})
-.catch((err) => {
-  
-  process.exit(1);
-});
+    // 启动服务器
+    app.listen(PORT, () => {
+      console.log(`服务器已启动，端口: ${PORT}`);
+      console.log(`在浏览器中访问: http://localhost:${PORT}`);
+    });
+    
+    // 处理进程终止信号
+    process.on('SIGINT', gracefulShutdown);
+    process.on('SIGTERM', gracefulShutdown);
+  } catch (err) {
+    console.error('数据库连接失败:', err);
+    process.exit(1);
+  }
+};
+
+// 优雅关闭应用
+const gracefulShutdown = async () => {
+  console.log('正在关闭应用...');
+  try {
+    // 关闭数据库连接
+    await mongoose.connection.close();
+    console.log('数据库连接已关闭');
+    
+    // 退出进程
+    process.exit(0);
+  } catch (err) {
+    console.error('关闭应用时出错:', err);
+    process.exit(1);
+  }
+};
+
+// 如果直接运行此文件，启动服务器
+if (require.main === module) {
+  startServer();
+}
 
 module.exports = app; 
  

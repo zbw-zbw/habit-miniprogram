@@ -19,19 +19,19 @@ const END_PORT = 3010;
 function isPortAvailable(port) {
   return new Promise((resolve) => {
     const server = net.createServer();
-    
+
     server.once('error', () => {
       // 端口被占用
       resolve(false);
     });
-    
+
     server.once('listening', () => {
       // 端口可用，关闭服务器
       server.close(() => {
         resolve(true);
       });
     });
-    
+
     server.listen(port);
   });
 }
@@ -48,7 +48,7 @@ async function findAvailablePort(startPort, endPort) {
       return port;
     }
   }
-  
+
   throw new Error(`在端口范围 ${startPort}-${endPort} 中没有找到可用端口`);
 }
 
@@ -58,20 +58,18 @@ async function findAvailablePort(startPort, endPort) {
  */
 function updateApiBaseUrl(port) {
   const appJsPath = path.join(__dirname, '..', 'app.js');
-  
+
   if (fs.existsSync(appJsPath)) {
     let content = fs.readFileSync(appJsPath, 'utf8');
-    
+
     // 更新API基础URL
     content = content.replace(
       /apiBaseUrl: ['"]http:\/\/localhost:\d+['"]/,
       `apiBaseUrl: 'http://localhost:${port}'`
     );
-    
+
     fs.writeFileSync(appJsPath, content, 'utf8');
-    
   } else {
-    
   }
 }
 
@@ -80,33 +78,28 @@ function updateApiBaseUrl(port) {
  * @param {number} port 端口号
  */
 function startServer(port) {
-  
-  
   // 设置环境变量
   const env = { ...process.env, PORT: port.toString() };
-  
+
   // 启动服务器
   const server = spawn('node', ['src/app.js'], {
     cwd: __dirname,
     env,
-    stdio: 'inherit'
+    stdio: 'inherit',
   });
-  
+
   server.on('error', (err) => {
-    
     process.exit(1);
   });
-  
+
   server.on('exit', (code) => {
     if (code !== 0) {
-      
       process.exit(code);
     }
   });
-  
+
   // 监听Ctrl+C信号
   process.on('SIGINT', () => {
-    
     server.kill();
     process.exit(0);
   });
@@ -119,17 +112,16 @@ async function main() {
   try {
     // 查找可用端口
     const port = await findAvailablePort(START_PORT, END_PORT);
-    
+
     // 更新API基础URL
     updateApiBaseUrl(port);
-    
+
     // 启动服务器
     startServer(port);
   } catch (err) {
-    
     process.exit(1);
   }
 }
 
 // 执行主函数
-main(); 
+main();

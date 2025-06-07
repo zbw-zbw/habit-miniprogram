@@ -24,18 +24,24 @@
 
 ```
 server/
-├── src/                    # 源代码目录
-│   ├── app.js              # 应用入口文件
-│   ├── controllers/        # 控制器
-│   ├── middlewares/        # 中间件
-│   ├── models/             # 数据模型
-│   └── routes/             # 路由
-├── uploads/                # 上传文件存储目录
-├── .env                    # 环境变量配置
-├── .env.example            # 环境变量示例
-├── package.json            # 项目依赖
-└── README.md               # 项目说明
+├── src/ # 源代码目录
+│ ├── app.js # 应用入口文件
+│ ├── config.js # 配置文件
+│ ├── controllers/ # 控制器
+│ ├── middlewares/ # 中间件
+│ ├── models/ # 数据模型
+│ └── routes/ # 路由
+├── uploads/ # 上传文件存储目录
+├── Dockerfile # Docker构建文件
+├── .dockerignore # Docker忽略文件
+├── deploy.sh # 部署脚本
+├── start-prod.js # 生产环境启动脚本
+├── .env # 环境变量配置
+├── .env.example # 环境变量示例
+├── package.json # 项目依赖
+└── README.md # 项目说明
 ```
+
 
 ## 安装与运行
 
@@ -44,31 +50,20 @@ server/
 - Node.js >= 14.0.0
 - MongoDB >= 4.0.0
 
-### 安装步骤
+### 本地开发环境
 
-1. 克隆仓库
-
-```bash
-git clone <repository-url>
-cd server
-```
-
-2. 安装依赖
-
+1. 安装依赖
 ```bash
 npm install
 ```
 
-3. 配置环境变量
-
+2. 配置环境变量
 ```bash
 cp .env.example .env
 ```
-
 然后编辑 `.env` 文件，配置必要的环境变量。
 
-4. 运行服务
-
+3. 运行服务
 ```bash
 # 开发模式
 npm run dev
@@ -77,44 +72,124 @@ npm run dev
 npm start
 ```
 
-## API文档
+## 部署指南
 
-API接口文档请参考 [API文档](docs/api.md)
+### 部署到云服务器
 
-## 数据模型
+#### 方法一：直接部署(推荐新手)
 
-系统包含以下核心数据模型：
+1. 登录你的云服务器
 
-- 用户（User）：用户基本信息、统计数据和设置
-- 习惯（Habit）：习惯信息、频率设置、目标设置、统计数据
-- 打卡记录（Checkin）：打卡日期、完成状态、媒体内容、笔记等
-- 习惯模板（HabitTemplate）：预设习惯模板，包含科学依据和建议步骤
-- 社区动态（Post）：用户分享的动态内容
-- 评论（Comment）：动态评论
-- 关注关系（Follow）：用户关注关系
-- 挑战（Challenge）：习惯挑战活动
-- 挑战参与者（ChallengeParticipant）：挑战参与记录
-- 通知（Notification）：用户通知
-- 设置（Settings）：用户个性化设置
+2. 安装Node.js和npm
+```bash
+curl -sL https://deb.nodesource.com/setup_16.x | sudo -E bash -
+sudo apt-get install -y nodejs
+```
 
-## 环境变量配置
+3. 将项目传输到服务器
+```bash
+# 在本地执行
+scp -r server/ user@your_server_ip:/path/to/server
+```
 
-详细的环境变量配置请参考 `.env.example` 文件
+4. 创建环境变量文件
+```bash
+cd /path/to/server
+cp .env.example .env
+nano .env  # 编辑配置文件
+```
 
-## 开发规范
+5. 使用部署脚本
+```bash
+chmod +x deploy.sh
+./deploy.sh
+```
 
-- 使用 ESLint 进行代码风格检查
-- 使用 Prettier 进行代码格式化
-- 使用 TypeScript 进行类型检查
+#### 方法二：使用Docker(推荐团队开发)
 
-## 贡献指南
+1. 安装Docker
+```bash
+curl -fsSL https://get.docker.com | sh
+```
 
-1. Fork 仓库
-2. 创建功能分支 (`git checkout -b feature/amazing-feature`)
-3. 提交变更 (`git commit -m 'Add some amazing feature'`)
-4. 推送到分支 (`git push origin feature/amazing-feature`)
-5. 提交 Pull Request
+2. 创建`.env`文件
 
-## 许可证
+3. 构建Docker镜像
+```bash
+docker build -t habit-tracker-api .
+```
 
-[MIT](LICENSE) 
+4. 运行Docker容器
+```bash
+docker run -d --name habit-tracker-api \
+  -p 3000:3000 \
+  --env-file .env \
+  -v $(pwd)/uploads:/app/uploads \
+  habit-tracker-api
+```
+
+### 配置域名和HTTPS
+
+1. 购买域名并添加DNS解析到你的服务器IP
+
+2. 安装Nginx
+```bash
+sudo apt-get update
+sudo apt-get install nginx
+```
+
+3. 安装SSL证书(使用Let's Encrypt)
+```bash
+sudo apt-get install certbot python3-certbot-nginx
+sudo certbot --nginx -d api.yourhabitapp.com
+```
+
+## 数据库
+
+### MongoDB Atlas设置（推荐用于生产环境）
+
+1. 创建MongoDB Atlas账户: https://www.mongodb.com/cloud/atlas/register
+2. 创建一个新的集群
+3. 设置数据库用户
+4. 允许从你的服务器IP访问
+5. 获取连接字符串并在`.env`文件中设置MONGODB_URI
+
+## 维护
+
+### 日志查看
+```bash
+pm2 logs habit-tracker-api
+```
+
+### 重启服务
+```bash
+pm2 restart habit-tracker-api
+```
+
+### 更新应用
+```bash
+# 拉取最新代码
+git pull
+
+# 重新部署
+./deploy.sh
+```
+
+## 常见问题
+
+1. **连接MongoDB失败**
+   - 检查MONGODB_URI是否正确
+   - 确保服务器可以访问MongoDB(检查防火墙设置)
+
+2. **上传文件失败**
+   - 检查uploads目录是否存在并有写入权限
+   ```bash
+   mkdir -p uploads
+   chmod 777 uploads
+   ```
+
+3. **端口被占用**
+   - 修改PORT环境变量或检查是否有其他应用占用该端口
+   ```bash
+   sudo lsof -i :3000
+   ```
