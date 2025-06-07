@@ -6,9 +6,6 @@ miniprogram_npm/
 dist/
 .miniprogram/
 
-# Environment variables
-.env
-
 # IDE specific files
 .DS_Store
 .idea/
@@ -25,4 +22,4 @@ package-lock.json
 
 # Miniprogram specific
 project.private.config.json
-miniprogram.private.config.json 
+miniprogram.private.config.json
